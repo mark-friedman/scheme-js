@@ -27,7 +27,7 @@ import { Flonum } from '../core/interpreter/number_representation.js';
 export const LIBRARIES = {
   "scheme-js.debugger": {
     fingerprint: "47207789",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["debugger.sld","debugger.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"debugger\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"make-debugger-host\",\"make-debugger\",\"debugger?\",\"debugger-enabled?\",\"set-debugger-enabled!\",\"debugger-debugging?\",\"debugger-interpretation\",\"debugger-changed!\",\"reset-debugger!\",\"add-breakpoint!\",\"remove-breakpoint!\",\"clear-breakpoints!\",\"debugger-breakpoints\",\"breakpoint-at\",\"breakpoint-id\",\"breakpoint-filename\",\"breakpoint-line\",\"breakpoint-column\",\"enter-activation!\",\"replace-activation!\",\"exit-activation!\",\"debugger-activations\",\"debugger-depth\",\"activation-name\",\"activation-source\",\"activation-env\",\"activation-tail-calls\",\"debugger-mode\",\"debugger-paused?\",\"debugger-aborted?\",\"debugger-target-depth\",\"debugger-pause-reason\",\"debugger-pause-data\",\"step-into!\",\"step-over!\",\"step-out!\",\"resume!\",\"abort!\",\"pause!\",\"step-stops?\",\"should-pause?\",\"pause-at!\",\"pause-on-exception!\",\"breaks-on-exception?\",\"debugger-breaks-on-caught?\",\"set-debugger-breaks-on-caught!\",\"debugger-breaks-on-uncaught?\",\"set-debugger-breaks-on-uncaught!\",\"span-contains?\",\"innermost-holding\",\"compiled-procedure-at\",\"transformer-at\",\"breakpoints->js\",\"activations->js\",\"pause-state->js\",\"debugger-command?\",\"debugger-command\",\"reset-frame-selection!\",\"eval-answer\",\"eval-failure\",\"pause-message\"],[\"l\",\"include\",[\"s\",\"debugger.scm\"]]]",
     procedures: {
@@ -1581,7 +1581,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"debugger.scm","line":170,"column":1,"endLine":181,"endColumn":98},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $ge = R.ge, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "location?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "equal?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "location-filename")).v;
@@ -1680,7 +1680,7 @@ export const LIBRARIES = {
                   if (s_x_$2339 !== false) {
                     return s_x_$2339;
                   } else {
-                    $t27 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_line_$2332 === 'number' && typeof s_first_2dline_$2334 === 'number') ? (s_line_$2332 === s_first_2dline_$2334) : R.callBinding((C9.v ?? G9()), [s_line_$2332, s_first_2dline_$2334]);
+                    $t27 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_line_$2332 === 'number' && typeof s_first_2dline_$2334 === 'number') ? s_line_$2332 === s_first_2dline_$2334 : $numEq(s_line_$2332, s_first_2dline_$2334)) : R.callBinding((C9.v ?? G9()), [s_line_$2332, s_first_2dline_$2334]);
                     $t28 = (W8.intact || (C8.v ?? G8()) === P8) ? ($t27 === false) : R.callBinding((C8.v ?? G8()), [$t27]);
                     s_x_$2340 = $t28;
                     if (s_x_$2340 !== false) {
@@ -1691,13 +1691,13 @@ export const LIBRARIES = {
                       if (s_x_$2341 !== false) {
                         $t31 = s_x_$2341;
                       } else {
-                        $t32 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_column_$2333 === 'number' && typeof s_first_2dcolumn_$2337 === 'number') ? (s_column_$2333 >= s_first_2dcolumn_$2337) : R.callBinding((C10.v ?? G10()), [s_column_$2333, s_first_2dcolumn_$2337]);
+                        $t32 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_column_$2333 === 'number' && typeof s_first_2dcolumn_$2337 === 'number') ? s_column_$2333 >= s_first_2dcolumn_$2337 : $ge(s_column_$2333, s_first_2dcolumn_$2337)) : R.callBinding((C10.v ?? G10()), [s_column_$2333, s_first_2dcolumn_$2337]);
                         $t31 = $t32;
                       }
                       $t29 = $t31;
                     }
                     if ($t29 !== false) {
-                      $t33 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_line_$2332 === 'number' && typeof s_last_2dline_$2335 === 'number') ? (s_line_$2332 === s_last_2dline_$2335) : R.callBinding((C9.v ?? G9()), [s_line_$2332, s_last_2dline_$2335]);
+                      $t33 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_line_$2332 === 'number' && typeof s_last_2dline_$2335 === 'number') ? s_line_$2332 === s_last_2dline_$2335 : $numEq(s_line_$2332, s_last_2dline_$2335)) : R.callBinding((C9.v ?? G9()), [s_line_$2332, s_last_2dline_$2335]);
                       $t34 = (W8.intact || (C8.v ?? G8()) === P8) ? ($t33 === false) : R.callBinding((C8.v ?? G8()), [$t33]);
                       s_x_$2342 = $t34;
                       if (s_x_$2342 !== false) {
@@ -1708,7 +1708,7 @@ export const LIBRARIES = {
                         if (s_x_$2343 !== false) {
                           return s_x_$2343;
                         } else {
-                          $t36 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_column_$2333 === 'number' && typeof s_end_2dcolumn_$2338 === 'number') ? (s_column_$2333 < s_end_2dcolumn_$2338) : R.callBinding((C11.v ?? G11()), [s_column_$2333, s_end_2dcolumn_$2338]);
+                          $t36 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_column_$2333 === 'number' && typeof s_end_2dcolumn_$2338 === 'number') ? s_column_$2333 < s_end_2dcolumn_$2338 : $lt(s_column_$2333, s_end_2dcolumn_$2338)) : R.callBinding((C11.v ?? G11()), [s_column_$2333, s_end_2dcolumn_$2338]);
                           return $t36;
                         }
                       }
@@ -1859,7 +1859,7 @@ export const LIBRARIES = {
               case 20:
                 return s_x_$2339;
               case 21:
-                $t27 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_line_$2332 === 'number' && typeof s_first_2dline_$2334 === 'number') ? (s_line_$2332 === s_first_2dline_$2334) : R.callBinding((C9.v ?? G9()), [s_line_$2332, s_first_2dline_$2334]);
+                $t27 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_line_$2332 === 'number' && typeof s_first_2dline_$2334 === 'number') ? s_line_$2332 === s_first_2dline_$2334 : $numEq(s_line_$2332, s_first_2dline_$2334)) : R.callBinding((C9.v ?? G9()), [s_line_$2332, s_first_2dline_$2334]);
                 $t28 = (W8.intact || (C8.v ?? G8()) === P8) ? ($t27 === false) : R.callBinding((C8.v ?? G8()), [$t27]);
                 s_x_$2340 = $t28;
                 if (s_x_$2340 !== false) { $pc = 22; continue; } $pc = 23; continue;
@@ -1876,14 +1876,14 @@ export const LIBRARIES = {
                 $t31 = s_x_$2341;
                 $pc = 27; continue;
               case 26:
-                $t32 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_column_$2333 === 'number' && typeof s_first_2dcolumn_$2337 === 'number') ? (s_column_$2333 >= s_first_2dcolumn_$2337) : R.callBinding((C10.v ?? G10()), [s_column_$2333, s_first_2dcolumn_$2337]);
+                $t32 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_column_$2333 === 'number' && typeof s_first_2dcolumn_$2337 === 'number') ? s_column_$2333 >= s_first_2dcolumn_$2337 : $ge(s_column_$2333, s_first_2dcolumn_$2337)) : R.callBinding((C10.v ?? G10()), [s_column_$2333, s_first_2dcolumn_$2337]);
                 $t31 = $t32;
                 $pc = 27; continue;
               case 27:
                 $t29 = $t31;
                 $pc = 24; continue;
               case 28:
-                $t33 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_line_$2332 === 'number' && typeof s_last_2dline_$2335 === 'number') ? (s_line_$2332 === s_last_2dline_$2335) : R.callBinding((C9.v ?? G9()), [s_line_$2332, s_last_2dline_$2335]);
+                $t33 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_line_$2332 === 'number' && typeof s_last_2dline_$2335 === 'number') ? s_line_$2332 === s_last_2dline_$2335 : $numEq(s_line_$2332, s_last_2dline_$2335)) : R.callBinding((C9.v ?? G9()), [s_line_$2332, s_last_2dline_$2335]);
                 $t34 = (W8.intact || (C8.v ?? G8()) === P8) ? ($t33 === false) : R.callBinding((C8.v ?? G8()), [$t33]);
                 s_x_$2342 = $t34;
                 if (s_x_$2342 !== false) { $pc = 30; continue; } $pc = 31; continue;
@@ -1898,7 +1898,7 @@ export const LIBRARIES = {
               case 32:
                 return s_x_$2343;
               case 33:
-                $t36 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_column_$2333 === 'number' && typeof s_end_2dcolumn_$2338 === 'number') ? (s_column_$2333 < s_end_2dcolumn_$2338) : R.callBinding((C11.v ?? G11()), [s_column_$2333, s_end_2dcolumn_$2338]);
+                $t36 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_column_$2333 === 'number' && typeof s_end_2dcolumn_$2338 === 'number') ? s_column_$2333 < s_end_2dcolumn_$2338 : $lt(s_column_$2333, s_end_2dcolumn_$2338)) : R.callBinding((C11.v ?? G11()), [s_column_$2333, s_end_2dcolumn_$2338]);
                 return $t36;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -1914,7 +1914,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"debugger.scm","line":186,"column":1,"endLine":187,"endColumn":85},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "+")).v;
         const W0 = R.primitiveCell("+"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "-")).v;
@@ -1953,8 +1953,8 @@ export const LIBRARIES = {
           $t9 = $t8 === undefined ? ($t7[$PRIM] === true ? $t7(s_span_$2344) : $foreign($t7, [s_span_$2344])) : $t8(s_span_$2344);
           while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
           if ($t9 === $UNWIND) { R.reify($proc$r, 6, { $t3 }); return $UNWIND; }
-          $t10 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t3 === 'number' && typeof $t9 === 'number') ? ($sub($t3, $t9)) : R.callBinding((C1.v ?? G1()), [$t3, $t9]);
-          $t11 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof 1 === 'number' && typeof $t10 === 'number') ? ($add(1, $t10)) : R.callBinding((C0.v ?? G0()), [1, $t10]);
+          $t10 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t3 === 'number' && typeof $t9 === 'number' && (!Number.isInteger(($t3 - $t9)) || (Number.isSafeInteger(($t3 - $t9)) && Number.isInteger($t3) && Number.isInteger($t9)))) ? ($t3 - $t9) : $sub($t3, $t9)) : R.callBinding((C1.v ?? G1()), [$t3, $t9]);
+          $t11 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof 1 === 'number' && typeof $t10 === 'number' && (!Number.isInteger((1 + $t10)) || (Number.isSafeInteger((1 + $t10)) && Number.isInteger(1) && Number.isInteger($t10)))) ? (1 + $t10) : $add(1, $t10)) : R.callBinding((C0.v ?? G0()), [1, $t10]);
           return $t11;
         } }["span-lines"];
         const $proc$r = { "span-lines": function ($pc, $f) {
@@ -2005,8 +2005,8 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 6:
                 $t9 = $r;
-                $t10 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t3 === 'number' && typeof $t9 === 'number') ? ($sub($t3, $t9)) : R.callBinding((C1.v ?? G1()), [$t3, $t9]);
-                $t11 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof 1 === 'number' && typeof $t10 === 'number') ? ($add(1, $t10)) : R.callBinding((C0.v ?? G0()), [1, $t10]);
+                $t10 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t3 === 'number' && typeof $t9 === 'number' && (!Number.isInteger(($t3 - $t9)) || (Number.isSafeInteger(($t3 - $t9)) && Number.isInteger($t3) && Number.isInteger($t9)))) ? ($t3 - $t9) : $sub($t3, $t9)) : R.callBinding((C1.v ?? G1()), [$t3, $t9]);
+                $t11 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof 1 === 'number' && typeof $t10 === 'number' && (!Number.isInteger((1 + $t10)) || (Number.isSafeInteger((1 + $t10)) && Number.isInteger(1) && Number.isInteger($t10)))) ? (1 + $t10) : $add(1, $t10)) : R.callBinding((C0.v ?? G0()), [1, $t10]);
                 return $t11;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -2022,7 +2022,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"debugger.scm","line":198,"column":1,"endLine":204,"endColumn":44},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "span-contains?")).v;
@@ -2093,7 +2093,7 @@ export const LIBRARIES = {
                 $t22 = $t21 === undefined ? ($t20[$PRIM] === true ? $t20($t19) : $foreign($t20, [$t19])) : $t21($t19);
                 while ($t22 instanceof $TailCall) { $stack.room = $d; $t22 = $step($t22); }
                 if ($t22 === $UNWIND) { R.reify($proc$r, 14, { s_named_$2351, s_best_$2352, $t17, s_filename_$2347, s_line_$2348, s_column_$2349 }); return $UNWIND; }
-                $t23 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof $t17 === 'number' && typeof $t22 === 'number') ? ($t17 < $t22) : R.callBinding((C4.v ?? G4()), [$t17, $t22]);
+                $t23 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof $t17 === 'number' && typeof $t22 === 'number') ? $t17 < $t22 : $lt($t17, $t22)) : R.callBinding((C4.v ?? G4()), [$t17, $t22]);
                 $t10 = $t23;
               }
               $t8 = $t10;
@@ -2205,7 +2205,7 @@ export const LIBRARIES = {
                 $pc = 14; continue;
               case 14:
                 $t22 = $r;
-                $t23 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof $t17 === 'number' && typeof $t22 === 'number') ? ($t17 < $t22) : R.callBinding((C4.v ?? G4()), [$t17, $t22]);
+                $t23 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof $t17 === 'number' && typeof $t22 === 'number') ? $t17 < $t22 : $lt($t17, $t22)) : R.callBinding((C4.v ?? G4()), [$t17, $t22]);
                 $t10 = $t23;
                 $pc = 11; continue;
               case 15:
@@ -3219,7 +3219,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"debugger.scm","line":406,"column":1,"endLine":414,"endColumn":9},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-next-breakpoint")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-append")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "number->string")).v;
@@ -3264,7 +3264,7 @@ export const LIBRARIES = {
           if ($t10 === $UNWIND) { R.reify($proc$r, 3, { s_n_$2370, s_dbg_$2366, s_filename_$2367, s_line_$2368, s_column_$2369 }); return $UNWIND; }
           s_id_$2371 = $t10;
           $t11 = (C3.v ?? G3());
-          $t12 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_n_$2370 === 'number' && typeof 1 === 'number') ? ($add(s_n_$2370, 1)) : R.callBinding((C4.v ?? G4()), [s_n_$2370, 1]);
+          $t12 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_n_$2370 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2370 + 1)) || (Number.isSafeInteger((s_n_$2370 + 1)) && Number.isInteger(s_n_$2370) && Number.isInteger(1)))) ? (s_n_$2370 + 1) : $add(s_n_$2370, 1)) : R.callBinding((C4.v ?? G4()), [s_n_$2370, 1]);
           $t13 = $t11;
           if (typeof $t13 !== 'function') $notProc($t13);
           $t14 = $t13[$RAW];
@@ -3381,7 +3381,7 @@ export const LIBRARIES = {
                 $t10 = $r;
                 s_id_$2371 = $t10;
                 $t11 = (C3.v ?? G3());
-                $t12 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_n_$2370 === 'number' && typeof 1 === 'number') ? ($add(s_n_$2370, 1)) : R.callBinding((C4.v ?? G4()), [s_n_$2370, 1]);
+                $t12 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_n_$2370 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2370 + 1)) || (Number.isSafeInteger((s_n_$2370 + 1)) && Number.isInteger(s_n_$2370) && Number.isInteger(1)))) ? (s_n_$2370 + 1) : $add(s_n_$2370, 1)) : R.callBinding((C4.v ?? G4()), [s_n_$2370, 1]);
                 $t13 = $t11;
                 if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
@@ -3851,7 +3851,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"debugger.scm","line":455,"column":1,"endLine":461,"endColumn":43},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "first-that")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string=?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "breakpoint-filename")).v;
@@ -3892,7 +3892,7 @@ export const LIBRARIES = {
               $t9 = $t8 === undefined ? ($t7[$PRIM] === true ? $t7(s_bp_$2384) : $foreign($t7, [s_bp_$2384])) : $t8(s_bp_$2384);
               while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
               if ($t9 === $UNWIND) { R.reify($fn1$r, 5, { s_bp_$2384 }); return $UNWIND; }
-              $t10 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t9 === 'number' && typeof s_line_$2382 === 'number') ? ($t9 === s_line_$2382) : R.callBinding((C3.v ?? G3()), [$t9, s_line_$2382]);
+              $t10 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t9 === 'number' && typeof s_line_$2382 === 'number') ? $t9 === s_line_$2382 : $numEq($t9, s_line_$2382)) : R.callBinding((C3.v ?? G3()), [$t9, s_line_$2382]);
               if ($t10 !== false) {
                 $t11 = (C6.v ?? G6());
                 if (typeof $t11 !== 'function') $notProc($t11);
@@ -3921,7 +3921,7 @@ export const LIBRARIES = {
                     $t20 = $t19 === undefined ? ($t18[$PRIM] === true ? $t18(s_bp_$2384) : $foreign($t18, [s_bp_$2384])) : $t19(s_bp_$2384);
                     while ($t20 instanceof $TailCall) { $stack.room = $d; $t20 = $step($t20); }
                     if ($t20 === $UNWIND) { R.reify($fn1$r, 14, {  }); return $UNWIND; }
-                    $t21 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t20 === 'number' && typeof s_column_$2383 === 'number') ? ($t20 === s_column_$2383) : R.callBinding((C3.v ?? G3()), [$t20, s_column_$2383]);
+                    $t21 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t20 === 'number' && typeof s_column_$2383 === 'number') ? $t20 === s_column_$2383 : $numEq($t20, s_column_$2383)) : R.callBinding((C3.v ?? G3()), [$t20, s_column_$2383]);
                     return $t21;
                   } else {
                     return false;
@@ -3979,7 +3979,7 @@ export const LIBRARIES = {
                   return false;
                 case 5:
                   $t9 = $r;
-                  $t10 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t9 === 'number' && typeof s_line_$2382 === 'number') ? ($t9 === s_line_$2382) : R.callBinding((C3.v ?? G3()), [$t9, s_line_$2382]);
+                  $t10 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t9 === 'number' && typeof s_line_$2382 === 'number') ? $t9 === s_line_$2382 : $numEq($t9, s_line_$2382)) : R.callBinding((C3.v ?? G3()), [$t9, s_line_$2382]);
                   if ($t10 !== false) { $pc = 6; continue; } $pc = 7; continue;
                 case 6:
                   $t11 = (C6.v ?? G6());
@@ -4027,7 +4027,7 @@ export const LIBRARIES = {
                   return false;
                 case 14:
                   $t20 = $r;
-                  $t21 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t20 === 'number' && typeof s_column_$2383 === 'number') ? ($t20 === s_column_$2383) : R.callBinding((C3.v ?? G3()), [$t20, s_column_$2383]);
+                  $t21 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t20 === 'number' && typeof s_column_$2383 === 'number') ? $t20 === s_column_$2383 : $numEq($t20, s_column_$2383)) : R.callBinding((C3.v ?? G3()), [$t20, s_column_$2383]);
                   return $t21;
                 default: throw new Error('$fn1$r: bad resume point ' + $pc);
             }
@@ -4257,7 +4257,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"debugger.scm","line":492,"column":1,"endLine":494,"endColumn":56},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-debugger-activations!")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cons")).v;
         const W1 = R.primitiveCell("cons"), P1 = W1.primitive;
@@ -4304,7 +4304,7 @@ export const LIBRARIES = {
           $t14 = $t13 === undefined ? ($t12[$PRIM] === true ? $t12(s_dbg_$2388) : $foreign($t12, [s_dbg_$2388])) : $t13(s_dbg_$2388);
           while ($t14 instanceof $TailCall) { $stack.room = $d; $t14 = $step($t14); }
           if ($t14 === $UNWIND) { R.reify($proc$r, 4, { $t11, s_dbg_$2388 }); return $UNWIND; }
-          $t15 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t14 === 'number' && typeof 1 === 'number') ? ($add($t14, 1)) : R.callBinding((C5.v ?? G5()), [$t14, 1]);
+          $t15 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t14 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t14 + 1)) || (Number.isSafeInteger(($t14 + 1)) && Number.isInteger($t14) && Number.isInteger(1)))) ? ($t14 + 1) : $add($t14, 1)) : R.callBinding((C5.v ?? G5()), [$t14, 1]);
           $t16 = $t11;
           if ($d > 0 && ($t17 = $t16?.[$RAW] ?? $t16)?.[$PRIM] === true) { $stack.room = $d; return $t17(s_dbg_$2388, $t15); } return $tailCall($t16, [s_dbg_$2388, $t15]);
         } }["enter-activation!"];
@@ -4362,7 +4362,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 4:
                 $t14 = $r;
-                $t15 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t14 === 'number' && typeof 1 === 'number') ? ($add($t14, 1)) : R.callBinding((C5.v ?? G5()), [$t14, 1]);
+                $t15 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t14 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t14 + 1)) || (Number.isSafeInteger(($t14 + 1)) && Number.isInteger($t14) && Number.isInteger(1)))) ? ($t14 + 1) : $add($t14, 1)) : R.callBinding((C5.v ?? G5()), [$t14, 1]);
                 $t16 = $t11;
                 return $tailCall($t16, [s_dbg_$2388, $t15]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -4379,7 +4379,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"debugger.scm","line":499,"column":1,"endLine":505,"endColumn":42},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-activations")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -4424,7 +4424,7 @@ export const LIBRARIES = {
             $t12 = $t11 === undefined ? ($t10[$PRIM] === true ? $t10($t9) : $foreign($t10, [$t9])) : $t11($t9);
             while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
             if ($t12 === $UNWIND) { R.reify($proc$r, 4, { s_activations_$2396, $t6, $t7, s_dbg_$2392, s_name_$2393, s_source_$2394, s_env_$2395 }); return $UNWIND; }
-            $t13 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof 1 === 'number' && typeof $t12 === 'number') ? ($add(1, $t12)) : R.callBinding((C6.v ?? G6()), [1, $t12]);
+            $t13 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof 1 === 'number' && typeof $t12 === 'number' && (!Number.isInteger((1 + $t12)) || (Number.isSafeInteger((1 + $t12)) && Number.isInteger(1) && Number.isInteger($t12)))) ? (1 + $t12) : $add(1, $t12)) : R.callBinding((C6.v ?? G6()), [1, $t12]);
             $t14 = $t7;
             if (typeof $t14 !== 'function') $notProc($t14);
             $t15 = $t14[$RAW];
@@ -4477,7 +4477,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 4:
                 $t12 = $r;
-                $t13 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof 1 === 'number' && typeof $t12 === 'number') ? ($add(1, $t12)) : R.callBinding((C6.v ?? G6()), [1, $t12]);
+                $t13 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof 1 === 'number' && typeof $t12 === 'number' && (!Number.isInteger((1 + $t12)) || (Number.isSafeInteger((1 + $t12)) && Number.isInteger(1) && Number.isInteger($t12)))) ? (1 + $t12) : $add(1, $t12)) : R.callBinding((C6.v ?? G6()), [1, $t12]);
                 $t14 = $t7;
                 if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
@@ -4507,7 +4507,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"debugger.scm","line":510,"column":1,"endLine":515,"endColumn":67},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-activations")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
@@ -4551,7 +4551,7 @@ export const LIBRARIES = {
             $t12 = $t11 === undefined ? ($t10[$PRIM] === true ? $t10(s_dbg_$2397) : $foreign($t10, [s_dbg_$2397])) : $t11(s_dbg_$2397);
             while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
             if ($t12 === $UNWIND) { R.reify($proc$r, 5, { $t9, s_dbg_$2397 }); return $UNWIND; }
-            $t13 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t12 === 'number' && typeof 1 === 'number') ? ($sub($t12, 1)) : R.callBinding((C5.v ?? G5()), [$t12, 1]);
+            $t13 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t12 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t12 - 1)) || (Number.isSafeInteger(($t12 - 1)) && Number.isInteger($t12) && Number.isInteger(1)))) ? ($t12 - 1) : $sub($t12, 1)) : R.callBinding((C5.v ?? G5()), [$t12, 1]);
             $t14 = $t9;
             if ($d > 0 && ($t15 = $t14?.[$RAW] ?? $t14)?.[$PRIM] === true) { $stack.room = $d; return $t15(s_dbg_$2397, $t13); } return $tailCall($t14, [s_dbg_$2397, $t13]);
           } else {
@@ -4607,7 +4607,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 5:
                 $t12 = $r;
-                $t13 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t12 === 'number' && typeof 1 === 'number') ? ($sub($t12, 1)) : R.callBinding((C5.v ?? G5()), [$t12, 1]);
+                $t13 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t12 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t12 - 1)) || (Number.isSafeInteger(($t12 - 1)) && Number.isInteger($t12) && Number.isInteger(1)))) ? ($t12 - 1) : $sub($t12, 1)) : R.callBinding((C5.v ?? G5()), [$t12, 1]);
                 $t14 = $t9;
                 return $tailCall($t14, [s_dbg_$2397, $t13]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -5419,7 +5419,7 @@ export const LIBRARIES = {
         constants: [intern("into"), intern("over"), intern("out"), intern("into"), intern("over"), intern("out"), {library: ["scheme","control"]}],
         span: {"filename":"debugger.scm","line":599,"column":1,"endLine":604,"endColumn":16},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $le = R.le, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-mode")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[6], "eqv?")).v;
         const W1 = R.primitiveCell("eqv?"), P1 = W1.primitive;
@@ -5462,7 +5462,7 @@ export const LIBRARIES = {
               $t10 = $t9 === undefined ? ($t8[$PRIM] === true ? $t8(s_dbg_$2416) : $foreign($t8, [s_dbg_$2416])) : $t9(s_dbg_$2416);
               while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
               if ($t10 === $UNWIND) { R.reify($proc$r, 7, { $t7 }); return $UNWIND; }
-              $t11 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof $t7 === 'number' && typeof $t10 === 'number') ? ($t7 <= $t10) : R.callBinding((C2.v ?? G2()), [$t7, $t10]);
+              $t11 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof $t7 === 'number' && typeof $t10 === 'number') ? $t7 <= $t10 : $le($t7, $t10)) : R.callBinding((C2.v ?? G2()), [$t7, $t10]);
               return $t11;
             } else {
               $t12 = (W1.intact || (C1.v ?? G1()) === P1) ? (s_atom_2dkey_$2417 === K[5]) : R.callBinding((C1.v ?? G1()), [s_atom_2dkey_$2417, K[5]]);
@@ -5481,7 +5481,7 @@ export const LIBRARIES = {
                 $t18 = $t17 === undefined ? ($t16[$PRIM] === true ? $t16(s_dbg_$2416) : $foreign($t16, [s_dbg_$2416])) : $t17(s_dbg_$2416);
                 while ($t18 instanceof $TailCall) { $stack.room = $d; $t18 = $step($t18); }
                 if ($t18 === $UNWIND) { R.reify($proc$r, 11, { $t15 }); return $UNWIND; }
-                $t19 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t15 === 'number' && typeof $t18 === 'number') ? ($t15 < $t18) : R.callBinding((C5.v ?? G5()), [$t15, $t18]);
+                $t19 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t15 === 'number' && typeof $t18 === 'number') ? $t15 < $t18 : $lt($t15, $t18)) : R.callBinding((C5.v ?? G5()), [$t15, $t18]);
                 return $t19;
               } else {
                 return false;
@@ -5540,7 +5540,7 @@ export const LIBRARIES = {
                 $pc = 7; continue;
               case 7:
                 $t10 = $r;
-                $t11 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof $t7 === 'number' && typeof $t10 === 'number') ? ($t7 <= $t10) : R.callBinding((C2.v ?? G2()), [$t7, $t10]);
+                $t11 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof $t7 === 'number' && typeof $t10 === 'number') ? $t7 <= $t10 : $le($t7, $t10)) : R.callBinding((C2.v ?? G2()), [$t7, $t10]);
                 return $t11;
               case 8:
                 $t13 = (C3.v ?? G3());
@@ -5567,7 +5567,7 @@ export const LIBRARIES = {
                 $pc = 11; continue;
               case 11:
                 $t18 = $r;
-                $t19 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t15 === 'number' && typeof $t18 === 'number') ? ($t15 < $t18) : R.callBinding((C5.v ?? G5()), [$t15, $t18]);
+                $t19 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t15 === 'number' && typeof $t18 === 'number') ? $t15 < $t18 : $lt($t15, $t18)) : R.callBinding((C5.v ?? G5()), [$t15, $t18]);
                 return $t19;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -7699,7 +7699,7 @@ export const LIBRARIES = {
         constants: [new Char(58), new Char(58)],
         span: {"filename":"debugger.scm","line":804,"column":1,"endLine":806,"endColumn":72},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $gt = R.gt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "trimmed")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, ">")).v;
         const W1 = R.primitiveCell(">"), P1 = W1.primitive;
@@ -7726,7 +7726,7 @@ export const LIBRARIES = {
           $t5 = $t4 === undefined ? ($t3[$PRIM] === true ? $t3(s_text_$2474) : $foreign($t3, [s_text_$2474])) : $t4(s_text_$2474);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_text_$2474 }); return $UNWIND; }
-          $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t5 === 'number' && typeof 0 === 'number') ? ($t5 > 0) : R.callBinding((C1.v ?? G1()), [$t5, 0]);
+          $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t5 === 'number' && typeof 0 === 'number') ? $t5 > 0 : $gt($t5, 0)) : R.callBinding((C1.v ?? G1()), [$t5, 0]);
           if ($t6 !== false) {
             $t7 = (C3.v ?? G3());
             $t8 = (C4.v ?? G4());
@@ -7771,7 +7771,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               case 2:
                 $t5 = $r;
-                $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t5 === 'number' && typeof 0 === 'number') ? ($t5 > 0) : R.callBinding((C1.v ?? G1()), [$t5, 0]);
+                $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t5 === 'number' && typeof 0 === 'number') ? $t5 > 0 : $gt($t5, 0)) : R.callBinding((C1.v ?? G1()), [$t5, 0]);
                 if ($t6 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t7 = (C3.v ?? G3());
@@ -7804,7 +7804,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"debugger.scm","line":811,"column":1,"endLine":815,"endColumn":65},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $gt = R.gt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-depth")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "debugger-selected-frame")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, ">")).v;
@@ -7833,15 +7833,15 @@ export const LIBRARIES = {
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_depth_$2476 }); return $UNWIND; }
           s_selected_$2477 = $t5;
-          $t6 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_depth_$2476 === 'number' && typeof 0 === 'number') ? (s_depth_$2476 > 0) : R.callBinding((C2.v ?? G2()), [s_depth_$2476, 0]);
+          $t6 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_depth_$2476 === 'number' && typeof 0 === 'number') ? s_depth_$2476 > 0 : $gt(s_depth_$2476, 0)) : R.callBinding((C2.v ?? G2()), [s_depth_$2476, 0]);
           if ($t6 !== false) {
             if (s_selected_$2477 !== false) {
               $t7 = (C3.v ?? G3());
-              $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_depth_$2476 === 'number' && typeof 1 === 'number') ? ($sub(s_depth_$2476, 1)) : R.callBinding((C4.v ?? G4()), [s_depth_$2476, 1]);
+              $t8 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_depth_$2476 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$2476 - 1)) || (Number.isSafeInteger((s_depth_$2476 - 1)) && Number.isInteger(s_depth_$2476) && Number.isInteger(1)))) ? (s_depth_$2476 - 1) : $sub(s_depth_$2476, 1)) : R.callBinding((C4.v ?? G4()), [s_depth_$2476, 1]);
               $t9 = $t7;
               if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10(s_selected_$2477, $t8); } return $tailCall($t9, [s_selected_$2477, $t8]);
             } else {
-              $t11 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_depth_$2476 === 'number' && typeof 1 === 'number') ? ($sub(s_depth_$2476, 1)) : R.callBinding((C4.v ?? G4()), [s_depth_$2476, 1]);
+              $t11 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_depth_$2476 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$2476 - 1)) || (Number.isSafeInteger((s_depth_$2476 - 1)) && Number.isInteger(s_depth_$2476) && Number.isInteger(1)))) ? (s_depth_$2476 - 1) : $sub(s_depth_$2476, 1)) : R.callBinding((C4.v ?? G4()), [s_depth_$2476, 1]);
               return $t11;
             }
           } else {
@@ -7878,7 +7878,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 s_selected_$2477 = $t5;
-                $t6 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_depth_$2476 === 'number' && typeof 0 === 'number') ? (s_depth_$2476 > 0) : R.callBinding((C2.v ?? G2()), [s_depth_$2476, 0]);
+                $t6 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_depth_$2476 === 'number' && typeof 0 === 'number') ? s_depth_$2476 > 0 : $gt(s_depth_$2476, 0)) : R.callBinding((C2.v ?? G2()), [s_depth_$2476, 0]);
                 if ($t6 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 if (s_selected_$2477 !== false) { $pc = 5; continue; } $pc = 6; continue;
@@ -7886,11 +7886,11 @@ export const LIBRARIES = {
                 return false;
               case 5:
                 $t7 = (C3.v ?? G3());
-                $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_depth_$2476 === 'number' && typeof 1 === 'number') ? ($sub(s_depth_$2476, 1)) : R.callBinding((C4.v ?? G4()), [s_depth_$2476, 1]);
+                $t8 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_depth_$2476 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$2476 - 1)) || (Number.isSafeInteger((s_depth_$2476 - 1)) && Number.isInteger(s_depth_$2476) && Number.isInteger(1)))) ? (s_depth_$2476 - 1) : $sub(s_depth_$2476, 1)) : R.callBinding((C4.v ?? G4()), [s_depth_$2476, 1]);
                 $t9 = $t7;
                 return $tailCall($t9, [s_selected_$2477, $t8]);
               case 6:
-                $t11 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_depth_$2476 === 'number' && typeof 1 === 'number') ? ($sub(s_depth_$2476, 1)) : R.callBinding((C4.v ?? G4()), [s_depth_$2476, 1]);
+                $t11 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_depth_$2476 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$2476 - 1)) || (Number.isSafeInteger((s_depth_$2476 - 1)) && Number.isInteger(s_depth_$2476) && Number.isInteger(1)))) ? (s_depth_$2476 - 1) : $sub(s_depth_$2476, 1)) : R.callBinding((C4.v ?? G4()), [s_depth_$2476, 1]);
                 return $t11;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -8856,7 +8856,7 @@ export const LIBRARIES = {
         constants: [intern("procedure"), intern("procedure")],
         span: {"filename":"debugger.scm","line":889,"column":1,"endLine":907,"endColumn":129},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "<")).v;
         const W0 = R.primitiveCell("<"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "length")).v;
@@ -8891,7 +8891,7 @@ export const LIBRARIES = {
           $t2 = $t1 === undefined ? ($t0[$PRIM] === true ? $t0(s_args_$2506) : $foreign($t0, [s_args_$2506])) : $t1(s_args_$2506);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_dbg_$2505, s_args_$2506 }); return $UNWIND; }
-          $t3 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t2 === 'number' && typeof 2 === 'number') ? ($t2 < 2) : R.callBinding((C0.v ?? G0()), [$t2, 2]);
+          $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t2 === 'number' && typeof 2 === 'number') ? $t2 < 2 : $lt($t2, 2)) : R.callBinding((C0.v ?? G0()), [$t2, 2]);
           if ($t3 !== false) {
             return ";; Usage: :break <file> <line> [column]";
           } else {
@@ -9040,7 +9040,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               case 1:
                 $t2 = $r;
-                $t3 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t2 === 'number' && typeof 2 === 'number') ? ($t2 < 2) : R.callBinding((C0.v ?? G0()), [$t2, 2]);
+                $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t2 === 'number' && typeof 2 === 'number') ? $t2 < 2 : $lt($t2, 2)) : R.callBinding((C0.v ?? G0()), [$t2, 2]);
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 return ";; Usage: :break <file> <line> [column]";
@@ -9771,7 +9771,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"debugger.scm","line":942,"column":1,"endLine":958,"endColumn":20},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-depth")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "selected-frame")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "=")).v;
@@ -9862,7 +9862,7 @@ export const LIBRARIES = {
               while ($t26 instanceof $TailCall) { $stack.room = $d; $t26 = $step($t26); }
               if ($t26 === $UNWIND) { R.reify($fn10$r, 11, { s_activations_$2537, s_n_$2538 }); return $UNWIND; }
               $t27 = (W13.intact || (C13.v ?? G13()) === P13) && (s_activations_$2537 instanceof R.Cons) ? (s_activations_$2537.cdr) : R.callBinding((C13.v ?? G13()), [s_activations_$2537]);
-              $t28 = (W14.intact || (C14.v ?? G14()) === P14) && (typeof s_n_$2538 === 'number' && typeof 1 === 'number') ? ($sub(s_n_$2538, 1)) : R.callBinding((C14.v ?? G14()), [s_n_$2538, 1]);
+              $t28 = (W14.intact || (C14.v ?? G14()) === P14) ? ((typeof s_n_$2538 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2538 - 1)) || (Number.isSafeInteger((s_n_$2538 - 1)) && Number.isInteger(s_n_$2538) && Number.isInteger(1)))) ? (s_n_$2538 - 1) : $sub(s_n_$2538, 1)) : R.callBinding((C14.v ?? G14()), [s_n_$2538, 1]);
               $t29 = s_number_$2536;
               if (typeof $t29 !== 'function') $notProc($t29);
               $t30 = $t29[$RAW];
@@ -9969,7 +9969,7 @@ export const LIBRARIES = {
                 case 11:
                   $t26 = $r;
                   $t27 = (W13.intact || (C13.v ?? G13()) === P13) && (s_activations_$2537 instanceof R.Cons) ? (s_activations_$2537.cdr) : R.callBinding((C13.v ?? G13()), [s_activations_$2537]);
-                  $t28 = (W14.intact || (C14.v ?? G14()) === P14) && (typeof s_n_$2538 === 'number' && typeof 1 === 'number') ? ($sub(s_n_$2538, 1)) : R.callBinding((C14.v ?? G14()), [s_n_$2538, 1]);
+                  $t28 = (W14.intact || (C14.v ?? G14()) === P14) ? ((typeof s_n_$2538 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2538 - 1)) || (Number.isSafeInteger((s_n_$2538 - 1)) && Number.isInteger(s_n_$2538) && Number.isInteger(1)))) ? (s_n_$2538 - 1) : $sub(s_n_$2538, 1)) : R.callBinding((C14.v ?? G14()), [s_n_$2538, 1]);
                   $t29 = s_number_$2536;
                   if (typeof $t29 !== 'function') $notProc($t29);
                   $t30 = $t29[$RAW];
@@ -10011,7 +10011,7 @@ export const LIBRARIES = {
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_depth_$2534, s_dbg_$2531 }); return $UNWIND; }
           s_selected_$2535 = $t5;
-          $t6 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_depth_$2534 === 'number' && typeof 0 === 'number') ? (s_depth_$2534 === 0) : R.callBinding((C2.v ?? G2()), [s_depth_$2534, 0]);
+          $t6 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_depth_$2534 === 'number' && typeof 0 === 'number') ? s_depth_$2534 === 0 : $numEq(s_depth_$2534, 0)) : R.callBinding((C2.v ?? G2()), [s_depth_$2534, 0]);
           if ($t6 !== false) {
             return ";; No call stack info available";
           } else {
@@ -10027,7 +10027,7 @@ export const LIBRARIES = {
             $t14 = $t13 === undefined ? ($t12[$PRIM] === true ? $t12(s_dbg_$2531) : $foreign($t12, [s_dbg_$2531])) : $t13(s_dbg_$2531);
             while ($t14 instanceof $TailCall) { $stack.room = $d; $t14 = $step($t14); }
             if ($t14 === $UNWIND) { R.reify($proc$r, 5, { s_depth_$2534, $t7, $t8, $t9, s_number_$2536 }); return $UNWIND; }
-            $t15 = (W14.intact || (C14.v ?? G14()) === P14) && (typeof s_depth_$2534 === 'number' && typeof 1 === 'number') ? ($sub(s_depth_$2534, 1)) : R.callBinding((C14.v ?? G14()), [s_depth_$2534, 1]);
+            $t15 = (W14.intact || (C14.v ?? G14()) === P14) ? ((typeof s_depth_$2534 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$2534 - 1)) || (Number.isSafeInteger((s_depth_$2534 - 1)) && Number.isInteger(s_depth_$2534) && Number.isInteger(1)))) ? (s_depth_$2534 - 1) : $sub(s_depth_$2534, 1)) : R.callBinding((C14.v ?? G14()), [s_depth_$2534, 1]);
             $t16 = s_number_$2536;
             if (typeof $t16 !== 'function') $notProc($t16);
             $t17 = $t16[$RAW];
@@ -10076,7 +10076,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 s_selected_$2535 = $t5;
-                $t6 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_depth_$2534 === 'number' && typeof 0 === 'number') ? (s_depth_$2534 === 0) : R.callBinding((C2.v ?? G2()), [s_depth_$2534, 0]);
+                $t6 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_depth_$2534 === 'number' && typeof 0 === 'number') ? s_depth_$2534 === 0 : $numEq(s_depth_$2534, 0)) : R.callBinding((C2.v ?? G2()), [s_depth_$2534, 0]);
                 if ($t6 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 return ";; No call stack info available";
@@ -10097,7 +10097,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 5:
                 $t14 = $r;
-                $t15 = (W14.intact || (C14.v ?? G14()) === P14) && (typeof s_depth_$2534 === 'number' && typeof 1 === 'number') ? ($sub(s_depth_$2534, 1)) : R.callBinding((C14.v ?? G14()), [s_depth_$2534, 1]);
+                $t15 = (W14.intact || (C14.v ?? G14()) === P14) ? ((typeof s_depth_$2534 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$2534 - 1)) || (Number.isSafeInteger((s_depth_$2534 - 1)) && Number.isInteger(s_depth_$2534) && Number.isInteger(1)))) ? (s_depth_$2534 - 1) : $sub(s_depth_$2534, 1)) : R.callBinding((C14.v ?? G14()), [s_depth_$2534, 1]);
                 $t16 = s_number_$2536;
                 if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
@@ -10754,7 +10754,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"debugger.scm","line":992,"column":1,"endLine":998,"endColumn":40},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $gt = R.gt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "selected-frame")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, ">")).v;
         const W1 = R.primitiveCell(">"), P1 = W1.primitive;
@@ -10777,14 +10777,14 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_dbg_$2551 }); return $UNWIND; }
           s_n_$2554 = $t2;
           if (s_n_$2554 !== false) {
-            $t4 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_n_$2554 === 'number' && typeof 0 === 'number') ? (s_n_$2554 > 0) : R.callBinding((C1.v ?? G1()), [s_n_$2554, 0]);
+            $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_n_$2554 === 'number' && typeof 0 === 'number') ? s_n_$2554 > 0 : $gt(s_n_$2554, 0)) : R.callBinding((C1.v ?? G1()), [s_n_$2554, 0]);
             $t3 = $t4;
           } else {
             $t3 = false;
           }
           if ($t3 !== false) {
             $t5 = (C2.v ?? G2());
-            $t6 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$2554 === 'number' && typeof 1 === 'number') ? ($sub(s_n_$2554, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2554, 1]);
+            $t6 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$2554 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2554 - 1)) || (Number.isSafeInteger((s_n_$2554 - 1)) && Number.isInteger(s_n_$2554) && Number.isInteger(1)))) ? (s_n_$2554 - 1) : $sub(s_n_$2554, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2554, 1]);
             $t7 = $t5;
             if (typeof $t7 !== 'function') $notProc($t7);
             $t8 = $t7[$RAW];
@@ -10796,7 +10796,7 @@ export const LIBRARIES = {
             $t10 = (C4.v ?? G4());
             $t11 = ";; Selected frame #";
             $t12 = (C5.v ?? G5());
-            $t13 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$2554 === 'number' && typeof 1 === 'number') ? ($sub(s_n_$2554, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2554, 1]);
+            $t13 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$2554 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2554 - 1)) || (Number.isSafeInteger((s_n_$2554 - 1)) && Number.isInteger(s_n_$2554) && Number.isInteger(1)))) ? (s_n_$2554 - 1) : $sub(s_n_$2554, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2554, 1]);
             $t14 = $t12;
             if (typeof $t14 !== 'function') $notProc($t14);
             $t15 = $t14[$RAW];
@@ -10830,7 +10830,7 @@ export const LIBRARIES = {
                 s_n_$2554 = $t2;
                 if (s_n_$2554 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
-                $t4 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_n_$2554 === 'number' && typeof 0 === 'number') ? (s_n_$2554 > 0) : R.callBinding((C1.v ?? G1()), [s_n_$2554, 0]);
+                $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_n_$2554 === 'number' && typeof 0 === 'number') ? s_n_$2554 > 0 : $gt(s_n_$2554, 0)) : R.callBinding((C1.v ?? G1()), [s_n_$2554, 0]);
                 $t3 = $t4;
                 $pc = 4; continue;
               case 3:
@@ -10840,7 +10840,7 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 5:
                 $t5 = (C2.v ?? G2());
-                $t6 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$2554 === 'number' && typeof 1 === 'number') ? ($sub(s_n_$2554, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2554, 1]);
+                $t6 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$2554 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2554 - 1)) || (Number.isSafeInteger((s_n_$2554 - 1)) && Number.isInteger(s_n_$2554) && Number.isInteger(1)))) ? (s_n_$2554 - 1) : $sub(s_n_$2554, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2554, 1]);
                 $t7 = $t5;
                 if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
@@ -10858,7 +10858,7 @@ export const LIBRARIES = {
                 $t10 = (C4.v ?? G4());
                 $t11 = ";; Selected frame #";
                 $t12 = (C5.v ?? G5());
-                $t13 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$2554 === 'number' && typeof 1 === 'number') ? ($sub(s_n_$2554, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2554, 1]);
+                $t13 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$2554 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2554 - 1)) || (Number.isSafeInteger((s_n_$2554 - 1)) && Number.isInteger(s_n_$2554) && Number.isInteger(1)))) ? (s_n_$2554 - 1) : $sub(s_n_$2554, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2554, 1]);
                 $t14 = $t12;
                 if (typeof $t14 !== 'function') $notProc($t14);
                 $t15 = $t14[$RAW];
@@ -10886,7 +10886,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"debugger.scm","line":1000,"column":1,"endLine":1006,"endColumn":40},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "selected-frame")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "<")).v;
         const W1 = R.primitiveCell("<"), P1 = W1.primitive;
@@ -10919,15 +10919,15 @@ export const LIBRARIES = {
             $t6 = $t5 === undefined ? ($t4[$PRIM] === true ? $t4(s_dbg_$2555) : $foreign($t4, [s_dbg_$2555])) : $t5(s_dbg_$2555);
             while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
             if ($t6 === $UNWIND) { R.reify($proc$r, 5, { s_n_$2558, s_dbg_$2555 }); return $UNWIND; }
-            $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof $t6 === 'number' && typeof 1 === 'number') ? ($sub($t6, 1)) : R.callBinding((C2.v ?? G2()), [$t6, 1]);
-            $t8 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_n_$2558 === 'number' && typeof $t7 === 'number') ? (s_n_$2558 < $t7) : R.callBinding((C1.v ?? G1()), [s_n_$2558, $t7]);
+            $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof $t6 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t6 - 1)) || (Number.isSafeInteger(($t6 - 1)) && Number.isInteger($t6) && Number.isInteger(1)))) ? ($t6 - 1) : $sub($t6, 1)) : R.callBinding((C2.v ?? G2()), [$t6, 1]);
+            $t8 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_n_$2558 === 'number' && typeof $t7 === 'number') ? s_n_$2558 < $t7 : $lt(s_n_$2558, $t7)) : R.callBinding((C1.v ?? G1()), [s_n_$2558, $t7]);
             $t3 = $t8;
           } else {
             $t3 = false;
           }
           if ($t3 !== false) {
             $t9 = (C4.v ?? G4());
-            $t10 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_n_$2558 === 'number' && typeof 1 === 'number') ? ($add(s_n_$2558, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$2558, 1]);
+            $t10 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_n_$2558 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2558 + 1)) || (Number.isSafeInteger((s_n_$2558 + 1)) && Number.isInteger(s_n_$2558) && Number.isInteger(1)))) ? (s_n_$2558 + 1) : $add(s_n_$2558, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$2558, 1]);
             $t11 = $t9;
             if (typeof $t11 !== 'function') $notProc($t11);
             $t12 = $t11[$RAW];
@@ -10939,7 +10939,7 @@ export const LIBRARIES = {
             $t14 = (C6.v ?? G6());
             $t15 = ";; Selected frame #";
             $t16 = (C7.v ?? G7());
-            $t17 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_n_$2558 === 'number' && typeof 1 === 'number') ? ($add(s_n_$2558, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$2558, 1]);
+            $t17 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_n_$2558 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2558 + 1)) || (Number.isSafeInteger((s_n_$2558 + 1)) && Number.isInteger(s_n_$2558) && Number.isInteger(1)))) ? (s_n_$2558 + 1) : $add(s_n_$2558, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$2558, 1]);
             $t18 = $t16;
             if (typeof $t18 !== 'function') $notProc($t18);
             $t19 = $t18[$RAW];
@@ -10989,13 +10989,13 @@ export const LIBRARIES = {
                 if ($t3 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 5:
                 $t6 = $r;
-                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof $t6 === 'number' && typeof 1 === 'number') ? ($sub($t6, 1)) : R.callBinding((C2.v ?? G2()), [$t6, 1]);
-                $t8 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_n_$2558 === 'number' && typeof $t7 === 'number') ? (s_n_$2558 < $t7) : R.callBinding((C1.v ?? G1()), [s_n_$2558, $t7]);
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof $t6 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t6 - 1)) || (Number.isSafeInteger(($t6 - 1)) && Number.isInteger($t6) && Number.isInteger(1)))) ? ($t6 - 1) : $sub($t6, 1)) : R.callBinding((C2.v ?? G2()), [$t6, 1]);
+                $t8 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_n_$2558 === 'number' && typeof $t7 === 'number') ? s_n_$2558 < $t7 : $lt(s_n_$2558, $t7)) : R.callBinding((C1.v ?? G1()), [s_n_$2558, $t7]);
                 $t3 = $t8;
                 $pc = 4; continue;
               case 6:
                 $t9 = (C4.v ?? G4());
-                $t10 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_n_$2558 === 'number' && typeof 1 === 'number') ? ($add(s_n_$2558, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$2558, 1]);
+                $t10 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_n_$2558 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2558 + 1)) || (Number.isSafeInteger((s_n_$2558 + 1)) && Number.isInteger(s_n_$2558) && Number.isInteger(1)))) ? (s_n_$2558 + 1) : $add(s_n_$2558, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$2558, 1]);
                 $t11 = $t9;
                 if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
@@ -11013,7 +11013,7 @@ export const LIBRARIES = {
                 $t14 = (C6.v ?? G6());
                 $t15 = ";; Selected frame #";
                 $t16 = (C7.v ?? G7());
-                $t17 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_n_$2558 === 'number' && typeof 1 === 'number') ? ($add(s_n_$2558, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$2558, 1]);
+                $t17 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_n_$2558 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2558 + 1)) || (Number.isSafeInteger((s_n_$2558 + 1)) && Number.isInteger(s_n_$2558) && Number.isInteger(1)))) ? (s_n_$2558 + 1) : $add(s_n_$2558, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$2558, 1]);
                 $t18 = $t16;
                 if (typeof $t18 !== 'function') $notProc($t18);
                 $t19 = $t18[$RAW];
@@ -11413,7 +11413,7 @@ export const LIBRARIES = {
   },
   "scheme-js.define-macro": {
     fingerprint: "a425e228",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["define-macro.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"define-macro\"],[\"l\",\"export\",\"define-macro\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"]]]",
     procedures: {
@@ -11425,7 +11425,7 @@ export const LIBRARIES = {
   },
   "scheme-js.expander": {
     fingerprint: "b380dd57",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["expander.sld","expander.scm","syntax_rules.scm","explicit_renaming.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"expander\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"expand\",\"expand-in-environment\"],[\"l\",\"include\",[\"s\",\"expander.scm\"],[\"s\",\"syntax_rules.scm\"],[\"s\",\"explicit_renaming.scm\"]]]",
     procedures: {
@@ -14715,7 +14715,7 @@ export const LIBRARIES = {
         constants: [intern("eq"), intern("eq")],
         span: {"filename":"expander.scm","line":490,"column":1,"endLine":502,"endColumn":80},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.add, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%make-hash-store")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "syntax-object?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "not")).v;
@@ -14813,7 +14813,7 @@ export const LIBRARIES = {
                       s_i_$2667 = 0;
                       $loop1: for (;;) {
                       $t21 = (W10.intact || (C10.v ?? G10()) === P10) && (Array.isArray(s_x_$2663)) ? (s_x_$2663.length) : R.callBinding((C10.v ?? G10()), [s_x_$2663]);
-                      $t22 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_i_$2667 === 'number' && typeof $t21 === 'number') ? (s_i_$2667 < $t21) : R.callBinding((C9.v ?? G9()), [s_i_$2667, $t21]);
+                      $t22 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_i_$2667 === 'number' && typeof $t21 === 'number') ? s_i_$2667 < $t21 : $lt(s_i_$2667, $t21)) : R.callBinding((C9.v ?? G9()), [s_i_$2667, $t21]);
                       if ($t22 !== false) {
                         $t23 = (W11.intact || (C11.v ?? G11()) === P11) ? ($vectorRef(s_x_$2663, s_i_$2667)) : R.callBinding((C11.v ?? G11()), [s_x_$2663, s_i_$2667]);
                         $t24 = s_walk_$2662;
@@ -14827,7 +14827,7 @@ export const LIBRARIES = {
                         if (s_x_$2668 !== false) {
                           return s_x_$2668;
                         } else {
-                          $t27 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_i_$2667 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2667, 1)) : R.callBinding((C12.v ?? G12()), [s_i_$2667, 1]);
+                          $t27 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_i_$2667 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2667 + 1)) || (Number.isSafeInteger((s_i_$2667 + 1)) && Number.isInteger(s_i_$2667) && Number.isInteger(1)))) ? (s_i_$2667 + 1) : $add(s_i_$2667, 1)) : R.callBinding((C12.v ?? G12()), [s_i_$2667, 1]);
                           s_i_$2667 = $t27;
                           continue $loop1;
                         }
@@ -14944,7 +14944,7 @@ export const LIBRARIES = {
                   $pc = 0; continue;
                 case 19:
                   $t21 = (W10.intact || (C10.v ?? G10()) === P10) && (Array.isArray(s_x_$2663)) ? (s_x_$2663.length) : R.callBinding((C10.v ?? G10()), [s_x_$2663]);
-                  $t22 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_i_$2667 === 'number' && typeof $t21 === 'number') ? (s_i_$2667 < $t21) : R.callBinding((C9.v ?? G9()), [s_i_$2667, $t21]);
+                  $t22 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_i_$2667 === 'number' && typeof $t21 === 'number') ? s_i_$2667 < $t21 : $lt(s_i_$2667, $t21)) : R.callBinding((C9.v ?? G9()), [s_i_$2667, $t21]);
                   if ($t22 !== false) { $pc = 20; continue; } $pc = 21; continue;
                 case 20:
                   $t23 = (W11.intact || (C11.v ?? G11()) === P11) ? ($vectorRef(s_x_$2663, s_i_$2667)) : R.callBinding((C11.v ?? G11()), [s_x_$2663, s_i_$2667]);
@@ -14966,7 +14966,7 @@ export const LIBRARIES = {
                 case 23:
                   return s_x_$2668;
                 case 24:
-                  $t27 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_i_$2667 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2667, 1)) : R.callBinding((C12.v ?? G12()), [s_i_$2667, 1]);
+                  $t27 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_i_$2667 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2667 + 1)) || (Number.isSafeInteger((s_i_$2667 + 1)) && Number.isInteger(s_i_$2667) && Number.isInteger(1)))) ? (s_i_$2667 + 1) : $add(s_i_$2667, 1)) : R.callBinding((C12.v ?? G12()), [s_i_$2667, 1]);
                   s_i_$2667 = $t27;
                   $pc = 19; continue;
                 default: throw new Error('$fn3$r: bad resume point ' + $pc);
@@ -16874,7 +16874,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"expander.scm","line":683,"column":1,"endLine":691,"endColumn":90},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $lt = R.lt, $gt = R.gt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "operand-bounds")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
@@ -16915,7 +16915,7 @@ export const LIBRARIES = {
             $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? (s_rest_$2717 instanceof R.Cons) : R.callBinding((C1.v ?? G1()), [s_rest_$2717]);
             if ($t4 !== false) {
               $t5 = (W2.intact || (C2.v ?? G2()) === P2) && (s_rest_$2717 instanceof R.Cons) ? (s_rest_$2717.cdr) : R.callBinding((C2.v ?? G2()), [s_rest_$2717]);
-              $t6 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$2718 === 'number' && typeof 1 === 'number') ? ($add(s_n_$2718, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2718, 1]);
+              $t6 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$2718 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2718 + 1)) || (Number.isSafeInteger((s_n_$2718 + 1)) && Number.isInteger(s_n_$2718) && Number.isInteger(1)))) ? (s_n_$2718 + 1) : $add(s_n_$2718, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2718, 1]);
               s_rest_$2717 = $t5;
               s_n_$2718 = $t6;
               continue $loop1;
@@ -16927,7 +16927,7 @@ export const LIBRARIES = {
                 if ($d > 0 && ($t10 = $t9?.[$RAW] ?? $t9)?.[$PRIM] === true) { $stack.room = $d; return $t10("its operands are not a proper list", s_form_$2714, s_keyword_$2713); } return $tailCall($t9, ["its operands are not a proper list", s_form_$2714, s_keyword_$2713]);
               } else {
                 $t11 = (W8.intact || (C8.v ?? G8()) === P8) && (s_bounds_$2715 instanceof R.Cons) ? (s_bounds_$2715.car) : R.callBinding((C8.v ?? G8()), [s_bounds_$2715]);
-                $t12 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_n_$2718 === 'number' && typeof $t11 === 'number') ? (s_n_$2718 < $t11) : R.callBinding((C7.v ?? G7()), [s_n_$2718, $t11]);
+                $t12 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_n_$2718 === 'number' && typeof $t11 === 'number') ? s_n_$2718 < $t11 : $lt(s_n_$2718, $t11)) : R.callBinding((C7.v ?? G7()), [s_n_$2718, $t11]);
                 s_x_$2719 = $t12;
                 if (s_x_$2719 !== false) {
                   $t13 = s_x_$2719;
@@ -16935,7 +16935,7 @@ export const LIBRARIES = {
                   $t14 = (W2.intact || (C2.v ?? G2()) === P2) && (s_bounds_$2715 instanceof R.Cons) ? (s_bounds_$2715.cdr) : R.callBinding((C2.v ?? G2()), [s_bounds_$2715]);
                   if ($t14 !== false) {
                     $t16 = (W2.intact || (C2.v ?? G2()) === P2) && (s_bounds_$2715 instanceof R.Cons) ? (s_bounds_$2715.cdr) : R.callBinding((C2.v ?? G2()), [s_bounds_$2715]);
-                    $t17 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_n_$2718 === 'number' && typeof $t16 === 'number') ? (s_n_$2718 > $t16) : R.callBinding((C9.v ?? G9()), [s_n_$2718, $t16]);
+                    $t17 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_n_$2718 === 'number' && typeof $t16 === 'number') ? s_n_$2718 > $t16 : $gt(s_n_$2718, $t16)) : R.callBinding((C9.v ?? G9()), [s_n_$2718, $t16]);
                     $t15 = $t17;
                   } else {
                     $t15 = false;
@@ -16994,7 +16994,7 @@ export const LIBRARIES = {
                 if ($t4 !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 5:
                 $t5 = (W2.intact || (C2.v ?? G2()) === P2) && (s_rest_$2717 instanceof R.Cons) ? (s_rest_$2717.cdr) : R.callBinding((C2.v ?? G2()), [s_rest_$2717]);
-                $t6 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$2718 === 'number' && typeof 1 === 'number') ? ($add(s_n_$2718, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2718, 1]);
+                $t6 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$2718 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2718 + 1)) || (Number.isSafeInteger((s_n_$2718 + 1)) && Number.isInteger(s_n_$2718) && Number.isInteger(1)))) ? (s_n_$2718 + 1) : $add(s_n_$2718, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2718, 1]);
                 s_rest_$2717 = $t5;
                 s_n_$2718 = $t6;
                 $pc = 4; continue;
@@ -17007,7 +17007,7 @@ export const LIBRARIES = {
                 return $tailCall($t9, ["its operands are not a proper list", s_form_$2714, s_keyword_$2713]);
               case 8:
                 $t11 = (W8.intact || (C8.v ?? G8()) === P8) && (s_bounds_$2715 instanceof R.Cons) ? (s_bounds_$2715.car) : R.callBinding((C8.v ?? G8()), [s_bounds_$2715]);
-                $t12 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_n_$2718 === 'number' && typeof $t11 === 'number') ? (s_n_$2718 < $t11) : R.callBinding((C7.v ?? G7()), [s_n_$2718, $t11]);
+                $t12 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_n_$2718 === 'number' && typeof $t11 === 'number') ? s_n_$2718 < $t11 : $lt(s_n_$2718, $t11)) : R.callBinding((C7.v ?? G7()), [s_n_$2718, $t11]);
                 s_x_$2719 = $t12;
                 if (s_x_$2719 !== false) { $pc = 9; continue; } $pc = 10; continue;
               case 9:
@@ -17020,7 +17020,7 @@ export const LIBRARIES = {
                 if ($t13 !== false) { $pc = 15; continue; } $pc = 16; continue;
               case 12:
                 $t16 = (W2.intact || (C2.v ?? G2()) === P2) && (s_bounds_$2715 instanceof R.Cons) ? (s_bounds_$2715.cdr) : R.callBinding((C2.v ?? G2()), [s_bounds_$2715]);
-                $t17 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_n_$2718 === 'number' && typeof $t16 === 'number') ? (s_n_$2718 > $t16) : R.callBinding((C9.v ?? G9()), [s_n_$2718, $t16]);
+                $t17 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_n_$2718 === 'number' && typeof $t16 === 'number') ? s_n_$2718 > $t16 : $gt(s_n_$2718, $t16)) : R.callBinding((C9.v ?? G9()), [s_n_$2718, $t16]);
                 $t15 = $t17;
                 $pc = 14; continue;
               case 13:
@@ -21688,7 +21688,7 @@ export const LIBRARIES = {
         constants: [intern("quasiquote"), intern("list"), intern("lit"), intern("quasiquote"), intern("unquote"), intern("list"), intern("lit"), intern("unquote"), intern("unquote-splicing"), intern("quasiquote"), intern("list"), intern("lit"), intern("unquote-splicing"), intern("unquote-splicing"), intern("append"), intern("cons"), intern("list->vector"), intern("vector"), intern("lit"), intern("quasiquote"), intern("list"), intern("lit"), intern("quasiquote"), intern("unquote"), intern("list"), intern("lit"), intern("unquote"), intern("unquote-splicing"), intern("quasiquote"), intern("list"), intern("lit"), intern("unquote-splicing"), intern("unquote-splicing"), intern("append"), intern("cons"), intern("list->vector"), intern("vector"), intern("lit")],
         span: {"filename":"expander.scm","line":1042,"column":1,"endLine":1070,"endColumn":54},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "tagged?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "call-of")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "list")).v;
@@ -21826,7 +21826,7 @@ export const LIBRARIES = {
             $t11 = $t10 === undefined ? ($t9[$PRIM] === true ? $t9(s_template_$2848) : $foreign($t9, [s_template_$2848])) : $t10(s_template_$2848);
             while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
             if ($t11 === $UNWIND) { R.reify($proc$r, 5, { $t3, $t4, $t7, $t8, s_env_$2849, s_depth_$2850 }); return $UNWIND; }
-            $t12 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_depth_$2850 === 'number' && typeof 1 === 'number') ? ($add(s_depth_$2850, 1)) : R.callBinding((C5.v ?? G5()), [s_depth_$2850, 1]);
+            $t12 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_depth_$2850 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$2850 + 1)) || (Number.isSafeInteger((s_depth_$2850 + 1)) && Number.isInteger(s_depth_$2850) && Number.isInteger(1)))) ? (s_depth_$2850 + 1) : $add(s_depth_$2850, 1)) : R.callBinding((C5.v ?? G5()), [s_depth_$2850, 1]);
             $t13 = $t8;
             if (typeof $t13 !== 'function') $notProc($t13);
             $t14 = $t13[$RAW];
@@ -21852,7 +21852,7 @@ export const LIBRARIES = {
             while ($t23 instanceof $TailCall) { $stack.room = $d; $t23 = $step($t23); }
             if ($t23 === $UNWIND) { R.reify($proc$r, 8, { s_template_$2848, s_env_$2849, s_depth_$2850 }); return $UNWIND; }
             if ($t23 !== false) {
-              $t24 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? (s_depth_$2850 === 0) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
+              $t24 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? s_depth_$2850 === 0 : $numEq(s_depth_$2850, 0)) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
               if ($t24 !== false) {
                 $t25 = (C7.v ?? G7());
                 $t26 = (C4.v ?? G4());
@@ -21882,7 +21882,7 @@ export const LIBRARIES = {
                 $t39 = $t38 === undefined ? ($t37[$PRIM] === true ? $t37(s_template_$2848) : $foreign($t37, [s_template_$2848])) : $t38(s_template_$2848);
                 while ($t39 instanceof $TailCall) { $stack.room = $d; $t39 = $step($t39); }
                 if ($t39 === $UNWIND) { R.reify($proc$r, 15, { $t31, $t32, $t35, $t36, s_env_$2849, s_depth_$2850 }); return $UNWIND; }
-                $t40 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_depth_$2850 === 'number' && typeof 1 === 'number') ? ($sub(s_depth_$2850, 1)) : R.callBinding((C8.v ?? G8()), [s_depth_$2850, 1]);
+                $t40 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_depth_$2850 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$2850 - 1)) || (Number.isSafeInteger((s_depth_$2850 - 1)) && Number.isInteger(s_depth_$2850) && Number.isInteger(1)))) ? (s_depth_$2850 - 1) : $sub(s_depth_$2850, 1)) : R.callBinding((C8.v ?? G8()), [s_depth_$2850, 1]);
                 $t41 = $t36;
                 if (typeof $t41 !== 'function') $notProc($t41);
                 $t42 = $t41[$RAW];
@@ -21909,7 +21909,7 @@ export const LIBRARIES = {
               while ($t51 instanceof $TailCall) { $stack.room = $d; $t51 = $step($t51); }
               if ($t51 === $UNWIND) { R.reify($proc$r, 18, { s_template_$2848, s_env_$2849, s_depth_$2850 }); return $UNWIND; }
               if ($t51 !== false) {
-                $t52 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? (s_depth_$2850 === 0) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
+                $t52 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? s_depth_$2850 === 0 : $numEq(s_depth_$2850, 0)) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
                 if ($t52 !== false) {
                   $t53 = (C9.v ?? G9());
                   if ($d > 0 && ($t54 = $t53?.[$RAW] ?? $t53)?.[$PRIM] === true) { $stack.room = $d; return $t54("unquote-splicing not allowed at top level", s_template_$2848, K[28]); } return $tailCall($t53, ["unquote-splicing not allowed at top level", s_template_$2848, K[28]]);
@@ -21931,7 +21931,7 @@ export const LIBRARIES = {
                   $t63 = $t62 === undefined ? ($t61[$PRIM] === true ? $t61(s_template_$2848) : $foreign($t61, [s_template_$2848])) : $t62(s_template_$2848);
                   while ($t63 instanceof $TailCall) { $stack.room = $d; $t63 = $step($t63); }
                   if ($t63 === $UNWIND) { R.reify($proc$r, 24, { $t55, $t56, $t59, $t60, s_env_$2849, s_depth_$2850 }); return $UNWIND; }
-                  $t64 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_depth_$2850 === 'number' && typeof 1 === 'number') ? ($sub(s_depth_$2850, 1)) : R.callBinding((C8.v ?? G8()), [s_depth_$2850, 1]);
+                  $t64 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_depth_$2850 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$2850 - 1)) || (Number.isSafeInteger((s_depth_$2850 - 1)) && Number.isInteger(s_depth_$2850) && Number.isInteger(1)))) ? (s_depth_$2850 - 1) : $sub(s_depth_$2850, 1)) : R.callBinding((C8.v ?? G8()), [s_depth_$2850, 1]);
                   $t65 = $t60;
                   if (typeof $t65 !== 'function') $notProc($t65);
                   $t66 = $t65[$RAW];
@@ -21952,7 +21952,7 @@ export const LIBRARIES = {
               } else {
                 $t73 = (W10.intact || (C10.v ?? G10()) === P10) ? (s_template_$2848 instanceof R.Cons) : R.callBinding((C10.v ?? G10()), [s_template_$2848]);
                 if ($t73 !== false) {
-                  $t74 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? (s_depth_$2850 === 0) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
+                  $t74 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? s_depth_$2850 === 0 : $numEq(s_depth_$2850, 0)) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
                   if ($t74 !== false) {
                     $t76 = (C0.v ?? G0());
                     $t77 = (W11.intact || (C11.v ?? G11()) === P11) && (s_template_$2848 instanceof R.Cons) ? (s_template_$2848.car) : R.callBinding((C11.v ?? G11()), [s_template_$2848]);
@@ -22055,7 +22055,7 @@ export const LIBRARIES = {
                     while ($t122 instanceof $TailCall) { $stack.room = $d; $t122 = $step($t122); }
                     if ($t122 === $UNWIND) { R.reify($proc$r, 45, { s_env_$2849, s_depth_$2850 }); return $UNWIND; }
                     s_items_$2855 = $t122;
-                    $t123 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? (s_depth_$2850 === 0) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
+                    $t123 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? s_depth_$2850 === 0 : $numEq(s_depth_$2850, 0)) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
                     if ($t123 !== false) {
                       $t125 = (C15.v ?? G15());
                       if (typeof $t125 !== 'function') $notProc($t125);
@@ -22172,7 +22172,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 5:
                 $t11 = $r;
-                $t12 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_depth_$2850 === 'number' && typeof 1 === 'number') ? ($add(s_depth_$2850, 1)) : R.callBinding((C5.v ?? G5()), [s_depth_$2850, 1]);
+                $t12 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_depth_$2850 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$2850 + 1)) || (Number.isSafeInteger((s_depth_$2850 + 1)) && Number.isInteger(s_depth_$2850) && Number.isInteger(1)))) ? (s_depth_$2850 + 1) : $add(s_depth_$2850, 1)) : R.callBinding((C5.v ?? G5()), [s_depth_$2850, 1]);
                 $t13 = $t8;
                 if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
@@ -22201,7 +22201,7 @@ export const LIBRARIES = {
                 $t23 = $r;
                 if ($t23 !== false) { $pc = 9; continue; } $pc = 10; continue;
               case 9:
-                $t24 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? (s_depth_$2850 === 0) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
+                $t24 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? s_depth_$2850 === 0 : $numEq(s_depth_$2850, 0)) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
                 if ($t24 !== false) { $pc = 11; continue; } $pc = 12; continue;
               case 10:
                 $t49 = (C0.v ?? G0());
@@ -22254,7 +22254,7 @@ export const LIBRARIES = {
                 $pc = 15; continue;
               case 15:
                 $t39 = $r;
-                $t40 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_depth_$2850 === 'number' && typeof 1 === 'number') ? ($sub(s_depth_$2850, 1)) : R.callBinding((C8.v ?? G8()), [s_depth_$2850, 1]);
+                $t40 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_depth_$2850 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$2850 - 1)) || (Number.isSafeInteger((s_depth_$2850 - 1)) && Number.isInteger(s_depth_$2850) && Number.isInteger(1)))) ? (s_depth_$2850 - 1) : $sub(s_depth_$2850, 1)) : R.callBinding((C8.v ?? G8()), [s_depth_$2850, 1]);
                 $t41 = $t36;
                 if (typeof $t41 !== 'function') $notProc($t41);
                 $t42 = $t41[$RAW];
@@ -22283,7 +22283,7 @@ export const LIBRARIES = {
                 $t51 = $r;
                 if ($t51 !== false) { $pc = 19; continue; } $pc = 20; continue;
               case 19:
-                $t52 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? (s_depth_$2850 === 0) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
+                $t52 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? s_depth_$2850 === 0 : $numEq(s_depth_$2850, 0)) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
                 if ($t52 !== false) { $pc = 21; continue; } $pc = 22; continue;
               case 20:
                 $t73 = (W10.intact || (C10.v ?? G10()) === P10) ? (s_template_$2848 instanceof R.Cons) : R.callBinding((C10.v ?? G10()), [s_template_$2848]);
@@ -22317,7 +22317,7 @@ export const LIBRARIES = {
                 $pc = 24; continue;
               case 24:
                 $t63 = $r;
-                $t64 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_depth_$2850 === 'number' && typeof 1 === 'number') ? ($sub(s_depth_$2850, 1)) : R.callBinding((C8.v ?? G8()), [s_depth_$2850, 1]);
+                $t64 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_depth_$2850 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$2850 - 1)) || (Number.isSafeInteger((s_depth_$2850 - 1)) && Number.isInteger(s_depth_$2850) && Number.isInteger(1)))) ? (s_depth_$2850 - 1) : $sub(s_depth_$2850, 1)) : R.callBinding((C8.v ?? G8()), [s_depth_$2850, 1]);
                 $t65 = $t60;
                 if (typeof $t65 !== 'function') $notProc($t65);
                 $t66 = $t65[$RAW];
@@ -22343,7 +22343,7 @@ export const LIBRARIES = {
                 $t71 = $t55;
                 return $tailCall($t71, [K[10], $t70]);
               case 27:
-                $t74 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? (s_depth_$2850 === 0) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
+                $t74 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? s_depth_$2850 === 0 : $numEq(s_depth_$2850, 0)) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
                 if ($t74 !== false) { $pc = 29; continue; } $pc = 30; continue;
               case 28:
                 $t117 = (C13.v ?? G13());
@@ -22501,7 +22501,7 @@ export const LIBRARIES = {
               case 45:
                 $t122 = $r;
                 s_items_$2855 = $t122;
-                $t123 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? (s_depth_$2850 === 0) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
+                $t123 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_depth_$2850 === 'number' && typeof 0 === 'number') ? s_depth_$2850 === 0 : $numEq(s_depth_$2850, 0)) : R.callBinding((C6.v ?? G6()), [s_depth_$2850, 0]);
                 if ($t123 !== false) { $pc = 46; continue; } $pc = 47; continue;
               case 46:
                 $t125 = (C15.v ?? G15());
@@ -25630,7 +25630,7 @@ export const LIBRARIES = {
         constants: [intern("eq"), intern("eq")],
         span: {"filename":"syntax_rules.scm","line":114,"column":1,"endLine":133,"endColumn":41},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.add, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%make-hash-store")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "syntax-object?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "null?")).v;
@@ -25780,9 +25780,9 @@ export const LIBRARIES = {
                       s_libraries_$2971 = s_libraries_$2963;
                       $loop2: for (;;) {
                       $t38 = (W15.intact || (C15.v ?? G15()) === P15) && (Array.isArray(s_x_$2962)) ? (s_x_$2962.length) : R.callBinding((C15.v ?? G15()), [s_x_$2962]);
-                      $t39 = (W14.intact || (C14.v ?? G14()) === P14) && (typeof s_i_$2970 === 'number' && typeof $t38 === 'number') ? (s_i_$2970 < $t38) : R.callBinding((C14.v ?? G14()), [s_i_$2970, $t38]);
+                      $t39 = (W14.intact || (C14.v ?? G14()) === P14) ? ((typeof s_i_$2970 === 'number' && typeof $t38 === 'number') ? s_i_$2970 < $t38 : $lt(s_i_$2970, $t38)) : R.callBinding((C14.v ?? G14()), [s_i_$2970, $t38]);
                       if ($t39 !== false) {
-                        $t40 = (W16.intact || (C16.v ?? G16()) === P16) && (typeof s_i_$2970 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2970, 1)) : R.callBinding((C16.v ?? G16()), [s_i_$2970, 1]);
+                        $t40 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof s_i_$2970 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2970 + 1)) || (Number.isSafeInteger((s_i_$2970 + 1)) && Number.isInteger(s_i_$2970) && Number.isInteger(1)))) ? (s_i_$2970 + 1) : $add(s_i_$2970, 1)) : R.callBinding((C16.v ?? G16()), [s_i_$2970, 1]);
                         $t41 = (W17.intact || (C17.v ?? G17()) === P17) ? ($vectorRef(s_x_$2962, s_i_$2970)) : R.callBinding((C17.v ?? G17()), [s_x_$2962, s_i_$2970]);
                         $t42 = s_walk_$2961;
                         if (typeof $t42 !== 'function') $notProc($t42);
@@ -25970,10 +25970,10 @@ export const LIBRARIES = {
                   $pc = 0; continue;
                 case 29:
                   $t38 = (W15.intact || (C15.v ?? G15()) === P15) && (Array.isArray(s_x_$2962)) ? (s_x_$2962.length) : R.callBinding((C15.v ?? G15()), [s_x_$2962]);
-                  $t39 = (W14.intact || (C14.v ?? G14()) === P14) && (typeof s_i_$2970 === 'number' && typeof $t38 === 'number') ? (s_i_$2970 < $t38) : R.callBinding((C14.v ?? G14()), [s_i_$2970, $t38]);
+                  $t39 = (W14.intact || (C14.v ?? G14()) === P14) ? ((typeof s_i_$2970 === 'number' && typeof $t38 === 'number') ? s_i_$2970 < $t38 : $lt(s_i_$2970, $t38)) : R.callBinding((C14.v ?? G14()), [s_i_$2970, $t38]);
                   if ($t39 !== false) { $pc = 30; continue; } $pc = 31; continue;
                 case 30:
-                  $t40 = (W16.intact || (C16.v ?? G16()) === P16) && (typeof s_i_$2970 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2970, 1)) : R.callBinding((C16.v ?? G16()), [s_i_$2970, 1]);
+                  $t40 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof s_i_$2970 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2970 + 1)) || (Number.isSafeInteger((s_i_$2970 + 1)) && Number.isInteger(s_i_$2970) && Number.isInteger(1)))) ? (s_i_$2970 + 1) : $add(s_i_$2970, 1)) : R.callBinding((C16.v ?? G16()), [s_i_$2970, 1]);
                   $t41 = (W17.intact || (C17.v ?? G17()) === P17) ? ($vectorRef(s_x_$2962, s_i_$2970)) : R.callBinding((C17.v ?? G17()), [s_x_$2962, s_i_$2970]);
                   $t42 = s_walk_$2961;
                   if (typeof $t42 !== 'function') $notProc($t42);
@@ -26763,7 +26763,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"syntax_rules.scm","line":205,"column":1,"endLine":206,"endColumn":47},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "+")).v;
@@ -26787,7 +26787,7 @@ export const LIBRARIES = {
             $t5 = $t4 === undefined ? ($t3[$PRIM] === true ? $t3($t2) : $foreign($t3, [$t2])) : $t4($t2);
             while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
             if ($t5 === $UNWIND) { R.reify($proc$r, 3, {  }); return $UNWIND; }
-            $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof 1 === 'number' && typeof $t5 === 'number') ? ($add(1, $t5)) : R.callBinding((C1.v ?? G1()), [1, $t5]);
+            $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof 1 === 'number' && typeof $t5 === 'number' && (!Number.isInteger((1 + $t5)) || (Number.isSafeInteger((1 + $t5)) && Number.isInteger(1) && Number.isInteger($t5)))) ? (1 + $t5) : $add(1, $t5)) : R.callBinding((C1.v ?? G1()), [1, $t5]);
             return $t6;
           } else {
             return 0;
@@ -26817,7 +26817,7 @@ export const LIBRARIES = {
                 return 0;
               case 3:
                 $t5 = $r;
-                $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof 1 === 'number' && typeof $t5 === 'number') ? ($add(1, $t5)) : R.callBinding((C1.v ?? G1()), [1, $t5]);
+                $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof 1 === 'number' && typeof $t5 === 'number' && (!Number.isInteger((1 + $t5)) || (Number.isSafeInteger((1 + $t5)) && Number.isInteger(1) && Number.isInteger($t5)))) ? (1 + $t5) : $add(1, $t5)) : R.callBinding((C1.v ?? G1()), [1, $t5]);
                 return $t6;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -26833,7 +26833,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"syntax_rules.scm","line":211,"column":1,"endLine":212,"endColumn":47},
         make: (R, E, K) => {
-        const $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $numEq = R.numEq, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "drop-pairs")).v;
@@ -26846,13 +26846,13 @@ export const LIBRARIES = {
           if (arguments.length !== 2) R.wrongArity("drop-pairs", 2, false, arguments.length);
           const $d = $stack.room - 16;
           $loop: for (;;) {
-            $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_n_$2987 === 'number' && typeof 0 === 'number') ? (s_n_$2987 === 0) : R.callBinding((C0.v ?? G0()), [s_n_$2987, 0]);
+            $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_n_$2987 === 'number' && typeof 0 === 'number') ? s_n_$2987 === 0 : $numEq(s_n_$2987, 0)) : R.callBinding((C0.v ?? G0()), [s_n_$2987, 0]);
             if ($t0 !== false) {
               return s_x_$2986;
             } else {
               $t1 = (C1.v ?? G1());
               $t2 = (W2.intact || (C2.v ?? G2()) === P2) && (s_x_$2986 instanceof R.Cons) ? (s_x_$2986.cdr) : R.callBinding((C2.v ?? G2()), [s_x_$2986]);
-              $t3 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$2987 === 'number' && typeof 1 === 'number') ? ($sub(s_n_$2987, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2987, 1]);
+              $t3 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$2987 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2987 - 1)) || (Number.isSafeInteger((s_n_$2987 - 1)) && Number.isInteger(s_n_$2987) && Number.isInteger(1)))) ? (s_n_$2987 - 1) : $sub(s_n_$2987, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2987, 1]);
               if ($t1 === $proc$js) { s_x_$2986 = $t2; s_n_$2987 = $t3; continue $loop; }
               $t4 = $t1;
               if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5($t2, $t3); } return $tailCall($t4, [$t2, $t3]);
@@ -26864,14 +26864,14 @@ export const LIBRARIES = {
           ({ $t0, $t1, $t2, $t3, $t4, $t5, s_x_$2986, s_n_$2987, $r } = $f);
           for (;;) switch ($pc) {
               case 0:
-                $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_n_$2987 === 'number' && typeof 0 === 'number') ? (s_n_$2987 === 0) : R.callBinding((C0.v ?? G0()), [s_n_$2987, 0]);
+                $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_n_$2987 === 'number' && typeof 0 === 'number') ? s_n_$2987 === 0 : $numEq(s_n_$2987, 0)) : R.callBinding((C0.v ?? G0()), [s_n_$2987, 0]);
                 if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
               case 1:
                 return s_x_$2986;
               case 2:
                 $t1 = (C1.v ?? G1());
                 $t2 = (W2.intact || (C2.v ?? G2()) === P2) && (s_x_$2986 instanceof R.Cons) ? (s_x_$2986.cdr) : R.callBinding((C2.v ?? G2()), [s_x_$2986]);
-                $t3 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$2987 === 'number' && typeof 1 === 'number') ? ($sub(s_n_$2987, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2987, 1]);
+                $t3 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$2987 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2987 - 1)) || (Number.isSafeInteger((s_n_$2987 - 1)) && Number.isInteger(s_n_$2987) && Number.isInteger(1)))) ? (s_n_$2987 - 1) : $sub(s_n_$2987, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2987, 1]);
                 if ($t1 === $proc$js) { s_x_$2986 = $t2; s_n_$2987 = $t3; $pc = 0; continue; }
                 $t4 = $t1;
                 return $tailCall($t4, [$t2, $t3]);
@@ -26889,7 +26889,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"syntax_rules.scm","line":219,"column":1,"endLine":237,"endColumn":57},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $ge = R.ge, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "ellipsis-follows?")).v;
@@ -26968,9 +26968,9 @@ export const LIBRARIES = {
             $t18 = $t17 === undefined ? ($t16[$PRIM] === true ? $t16(s_tail_$2996) : $foreign($t16, [s_tail_$2996])) : $t17(s_tail_$2996);
             while ($t18 instanceof $TailCall) { $stack.room = $d; $t18 = $step($t18); }
             if ($t18 === $UNWIND) { R.reify($proc$r, 11, { s_input_$2993, s_bindings_$2994, s_item_$2995, s_tail_$2996, $t15, s_x_$2990 }); return $UNWIND; }
-            $t19 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t15 === 'number' && typeof $t18 === 'number') ? ($sub($t15, $t18)) : R.callBinding((C5.v ?? G5()), [$t15, $t18]);
+            $t19 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t15 === 'number' && typeof $t18 === 'number' && (!Number.isInteger(($t15 - $t18)) || (Number.isSafeInteger(($t15 - $t18)) && Number.isInteger($t15) && Number.isInteger($t18)))) ? ($t15 - $t18) : $sub($t15, $t18)) : R.callBinding((C5.v ?? G5()), [$t15, $t18]);
             s_count_$2997 = $t19;
-            $t20 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_count_$2997 === 'number' && typeof 0 === 'number') ? (s_count_$2997 >= 0) : R.callBinding((C7.v ?? G7()), [s_count_$2997, 0]);
+            $t20 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_count_$2997 === 'number' && typeof 0 === 'number') ? s_count_$2997 >= 0 : $ge(s_count_$2997, 0)) : R.callBinding((C7.v ?? G7()), [s_count_$2997, 0]);
             if ($t20 !== false) {
               $t21 = (C8.v ?? G8());
               if (typeof $t21 !== 'function') $notProc($t21);
@@ -27171,9 +27171,9 @@ export const LIBRARIES = {
                 $pc = 11; continue;
               case 11:
                 $t18 = $r;
-                $t19 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t15 === 'number' && typeof $t18 === 'number') ? ($sub($t15, $t18)) : R.callBinding((C5.v ?? G5()), [$t15, $t18]);
+                $t19 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t15 === 'number' && typeof $t18 === 'number' && (!Number.isInteger(($t15 - $t18)) || (Number.isSafeInteger(($t15 - $t18)) && Number.isInteger($t15) && Number.isInteger($t18)))) ? ($t15 - $t18) : $sub($t15, $t18)) : R.callBinding((C5.v ?? G5()), [$t15, $t18]);
                 s_count_$2997 = $t19;
-                $t20 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_count_$2997 === 'number' && typeof 0 === 'number') ? (s_count_$2997 >= 0) : R.callBinding((C7.v ?? G7()), [s_count_$2997, 0]);
+                $t20 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_count_$2997 === 'number' && typeof 0 === 'number') ? s_count_$2997 >= 0 : $ge(s_count_$2997, 0)) : R.callBinding((C7.v ?? G7()), [s_count_$2997, 0]);
                 if ($t20 !== false) { $pc = 12; continue; } $pc = 13; continue;
               case 12:
                 $t21 = (C8.v ?? G8());
@@ -27330,7 +27330,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"syntax_rules.scm","line":243,"column":1,"endLine":248,"endColumn":82},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "reverse")).v;
@@ -27352,7 +27352,7 @@ export const LIBRARIES = {
           s_count_$3007 = s_count_$3003;
           s_matches_$3008 = null;
           $loop1: for (;;) {
-          $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_count_$3007 === 'number' && typeof 0 === 'number') ? (s_count_$3007 === 0) : R.callBinding((C0.v ?? G0()), [s_count_$3007, 0]);
+          $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_count_$3007 === 'number' && typeof 0 === 'number') ? s_count_$3007 === 0 : $numEq(s_count_$3007, 0)) : R.callBinding((C0.v ?? G0()), [s_count_$3007, 0]);
           if ($t0 !== false) {
             $t1 = (C1.v ?? G1());
             if ($d > 0 && ($t2 = $t1?.[$RAW] ?? $t1)?.[$PRIM] === true) { $stack.room = $d; return $t2(s_matches_$3008); } return $tailCall($t1, [s_matches_$3008]);
@@ -27369,7 +27369,7 @@ export const LIBRARIES = {
             s_matched_$3009 = $t7;
             if (s_matched_$3009 !== false) {
               $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (s_input_$3006 instanceof R.Cons) ? (s_input_$3006.cdr) : R.callBinding((C4.v ?? G4()), [s_input_$3006]);
-              $t9 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_count_$3007 === 'number' && typeof 1 === 'number') ? ($sub(s_count_$3007, 1)) : R.callBinding((C5.v ?? G5()), [s_count_$3007, 1]);
+              $t9 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_count_$3007 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_count_$3007 - 1)) || (Number.isSafeInteger((s_count_$3007 - 1)) && Number.isInteger(s_count_$3007) && Number.isInteger(1)))) ? (s_count_$3007 - 1) : $sub(s_count_$3007, 1)) : R.callBinding((C5.v ?? G5()), [s_count_$3007, 1]);
               $t10 = (W6.intact || (C6.v ?? G6()) === P6) ? (new R.Cons(s_matched_$3009, s_matches_$3008)) : R.callBinding((C6.v ?? G6()), [s_matched_$3009, s_matches_$3008]);
               s_input_$3006 = $t8;
               s_count_$3007 = $t9;
@@ -27392,7 +27392,7 @@ export const LIBRARIES = {
                 s_matches_$3008 = null;
                 $pc = 1; continue;
               case 1:
-                $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_count_$3007 === 'number' && typeof 0 === 'number') ? (s_count_$3007 === 0) : R.callBinding((C0.v ?? G0()), [s_count_$3007, 0]);
+                $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_count_$3007 === 'number' && typeof 0 === 'number') ? s_count_$3007 === 0 : $numEq(s_count_$3007, 0)) : R.callBinding((C0.v ?? G0()), [s_count_$3007, 0]);
                 if ($t0 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t1 = (C1.v ?? G1());
@@ -27415,7 +27415,7 @@ export const LIBRARIES = {
                 if (s_matched_$3009 !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 5:
                 $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (s_input_$3006 instanceof R.Cons) ? (s_input_$3006.cdr) : R.callBinding((C4.v ?? G4()), [s_input_$3006]);
-                $t9 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_count_$3007 === 'number' && typeof 1 === 'number') ? ($sub(s_count_$3007, 1)) : R.callBinding((C5.v ?? G5()), [s_count_$3007, 1]);
+                $t9 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_count_$3007 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_count_$3007 - 1)) || (Number.isSafeInteger((s_count_$3007 - 1)) && Number.isInteger(s_count_$3007) && Number.isInteger(1)))) ? (s_count_$3007 - 1) : $sub(s_count_$3007, 1)) : R.callBinding((C5.v ?? G5()), [s_count_$3007, 1]);
                 $t10 = (W6.intact || (C6.v ?? G6()) === P6) ? (new R.Cons(s_matched_$3009, s_matches_$3008)) : R.callBinding((C6.v ?? G6()), [s_matched_$3009, s_matches_$3008]);
                 s_input_$3006 = $t8;
                 s_count_$3007 = $t9;
@@ -30161,7 +30161,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"syntax_rules.scm","line":433,"column":1,"endLine":437,"endColumn":66},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "length")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
@@ -30203,7 +30203,7 @@ export const LIBRARIES = {
             $t11 = $t10 === undefined ? ($t9[$PRIM] === true ? $t9($t8) : $foreign($t9, [$t8])) : $t10($t8);
             while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
             if ($t11 === $UNWIND) { R.reify($proc$r, 5, { s_n_$3067, s_lists_$3069 }); return $UNWIND; }
-            $t12 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t11 === 'number' && typeof s_n_$3067 === 'number') ? ($t11 === s_n_$3067) : R.callBinding((C3.v ?? G3()), [$t11, s_n_$3067]);
+            $t12 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t11 === 'number' && typeof s_n_$3067 === 'number') ? $t11 === s_n_$3067 : $numEq($t11, s_n_$3067)) : R.callBinding((C3.v ?? G3()), [$t11, s_n_$3067]);
             if ($t12 !== false) {
               $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (s_lists_$3069 instanceof R.Cons) ? (s_lists_$3069.cdr) : R.callBinding((C4.v ?? G4()), [s_lists_$3069]);
               s_lists_$3069 = $t13;
@@ -30257,7 +30257,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 5:
                 $t11 = $r;
-                $t12 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t11 === 'number' && typeof s_n_$3067 === 'number') ? ($t11 === s_n_$3067) : R.callBinding((C3.v ?? G3()), [$t11, s_n_$3067]);
+                $t12 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t11 === 'number' && typeof s_n_$3067 === 'number') ? $t11 === s_n_$3067 : $numEq($t11, s_n_$3067)) : R.callBinding((C3.v ?? G3()), [$t11, s_n_$3067]);
                 if ($t12 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 6:
                 $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (s_lists_$3069 instanceof R.Cons) ? (s_lists_$3069.cdr) : R.callBinding((C4.v ?? G4()), [s_lists_$3069]);
@@ -31334,7 +31334,7 @@ export const LIBRARIES = {
   },
   "scheme-js.interop": {
     fingerprint: "6f1ef106",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["interop.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"interop\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"js-eval\",\"js-ref\",\"js-set!\",\"js-invoke\",\"js-obj\",\"js-obj-merge\",\"js-typeof\",\"js-undefined\",\"js-undefined?\",\"js-null\",\"js-null?\",\"js-new\"]],[\"l\",\"export\",\"js-eval\",\"js-ref\",\"js-set!\",\"js-invoke\",\"js-obj\",\"js-obj-merge\",\"js-typeof\",\"js-undefined\",\"js-undefined?\",\"js-null\",\"js-null?\",\"js-new\"]]",
     procedures: {
@@ -31346,7 +31346,7 @@ export const LIBRARIES = {
   },
   "scheme-js.js-conversion": {
     fingerprint: "47a51ec1",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["js-conversion.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"js-conversion\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"]],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"]],[\"l\",\"export\",\"scheme->js\",\"scheme->js-deep\",\"js->scheme\",\"js->scheme-deep\",\"make-js-object\",\"js-object?\",\"js-ref\",\"js-set!\"],[\"l\",\"begin\",[\"l\",\"define-record-type\",\"js-object\",[\"l\",\"make-js-object-internal\"],\"js-object?\"],[\"l\",\"register-js-object-record\",\"js-object\"],[\"l\",\"define\",[\"l\",\"make-js-object\"],[\"l\",\"make-js-object-internal\"]]]]",
     procedures: {
@@ -31389,7 +31389,7 @@ export const LIBRARIES = {
   },
   "scheme-js.library-system": {
     fingerprint: "80268352",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["library-system.sld","library_system.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"library-system\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"parse-define-library\",\"library-definition?\",\"library-definition-name\",\"library-definition-exports\",\"library-definition-imports\",\"library-definition-body\",\"library-definition-includes\",\"library-definition-includes-ci\",\"library-definition-declaration-files\",\"parse-import-set\",\"import-set?\",\"import-set-library-name\",\"import-set-steps\",\"imported-name\",\"requirement-met?\",\"standard-features\",\"registry-requirement-met?\",\"library-key\",\"make-library-registry\",\"library-registry?\",\"add-feature!\",\"registry-features\",\"registry-feature-list\",\"registry-resolver\",\"set-registry-resolver!\",\"registry-load-hook\",\"set-registry-load-hook!\",\"registry-restorer\",\"set-registry-restorer!\",\"registered-exports\",\"registered-environment\",\"register-exports!\",\"registered-keys\",\"clear-registry!\",\"make-loader\",\"registry-loader\",\"loader-registry\",\"load-library\",\"define-library!\",\"import-sets!\",\"import-into!\",\"syntactic-keyword?\",\"program-parts\",\"make-debugged-programs\",\"record-compiled-over!\",\"compiled-over?\",\"interpret-compiled-over!\",\"switch-back-to-closure!\",\"files-wanted\",\"definition-files-wanted\",\"define-library-parts\"],[\"l\",\"include\",[\"s\",\"library_system.scm\"]]]",
     procedures: {
@@ -31779,7 +31779,7 @@ export const LIBRARIES = {
         constants: [intern("and"), intern("or"), intern("not"), intern("library"), intern("and"), intern("or"), intern("not"), intern("library"), {library: ["scheme","control"]}],
         span: {"filename":"library_system.scm","line":89,"column":1,"endLine":105,"endColumn":25},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "requirement-met?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "symbol?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "memq")).v;
@@ -31881,7 +31881,7 @@ export const LIBRARIES = {
                     $t24 = $t23 === undefined ? ($t22[$PRIM] === true ? $t22(s_requirement_$3114) : $foreign($t22, [s_requirement_$3114])) : $t23(s_requirement_$3114);
                     while ($t24 instanceof $TailCall) { $stack.room = $d; $t24 = $step($t24); }
                     if ($t24 === $UNWIND) { R.reify($proc$r, 15, { s_met_3f, s_requirement_$3114 }); return $UNWIND; }
-                    $t25 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof $t24 === 'number' && typeof 2 === 'number') ? ($t24 === 2) : R.callBinding((C10.v ?? G10()), [$t24, 2]);
+                    $t25 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof $t24 === 'number' && typeof 2 === 'number') ? $t24 === 2 : $numEq($t24, 2)) : R.callBinding((C10.v ?? G10()), [$t24, 2]);
                     $t26 = (W3.intact || (C3.v ?? G3()) === P3) ? ($t25 === false) : R.callBinding((C3.v ?? G3()), [$t25]);
                     if ($t26 !== false) {
                       $t28 = (C12.v ?? G12());
@@ -31922,7 +31922,7 @@ export const LIBRARIES = {
                       $t41 = $t40 === undefined ? ($t39[$PRIM] === true ? $t39(s_requirement_$3114) : $foreign($t39, [s_requirement_$3114])) : $t40(s_requirement_$3114);
                       while ($t41 instanceof $TailCall) { $stack.room = $d; $t41 = $step($t41); }
                       if ($t41 === $UNWIND) { R.reify($proc$r, 24, { s_requirement_$3114, s_library_2davailable_3f_$3116 }); return $UNWIND; }
-                      $t42 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof $t41 === 'number' && typeof 2 === 'number') ? ($t41 === 2) : R.callBinding((C10.v ?? G10()), [$t41, 2]);
+                      $t42 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof $t41 === 'number' && typeof 2 === 'number') ? $t41 === 2 : $numEq($t41, 2)) : R.callBinding((C10.v ?? G10()), [$t41, 2]);
                       $t43 = (W3.intact || (C3.v ?? G3()) === P3) ? ($t42 === false) : R.callBinding((C3.v ?? G3()), [$t42]);
                       if ($t43 !== false) {
                         $t45 = (C12.v ?? G12());
@@ -32045,7 +32045,7 @@ export const LIBRARIES = {
                 if ($t38 !== false) { $pc = 22; continue; } $pc = 23; continue;
               case 15:
                 $t24 = $r;
-                $t25 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof $t24 === 'number' && typeof 2 === 'number') ? ($t24 === 2) : R.callBinding((C10.v ?? G10()), [$t24, 2]);
+                $t25 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof $t24 === 'number' && typeof 2 === 'number') ? $t24 === 2 : $numEq($t24, 2)) : R.callBinding((C10.v ?? G10()), [$t24, 2]);
                 $t26 = (W3.intact || (C3.v ?? G3()) === P3) ? ($t25 === false) : R.callBinding((C3.v ?? G3()), [$t25]);
                 if ($t26 !== false) { $pc = 16; continue; } $pc = 17; continue;
               case 16:
@@ -32105,7 +32105,7 @@ export const LIBRARIES = {
                 return false;
               case 24:
                 $t41 = $r;
-                $t42 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof $t41 === 'number' && typeof 2 === 'number') ? ($t41 === 2) : R.callBinding((C10.v ?? G10()), [$t41, 2]);
+                $t42 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof $t41 === 'number' && typeof 2 === 'number') ? $t41 === 2 : $numEq($t41, 2)) : R.callBinding((C10.v ?? G10()), [$t41, 2]);
                 $t43 = (W3.intact || (C3.v ?? G3()) === P3) ? ($t42 === false) : R.callBinding((C3.v ?? G3()), [$t42]);
                 if ($t43 !== false) { $pc = 25; continue; } $pc = 26; continue;
               case 25:
@@ -33839,7 +33839,7 @@ export const LIBRARIES = {
         constants: [intern("rename"), intern("rename")],
         span: {"filename":"library_system.scm","line":293,"column":1,"endLine":300,"endColumn":27},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "map")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "symbol?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cons")).v;
@@ -33887,7 +33887,7 @@ export const LIBRARIES = {
                   $t11 = $t10 === undefined ? ($t9[$PRIM] === true ? $t9(s_spec_$3149) : $foreign($t9, [s_spec_$3149])) : $t10(s_spec_$3149);
                   while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
                   if ($t11 === $UNWIND) { R.reify($fn1$r, 10, { s_spec_$3149 }); return $UNWIND; }
-                  $t12 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof $t11 === 'number' && typeof 3 === 'number') ? ($t11 === 3) : R.callBinding((C6.v ?? G6()), [$t11, 3]);
+                  $t12 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof $t11 === 'number' && typeof 3 === 'number') ? $t11 === 3 : $numEq($t11, 3)) : R.callBinding((C6.v ?? G6()), [$t11, 3]);
                   if ($t12 !== false) {
                     $t14 = (C1.v ?? G1());
                     $t15 = (C8.v ?? G8());
@@ -34011,7 +34011,7 @@ export const LIBRARIES = {
                   $pc = 6; continue;
                 case 10:
                   $t11 = $r;
-                  $t12 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof $t11 === 'number' && typeof 3 === 'number') ? ($t11 === 3) : R.callBinding((C6.v ?? G6()), [$t11, 3]);
+                  $t12 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof $t11 === 'number' && typeof 3 === 'number') ? $t11 === 3 : $numEq($t11, 3)) : R.callBinding((C6.v ?? G6()), [$t11, 3]);
                   if ($t12 !== false) { $pc = 11; continue; } $pc = 12; continue;
                 case 11:
                   $t14 = (C1.v ?? G1());
@@ -41527,7 +41527,7 @@ export const LIBRARIES = {
   },
   "scheme-js.procedural-macros": {
     fingerprint: "b00c8e71",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["procedural-macros.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"procedural-macros\"],[\"l\",\"export\",\"er-macro-transformer\",\"define-macro\"]]",
     procedures: {
@@ -41539,7 +41539,7 @@ export const LIBRARIES = {
   },
   "scheme-js.promise": {
     fingerprint: "0daa230e",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["promise.sld","promise.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"promise\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"js-promise?\",\"make-js-promise\",\"js-promise-resolve\",\"js-promise-reject\",\"js-promise-then\",\"js-promise-catch\",\"js-promise-finally\",\"js-promise-all\",\"js-promise-race\",\"js-promise-all-settled\"]],[\"l\",\"export\",\"js-promise?\",\"make-js-promise\",\"js-promise-resolve\",\"js-promise-reject\",\"js-promise-then\",\"js-promise-catch\",\"js-promise-finally\",\"js-promise-all\",\"js-promise-race\",\"js-promise-all-settled\",\"js-promise-map\",\"js-promise-chain\",\"async-lambda\"],[\"l\",\"include\",[\"s\",\"promise.scm\"]]]",
     procedures: {
@@ -41662,7 +41662,7 @@ export const LIBRARIES = {
   },
   "scheme-js.reader": {
     fingerprint: "e616b41e",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["reader.sld","reader.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"reader\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"read-source\",\"read-source-continuing\",\"read-from-port\",\"complete-text?\",\"delimiter-parens\",\"matching-delimiter\"],[\"l\",\"include\",[\"s\",\"reader.scm\"]]]",
     procedures: {
@@ -42144,7 +42144,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"reader.scm","line":130,"column":1,"endLine":138,"endColumn":84},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "reader-port")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
@@ -42230,7 +42230,7 @@ export const LIBRARIES = {
             $t22 = $t21 === undefined ? ($t20[$PRIM] === true ? $t20(s_r_$3376) : $foreign($t20, [s_r_$3376])) : $t21(s_r_$3376);
             while ($t22 instanceof $TailCall) { $stack.room = $d; $t22 = $step($t22); }
             if ($t22 === $UNWIND) { R.reify($proc$r, 13, { s_index_$3380, s_r_$3376 }); return $UNWIND; }
-            $t23 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_index_$3380 === 'number' && typeof $t22 === 'number') ? (s_index_$3380 < $t22) : R.callBinding((C7.v ?? G7()), [s_index_$3380, $t22]);
+            $t23 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_index_$3380 === 'number' && typeof $t22 === 'number') ? s_index_$3380 < $t22 : $lt(s_index_$3380, $t22)) : R.callBinding((C7.v ?? G7()), [s_index_$3380, $t22]);
             if ($t23 !== false) {
               $t24 = (C9.v ?? G9());
               $t25 = (C10.v ?? G10());
@@ -42348,7 +42348,7 @@ export const LIBRARIES = {
                 $pc = 13; continue;
               case 13:
                 $t22 = $r;
-                $t23 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_index_$3380 === 'number' && typeof $t22 === 'number') ? (s_index_$3380 < $t22) : R.callBinding((C7.v ?? G7()), [s_index_$3380, $t22]);
+                $t23 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_index_$3380 === 'number' && typeof $t22 === 'number') ? s_index_$3380 < $t22 : $lt(s_index_$3380, $t22)) : R.callBinding((C7.v ?? G7()), [s_index_$3380, $t22]);
                 if ($t23 !== false) { $pc = 14; continue; } $pc = 15; continue;
               case 14:
                 $t24 = (C9.v ?? G9());
@@ -42381,7 +42381,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"reader.scm","line":144,"column":1,"endLine":156,"endColumn":84},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $lt = R.lt, $le = R.le, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "reader-port")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "<=")).v;
         const W1 = R.primitiveCell("<="), P1 = W1.primitive;
@@ -42432,7 +42432,7 @@ export const LIBRARIES = {
             $t9 = $t8 === undefined ? ($t7[$PRIM] === true ? $t7($t6) : $foreign($t7, [$t6])) : $t8($t6);
             while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
             if ($t9 === $UNWIND) { R.reify($proc$r, 6, { s_port_$3384, s_r_$3381, s_ahead_$3382 }); return $UNWIND; }
-            $t10 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t9 === 'number' && typeof s_ahead_$3382 === 'number') ? ($t9 <= s_ahead_$3382) : R.callBinding((C1.v ?? G1()), [$t9, s_ahead_$3382]);
+            $t10 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t9 === 'number' && typeof s_ahead_$3382 === 'number') ? $t9 <= s_ahead_$3382 : $le($t9, s_ahead_$3382)) : R.callBinding((C1.v ?? G1()), [$t9, s_ahead_$3382]);
             if ($t10 !== false) {
               $t11 = (C4.v ?? G4());
               if (typeof $t11 !== 'function') $notProc($t11);
@@ -42506,7 +42506,7 @@ export const LIBRARIES = {
             $t39 = $t38 === undefined ? ($t37[$PRIM] === true ? $t37(s_r_$3381) : $foreign($t37, [s_r_$3381])) : $t38(s_r_$3381);
             while ($t39 instanceof $TailCall) { $stack.room = $d; $t39 = $step($t39); }
             if ($t39 === $UNWIND) { R.reify($proc$r, 18, { s_r_$3381, s_ahead_$3382 }); return $UNWIND; }
-            $t40 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof $t39 === 'number' && typeof s_ahead_$3382 === 'number') ? ($add($t39, s_ahead_$3382)) : R.callBinding((C10.v ?? G10()), [$t39, s_ahead_$3382]);
+            $t40 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof $t39 === 'number' && typeof s_ahead_$3382 === 'number' && (!Number.isInteger(($t39 + s_ahead_$3382)) || (Number.isSafeInteger(($t39 + s_ahead_$3382)) && Number.isInteger($t39) && Number.isInteger(s_ahead_$3382)))) ? ($t39 + s_ahead_$3382) : $add($t39, s_ahead_$3382)) : R.callBinding((C10.v ?? G10()), [$t39, s_ahead_$3382]);
             s_index_$3387 = $t40;
             $t41 = (C13.v ?? G13());
             if (typeof $t41 !== 'function') $notProc($t41);
@@ -42515,7 +42515,7 @@ export const LIBRARIES = {
             $t43 = $t42 === undefined ? ($t41[$PRIM] === true ? $t41(s_r_$3381) : $foreign($t41, [s_r_$3381])) : $t42(s_r_$3381);
             while ($t43 instanceof $TailCall) { $stack.room = $d; $t43 = $step($t43); }
             if ($t43 === $UNWIND) { R.reify($proc$r, 19, { s_index_$3387, s_r_$3381 }); return $UNWIND; }
-            $t44 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_index_$3387 === 'number' && typeof $t43 === 'number') ? (s_index_$3387 < $t43) : R.callBinding((C12.v ?? G12()), [s_index_$3387, $t43]);
+            $t44 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_index_$3387 === 'number' && typeof $t43 === 'number') ? s_index_$3387 < $t43 : $lt(s_index_$3387, $t43)) : R.callBinding((C12.v ?? G12()), [s_index_$3387, $t43]);
             if ($t44 !== false) {
               $t45 = (C14.v ?? G14());
               $t46 = (C15.v ?? G15());
@@ -42588,7 +42588,7 @@ export const LIBRARIES = {
                 $pc = 6; continue;
               case 6:
                 $t9 = $r;
-                $t10 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t9 === 'number' && typeof s_ahead_$3382 === 'number') ? ($t9 <= s_ahead_$3382) : R.callBinding((C1.v ?? G1()), [$t9, s_ahead_$3382]);
+                $t10 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t9 === 'number' && typeof s_ahead_$3382 === 'number') ? $t9 <= s_ahead_$3382 : $le($t9, s_ahead_$3382)) : R.callBinding((C1.v ?? G1()), [$t9, s_ahead_$3382]);
                 if ($t10 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
                 $t11 = (C4.v ?? G4());
@@ -42683,7 +42683,7 @@ export const LIBRARIES = {
                 return $tailCall($t35, [$t34, s_ahead_$3382]);
               case 18:
                 $t39 = $r;
-                $t40 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof $t39 === 'number' && typeof s_ahead_$3382 === 'number') ? ($add($t39, s_ahead_$3382)) : R.callBinding((C10.v ?? G10()), [$t39, s_ahead_$3382]);
+                $t40 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof $t39 === 'number' && typeof s_ahead_$3382 === 'number' && (!Number.isInteger(($t39 + s_ahead_$3382)) || (Number.isSafeInteger(($t39 + s_ahead_$3382)) && Number.isInteger($t39) && Number.isInteger(s_ahead_$3382)))) ? ($t39 + s_ahead_$3382) : $add($t39, s_ahead_$3382)) : R.callBinding((C10.v ?? G10()), [$t39, s_ahead_$3382]);
                 s_index_$3387 = $t40;
                 $t41 = (C13.v ?? G13());
                 if (typeof $t41 !== 'function') $notProc($t41);
@@ -42696,7 +42696,7 @@ export const LIBRARIES = {
                 $pc = 19; continue;
               case 19:
                 $t43 = $r;
-                $t44 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_index_$3387 === 'number' && typeof $t43 === 'number') ? (s_index_$3387 < $t43) : R.callBinding((C12.v ?? G12()), [s_index_$3387, $t43]);
+                $t44 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_index_$3387 === 'number' && typeof $t43 === 'number') ? s_index_$3387 < $t43 : $lt(s_index_$3387, $t43)) : R.callBinding((C12.v ?? G12()), [s_index_$3387, $t43]);
                 if ($t44 !== false) { $pc = 20; continue; } $pc = 21; continue;
               case 20:
                 $t45 = (C14.v ?? G14());
@@ -42729,7 +42729,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"reader.scm","line":161,"column":1,"endLine":169,"endColumn":73},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $le = R.le, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "reader-port")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -42769,7 +42769,7 @@ export const LIBRARIES = {
             $t5 = $t4 === undefined ? ($t3[$PRIM] === true ? $t3(s_prefix_$3389) : $foreign($t3, [s_prefix_$3389])) : $t4(s_prefix_$3389);
             while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
             if ($t5 === $UNWIND) { R.reify($proc$r, 5, { s_k_$3391, s_r_$3388, s_prefix_$3389 }); return $UNWIND; }
-            $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_k_$3391 === 'number' && typeof $t5 === 'number') ? (s_k_$3391 === $t5) : R.callBinding((C1.v ?? G1()), [s_k_$3391, $t5]);
+            $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_k_$3391 === 'number' && typeof $t5 === 'number') ? s_k_$3391 === $t5 : $numEq(s_k_$3391, $t5)) : R.callBinding((C1.v ?? G1()), [s_k_$3391, $t5]);
             s_x_$3392 = $t6;
             if (s_x_$3392 !== false) {
               return s_x_$3392;
@@ -42797,7 +42797,7 @@ export const LIBRARIES = {
               while ($t16 instanceof $TailCall) { $stack.room = $d; $t16 = $step($t16); }
               if ($t16 === $UNWIND) { R.reify($proc$r, 10, { s_k_$3391, s_r_$3388, s_prefix_$3389 }); return $UNWIND; }
               if ($t16 !== false) {
-                $t17 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_k_$3391 === 'number' && typeof 1 === 'number') ? ($add(s_k_$3391, 1)) : R.callBinding((C6.v ?? G6()), [s_k_$3391, 1]);
+                $t17 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_k_$3391 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$3391 + 1)) || (Number.isSafeInteger((s_k_$3391 + 1)) && Number.isInteger(s_k_$3391) && Number.isInteger(1)))) ? (s_k_$3391 + 1) : $add(s_k_$3391, 1)) : R.callBinding((C6.v ?? G6()), [s_k_$3391, 1]);
                 s_k_$3391 = $t17;
                 continue $loop1;
               } else {
@@ -42828,7 +42828,7 @@ export const LIBRARIES = {
             $t26 = $t25 === undefined ? ($t24[$PRIM] === true ? $t24(s_prefix_$3389) : $foreign($t24, [s_prefix_$3389])) : $t25(s_prefix_$3389);
             while ($t26 instanceof $TailCall) { $stack.room = $d; $t26 = $step($t26); }
             if ($t26 === $UNWIND) { R.reify($proc$r, 15, { s_start_$3393, $t23, s_r_$3388, s_prefix_$3389 }); return $UNWIND; }
-            $t27 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof $t23 === 'number' && typeof $t26 === 'number') ? ($add($t23, $t26)) : R.callBinding((C6.v ?? G6()), [$t23, $t26]);
+            $t27 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof $t23 === 'number' && typeof $t26 === 'number' && (!Number.isInteger(($t23 + $t26)) || (Number.isSafeInteger(($t23 + $t26)) && Number.isInteger($t23) && Number.isInteger($t26)))) ? ($t23 + $t26) : $add($t23, $t26)) : R.callBinding((C6.v ?? G6()), [$t23, $t26]);
             s_end_$3394 = $t27;
             $t28 = (C9.v ?? G9());
             if (typeof $t28 !== 'function') $notProc($t28);
@@ -42837,7 +42837,7 @@ export const LIBRARIES = {
             $t30 = $t29 === undefined ? ($t28[$PRIM] === true ? $t28(s_r_$3388) : $foreign($t28, [s_r_$3388])) : $t29(s_r_$3388);
             while ($t30 instanceof $TailCall) { $stack.room = $d; $t30 = $step($t30); }
             if ($t30 === $UNWIND) { R.reify($proc$r, 16, { s_start_$3393, s_end_$3394, s_r_$3388, s_prefix_$3389 }); return $UNWIND; }
-            $t31 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_end_$3394 === 'number' && typeof $t30 === 'number') ? (s_end_$3394 <= $t30) : R.callBinding((C8.v ?? G8()), [s_end_$3394, $t30]);
+            $t31 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_end_$3394 === 'number' && typeof $t30 === 'number') ? s_end_$3394 <= $t30 : $le(s_end_$3394, $t30)) : R.callBinding((C8.v ?? G8()), [s_end_$3394, $t30]);
             if ($t31 !== false) {
               $t32 = (C10.v ?? G10());
               $t33 = (C11.v ?? G11());
@@ -42905,7 +42905,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 5:
                 $t5 = $r;
-                $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_k_$3391 === 'number' && typeof $t5 === 'number') ? (s_k_$3391 === $t5) : R.callBinding((C1.v ?? G1()), [s_k_$3391, $t5]);
+                $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_k_$3391 === 'number' && typeof $t5 === 'number') ? s_k_$3391 === $t5 : $numEq(s_k_$3391, $t5)) : R.callBinding((C1.v ?? G1()), [s_k_$3391, $t5]);
                 s_x_$3392 = $t6;
                 if (s_x_$3392 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 6:
@@ -42947,7 +42947,7 @@ export const LIBRARIES = {
                 $t16 = $r;
                 if ($t16 !== false) { $pc = 11; continue; } $pc = 12; continue;
               case 11:
-                $t17 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_k_$3391 === 'number' && typeof 1 === 'number') ? ($add(s_k_$3391, 1)) : R.callBinding((C6.v ?? G6()), [s_k_$3391, 1]);
+                $t17 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_k_$3391 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$3391 + 1)) || (Number.isSafeInteger((s_k_$3391 + 1)) && Number.isInteger(s_k_$3391) && Number.isInteger(1)))) ? (s_k_$3391 + 1) : $add(s_k_$3391, 1)) : R.callBinding((C6.v ?? G6()), [s_k_$3391, 1]);
                 s_k_$3391 = $t17;
                 $pc = 4; continue;
               case 12:
@@ -42977,7 +42977,7 @@ export const LIBRARIES = {
                 $pc = 15; continue;
               case 15:
                 $t26 = $r;
-                $t27 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof $t23 === 'number' && typeof $t26 === 'number') ? ($add($t23, $t26)) : R.callBinding((C6.v ?? G6()), [$t23, $t26]);
+                $t27 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof $t23 === 'number' && typeof $t26 === 'number' && (!Number.isInteger(($t23 + $t26)) || (Number.isSafeInteger(($t23 + $t26)) && Number.isInteger($t23) && Number.isInteger($t26)))) ? ($t23 + $t26) : $add($t23, $t26)) : R.callBinding((C6.v ?? G6()), [$t23, $t26]);
                 s_end_$3394 = $t27;
                 $t28 = (C9.v ?? G9());
                 if (typeof $t28 !== 'function') $notProc($t28);
@@ -42990,7 +42990,7 @@ export const LIBRARIES = {
                 $pc = 16; continue;
               case 16:
                 $t30 = $r;
-                $t31 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_end_$3394 === 'number' && typeof $t30 === 'number') ? (s_end_$3394 <= $t30) : R.callBinding((C8.v ?? G8()), [s_end_$3394, $t30]);
+                $t31 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_end_$3394 === 'number' && typeof $t30 === 'number') ? s_end_$3394 <= $t30 : $le(s_end_$3394, $t30)) : R.callBinding((C8.v ?? G8()), [s_end_$3394, $t30]);
                 if ($t31 !== false) { $pc = 17; continue; } $pc = 18; continue;
               case 17:
                 $t32 = (C10.v ?? G10());
@@ -43035,7 +43035,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"reader.scm","line":175,"column":1,"endLine":184,"endColumn":106},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $gt = R.gt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "reader-port")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
@@ -43125,13 +43125,13 @@ export const LIBRARIES = {
             $t30 = $t29 === undefined ? ($t28[$PRIM] === true ? $t28($t27) : $foreign($t28, [$t27])) : $t29($t27);
             while ($t30 instanceof $TailCall) { $stack.room = $d; $t30 = $step($t30); }
             if ($t30 === $UNWIND) { R.reify($proc$r, 11, { s_position_$3398, $t19, s_r_$3395 }); return $UNWIND; }
-            $t31 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof $t30 === 'number' && typeof 65535 === 'number') ? ($t30 > 65535) : R.callBinding((C9.v ?? G9()), [$t30, 65535]);
+            $t31 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof $t30 === 'number' && typeof 65535 === 'number') ? $t30 > 65535 : $gt($t30, 65535)) : R.callBinding((C9.v ?? G9()), [$t30, 65535]);
             if ($t31 !== false) {
               $t32 = 2;
             } else {
               $t32 = 1;
             }
-            $t33 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_position_$3398 === 'number' && typeof $t32 === 'number') ? ($add(s_position_$3398, $t32)) : R.callBinding((C8.v ?? G8()), [s_position_$3398, $t32]);
+            $t33 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_position_$3398 === 'number' && typeof $t32 === 'number' && (!Number.isInteger((s_position_$3398 + $t32)) || (Number.isSafeInteger((s_position_$3398 + $t32)) && Number.isInteger(s_position_$3398) && Number.isInteger($t32)))) ? (s_position_$3398 + $t32) : $add(s_position_$3398, $t32)) : R.callBinding((C8.v ?? G8()), [s_position_$3398, $t32]);
             $t34 = $t19;
             if ($d > 0 && ($t35 = $t34?.[$RAW] ?? $t34)?.[$PRIM] === true) { $stack.room = $d; return $t35(s_r_$3395, $t33); } return $tailCall($t34, [s_r_$3395, $t33]);
           }
@@ -43238,7 +43238,7 @@ export const LIBRARIES = {
                 $pc = 11; continue;
               case 11:
                 $t30 = $r;
-                $t31 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof $t30 === 'number' && typeof 65535 === 'number') ? ($t30 > 65535) : R.callBinding((C9.v ?? G9()), [$t30, 65535]);
+                $t31 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof $t30 === 'number' && typeof 65535 === 'number') ? $t30 > 65535 : $gt($t30, 65535)) : R.callBinding((C9.v ?? G9()), [$t30, 65535]);
                 if ($t31 !== false) { $pc = 12; continue; } $pc = 13; continue;
               case 12:
                 $t32 = 2;
@@ -43247,7 +43247,7 @@ export const LIBRARIES = {
                 $t32 = 1;
                 $pc = 14; continue;
               case 14:
-                $t33 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_position_$3398 === 'number' && typeof $t32 === 'number') ? ($add(s_position_$3398, $t32)) : R.callBinding((C8.v ?? G8()), [s_position_$3398, $t32]);
+                $t33 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_position_$3398 === 'number' && typeof $t32 === 'number' && (!Number.isInteger((s_position_$3398 + $t32)) || (Number.isSafeInteger((s_position_$3398 + $t32)) && Number.isInteger(s_position_$3398) && Number.isInteger($t32)))) ? (s_position_$3398 + $t32) : $add(s_position_$3398, $t32)) : R.callBinding((C8.v ?? G8()), [s_position_$3398, $t32]);
                 $t34 = $t19;
                 return $tailCall($t34, [s_r_$3395, $t33]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -43264,7 +43264,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"reader.scm","line":190,"column":1,"endLine":193,"endColumn":63},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $gt = R.gt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "reader-port")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, ">")).v;
         const W1 = R.primitiveCell(">"), P1 = W1.primitive;
@@ -43290,7 +43290,7 @@ export const LIBRARIES = {
           if ($t2 !== false) {
             s_count_$3402 = s_count_$3400;
             $loop1: for (;;) {
-            $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_count_$3402 === 'number' && typeof 0 === 'number') ? (s_count_$3402 > 0) : R.callBinding((C1.v ?? G1()), [s_count_$3402, 0]);
+            $t3 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_count_$3402 === 'number' && typeof 0 === 'number') ? s_count_$3402 > 0 : $gt(s_count_$3402, 0)) : R.callBinding((C1.v ?? G1()), [s_count_$3402, 0]);
             if ($t3 !== false) {
               $t4 = (C2.v ?? G2());
               if (typeof $t4 !== 'function') $notProc($t4);
@@ -43300,7 +43300,7 @@ export const LIBRARIES = {
               while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
               if ($t6 === $UNWIND) { R.reify($proc$r, 7, { s_count_$3402, s_r_$3399 }); return $UNWIND; }
               $t6;
-              $t7 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_count_$3402 === 'number' && typeof 1 === 'number') ? ($sub(s_count_$3402, 1)) : R.callBinding((C3.v ?? G3()), [s_count_$3402, 1]);
+              $t7 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_count_$3402 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_count_$3402 - 1)) || (Number.isSafeInteger((s_count_$3402 - 1)) && Number.isInteger(s_count_$3402) && Number.isInteger(1)))) ? (s_count_$3402 - 1) : $sub(s_count_$3402, 1)) : R.callBinding((C3.v ?? G3()), [s_count_$3402, 1]);
               s_count_$3402 = $t7;
               continue $loop1;
             } else {
@@ -43316,7 +43316,7 @@ export const LIBRARIES = {
             $t11 = $t10 === undefined ? ($t9[$PRIM] === true ? $t9(s_r_$3399) : $foreign($t9, [s_r_$3399])) : $t10(s_r_$3399);
             while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
             if ($t11 === $UNWIND) { R.reify($proc$r, 8, { $t8, s_r_$3399, s_count_$3400 }); return $UNWIND; }
-            $t12 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t11 === 'number' && typeof s_count_$3400 === 'number') ? ($add($t11, s_count_$3400)) : R.callBinding((C5.v ?? G5()), [$t11, s_count_$3400]);
+            $t12 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t11 === 'number' && typeof s_count_$3400 === 'number' && (!Number.isInteger(($t11 + s_count_$3400)) || (Number.isSafeInteger(($t11 + s_count_$3400)) && Number.isInteger($t11) && Number.isInteger(s_count_$3400)))) ? ($t11 + s_count_$3400) : $add($t11, s_count_$3400)) : R.callBinding((C5.v ?? G5()), [$t11, s_count_$3400]);
             $t13 = $t8;
             if ($d > 0 && ($t14 = $t13?.[$RAW] ?? $t13)?.[$PRIM] === true) { $stack.room = $d; return $t14(s_r_$3399, $t12); } return $tailCall($t13, [s_r_$3399, $t12]);
           }
@@ -43354,7 +43354,7 @@ export const LIBRARIES = {
                 $r = $t11;
                 $pc = 8; continue;
               case 4:
-                $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_count_$3402 === 'number' && typeof 0 === 'number') ? (s_count_$3402 > 0) : R.callBinding((C1.v ?? G1()), [s_count_$3402, 0]);
+                $t3 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_count_$3402 === 'number' && typeof 0 === 'number') ? s_count_$3402 > 0 : $gt(s_count_$3402, 0)) : R.callBinding((C1.v ?? G1()), [s_count_$3402, 0]);
                 if ($t3 !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 5:
                 $t4 = (C2.v ?? G2());
@@ -43371,12 +43371,12 @@ export const LIBRARIES = {
               case 7:
                 $t6 = $r;
                 $t6;
-                $t7 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_count_$3402 === 'number' && typeof 1 === 'number') ? ($sub(s_count_$3402, 1)) : R.callBinding((C3.v ?? G3()), [s_count_$3402, 1]);
+                $t7 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_count_$3402 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_count_$3402 - 1)) || (Number.isSafeInteger((s_count_$3402 - 1)) && Number.isInteger(s_count_$3402) && Number.isInteger(1)))) ? (s_count_$3402 - 1) : $sub(s_count_$3402, 1)) : R.callBinding((C3.v ?? G3()), [s_count_$3402, 1]);
                 s_count_$3402 = $t7;
                 $pc = 4; continue;
               case 8:
                 $t11 = $r;
-                $t12 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t11 === 'number' && typeof s_count_$3400 === 'number') ? ($add($t11, s_count_$3400)) : R.callBinding((C5.v ?? G5()), [$t11, s_count_$3400]);
+                $t12 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t11 === 'number' && typeof s_count_$3400 === 'number' && (!Number.isInteger(($t11 + s_count_$3400)) || (Number.isSafeInteger(($t11 + s_count_$3400)) && Number.isInteger($t11) && Number.isInteger(s_count_$3400)))) ? ($t11 + s_count_$3400) : $add($t11, s_count_$3400)) : R.callBinding((C5.v ?? G5()), [$t11, s_count_$3400]);
                 $t13 = $t8;
                 return $tailCall($t13, [s_r_$3399, $t12]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -43615,7 +43615,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"reader.scm","line":224,"column":1,"endLine":241,"endColumn":32},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.add, $sub = R.sub, $lt = R.lt, $le = R.le, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "reader-line-starts")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "-")).v;
         const W1 = R.primitiveCell("-"), P1 = W1.primitive;
@@ -43648,10 +43648,10 @@ export const LIBRARIES = {
             while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
             if ($t2 === $UNWIND) { R.reify($fn5$r, 1, { s_line_$3415 }); return $UNWIND; }
             $t2;
-            $t3 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_line_$3415 === 'number' && typeof 1 === 'number') ? ($add(s_line_$3415, 1)) : R.callBinding((C5.v ?? G5()), [s_line_$3415, 1]);
+            $t3 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_line_$3415 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_line_$3415 + 1)) || (Number.isSafeInteger((s_line_$3415 + 1)) && Number.isInteger(s_line_$3415) && Number.isInteger(1)))) ? (s_line_$3415 + 1) : $add(s_line_$3415, 1)) : R.callBinding((C5.v ?? G5()), [s_line_$3415, 1]);
             $t4 = (W6.intact || (C6.v ?? G6()) === P6) ? ($vectorRef(s_starts_$3412, s_line_$3415)) : R.callBinding((C6.v ?? G6()), [s_starts_$3412, s_line_$3415]);
-            $t5 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_position_$3411 === 'number' && typeof $t4 === 'number') ? ($sub(s_position_$3411, $t4)) : R.callBinding((C1.v ?? G1()), [s_position_$3411, $t4]);
-            $t6 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t5 === 'number' && typeof 1 === 'number') ? ($add($t5, 1)) : R.callBinding((C5.v ?? G5()), [$t5, 1]);
+            $t5 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_position_$3411 === 'number' && typeof $t4 === 'number' && (!Number.isInteger((s_position_$3411 - $t4)) || (Number.isSafeInteger((s_position_$3411 - $t4)) && Number.isInteger(s_position_$3411) && Number.isInteger($t4)))) ? (s_position_$3411 - $t4) : $sub(s_position_$3411, $t4)) : R.callBinding((C1.v ?? G1()), [s_position_$3411, $t4]);
+            $t6 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t5 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t5 + 1)) || (Number.isSafeInteger(($t5 + 1)) && Number.isInteger($t5) && Number.isInteger(1)))) ? ($t5 + 1) : $add($t5, 1)) : R.callBinding((C5.v ?? G5()), [$t5, 1]);
             $t7 = (W4.intact || (C4.v ?? G4()) === P4) ? (new R.Cons($t3, $t6)) : R.callBinding((C4.v ?? G4()), [$t3, $t6]);
             return $t7;
           } }["anonymous"];
@@ -43674,10 +43674,10 @@ export const LIBRARIES = {
                 case 1:
                   $t2 = $r;
                   $t2;
-                  $t3 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_line_$3415 === 'number' && typeof 1 === 'number') ? ($add(s_line_$3415, 1)) : R.callBinding((C5.v ?? G5()), [s_line_$3415, 1]);
+                  $t3 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_line_$3415 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_line_$3415 + 1)) || (Number.isSafeInteger((s_line_$3415 + 1)) && Number.isInteger(s_line_$3415) && Number.isInteger(1)))) ? (s_line_$3415 + 1) : $add(s_line_$3415, 1)) : R.callBinding((C5.v ?? G5()), [s_line_$3415, 1]);
                   $t4 = (W6.intact || (C6.v ?? G6()) === P6) ? ($vectorRef(s_starts_$3412, s_line_$3415)) : R.callBinding((C6.v ?? G6()), [s_starts_$3412, s_line_$3415]);
-                  $t5 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_position_$3411 === 'number' && typeof $t4 === 'number') ? ($sub(s_position_$3411, $t4)) : R.callBinding((C1.v ?? G1()), [s_position_$3411, $t4]);
-                  $t6 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t5 === 'number' && typeof 1 === 'number') ? ($add($t5, 1)) : R.callBinding((C5.v ?? G5()), [$t5, 1]);
+                  $t5 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_position_$3411 === 'number' && typeof $t4 === 'number' && (!Number.isInteger((s_position_$3411 - $t4)) || (Number.isSafeInteger((s_position_$3411 - $t4)) && Number.isInteger(s_position_$3411) && Number.isInteger($t4)))) ? (s_position_$3411 - $t4) : $sub(s_position_$3411, $t4)) : R.callBinding((C1.v ?? G1()), [s_position_$3411, $t4]);
+                  $t6 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t5 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t5 + 1)) || (Number.isSafeInteger(($t5 + 1)) && Number.isInteger($t5) && Number.isInteger(1)))) ? ($t5 + 1) : $add($t5, 1)) : R.callBinding((C5.v ?? G5()), [$t5, 1]);
                   $t7 = (W4.intact || (C4.v ?? G4()) === P4) ? (new R.Cons($t3, $t6)) : R.callBinding((C4.v ?? G4()), [$t3, $t6]);
                   return $t7;
                 default: throw new Error('$fn5$r: bad resume point ' + $pc);
@@ -43700,7 +43700,7 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_r_$3410, s_position_$3411 }); return $UNWIND; }
           s_starts_$3412 = $t2;
           $t3 = (W2.intact || (C2.v ?? G2()) === P2) && (Array.isArray(s_starts_$3412)) ? (s_starts_$3412.length) : R.callBinding((C2.v ?? G2()), [s_starts_$3412]);
-          $t4 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t3 === 'number' && typeof 1 === 'number') ? ($sub($t3, 1)) : R.callBinding((C1.v ?? G1()), [$t3, 1]);
+          $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t3 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t3 - 1)) || (Number.isSafeInteger(($t3 - 1)) && Number.isInteger($t3) && Number.isInteger(1)))) ? ($t3 - 1) : $sub($t3, 1)) : R.callBinding((C1.v ?? G1()), [$t3, 1]);
           s_last_$3413 = $t4;
           $t6 = $mk$fn5(s_r_$3410, s_position_$3411, s_starts_$3412);
           s_found_$3414 = $t6;
@@ -43712,7 +43712,7 @@ export const LIBRARIES = {
           while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
           if ($t9 === $UNWIND) { R.reify($proc$r, 2, { s_starts_$3412, s_last_$3413, s_found_$3414, s_r_$3410, s_position_$3411 }); return $UNWIND; }
           $t10 = (W6.intact || (C6.v ?? G6()) === P6) ? ($vectorRef(s_starts_$3412, $t9)) : R.callBinding((C6.v ?? G6()), [s_starts_$3412, $t9]);
-          $t11 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_position_$3411 === 'number' && typeof $t10 === 'number') ? (s_position_$3411 < $t10) : R.callBinding((C7.v ?? G7()), [s_position_$3411, $t10]);
+          $t11 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_position_$3411 === 'number' && typeof $t10 === 'number') ? s_position_$3411 < $t10 : $lt(s_position_$3411, $t10)) : R.callBinding((C7.v ?? G7()), [s_position_$3411, $t10]);
           if ($t11 !== false) {
             $t12 = (C8.v ?? G8());
             if (typeof $t12 !== 'function') $notProc($t12);
@@ -43724,7 +43724,7 @@ export const LIBRARIES = {
             s_low_$3417 = 0;
             s_high_$3418 = $t14;
             $loop1: for (;;) {
-            $t15 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_low_$3417 === 'number' && typeof s_high_$3418 === 'number') ? (s_low_$3417 < s_high_$3418) : R.callBinding((C7.v ?? G7()), [s_low_$3417, s_high_$3418]);
+            $t15 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_low_$3417 === 'number' && typeof s_high_$3418 === 'number') ? s_low_$3417 < s_high_$3418 : $lt(s_low_$3417, s_high_$3418)) : R.callBinding((C7.v ?? G7()), [s_low_$3417, s_high_$3418]);
             if ($t15 !== false) {
               $t16 = (C9.v ?? G9());
               $t17 = (C5.v ?? G5());
@@ -43743,13 +43743,13 @@ export const LIBRARIES = {
               if ($t22 === $UNWIND) { R.reify($proc$r, 10, { s_starts_$3412, s_found_$3414, s_low_$3417, s_high_$3418, s_position_$3411 }); return $UNWIND; }
               s_middle_$3419 = $t22;
               $t23 = (W6.intact || (C6.v ?? G6()) === P6) ? ($vectorRef(s_starts_$3412, s_middle_$3419)) : R.callBinding((C6.v ?? G6()), [s_starts_$3412, s_middle_$3419]);
-              $t24 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof $t23 === 'number' && typeof s_position_$3411 === 'number') ? ($t23 <= s_position_$3411) : R.callBinding((C10.v ?? G10()), [$t23, s_position_$3411]);
+              $t24 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof $t23 === 'number' && typeof s_position_$3411 === 'number') ? $t23 <= s_position_$3411 : $le($t23, s_position_$3411)) : R.callBinding((C10.v ?? G10()), [$t23, s_position_$3411]);
               if ($t24 !== false) {
                 $t25 = s_middle_$3419;
                 s_low_$3417 = $t25;
                 continue $loop1;
               } else {
-                $t26 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_middle_$3419 === 'number' && typeof 1 === 'number') ? ($sub(s_middle_$3419, 1)) : R.callBinding((C1.v ?? G1()), [s_middle_$3419, 1]);
+                $t26 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_middle_$3419 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_middle_$3419 - 1)) || (Number.isSafeInteger((s_middle_$3419 - 1)) && Number.isInteger(s_middle_$3419) && Number.isInteger(1)))) ? (s_middle_$3419 - 1) : $sub(s_middle_$3419, 1)) : R.callBinding((C1.v ?? G1()), [s_middle_$3419, 1]);
                 s_high_$3418 = $t26;
                 continue $loop1;
               }
@@ -43768,17 +43768,17 @@ export const LIBRARIES = {
             if ($t31 === $UNWIND) { R.reify($proc$r, 13, { s_starts_$3412, s_last_$3413, s_found_$3414, s_position_$3411 }); return $UNWIND; }
             s_line_$3421 = $t31;
             $loop2: for (;;) {
-            $t32 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_line_$3421 === 'number' && typeof s_last_$3413 === 'number') ? (s_line_$3421 < s_last_$3413) : R.callBinding((C7.v ?? G7()), [s_line_$3421, s_last_$3413]);
+            $t32 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_line_$3421 === 'number' && typeof s_last_$3413 === 'number') ? s_line_$3421 < s_last_$3413 : $lt(s_line_$3421, s_last_$3413)) : R.callBinding((C7.v ?? G7()), [s_line_$3421, s_last_$3413]);
             if ($t32 !== false) {
-              $t34 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_line_$3421 === 'number' && typeof 1 === 'number') ? ($add(s_line_$3421, 1)) : R.callBinding((C5.v ?? G5()), [s_line_$3421, 1]);
+              $t34 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_line_$3421 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_line_$3421 + 1)) || (Number.isSafeInteger((s_line_$3421 + 1)) && Number.isInteger(s_line_$3421) && Number.isInteger(1)))) ? (s_line_$3421 + 1) : $add(s_line_$3421, 1)) : R.callBinding((C5.v ?? G5()), [s_line_$3421, 1]);
               $t35 = (W6.intact || (C6.v ?? G6()) === P6) ? ($vectorRef(s_starts_$3412, $t34)) : R.callBinding((C6.v ?? G6()), [s_starts_$3412, $t34]);
-              $t36 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof $t35 === 'number' && typeof s_position_$3411 === 'number') ? ($t35 <= s_position_$3411) : R.callBinding((C10.v ?? G10()), [$t35, s_position_$3411]);
+              $t36 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof $t35 === 'number' && typeof s_position_$3411 === 'number') ? $t35 <= s_position_$3411 : $le($t35, s_position_$3411)) : R.callBinding((C10.v ?? G10()), [$t35, s_position_$3411]);
               $t33 = $t36;
             } else {
               $t33 = false;
             }
             if ($t33 !== false) {
-              $t37 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_line_$3421 === 'number' && typeof 1 === 'number') ? ($add(s_line_$3421, 1)) : R.callBinding((C5.v ?? G5()), [s_line_$3421, 1]);
+              $t37 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_line_$3421 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_line_$3421 + 1)) || (Number.isSafeInteger((s_line_$3421 + 1)) && Number.isInteger(s_line_$3421) && Number.isInteger(1)))) ? (s_line_$3421 + 1) : $add(s_line_$3421, 1)) : R.callBinding((C5.v ?? G5()), [s_line_$3421, 1]);
               s_line_$3421 = $t37;
               continue $loop2;
             } else {
@@ -43807,7 +43807,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 s_starts_$3412 = $t2;
                 $t3 = (W2.intact || (C2.v ?? G2()) === P2) && (Array.isArray(s_starts_$3412)) ? (s_starts_$3412.length) : R.callBinding((C2.v ?? G2()), [s_starts_$3412]);
-                $t4 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t3 === 'number' && typeof 1 === 'number') ? ($sub($t3, 1)) : R.callBinding((C1.v ?? G1()), [$t3, 1]);
+                $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t3 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t3 - 1)) || (Number.isSafeInteger(($t3 - 1)) && Number.isInteger($t3) && Number.isInteger(1)))) ? ($t3 - 1) : $sub($t3, 1)) : R.callBinding((C1.v ?? G1()), [$t3, 1]);
                 s_last_$3413 = $t4;
                 $t6 = $mk$fn5(s_r_$3410, s_position_$3411, s_starts_$3412);
                 s_found_$3414 = $t6;
@@ -43823,7 +43823,7 @@ export const LIBRARIES = {
               case 2:
                 $t9 = $r;
                 $t10 = (W6.intact || (C6.v ?? G6()) === P6) ? ($vectorRef(s_starts_$3412, $t9)) : R.callBinding((C6.v ?? G6()), [s_starts_$3412, $t9]);
-                $t11 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_position_$3411 === 'number' && typeof $t10 === 'number') ? (s_position_$3411 < $t10) : R.callBinding((C7.v ?? G7()), [s_position_$3411, $t10]);
+                $t11 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_position_$3411 === 'number' && typeof $t10 === 'number') ? s_position_$3411 < $t10 : $lt(s_position_$3411, $t10)) : R.callBinding((C7.v ?? G7()), [s_position_$3411, $t10]);
                 if ($t11 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t12 = (C8.v ?? G8());
@@ -43851,7 +43851,7 @@ export const LIBRARIES = {
                 s_high_$3418 = $t14;
                 $pc = 6; continue;
               case 6:
-                $t15 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_low_$3417 === 'number' && typeof s_high_$3418 === 'number') ? (s_low_$3417 < s_high_$3418) : R.callBinding((C7.v ?? G7()), [s_low_$3417, s_high_$3418]);
+                $t15 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_low_$3417 === 'number' && typeof s_high_$3418 === 'number') ? s_low_$3417 < s_high_$3418 : $lt(s_low_$3417, s_high_$3418)) : R.callBinding((C7.v ?? G7()), [s_low_$3417, s_high_$3418]);
                 if ($t15 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
                 $t16 = (C9.v ?? G9());
@@ -43882,14 +43882,14 @@ export const LIBRARIES = {
                 $t22 = $r;
                 s_middle_$3419 = $t22;
                 $t23 = (W6.intact || (C6.v ?? G6()) === P6) ? ($vectorRef(s_starts_$3412, s_middle_$3419)) : R.callBinding((C6.v ?? G6()), [s_starts_$3412, s_middle_$3419]);
-                $t24 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof $t23 === 'number' && typeof s_position_$3411 === 'number') ? ($t23 <= s_position_$3411) : R.callBinding((C10.v ?? G10()), [$t23, s_position_$3411]);
+                $t24 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof $t23 === 'number' && typeof s_position_$3411 === 'number') ? $t23 <= s_position_$3411 : $le($t23, s_position_$3411)) : R.callBinding((C10.v ?? G10()), [$t23, s_position_$3411]);
                 if ($t24 !== false) { $pc = 11; continue; } $pc = 12; continue;
               case 11:
                 $t25 = s_middle_$3419;
                 s_low_$3417 = $t25;
                 $pc = 6; continue;
               case 12:
-                $t26 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_middle_$3419 === 'number' && typeof 1 === 'number') ? ($sub(s_middle_$3419, 1)) : R.callBinding((C1.v ?? G1()), [s_middle_$3419, 1]);
+                $t26 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_middle_$3419 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_middle_$3419 - 1)) || (Number.isSafeInteger((s_middle_$3419 - 1)) && Number.isInteger(s_middle_$3419) && Number.isInteger(1)))) ? (s_middle_$3419 - 1) : $sub(s_middle_$3419, 1)) : R.callBinding((C1.v ?? G1()), [s_middle_$3419, 1]);
                 s_high_$3418 = $t26;
                 $pc = 6; continue;
               case 13:
@@ -43897,12 +43897,12 @@ export const LIBRARIES = {
                 s_line_$3421 = $t31;
                 $pc = 14; continue;
               case 14:
-                $t32 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_line_$3421 === 'number' && typeof s_last_$3413 === 'number') ? (s_line_$3421 < s_last_$3413) : R.callBinding((C7.v ?? G7()), [s_line_$3421, s_last_$3413]);
+                $t32 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_line_$3421 === 'number' && typeof s_last_$3413 === 'number') ? s_line_$3421 < s_last_$3413 : $lt(s_line_$3421, s_last_$3413)) : R.callBinding((C7.v ?? G7()), [s_line_$3421, s_last_$3413]);
                 if ($t32 !== false) { $pc = 15; continue; } $pc = 16; continue;
               case 15:
-                $t34 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_line_$3421 === 'number' && typeof 1 === 'number') ? ($add(s_line_$3421, 1)) : R.callBinding((C5.v ?? G5()), [s_line_$3421, 1]);
+                $t34 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_line_$3421 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_line_$3421 + 1)) || (Number.isSafeInteger((s_line_$3421 + 1)) && Number.isInteger(s_line_$3421) && Number.isInteger(1)))) ? (s_line_$3421 + 1) : $add(s_line_$3421, 1)) : R.callBinding((C5.v ?? G5()), [s_line_$3421, 1]);
                 $t35 = (W6.intact || (C6.v ?? G6()) === P6) ? ($vectorRef(s_starts_$3412, $t34)) : R.callBinding((C6.v ?? G6()), [s_starts_$3412, $t34]);
-                $t36 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof $t35 === 'number' && typeof s_position_$3411 === 'number') ? ($t35 <= s_position_$3411) : R.callBinding((C10.v ?? G10()), [$t35, s_position_$3411]);
+                $t36 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof $t35 === 'number' && typeof s_position_$3411 === 'number') ? $t35 <= s_position_$3411 : $le($t35, s_position_$3411)) : R.callBinding((C10.v ?? G10()), [$t35, s_position_$3411]);
                 $t33 = $t36;
                 $pc = 17; continue;
               case 16:
@@ -43911,7 +43911,7 @@ export const LIBRARIES = {
               case 17:
                 if ($t33 !== false) { $pc = 18; continue; } $pc = 19; continue;
               case 18:
-                $t37 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_line_$3421 === 'number' && typeof 1 === 'number') ? ($add(s_line_$3421, 1)) : R.callBinding((C5.v ?? G5()), [s_line_$3421, 1]);
+                $t37 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_line_$3421 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_line_$3421 + 1)) || (Number.isSafeInteger((s_line_$3421 + 1)) && Number.isInteger(s_line_$3421) && Number.isInteger(1)))) ? (s_line_$3421 + 1) : $add(s_line_$3421, 1)) : R.callBinding((C5.v ?? G5()), [s_line_$3421, 1]);
                 s_line_$3421 = $t37;
                 $pc = 14; continue;
               case 19:
@@ -44910,7 +44910,7 @@ export const LIBRARIES = {
         constants: [new Char(59), new Char(59)],
         span: {"filename":"reader.scm","line":334,"column":1,"endLine":346,"endColumn":34},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $gt = R.gt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "reader-position")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%string-skip-any")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "reader-text")).v;
@@ -44969,7 +44969,7 @@ export const LIBRARIES = {
           if (s_x_$3449 !== false) {
             $t13 = s_x_$3449;
           } else {
-            $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_after_$3447 === 'number' && typeof s_before_$3446 === 'number') ? (s_after_$3447 > s_before_$3446) : R.callBinding((C5.v ?? G5()), [s_after_$3447, s_before_$3446]);
+            $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_after_$3447 === 'number' && typeof s_before_$3446 === 'number') ? s_after_$3447 > s_before_$3446 : $gt(s_after_$3447, s_before_$3446)) : R.callBinding((C5.v ?? G5()), [s_after_$3447, s_before_$3446]);
             $t13 = $t14;
           }
           s_skipped_$3448 = $t13;
@@ -45108,7 +45108,7 @@ export const LIBRARIES = {
                 $t13 = s_x_$3449;
                 $pc = 8; continue;
               case 7:
-                $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_after_$3447 === 'number' && typeof s_before_$3446 === 'number') ? (s_after_$3447 > s_before_$3446) : R.callBinding((C5.v ?? G5()), [s_after_$3447, s_before_$3446]);
+                $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_after_$3447 === 'number' && typeof s_before_$3446 === 'number') ? s_after_$3447 > s_before_$3446 : $gt(s_after_$3447, s_before_$3446)) : R.callBinding((C5.v ?? G5()), [s_after_$3447, s_before_$3446]);
                 $t13 = $t14;
                 $pc = 8; continue;
               case 8:
@@ -45225,7 +45225,7 @@ export const LIBRARIES = {
         constants: [new Cons(new Char(35), new Cons(new Char(124), null)), new Cons(new Char(35), new Cons(new Char(124), null)), new Char(124), new Char(35), new Char(124), new Char(35)],
         span: {"filename":"reader.scm","line":352,"column":1,"endLine":364,"endColumn":62},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $gt = R.gt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "here")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "advance-by!")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, ">")).v;
@@ -45314,7 +45314,7 @@ export const LIBRARIES = {
           $t5;
           s_depth_$3454 = 1;
           $loop1: for (;;) {
-          $t6 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_depth_$3454 === 'number' && typeof 0 === 'number') ? (s_depth_$3454 > 0) : R.callBinding((C2.v ?? G2()), [s_depth_$3454, 0]);
+          $t6 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_depth_$3454 === 'number' && typeof 0 === 'number') ? s_depth_$3454 > 0 : $gt(s_depth_$3454, 0)) : R.callBinding((C2.v ?? G2()), [s_depth_$3454, 0]);
           if ($t6 !== false) {
             $t7 = (C3.v ?? G3());
             if (typeof $t7 !== 'function') $notProc($t7);
@@ -45396,7 +45396,7 @@ export const LIBRARIES = {
                 while ($t42 instanceof $TailCall) { $stack.room = $d; $t42 = $step($t42); }
                 if ($t42 === $UNWIND) { R.reify($proc$r, 21, { s_start_$3452, s_depth_$3454, s_r_$3451 }); return $UNWIND; }
                 $t42;
-                $t43 = (W14.intact || (C14.v ?? G14()) === P14) && (typeof s_depth_$3454 === 'number' && typeof 1 === 'number') ? ($add(s_depth_$3454, 1)) : R.callBinding((C14.v ?? G14()), [s_depth_$3454, 1]);
+                $t43 = (W14.intact || (C14.v ?? G14()) === P14) ? ((typeof s_depth_$3454 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$3454 + 1)) || (Number.isSafeInteger((s_depth_$3454 + 1)) && Number.isInteger(s_depth_$3454) && Number.isInteger(1)))) ? (s_depth_$3454 + 1) : $add(s_depth_$3454, 1)) : R.callBinding((C14.v ?? G14()), [s_depth_$3454, 1]);
                 s_depth_$3454 = $t43;
                 continue $loop1;
               } else {
@@ -45444,7 +45444,7 @@ export const LIBRARIES = {
                   while ($t61 instanceof $TailCall) { $stack.room = $d; $t61 = $step($t61); }
                   if ($t61 === $UNWIND) { R.reify($proc$r, 31, { s_start_$3452, s_depth_$3454, s_r_$3451 }); return $UNWIND; }
                   $t61;
-                  $t62 = (W17.intact || (C17.v ?? G17()) === P17) && (typeof s_depth_$3454 === 'number' && typeof 1 === 'number') ? ($sub(s_depth_$3454, 1)) : R.callBinding((C17.v ?? G17()), [s_depth_$3454, 1]);
+                  $t62 = (W17.intact || (C17.v ?? G17()) === P17) ? ((typeof s_depth_$3454 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$3454 - 1)) || (Number.isSafeInteger((s_depth_$3454 - 1)) && Number.isInteger(s_depth_$3454) && Number.isInteger(1)))) ? (s_depth_$3454 - 1) : $sub(s_depth_$3454, 1)) : R.callBinding((C17.v ?? G17()), [s_depth_$3454, 1]);
                   s_depth_$3454 = $t62;
                   continue $loop1;
                 } else {
@@ -45498,7 +45498,7 @@ export const LIBRARIES = {
                 s_depth_$3454 = 1;
                 $pc = 3; continue;
               case 3:
-                $t6 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_depth_$3454 === 'number' && typeof 0 === 'number') ? (s_depth_$3454 > 0) : R.callBinding((C2.v ?? G2()), [s_depth_$3454, 0]);
+                $t6 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_depth_$3454 === 'number' && typeof 0 === 'number') ? s_depth_$3454 > 0 : $gt(s_depth_$3454, 0)) : R.callBinding((C2.v ?? G2()), [s_depth_$3454, 0]);
                 if ($t6 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 $t7 = (C3.v ?? G3());
@@ -45635,7 +45635,7 @@ export const LIBRARIES = {
               case 21:
                 $t42 = $r;
                 $t42;
-                $t43 = (W14.intact || (C14.v ?? G14()) === P14) && (typeof s_depth_$3454 === 'number' && typeof 1 === 'number') ? ($add(s_depth_$3454, 1)) : R.callBinding((C14.v ?? G14()), [s_depth_$3454, 1]);
+                $t43 = (W14.intact || (C14.v ?? G14()) === P14) ? ((typeof s_depth_$3454 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$3454 + 1)) || (Number.isSafeInteger((s_depth_$3454 + 1)) && Number.isInteger(s_depth_$3454) && Number.isInteger(1)))) ? (s_depth_$3454 + 1) : $add(s_depth_$3454, 1)) : R.callBinding((C14.v ?? G14()), [s_depth_$3454, 1]);
                 s_depth_$3454 = $t43;
                 $pc = 3; continue;
               case 22:
@@ -45706,7 +45706,7 @@ export const LIBRARIES = {
               case 31:
                 $t61 = $r;
                 $t61;
-                $t62 = (W17.intact || (C17.v ?? G17()) === P17) && (typeof s_depth_$3454 === 'number' && typeof 1 === 'number') ? ($sub(s_depth_$3454, 1)) : R.callBinding((C17.v ?? G17()), [s_depth_$3454, 1]);
+                $t62 = (W17.intact || (C17.v ?? G17()) === P17) ? ((typeof s_depth_$3454 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_depth_$3454 - 1)) || (Number.isSafeInteger((s_depth_$3454 - 1)) && Number.isInteger(s_depth_$3454) && Number.isInteger(1)))) ? (s_depth_$3454 - 1) : $sub(s_depth_$3454, 1)) : R.callBinding((C17.v ?? G17()), [s_depth_$3454, 1]);
                 s_depth_$3454 = $t62;
                 $pc = 3; continue;
               case 32:
@@ -49477,7 +49477,7 @@ export const LIBRARIES = {
         constants: [intern("..."), intern("...")],
         span: {"filename":"reader.scm","line":592,"column":1,"endLine":598,"endColumn":99},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eq?")).v;
@@ -49513,7 +49513,7 @@ export const LIBRARIES = {
             $t6 = $t5 === undefined ? ($t4[$PRIM] === true ? $t4(s_items_$3525) : $foreign($t4, [s_items_$3525])) : $t5(s_items_$3525);
             while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
             if ($t6 === $UNWIND) { R.reify($proc$r, 6, { s_r_$3524, s_items_$3525 }); return $UNWIND; }
-            $t7 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t6 === 'number' && typeof 2 === 'number') ? ($t6 === 2) : R.callBinding((C3.v ?? G3()), [$t6, 2]);
+            $t7 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t6 === 'number' && typeof 2 === 'number') ? $t6 === 2 : $numEq($t6, 2)) : R.callBinding((C3.v ?? G3()), [$t6, 2]);
             if ($t7 !== false) {
               $t8 = (C6.v ?? G6());
               $t9 = (C7.v ?? G7());
@@ -49537,7 +49537,7 @@ export const LIBRARIES = {
             $t17 = $t16 === undefined ? ($t15[$PRIM] === true ? $t15(s_items_$3525) : $foreign($t15, [s_items_$3525])) : $t16(s_items_$3525);
             while ($t17 instanceof $TailCall) { $stack.room = $d; $t17 = $step($t17); }
             if ($t17 === $UNWIND) { R.reify($proc$r, 10, { s_r_$3524, s_items_$3525 }); return $UNWIND; }
-            $t18 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t17 === 'number' && typeof 2 === 'number') ? ($t17 === 2) : R.callBinding((C3.v ?? G3()), [$t17, 2]);
+            $t18 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t17 === 'number' && typeof 2 === 'number') ? $t17 === 2 : $numEq($t17, 2)) : R.callBinding((C3.v ?? G3()), [$t17, 2]);
             if ($t18 !== false) {
               $t19 = (W2.intact || (C2.v ?? G2()) === P2) && (s_items_$3525 instanceof R.Cons) ? (s_items_$3525.car) : R.callBinding((C2.v ?? G2()), [s_items_$3525]);
               $t20 = (C7.v ?? G7());
@@ -49595,7 +49595,7 @@ export const LIBRARIES = {
                 $pc = 10; continue;
               case 6:
                 $t6 = $r;
-                $t7 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t6 === 'number' && typeof 2 === 'number') ? ($t6 === 2) : R.callBinding((C3.v ?? G3()), [$t6, 2]);
+                $t7 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t6 === 'number' && typeof 2 === 'number') ? $t6 === 2 : $numEq($t6, 2)) : R.callBinding((C3.v ?? G3()), [$t6, 2]);
                 if ($t7 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
                 $t8 = (C6.v ?? G6());
@@ -49617,7 +49617,7 @@ export const LIBRARIES = {
                 return $t12;
               case 10:
                 $t17 = $r;
-                $t18 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t17 === 'number' && typeof 2 === 'number') ? ($t17 === 2) : R.callBinding((C3.v ?? G3()), [$t17, 2]);
+                $t18 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t17 === 'number' && typeof 2 === 'number') ? $t17 === 2 : $numEq($t17, 2)) : R.callBinding((C3.v ?? G3()), [$t17, 2]);
                 if ($t18 !== false) { $pc = 11; continue; } $pc = 12; continue;
               case 11:
                 $t19 = (W2.intact || (C2.v ?? G2()) === P2) && (s_items_$3525 instanceof R.Cons) ? (s_items_$3525.car) : R.callBinding((C2.v ?? G2()), [s_items_$3525]);
@@ -50127,7 +50127,7 @@ export const LIBRARIES = {
         constants: [new Char(35), new Char(35)],
         span: {"filename":"reader.scm","line":626,"column":1,"endLine":639,"endColumn":49},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "reader-port")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "take-while!")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "not")).v;
@@ -50267,7 +50267,7 @@ export const LIBRARIES = {
               $t26 = false;
             }
             if ($t26 !== false) {
-              $t31 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_end_$3540 === 'number' && typeof 1 === 'number') ? ($add(s_end_$3540, 1)) : R.callBinding((C12.v ?? G12()), [s_end_$3540, 1]);
+              $t31 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_end_$3540 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_end_$3540 + 1)) || (Number.isSafeInteger((s_end_$3540 + 1)) && Number.isInteger(s_end_$3540) && Number.isInteger(1)))) ? (s_end_$3540 + 1) : $add(s_end_$3540, 1)) : R.callBinding((C12.v ?? G12()), [s_end_$3540, 1]);
               s_from_$3539 = $t31;
               continue $loop1;
             } else {
@@ -50396,7 +50396,7 @@ export const LIBRARIES = {
                 $t26 = $t30;
                 $pc = 13; continue;
               case 15:
-                $t31 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_end_$3540 === 'number' && typeof 1 === 'number') ? ($add(s_end_$3540, 1)) : R.callBinding((C12.v ?? G12()), [s_end_$3540, 1]);
+                $t31 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_end_$3540 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_end_$3540 + 1)) || (Number.isSafeInteger((s_end_$3540 + 1)) && Number.isInteger(s_end_$3540) && Number.isInteger(1)))) ? (s_end_$3540 + 1) : $add(s_end_$3540, 1)) : R.callBinding((C12.v ?? G12()), [s_end_$3540, 1]);
                 s_from_$3539 = $t31;
                 $pc = 6; continue;
               case 16:
@@ -51680,7 +51680,7 @@ export const LIBRARIES = {
         constants: [new Char(120), new Char(120)],
         span: {"filename":"reader.scm","line":717,"column":1,"endLine":726,"endColumn":95},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $gt = R.gt, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, ">")).v;
         const W0 = R.primitiveCell(">"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-length")).v;
@@ -51711,7 +51711,7 @@ export const LIBRARIES = {
           $t2 = $t1 === undefined ? ($t0[$PRIM] === true ? $t0(s_name_$3564) : $foreign($t0, [s_name_$3564])) : $t1(s_name_$3564);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_r_$3563, s_name_$3564 }); return $UNWIND; }
-          $t3 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t2 === 'number' && typeof 1 === 'number') ? ($t2 > 1) : R.callBinding((C0.v ?? G0()), [$t2, 1]);
+          $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t2 === 'number' && typeof 1 === 'number') ? $t2 > 1 : $gt($t2, 1)) : R.callBinding((C0.v ?? G0()), [$t2, 1]);
           if ($t3 !== false) {
             $t5 = (C2.v ?? G2());
             $t6 = (C3.v ?? G3());
@@ -51800,7 +51800,7 @@ export const LIBRARIES = {
               $t41 = $t40 === undefined ? ($t39[$PRIM] === true ? $t39(s_name_$3564) : $foreign($t39, [s_name_$3564])) : $t40(s_name_$3564);
               while ($t41 instanceof $TailCall) { $stack.room = $d; $t41 = $step($t41); }
               if ($t41 === $UNWIND) { R.reify($proc$r, 19, { s_r_$3563, s_name_$3564 }); return $UNWIND; }
-              $t42 = (W13.intact || (C13.v ?? G13()) === P13) && (typeof $t41 === 'number' && typeof 1 === 'number') ? ($t41 === 1) : R.callBinding((C13.v ?? G13()), [$t41, 1]);
+              $t42 = (W13.intact || (C13.v ?? G13()) === P13) ? ((typeof $t41 === 'number' && typeof 1 === 'number') ? $t41 === 1 : $numEq($t41, 1)) : R.callBinding((C13.v ?? G13()), [$t41, 1]);
               if ($t42 !== false) {
                 $t43 = (C3.v ?? G3());
                 if ($d > 0 && ($t44 = $t43?.[$RAW] ?? $t43)?.[$PRIM] === true) { $stack.room = $d; return $t44(s_name_$3564, 0); } return $tailCall($t43, [s_name_$3564, 0]);
@@ -51812,7 +51812,7 @@ export const LIBRARIES = {
                 $t47 = $t46 === undefined ? ($t45[$PRIM] === true ? $t45(s_name_$3564) : $foreign($t45, [s_name_$3564])) : $t46(s_name_$3564);
                 while ($t47 instanceof $TailCall) { $stack.room = $d; $t47 = $step($t47); }
                 if ($t47 === $UNWIND) { R.reify($proc$r, 22, { s_r_$3563, s_name_$3564 }); return $UNWIND; }
-                $t48 = (W13.intact || (C13.v ?? G13()) === P13) && (typeof $t47 === 'number' && typeof 2 === 'number') ? ($t47 === 2) : R.callBinding((C13.v ?? G13()), [$t47, 2]);
+                $t48 = (W13.intact || (C13.v ?? G13()) === P13) ? ((typeof $t47 === 'number' && typeof 2 === 'number') ? $t47 === 2 : $numEq($t47, 2)) : R.callBinding((C13.v ?? G13()), [$t47, 2]);
                 if ($t48 !== false) {
                   $t50 = (C14.v ?? G14());
                   $t51 = (C3.v ?? G3());
@@ -51829,7 +51829,7 @@ export const LIBRARIES = {
                   $t56 = $t55 === undefined ? ($t54[$PRIM] === true ? $t54($t53) : $foreign($t54, [$t53])) : $t55($t53);
                   while ($t56 instanceof $TailCall) { $stack.room = $d; $t56 = $step($t56); }
                   if ($t56 === $UNWIND) { R.reify($proc$r, 27, { s_r_$3563, s_name_$3564 }); return $UNWIND; }
-                  $t57 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t56 === 'number' && typeof 65535 === 'number') ? ($t56 > 65535) : R.callBinding((C0.v ?? G0()), [$t56, 65535]);
+                  $t57 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t56 === 'number' && typeof 65535 === 'number') ? $t56 > 65535 : $gt($t56, 65535)) : R.callBinding((C0.v ?? G0()), [$t56, 65535]);
                   $t49 = $t57;
                 } else {
                   $t49 = false;
@@ -51870,7 +51870,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               case 1:
                 $t2 = $r;
-                $t3 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t2 === 'number' && typeof 1 === 'number') ? ($t2 > 1) : R.callBinding((C0.v ?? G0()), [$t2, 1]);
+                $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t2 === 'number' && typeof 1 === 'number') ? $t2 > 1 : $gt($t2, 1)) : R.callBinding((C0.v ?? G0()), [$t2, 1]);
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t5 = (C2.v ?? G2());
@@ -52000,7 +52000,7 @@ export const LIBRARIES = {
                 $pc = 19; continue;
               case 19:
                 $t41 = $r;
-                $t42 = (W13.intact || (C13.v ?? G13()) === P13) && (typeof $t41 === 'number' && typeof 1 === 'number') ? ($t41 === 1) : R.callBinding((C13.v ?? G13()), [$t41, 1]);
+                $t42 = (W13.intact || (C13.v ?? G13()) === P13) ? ((typeof $t41 === 'number' && typeof 1 === 'number') ? $t41 === 1 : $numEq($t41, 1)) : R.callBinding((C13.v ?? G13()), [$t41, 1]);
                 if ($t42 !== false) { $pc = 20; continue; } $pc = 21; continue;
               case 20:
                 $t43 = (C3.v ?? G3());
@@ -52017,7 +52017,7 @@ export const LIBRARIES = {
                 $pc = 22; continue;
               case 22:
                 $t47 = $r;
-                $t48 = (W13.intact || (C13.v ?? G13()) === P13) && (typeof $t47 === 'number' && typeof 2 === 'number') ? ($t47 === 2) : R.callBinding((C13.v ?? G13()), [$t47, 2]);
+                $t48 = (W13.intact || (C13.v ?? G13()) === P13) ? ((typeof $t47 === 'number' && typeof 2 === 'number') ? $t47 === 2 : $numEq($t47, 2)) : R.callBinding((C13.v ?? G13()), [$t47, 2]);
                 if ($t48 !== false) { $pc = 23; continue; } $pc = 24; continue;
               case 23:
                 $t50 = (C14.v ?? G14());
@@ -52048,7 +52048,7 @@ export const LIBRARIES = {
                 $pc = 27; continue;
               case 27:
                 $t56 = $r;
-                $t57 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t56 === 'number' && typeof 65535 === 'number') ? ($t56 > 65535) : R.callBinding((C0.v ?? G0()), [$t56, 65535]);
+                $t57 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t56 === 'number' && typeof 65535 === 'number') ? $t56 > 65535 : $gt($t56, 65535)) : R.callBinding((C0.v ?? G0()), [$t56, 65535]);
                 $t49 = $t57;
                 $pc = 25; continue;
               case 28:
@@ -53049,7 +53049,7 @@ export const LIBRARIES = {
         constants: [new Char(59), new Char(59), new Char(59), new Char(59)],
         span: {"filename":"reader.scm","line":805,"column":1,"endLine":812,"endColumn":28},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "peek-at")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "eqv?")).v;
         const W1 = R.primitiveCell("eqv?"), P1 = W1.primitive;
@@ -53129,7 +53129,7 @@ export const LIBRARIES = {
           if (s_temp_$3595 !== false) {
             s_code_$3596 = s_temp_$3595;
             $t20 = (C6.v ?? G6());
-            $t21 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_ahead_$3592 === 'number' && typeof 1 === 'number') ? ($add(s_ahead_$3592, 1)) : R.callBinding((C7.v ?? G7()), [s_ahead_$3592, 1]);
+            $t21 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_ahead_$3592 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_ahead_$3592 + 1)) || (Number.isSafeInteger((s_ahead_$3592 + 1)) && Number.isInteger(s_ahead_$3592) && Number.isInteger(1)))) ? (s_ahead_$3592 + 1) : $add(s_ahead_$3592, 1)) : R.callBinding((C7.v ?? G7()), [s_ahead_$3592, 1]);
             $t22 = $t20;
             if (typeof $t22 !== 'function') $notProc($t22);
             $t23 = $t22[$RAW];
@@ -53183,7 +53183,7 @@ export const LIBRARIES = {
               $t31 = false;
             }
             if ($t31 !== false) {
-              $t44 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_ahead_$3592 === 'number' && typeof 1 === 'number') ? ($add(s_ahead_$3592, 1)) : R.callBinding((C7.v ?? G7()), [s_ahead_$3592, 1]);
+              $t44 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_ahead_$3592 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_ahead_$3592 + 1)) || (Number.isSafeInteger((s_ahead_$3592 + 1)) && Number.isInteger(s_ahead_$3592) && Number.isInteger(1)))) ? (s_ahead_$3592 + 1) : $add(s_ahead_$3592, 1)) : R.callBinding((C7.v ?? G7()), [s_ahead_$3592, 1]);
               $t45 = (W12.intact || (C12.v ?? G12()) === P12) ? (new R.Cons(s_c_$3594, s_digits_$3593)) : R.callBinding((C12.v ?? G12()), [s_c_$3594, s_digits_$3593]);
               s_ahead_$3592 = $t44;
               s_digits_$3593 = $t45;
@@ -53284,7 +53284,7 @@ export const LIBRARIES = {
               case 13:
                 s_code_$3596 = s_temp_$3595;
                 $t20 = (C6.v ?? G6());
-                $t21 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_ahead_$3592 === 'number' && typeof 1 === 'number') ? ($add(s_ahead_$3592, 1)) : R.callBinding((C7.v ?? G7()), [s_ahead_$3592, 1]);
+                $t21 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_ahead_$3592 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_ahead_$3592 + 1)) || (Number.isSafeInteger((s_ahead_$3592 + 1)) && Number.isInteger(s_ahead_$3592) && Number.isInteger(1)))) ? (s_ahead_$3592 + 1) : $add(s_ahead_$3592, 1)) : R.callBinding((C7.v ?? G7()), [s_ahead_$3592, 1]);
                 $t22 = $t20;
                 if (typeof $t22 !== 'function') $notProc($t22);
                 $t23 = $t22[$RAW];
@@ -53365,7 +53365,7 @@ export const LIBRARIES = {
                 $t36 = $t43;
                 $pc = 23; continue;
               case 26:
-                $t44 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_ahead_$3592 === 'number' && typeof 1 === 'number') ? ($add(s_ahead_$3592, 1)) : R.callBinding((C7.v ?? G7()), [s_ahead_$3592, 1]);
+                $t44 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_ahead_$3592 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_ahead_$3592 + 1)) || (Number.isSafeInteger((s_ahead_$3592 + 1)) && Number.isInteger(s_ahead_$3592) && Number.isInteger(1)))) ? (s_ahead_$3592 + 1) : $add(s_ahead_$3592, 1)) : R.callBinding((C7.v ?? G7()), [s_ahead_$3592, 1]);
                 $t45 = (W12.intact || (C12.v ?? G12()) === P12) ? (new R.Cons(s_c_$3594, s_digits_$3593)) : R.callBinding((C12.v ?? G12()), [s_c_$3594, s_digits_$3593]);
                 s_ahead_$3592 = $t44;
                 s_digits_$3593 = $t45;
@@ -53799,7 +53799,7 @@ export const LIBRARIES = {
         constants: [new Cons(new Char(61), new Cons(new Char(35), null)), new Cons(new Char(61), new Cons(new Char(35), null))],
         span: {"filename":"reader.scm","line":850,"column":1,"endLine":855,"endColumn":26},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "peek-at")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "digit?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "+")).v;
@@ -53833,7 +53833,7 @@ export const LIBRARIES = {
             $t3 = false;
           }
           if ($t3 !== false) {
-            $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_ahead_$3601 === 'number' && typeof 1 === 'number') ? ($add(s_ahead_$3601, 1)) : R.callBinding((C2.v ?? G2()), [s_ahead_$3601, 1]);
+            $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_ahead_$3601 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_ahead_$3601 + 1)) || (Number.isSafeInteger((s_ahead_$3601 + 1)) && Number.isInteger(s_ahead_$3601) && Number.isInteger(1)))) ? (s_ahead_$3601 + 1) : $add(s_ahead_$3601, 1)) : R.callBinding((C2.v ?? G2()), [s_ahead_$3601, 1]);
             s_ahead_$3601 = $t7;
             continue $loop1;
           } else {
@@ -53894,7 +53894,7 @@ export const LIBRARIES = {
                 $t3 = $t6;
                 $pc = 5; continue;
               case 7:
-                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_ahead_$3601 === 'number' && typeof 1 === 'number') ? ($add(s_ahead_$3601, 1)) : R.callBinding((C2.v ?? G2()), [s_ahead_$3601, 1]);
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_ahead_$3601 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_ahead_$3601 + 1)) || (Number.isSafeInteger((s_ahead_$3601 + 1)) && Number.isInteger(s_ahead_$3601) && Number.isInteger(1)))) ? (s_ahead_$3601 + 1) : $add(s_ahead_$3601, 1)) : R.callBinding((C2.v ?? G2()), [s_ahead_$3601, 1]);
                 s_ahead_$3601 = $t7;
                 $pc = 1; continue;
               case 8:
@@ -53928,7 +53928,7 @@ export const LIBRARIES = {
         constants: [new Char(61), new Char(61)],
         span: {"filename":"reader.scm","line":860,"column":1,"endLine":875,"endColumn":37},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string->number")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "list->string")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "map")).v;
@@ -53990,7 +53990,7 @@ export const LIBRARIES = {
           $t2 = (C2.v ?? G2());
           $t4 = $mk$fn3(s_r_$3603);
           $t5 = (C4.v ?? G4());
-          $t6 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_end_$3604 === 'number' && typeof 1 === 'number') ? ($sub(s_end_$3604, 1)) : R.callBinding((C5.v ?? G5()), [s_end_$3604, 1]);
+          $t6 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_end_$3604 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_end_$3604 - 1)) || (Number.isSafeInteger((s_end_$3604 - 1)) && Number.isInteger(s_end_$3604) && Number.isInteger(1)))) ? (s_end_$3604 - 1) : $sub(s_end_$3604, 1)) : R.callBinding((C5.v ?? G5()), [s_end_$3604, 1]);
           $t7 = $t5;
           if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
@@ -54029,7 +54029,7 @@ export const LIBRARIES = {
           if ($t21 === $UNWIND) { R.reify($proc$r, 5, { s_id_$3605, s_r_$3603, s_end_$3604 }); return $UNWIND; }
           s_kind_$3607 = $t21;
           $t22 = (C6.v ?? G6());
-          $t23 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_end_$3604 === 'number' && typeof 1 === 'number') ? ($add(s_end_$3604, 1)) : R.callBinding((C7.v ?? G7()), [s_end_$3604, 1]);
+          $t23 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_end_$3604 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_end_$3604 + 1)) || (Number.isSafeInteger((s_end_$3604 + 1)) && Number.isInteger(s_end_$3604) && Number.isInteger(1)))) ? (s_end_$3604 + 1) : $add(s_end_$3604, 1)) : R.callBinding((C7.v ?? G7()), [s_end_$3604, 1]);
           $t24 = $t22;
           if (typeof $t24 !== 'function') $notProc($t24);
           $t25 = $t24[$RAW];
@@ -54171,7 +54171,7 @@ export const LIBRARIES = {
                 $t2 = (C2.v ?? G2());
                 $t4 = $mk$fn3(s_r_$3603);
                 $t5 = (C4.v ?? G4());
-                $t6 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_end_$3604 === 'number' && typeof 1 === 'number') ? ($sub(s_end_$3604, 1)) : R.callBinding((C5.v ?? G5()), [s_end_$3604, 1]);
+                $t6 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_end_$3604 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_end_$3604 - 1)) || (Number.isSafeInteger((s_end_$3604 - 1)) && Number.isInteger(s_end_$3604) && Number.isInteger(1)))) ? (s_end_$3604 - 1) : $sub(s_end_$3604, 1)) : R.callBinding((C5.v ?? G5()), [s_end_$3604, 1]);
                 $t7 = $t5;
                 if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
@@ -54230,7 +54230,7 @@ export const LIBRARIES = {
                 $t21 = $r;
                 s_kind_$3607 = $t21;
                 $t22 = (C6.v ?? G6());
-                $t23 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_end_$3604 === 'number' && typeof 1 === 'number') ? ($add(s_end_$3604, 1)) : R.callBinding((C7.v ?? G7()), [s_end_$3604, 1]);
+                $t23 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_end_$3604 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_end_$3604 + 1)) || (Number.isSafeInteger((s_end_$3604 + 1)) && Number.isInteger(s_end_$3604) && Number.isInteger(1)))) ? (s_end_$3604 + 1) : $add(s_end_$3604, 1)) : R.callBinding((C7.v ?? G7()), [s_end_$3604, 1]);
                 $t24 = $t22;
                 if (typeof $t24 !== 'function') $notProc($t24);
                 $t25 = $t24[$RAW];
@@ -54433,7 +54433,7 @@ export const LIBRARIES = {
         constants: [intern("eq"), intern("eq")],
         span: {"filename":"reader.scm","line":882,"column":1,"endLine":903,"endColumn":77},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $add = R.add, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%make-hash-store")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "placeholder-resolved?")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "placeholder-value")).v;
@@ -54694,7 +54694,7 @@ export const LIBRARIES = {
                     s_i_$3617 = 0;
                     $loop1: for (;;) {
                     $t48 = (W17.intact || (C17.v ?? G17()) === P17) && (Array.isArray(s_x_$3614)) ? (s_x_$3614.length) : R.callBinding((C17.v ?? G17()), [s_x_$3614]);
-                    $t49 = (W16.intact || (C16.v ?? G16()) === P16) && (typeof s_i_$3617 === 'number' && typeof $t48 === 'number') ? (s_i_$3617 < $t48) : R.callBinding((C16.v ?? G16()), [s_i_$3617, $t48]);
+                    $t49 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof s_i_$3617 === 'number' && typeof $t48 === 'number') ? s_i_$3617 < $t48 : $lt(s_i_$3617, $t48)) : R.callBinding((C16.v ?? G16()), [s_i_$3617, $t48]);
                     if ($t49 !== false) {
                       $t50 = (W18.intact || (C18.v ?? G18()) === P18) ? ($vectorRef(s_x_$3614, s_i_$3617)) : R.callBinding((C18.v ?? G18()), [s_x_$3614, s_i_$3617]);
                       s_item_$3618 = $t50;
@@ -54726,7 +54726,7 @@ export const LIBRARIES = {
                         $t54 = $t61;
                       }
                       $t54;
-                      $t62 = (W20.intact || (C20.v ?? G20()) === P20) && (typeof s_i_$3617 === 'number' && typeof 1 === 'number') ? ($add(s_i_$3617, 1)) : R.callBinding((C20.v ?? G20()), [s_i_$3617, 1]);
+                      $t62 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof s_i_$3617 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$3617 + 1)) || (Number.isSafeInteger((s_i_$3617 + 1)) && Number.isInteger(s_i_$3617) && Number.isInteger(1)))) ? (s_i_$3617 + 1) : $add(s_i_$3617, 1)) : R.callBinding((C20.v ?? G20()), [s_i_$3617, 1]);
                       s_i_$3617 = $t62;
                       continue $loop1;
                     } else {
@@ -54906,7 +54906,7 @@ export const LIBRARIES = {
                   $pc = 22; continue;
                 case 22:
                   $t48 = (W17.intact || (C17.v ?? G17()) === P17) && (Array.isArray(s_x_$3614)) ? (s_x_$3614.length) : R.callBinding((C17.v ?? G17()), [s_x_$3614]);
-                  $t49 = (W16.intact || (C16.v ?? G16()) === P16) && (typeof s_i_$3617 === 'number' && typeof $t48 === 'number') ? (s_i_$3617 < $t48) : R.callBinding((C16.v ?? G16()), [s_i_$3617, $t48]);
+                  $t49 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof s_i_$3617 === 'number' && typeof $t48 === 'number') ? s_i_$3617 < $t48 : $lt(s_i_$3617, $t48)) : R.callBinding((C16.v ?? G16()), [s_i_$3617, $t48]);
                   if ($t49 !== false) { $pc = 23; continue; } $pc = 24; continue;
                 case 23:
                   $t50 = (W18.intact || (C18.v ?? G18()) === P18) ? ($vectorRef(s_x_$3614, s_i_$3617)) : R.callBinding((C18.v ?? G18()), [s_x_$3614, s_i_$3617]);
@@ -54947,7 +54947,7 @@ export const LIBRARIES = {
                   $pc = 30; continue;
                 case 28:
                   $t54;
-                  $t62 = (W20.intact || (C20.v ?? G20()) === P20) && (typeof s_i_$3617 === 'number' && typeof 1 === 'number') ? ($add(s_i_$3617, 1)) : R.callBinding((C20.v ?? G20()), [s_i_$3617, 1]);
+                  $t62 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof s_i_$3617 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$3617 + 1)) || (Number.isSafeInteger((s_i_$3617 + 1)) && Number.isInteger(s_i_$3617) && Number.isInteger(1)))) ? (s_i_$3617 + 1) : $add(s_i_$3617, 1)) : R.callBinding((C20.v ?? G20()), [s_i_$3617, 1]);
                   s_i_$3617 = $t62;
                   $pc = 22; continue;
                 case 29:
@@ -55827,7 +55827,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"reader.scm","line":1038,"column":1,"endLine":1052,"endColumn":44},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.add, $sub = R.sub, $lt = R.lt, $le = R.le, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "<=")).v;
         const W0 = R.primitiveCell("<="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "<")).v;
@@ -55856,7 +55856,7 @@ export const LIBRARIES = {
           if (arguments.length !== 2) R.wrongArity("matching-delimiter", 2, false, arguments.length);
           const $d = $stack.room - 52;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [s_text_$3654, s_position_$3655]);
-          $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof 0 === 'number' && typeof s_position_$3655 === 'number') ? (0 <= s_position_$3655) : R.callBinding((C0.v ?? G0()), [0, s_position_$3655]);
+          $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof 0 === 'number' && typeof s_position_$3655 === 'number') ? 0 <= s_position_$3655 : $le(0, s_position_$3655)) : R.callBinding((C0.v ?? G0()), [0, s_position_$3655]);
           if ($t0 !== false) {
             $t1 = (C2.v ?? G2());
             if (typeof $t1 !== 'function') $notProc($t1);
@@ -55865,7 +55865,7 @@ export const LIBRARIES = {
             $t3 = $t2 === undefined ? ($t1[$PRIM] === true ? $t1(s_text_$3654) : $foreign($t1, [s_text_$3654])) : $t2(s_text_$3654);
             while ($t3 instanceof $TailCall) { $stack.room = $d; $t3 = $step($t3); }
             if ($t3 === $UNWIND) { R.reify($proc$r, 3, { s_text_$3654, s_position_$3655 }); return $UNWIND; }
-            $t4 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_position_$3655 === 'number' && typeof $t3 === 'number') ? (s_position_$3655 < $t3) : R.callBinding((C1.v ?? G1()), [s_position_$3655, $t3]);
+            $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_position_$3655 === 'number' && typeof $t3 === 'number') ? s_position_$3655 < $t3 : $lt(s_position_$3655, $t3)) : R.callBinding((C1.v ?? G1()), [s_position_$3655, $t3]);
             if ($t4 !== false) {
               $t5 = (C3.v ?? G3());
               $t6 = (C4.v ?? G4());
@@ -55887,13 +55887,13 @@ export const LIBRARIES = {
               s_count_$3657 = $t12;
               s_i_$3659 = 0;
               $loop1: for (;;) {
-              $t13 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_i_$3659 === 'number' && typeof s_count_$3657 === 'number') ? (s_i_$3659 === s_count_$3657) : R.callBinding((C6.v ?? G6()), [s_i_$3659, s_count_$3657]);
+              $t13 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_i_$3659 === 'number' && typeof s_count_$3657 === 'number') ? s_i_$3659 === s_count_$3657 : $numEq(s_i_$3659, s_count_$3657)) : R.callBinding((C6.v ?? G6()), [s_i_$3659, s_count_$3657]);
               if ($t13 !== false) {
                 return false;
               } else {
                 $t14 = (W8.intact || (C8.v ?? G8()) === P8) ? ($vectorRef(s_parens_$3656, s_i_$3659)) : R.callBinding((C8.v ?? G8()), [s_parens_$3656, s_i_$3659]);
                 $t15 = (W7.intact || (C7.v ?? G7()) === P7) && ($t14 instanceof R.Cons) ? ($t14.car) : R.callBinding((C7.v ?? G7()), [$t14]);
-                $t16 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof $t15 === 'number' && typeof s_position_$3655 === 'number') ? ($t15 === s_position_$3655) : R.callBinding((C6.v ?? G6()), [$t15, s_position_$3655]);
+                $t16 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof $t15 === 'number' && typeof s_position_$3655 === 'number') ? $t15 === s_position_$3655 : $numEq($t15, s_position_$3655)) : R.callBinding((C6.v ?? G6()), [$t15, s_position_$3655]);
                 if ($t16 !== false) {
                   $t17 = (W8.intact || (C8.v ?? G8()) === P8) ? ($vectorRef(s_parens_$3656, s_i_$3659)) : R.callBinding((C8.v ?? G8()), [s_parens_$3656, s_i_$3659]);
                   $t18 = (W9.intact || (C9.v ?? G9()) === P9) && ($t17 instanceof R.Cons) ? ($t17.cdr) : R.callBinding((C9.v ?? G9()), [$t17]);
@@ -55917,19 +55917,19 @@ export const LIBRARIES = {
                     } else {
                       $t25 = -1;
                     }
-                    $t26 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_depth_$3663 === 'number' && typeof $t25 === 'number') ? ($add(s_depth_$3663, $t25)) : R.callBinding((C10.v ?? G10()), [s_depth_$3663, $t25]);
+                    $t26 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_depth_$3663 === 'number' && typeof $t25 === 'number' && (!Number.isInteger((s_depth_$3663 + $t25)) || (Number.isSafeInteger((s_depth_$3663 + $t25)) && Number.isInteger(s_depth_$3663) && Number.isInteger($t25)))) ? (s_depth_$3663 + $t25) : $add(s_depth_$3663, $t25)) : R.callBinding((C10.v ?? G10()), [s_depth_$3663, $t25]);
                     s_depth_$3664 = $t26;
-                    $t27 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_depth_$3664 === 'number' && typeof 0 === 'number') ? (s_depth_$3664 === 0) : R.callBinding((C6.v ?? G6()), [s_depth_$3664, 0]);
+                    $t27 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_depth_$3664 === 'number' && typeof 0 === 'number') ? s_depth_$3664 === 0 : $numEq(s_depth_$3664, 0)) : R.callBinding((C6.v ?? G6()), [s_depth_$3664, 0]);
                     if ($t27 !== false) {
                       $t28 = (W8.intact || (C8.v ?? G8()) === P8) ? ($vectorRef(s_parens_$3656, s_j_$3662)) : R.callBinding((C8.v ?? G8()), [s_parens_$3656, s_j_$3662]);
                       $t29 = (W7.intact || (C7.v ?? G7()) === P7) && ($t28 instanceof R.Cons) ? ($t28.car) : R.callBinding((C7.v ?? G7()), [$t28]);
                       return $t29;
                     } else {
                       if (s_opens_3f_$3660 !== false) {
-                        $t31 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_j_$3662 === 'number' && typeof 1 === 'number') ? ($add(s_j_$3662, 1)) : R.callBinding((C10.v ?? G10()), [s_j_$3662, 1]);
+                        $t31 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_j_$3662 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_j_$3662 + 1)) || (Number.isSafeInteger((s_j_$3662 + 1)) && Number.isInteger(s_j_$3662) && Number.isInteger(1)))) ? (s_j_$3662 + 1) : $add(s_j_$3662, 1)) : R.callBinding((C10.v ?? G10()), [s_j_$3662, 1]);
                         $t30 = $t31;
                       } else {
-                        $t32 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_j_$3662 === 'number' && typeof 1 === 'number') ? ($sub(s_j_$3662, 1)) : R.callBinding((C12.v ?? G12()), [s_j_$3662, 1]);
+                        $t32 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_j_$3662 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_j_$3662 - 1)) || (Number.isSafeInteger((s_j_$3662 - 1)) && Number.isInteger(s_j_$3662) && Number.isInteger(1)))) ? (s_j_$3662 - 1) : $sub(s_j_$3662, 1)) : R.callBinding((C12.v ?? G12()), [s_j_$3662, 1]);
                         $t30 = $t32;
                       }
                       $t33 = s_depth_$3664;
@@ -55942,7 +55942,7 @@ export const LIBRARIES = {
                   }
                   }
                 } else {
-                  $t34 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$3659 === 'number' && typeof 1 === 'number') ? ($add(s_i_$3659, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$3659, 1]);
+                  $t34 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$3659 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$3659 + 1)) || (Number.isSafeInteger((s_i_$3659 + 1)) && Number.isInteger(s_i_$3659) && Number.isInteger(1)))) ? (s_i_$3659 + 1) : $add(s_i_$3659, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$3659, 1]);
                   s_i_$3659 = $t34;
                   continue $loop1;
                 }
@@ -55961,7 +55961,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 52;
           for (;;) switch ($pc) {
               case 0:
-                $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof 0 === 'number' && typeof s_position_$3655 === 'number') ? (0 <= s_position_$3655) : R.callBinding((C0.v ?? G0()), [0, s_position_$3655]);
+                $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof 0 === 'number' && typeof s_position_$3655 === 'number') ? 0 <= s_position_$3655 : $le(0, s_position_$3655)) : R.callBinding((C0.v ?? G0()), [0, s_position_$3655]);
                 if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
               case 1:
                 $t1 = (C2.v ?? G2());
@@ -55977,7 +55977,7 @@ export const LIBRARIES = {
                 return false;
               case 3:
                 $t3 = $r;
-                $t4 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_position_$3655 === 'number' && typeof $t3 === 'number') ? (s_position_$3655 < $t3) : R.callBinding((C1.v ?? G1()), [s_position_$3655, $t3]);
+                $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_position_$3655 === 'number' && typeof $t3 === 'number') ? s_position_$3655 < $t3 : $lt(s_position_$3655, $t3)) : R.callBinding((C1.v ?? G1()), [s_position_$3655, $t3]);
                 if ($t4 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 $t5 = (C3.v ?? G3());
@@ -56011,14 +56011,14 @@ export const LIBRARIES = {
                 s_i_$3659 = 0;
                 $pc = 8; continue;
               case 8:
-                $t13 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_i_$3659 === 'number' && typeof s_count_$3657 === 'number') ? (s_i_$3659 === s_count_$3657) : R.callBinding((C6.v ?? G6()), [s_i_$3659, s_count_$3657]);
+                $t13 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_i_$3659 === 'number' && typeof s_count_$3657 === 'number') ? s_i_$3659 === s_count_$3657 : $numEq(s_i_$3659, s_count_$3657)) : R.callBinding((C6.v ?? G6()), [s_i_$3659, s_count_$3657]);
                 if ($t13 !== false) { $pc = 9; continue; } $pc = 10; continue;
               case 9:
                 return false;
               case 10:
                 $t14 = (W8.intact || (C8.v ?? G8()) === P8) ? ($vectorRef(s_parens_$3656, s_i_$3659)) : R.callBinding((C8.v ?? G8()), [s_parens_$3656, s_i_$3659]);
                 $t15 = (W7.intact || (C7.v ?? G7()) === P7) && ($t14 instanceof R.Cons) ? ($t14.car) : R.callBinding((C7.v ?? G7()), [$t14]);
-                $t16 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof $t15 === 'number' && typeof s_position_$3655 === 'number') ? ($t15 === s_position_$3655) : R.callBinding((C6.v ?? G6()), [$t15, s_position_$3655]);
+                $t16 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof $t15 === 'number' && typeof s_position_$3655 === 'number') ? $t15 === s_position_$3655 : $numEq($t15, s_position_$3655)) : R.callBinding((C6.v ?? G6()), [$t15, s_position_$3655]);
                 if ($t16 !== false) { $pc = 11; continue; } $pc = 12; continue;
               case 11:
                 $t17 = (W8.intact || (C8.v ?? G8()) === P8) ? ($vectorRef(s_parens_$3656, s_i_$3659)) : R.callBinding((C8.v ?? G8()), [s_parens_$3656, s_i_$3659]);
@@ -56028,7 +56028,7 @@ export const LIBRARIES = {
                 s_depth_$3663 = 0;
                 $pc = 13; continue;
               case 12:
-                $t34 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$3659 === 'number' && typeof 1 === 'number') ? ($add(s_i_$3659, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$3659, 1]);
+                $t34 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$3659 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$3659 + 1)) || (Number.isSafeInteger((s_i_$3659 + 1)) && Number.isInteger(s_i_$3659) && Number.isInteger(1)))) ? (s_i_$3659 + 1) : $add(s_i_$3659, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$3659, 1]);
                 s_i_$3659 = $t34;
                 $pc = 8; continue;
               case 13:
@@ -56058,9 +56058,9 @@ export const LIBRARIES = {
                 $t25 = -1;
                 $pc = 19; continue;
               case 19:
-                $t26 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_depth_$3663 === 'number' && typeof $t25 === 'number') ? ($add(s_depth_$3663, $t25)) : R.callBinding((C10.v ?? G10()), [s_depth_$3663, $t25]);
+                $t26 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_depth_$3663 === 'number' && typeof $t25 === 'number' && (!Number.isInteger((s_depth_$3663 + $t25)) || (Number.isSafeInteger((s_depth_$3663 + $t25)) && Number.isInteger(s_depth_$3663) && Number.isInteger($t25)))) ? (s_depth_$3663 + $t25) : $add(s_depth_$3663, $t25)) : R.callBinding((C10.v ?? G10()), [s_depth_$3663, $t25]);
                 s_depth_$3664 = $t26;
-                $t27 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_depth_$3664 === 'number' && typeof 0 === 'number') ? (s_depth_$3664 === 0) : R.callBinding((C6.v ?? G6()), [s_depth_$3664, 0]);
+                $t27 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_depth_$3664 === 'number' && typeof 0 === 'number') ? s_depth_$3664 === 0 : $numEq(s_depth_$3664, 0)) : R.callBinding((C6.v ?? G6()), [s_depth_$3664, 0]);
                 if ($t27 !== false) { $pc = 20; continue; } $pc = 21; continue;
               case 20:
                 $t28 = (W8.intact || (C8.v ?? G8()) === P8) ? ($vectorRef(s_parens_$3656, s_j_$3662)) : R.callBinding((C8.v ?? G8()), [s_parens_$3656, s_j_$3662]);
@@ -56069,11 +56069,11 @@ export const LIBRARIES = {
               case 21:
                 if (s_opens_3f_$3660 !== false) { $pc = 22; continue; } $pc = 23; continue;
               case 22:
-                $t31 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_j_$3662 === 'number' && typeof 1 === 'number') ? ($add(s_j_$3662, 1)) : R.callBinding((C10.v ?? G10()), [s_j_$3662, 1]);
+                $t31 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_j_$3662 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_j_$3662 + 1)) || (Number.isSafeInteger((s_j_$3662 + 1)) && Number.isInteger(s_j_$3662) && Number.isInteger(1)))) ? (s_j_$3662 + 1) : $add(s_j_$3662, 1)) : R.callBinding((C10.v ?? G10()), [s_j_$3662, 1]);
                 $t30 = $t31;
                 $pc = 24; continue;
               case 23:
-                $t32 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_j_$3662 === 'number' && typeof 1 === 'number') ? ($sub(s_j_$3662, 1)) : R.callBinding((C12.v ?? G12()), [s_j_$3662, 1]);
+                $t32 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_j_$3662 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_j_$3662 - 1)) || (Number.isSafeInteger((s_j_$3662 - 1)) && Number.isInteger(s_j_$3662) && Number.isInteger(1)))) ? (s_j_$3662 - 1) : $sub(s_j_$3662, 1)) : R.callBinding((C12.v ?? G12()), [s_j_$3662, 1]);
                 $t30 = $t32;
                 $pc = 24; continue;
               case 24:
@@ -56264,7 +56264,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"reader.scm","line":1080,"column":1,"endLine":1081,"endColumn":68},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cons")).v;
@@ -56279,13 +56279,13 @@ export const LIBRARIES = {
           if (arguments.length !== 2) R.wrongArity("iota", 2, false, arguments.length);
           const $d = $stack.room - 18;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [s_count_$3670, s_start_$3671]);
-          $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_count_$3670 === 'number' && typeof 0 === 'number') ? (s_count_$3670 === 0) : R.callBinding((C0.v ?? G0()), [s_count_$3670, 0]);
+          $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_count_$3670 === 'number' && typeof 0 === 'number') ? s_count_$3670 === 0 : $numEq(s_count_$3670, 0)) : R.callBinding((C0.v ?? G0()), [s_count_$3670, 0]);
           if ($t0 !== false) {
             return null;
           } else {
             $t1 = (C2.v ?? G2());
-            $t2 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_count_$3670 === 'number' && typeof 1 === 'number') ? ($sub(s_count_$3670, 1)) : R.callBinding((C3.v ?? G3()), [s_count_$3670, 1]);
-            $t3 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_start_$3671 === 'number' && typeof 1 === 'number') ? ($add(s_start_$3671, 1)) : R.callBinding((C4.v ?? G4()), [s_start_$3671, 1]);
+            $t2 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_count_$3670 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_count_$3670 - 1)) || (Number.isSafeInteger((s_count_$3670 - 1)) && Number.isInteger(s_count_$3670) && Number.isInteger(1)))) ? (s_count_$3670 - 1) : $sub(s_count_$3670, 1)) : R.callBinding((C3.v ?? G3()), [s_count_$3670, 1]);
+            $t3 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_start_$3671 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_start_$3671 + 1)) || (Number.isSafeInteger((s_start_$3671 + 1)) && Number.isInteger(s_start_$3671) && Number.isInteger(1)))) ? (s_start_$3671 + 1) : $add(s_start_$3671, 1)) : R.callBinding((C4.v ?? G4()), [s_start_$3671, 1]);
             $t4 = $t1;
             if (typeof $t4 !== 'function') $notProc($t4);
             $t5 = $t4[$RAW];
@@ -56303,14 +56303,14 @@ export const LIBRARIES = {
           const $d = $stack.room - 18;
           for (;;) switch ($pc) {
               case 0:
-                $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_count_$3670 === 'number' && typeof 0 === 'number') ? (s_count_$3670 === 0) : R.callBinding((C0.v ?? G0()), [s_count_$3670, 0]);
+                $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_count_$3670 === 'number' && typeof 0 === 'number') ? s_count_$3670 === 0 : $numEq(s_count_$3670, 0)) : R.callBinding((C0.v ?? G0()), [s_count_$3670, 0]);
                 if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
               case 1:
                 return null;
               case 2:
                 $t1 = (C2.v ?? G2());
-                $t2 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_count_$3670 === 'number' && typeof 1 === 'number') ? ($sub(s_count_$3670, 1)) : R.callBinding((C3.v ?? G3()), [s_count_$3670, 1]);
-                $t3 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_start_$3671 === 'number' && typeof 1 === 'number') ? ($add(s_start_$3671, 1)) : R.callBinding((C4.v ?? G4()), [s_start_$3671, 1]);
+                $t2 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_count_$3670 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_count_$3670 - 1)) || (Number.isSafeInteger((s_count_$3670 - 1)) && Number.isInteger(s_count_$3670) && Number.isInteger(1)))) ? (s_count_$3670 - 1) : $sub(s_count_$3670, 1)) : R.callBinding((C3.v ?? G3()), [s_count_$3670, 1]);
+                $t3 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_start_$3671 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_start_$3671 + 1)) || (Number.isSafeInteger((s_start_$3671 + 1)) && Number.isInteger(s_start_$3671) && Number.isInteger(1)))) ? (s_start_$3671 + 1) : $add(s_start_$3671, 1)) : R.callBinding((C4.v ?? G4()), [s_start_$3671, 1]);
                 $t4 = $t1;
                 if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
@@ -56518,7 +56518,7 @@ export const LIBRARIES = {
   },
   "scheme-js.special-forms": {
     fingerprint: "3cf5fabc",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["special-forms.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"special-forms\"],[\"l\",\"export\",\"define\",\"set!\",\"lambda\",\"if\",\"begin\",\"quote\",\"quasiquote\",\"unquote\",\"unquote-splicing\",\"let\",\"letrec\",\"define-syntax\",\"let-syntax\",\"letrec-syntax\",\"syntax-rules\",\"er-macro-transformer\",\"define-macro\",\"...\",\"_\",\"=>\",\"else\",\"cond-expand\",\"import\",\"define-library\"]]",
     procedures: {
@@ -56530,7 +56530,7 @@ export const LIBRARIES = {
   },
   "scheme.base": {
     fingerprint: "de1b2c11",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["base.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"base\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"]],[\"l\",\"import\",[\"l\",\"scheme\",\"core\"]],[\"l\",\"import\",[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"eq?\",\"eqv?\",\"equal?\",\"+\",\"-\",\"*\",\"/\",\"=\",\"<\",\">\",\"<=\",\">=\",\"number?\",\"complex?\",\"real?\",\"rational?\",\"integer?\",\"exact-integer?\",\"exact?\",\"inexact?\",\"finite?\",\"infinite?\",\"nan?\",\"zero?\",\"positive?\",\"negative?\",\"odd?\",\"even?\",\"abs\",\"quotient\",\"remainder\",\"modulo\",\"floor\",\"ceiling\",\"truncate\",\"round\",\"max\",\"min\",\"gcd\",\"lcm\",\"rationalize\",\"expt\",\"sqrt\",\"square\",\"exact-integer-sqrt\",\"exact\",\"inexact\",\"floor/\",\"floor-quotient\",\"floor-remainder\",\"truncate/\",\"truncate-quotient\",\"truncate-remainder\",\"numerator\",\"denominator\",\"make-rectangular\",\"make-polar\",\"real-part\",\"imag-part\",\"magnitude\",\"angle\",\"bytevector?\",\"make-bytevector\",\"bytevector\",\"bytevector-length\",\"bytevector-u8-ref\",\"bytevector-u8-set!\",\"bytevector-copy\",\"bytevector-copy!\",\"bytevector-append\",\"utf8->string\",\"string->utf8\",\"not\",\"boolean?\",\"boolean=?\",\"cons\",\"car\",\"cdr\",\"pair?\",\"null?\",\"list?\",\"set-car!\",\"set-cdr!\",\"list\",\"append\",\"length\",\"list-ref\",\"list-tail\",\"reverse\",\"list-copy\",\"make-list\",\"list-set!\",\"memq\",\"memv\",\"member\",\"assq\",\"assv\",\"assoc\",\"caar\",\"cadr\",\"cdar\",\"cddr\",\"caaar\",\"caadr\",\"cadar\",\"caddr\",\"cdaar\",\"cdadr\",\"cddar\",\"cdddr\",\"caaaar\",\"caaadr\",\"caadar\",\"caaddr\",\"cadaar\",\"cadadr\",\"caddar\",\"cadddr\",\"cdaaar\",\"cdaadr\",\"cdadar\",\"cdaddr\",\"cddaar\",\"cddadr\",\"cdddar\",\"cddddr\",\"symbol?\",\"symbol=?\",\"symbol->string\",\"string->symbol\",\"char?\",\"char=?\",\"char<?\",\"char>?\",\"char<=?\",\"char>=?\",\"char->integer\",\"integer->char\",\"string?\",\"make-string\",\"string\",\"string-length\",\"string-ref\",\"string=?\",\"string<?\",\"string>?\",\"string<=?\",\"string>=?\",\"substring\",\"string-append\",\"string-copy\",\"string-copy!\",\"string-set!\",\"string-fill!\",\"string->list\",\"list->string\",\"number->string\",\"string->number\",\"string-upcase\",\"string-downcase\",\"string-foldcase\",\"vector?\",\"make-vector\",\"vector\",\"vector-length\",\"vector-ref\",\"vector-set!\",\"vector-fill!\",\"vector-copy\",\"vector-copy!\",\"vector-append\",\"vector->list\",\"list->vector\",\"vector->string\",\"string->vector\",\"apply\",\"map\",\"for-each\",\"string-map\",\"string-for-each\",\"vector-map\",\"vector-for-each\",\"call-with-current-continuation\",\"call/cc\",\"dynamic-wind\",\"values\",\"call-with-values\",\"procedure?\",\"make-parameter\",\"parameterize\",\"raise\",\"raise-continuable\",\"with-exception-handler\",\"error\",\"error-object?\",\"error-object-message\",\"error-object-irritants\",\"file-error?\",\"read-error?\",\"port?\",\"input-port?\",\"output-port?\",\"textual-port?\",\"binary-port?\",\"input-port-open?\",\"output-port-open?\",\"current-input-port\",\"current-output-port\",\"current-error-port\",\"close-port\",\"close-input-port\",\"close-output-port\",\"call-with-port\",\"flush-output-port\",\"open-input-string\",\"open-output-string\",\"get-output-string\",\"open-input-bytevector\",\"open-output-bytevector\",\"get-output-bytevector\",\"eof-object\",\"eof-object?\",\"read-char\",\"peek-char\",\"char-ready?\",\"read-line\",\"read-string\",\"read\",\"read-u8\",\"peek-u8\",\"u8-ready?\",\"read-bytevector\",\"read-bytevector!\",\"write-char\",\"write-string\",\"display\",\"newline\",\"write\",\"write-simple\",\"write-shared\",\"write-u8\",\"write-bytevector\",\"define\",\"set!\",\"lambda\",\"if\",\"begin\",\"quote\",\"quasiquote\",\"unquote\",\"unquote-splicing\",\"define-syntax\",\"let-syntax\",\"letrec-syntax\",\"syntax-rules\",\"syntax-error\",\"include\",\"include-ci\",\"cond-expand\",\"features\",\"...\",\"_\",\"=>\",\"else\",\"and\",\"or\",\"cond\",\"case\",\"do\",\"when\",\"unless\",\"guard\",\"let\",\"let*\",\"letrec\",\"letrec*\",\"let-values\",\"let*-values\",\"define-values\",\"define-record-type\",\"define-class\"],[\"l\",\"begin\"]]",
     procedures: {
@@ -56542,7 +56542,7 @@ export const LIBRARIES = {
   },
   "scheme.case-lambda": {
     fingerprint: "dd9d041d",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["case-lambda.sld","case_lambda.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"case-lambda\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"]],[\"l\",\"export\",\"case-lambda\"],[\"l\",\"include\",[\"s\",\"case_lambda.scm\"]]]",
     procedures: {
@@ -56555,7 +56555,7 @@ export const LIBRARIES = {
   },
   "scheme.char": {
     fingerprint: "81a15601",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["char.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"char\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"]],[\"l\",\"export\",\"char-ci=?\",\"char-ci<?\",\"char-ci>?\",\"char-ci<=?\",\"char-ci>=?\",\"char-alphabetic?\",\"char-numeric?\",\"char-whitespace?\",\"char-upper-case?\",\"char-lower-case?\",\"char-upcase\",\"char-downcase\",\"char-foldcase\",\"digit-value\",\"string-ci=?\",\"string-ci<?\",\"string-ci>?\",\"string-ci<=?\",\"string-ci>=?\",\"string-upcase\",\"string-downcase\",\"string-foldcase\"],[\"l\",\"begin\"]]",
     procedures: {
@@ -56567,7 +56567,7 @@ export const LIBRARIES = {
   },
   "scheme.complex": {
     fingerprint: "2117f1e3",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["complex.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"complex\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"]],[\"l\",\"export\",\"make-rectangular\",\"make-polar\",\"real-part\",\"imag-part\",\"magnitude\",\"angle\"]]",
     procedures: {
@@ -56579,7 +56579,7 @@ export const LIBRARIES = {
   },
   "scheme.control": {
     fingerprint: "0d0c0d7e",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["control.sld","control.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"control\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"]],[\"l\",\"import\",[\"l\",\"scheme\",\"core\"]],[\"l\",\"include\",[\"s\",\"control.scm\"]],[\"l\",\"export\",\"when\",\"unless\",\"or\",\"let*\",\"do\",\"case\",\"guard\",\"let-values\",\"let*-values\",\"define-values\"]]",
     procedures: {
@@ -56599,7 +56599,7 @@ export const LIBRARIES = {
   },
   "scheme.core": {
     fingerprint: "b8226ab8",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["core.sld","macros.scm","equality.scm","cxr.scm","numbers.scm","list.scm","parameter.scm","ports.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"core\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme-js\",\"special-forms\"]],[\"l\",\"include\",[\"s\",\"macros.scm\"]],[\"l\",\"include\",[\"s\",\"equality.scm\"]],[\"l\",\"include\",[\"s\",\"cxr.scm\"]],[\"l\",\"include\",[\"s\",\"numbers.scm\"]],[\"l\",\"include\",[\"s\",\"list.scm\"]],[\"l\",\"include\",[\"s\",\"parameter.scm\"]],[\"l\",\"include\",[\"s\",\"ports.scm\"]],[\"l\",\"export\",\"define\",\"set!\",\"lambda\",\"if\",\"begin\",\"quote\",\"quasiquote\",\"unquote\",\"unquote-splicing\",\"define-syntax\",\"let-syntax\",\"letrec-syntax\",\"syntax-rules\",\"er-macro-transformer\",\"define-macro\",\"...\",\"_\",\"=>\",\"else\",\"cond-expand\",\"import\",\"define-library\",\"and\",\"or\",\"let\",\"let*\",\"letrec\",\"cond\",\"syntax-error\",\"include\",\"include-ci\",\"define-record-type\",\"define-record-field\",\"define-class\",\"define-class-field\",\"define-class-method\",\"equal?\",\"map\",\"for-each\",\"string-map\",\"string-for-each\",\"vector-map\",\"vector-for-each\",\"call-with-port\",\"call-with-input-file\",\"call-with-output-file\",\"with-input-from-file\",\"with-output-to-file\",\"current-input-port\",\"current-output-port\",\"current-error-port\",\"read-char\",\"peek-char\",\"char-ready?\",\"read-line\",\"read-string\",\"read-u8\",\"peek-u8\",\"u8-ready?\",\"read-bytevector\",\"read-bytevector!\",\"read\",\"write-char\",\"write-string\",\"write-u8\",\"write-bytevector\",\"newline\",\"display\",\"write\",\"write-simple\",\"write-shared\",\"flush-output-port\",\"memq\",\"memv\",\"member\",\"assq\",\"assv\",\"assoc\",\"length\",\"list-ref\",\"list-tail\",\"reverse\",\"list-copy\",\"make-list\",\"list-set!\",\"caar\",\"cadr\",\"cdar\",\"cddr\",\"caaar\",\"caadr\",\"cadar\",\"caddr\",\"cdaar\",\"cdadr\",\"cddar\",\"cdddr\",\"caaaar\",\"caaadr\",\"caadar\",\"caaddr\",\"cadaar\",\"cadadr\",\"caddar\",\"cadddr\",\"cdaaar\",\"cdaadr\",\"cdadar\",\"cdaddr\",\"cddaar\",\"cddadr\",\"cdddar\",\"cddddr\",\"=\",\"<\",\">\",\"<=\",\">=\",\"zero?\",\"positive?\",\"negative?\",\"odd?\",\"even?\",\"max\",\"min\",\"gcd\",\"lcm\",\"rationalize\",\"round\",\"inexact->exact\",\"make-parameter\",\"parameterize\",\"native-report-test-result\"]]",
     procedures: {
@@ -56795,7 +56795,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"equality.scm","line":29,"column":1,"endLine":33,"endColumn":23},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "equal-as-trees")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "equal-tree-budget")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "not")).v;
@@ -56820,7 +56820,7 @@ export const LIBRARIES = {
           if ($t3 !== false) {
             return false;
           } else {
-            $t4 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_left_$724 === 'number' && typeof 0 === 'number') ? (s_left_$724 < 0) : R.callBinding((C3.v ?? G3()), [s_left_$724, 0]);
+            $t4 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_left_$724 === 'number' && typeof 0 === 'number') ? s_left_$724 < 0 : $lt(s_left_$724, 0)) : R.callBinding((C3.v ?? G3()), [s_left_$724, 0]);
             if ($t4 !== false) {
               $t5 = (C4.v ?? G4());
               if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6(s_a_$722, s_b_$723); } return $tailCall($t5, [s_a_$722, s_b_$723]);
@@ -56852,7 +56852,7 @@ export const LIBRARIES = {
               case 2:
                 return false;
               case 3:
-                $t4 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_left_$724 === 'number' && typeof 0 === 'number') ? (s_left_$724 < 0) : R.callBinding((C3.v ?? G3()), [s_left_$724, 0]);
+                $t4 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_left_$724 === 'number' && typeof 0 === 'number') ? s_left_$724 < 0 : $lt(s_left_$724, 0)) : R.callBinding((C3.v ?? G3()), [s_left_$724, 0]);
                 if ($t4 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 $t5 = (C4.v ?? G4());
@@ -56873,7 +56873,7 @@ export const LIBRARIES = {
         constants: [intern("same"), intern("pair"), intern("vector"), intern("differ"), intern("same"), intern("differ"), intern("same"), intern("differ"), intern("differ"), intern("same"), intern("pair"), intern("vector"), intern("differ"), intern("same"), intern("differ"), intern("same"), intern("differ"), intern("differ")],
         span: {"filename":"equality.scm","line":46,"column":1,"endLine":55,"endColumn":25},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eqv?")).v;
         const W0 = R.primitiveCell("eqv?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
@@ -56934,7 +56934,7 @@ export const LIBRARIES = {
               if ($t9 !== false) {
                 $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (Array.isArray(s_a_$725)) ? (s_a_$725.length) : R.callBinding((C4.v ?? G4()), [s_a_$725]);
                 $t14 = (W4.intact || (C4.v ?? G4()) === P4) && (Array.isArray(s_b_$726)) ? (s_b_$726.length) : R.callBinding((C4.v ?? G4()), [s_b_$726]);
-                $t15 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t13 === 'number' && typeof $t14 === 'number') ? ($t13 === $t14) : R.callBinding((C3.v ?? G3()), [$t13, $t14]);
+                $t15 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t13 === 'number' && typeof $t14 === 'number') ? $t13 === $t14 : $numEq($t13, $t14)) : R.callBinding((C3.v ?? G3()), [$t13, $t14]);
                 if ($t15 !== false) {
                   return K[11];
                 } else {
@@ -57083,7 +57083,7 @@ export const LIBRARIES = {
               case 14:
                 $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (Array.isArray(s_a_$725)) ? (s_a_$725.length) : R.callBinding((C4.v ?? G4()), [s_a_$725]);
                 $t14 = (W4.intact || (C4.v ?? G4()) === P4) && (Array.isArray(s_b_$726)) ? (s_b_$726.length) : R.callBinding((C4.v ?? G4()), [s_b_$726]);
-                $t15 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t13 === 'number' && typeof $t14 === 'number') ? ($t13 === $t14) : R.callBinding((C3.v ?? G3()), [$t13, $t14]);
+                $t15 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t13 === 'number' && typeof $t14 === 'number') ? $t13 === $t14 : $numEq($t13, $t14)) : R.callBinding((C3.v ?? G3()), [$t13, $t14]);
                 if ($t15 !== false) { $pc = 16; continue; } $pc = 17; continue;
               case 15:
                 $t16 = (C5.v ?? G5());
@@ -57203,7 +57203,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"equality.scm","line":63,"column":1,"endLine":69,"endColumn":41},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "bytevector-length")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -57230,11 +57230,11 @@ export const LIBRARIES = {
           $t5 = $t4 === undefined ? ($t3[$PRIM] === true ? $t3(s_b_$728) : $foreign($t3, [s_b_$728])) : $t4(s_b_$728);
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_len_$729, s_a_$727, s_b_$728 }); return $UNWIND; }
-          $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_len_$729 === 'number' && typeof $t5 === 'number') ? (s_len_$729 === $t5) : R.callBinding((C1.v ?? G1()), [s_len_$729, $t5]);
+          $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_len_$729 === 'number' && typeof $t5 === 'number') ? s_len_$729 === $t5 : $numEq(s_len_$729, $t5)) : R.callBinding((C1.v ?? G1()), [s_len_$729, $t5]);
           if ($t6 !== false) {
             s_i_$731 = 0;
             $loop1: for (;;) {
-            $t7 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_i_$731 === 'number' && typeof s_len_$729 === 'number') ? (s_i_$731 === s_len_$729) : R.callBinding((C1.v ?? G1()), [s_i_$731, s_len_$729]);
+            $t7 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_i_$731 === 'number' && typeof s_len_$729 === 'number') ? s_i_$731 === s_len_$729 : $numEq(s_i_$731, s_len_$729)) : R.callBinding((C1.v ?? G1()), [s_i_$731, s_len_$729]);
             s_x_$732 = $t7;
             if (s_x_$732 !== false) {
               return s_x_$732;
@@ -57253,9 +57253,9 @@ export const LIBRARIES = {
               $t13 = $t12 === undefined ? ($t11[$PRIM] === true ? $t11(s_b_$728, s_i_$731) : $foreign($t11, [s_b_$728, s_i_$731])) : $t12(s_b_$728, s_i_$731);
               while ($t13 instanceof $TailCall) { $stack.room = $d; $t13 = $step($t13); }
               if ($t13 === $UNWIND) { R.reify($proc$r, 9, { s_len_$729, s_i_$731, $t10, s_a_$727, s_b_$728 }); return $UNWIND; }
-              $t14 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t10 === 'number' && typeof $t13 === 'number') ? ($t10 === $t13) : R.callBinding((C1.v ?? G1()), [$t10, $t13]);
+              $t14 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t10 === 'number' && typeof $t13 === 'number') ? $t10 === $t13 : $numEq($t10, $t13)) : R.callBinding((C1.v ?? G1()), [$t10, $t13]);
               if ($t14 !== false) {
-                $t15 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$731 === 'number' && typeof 1 === 'number') ? ($add(s_i_$731, 1)) : R.callBinding((C3.v ?? G3()), [s_i_$731, 1]);
+                $t15 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$731 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$731 + 1)) || (Number.isSafeInteger((s_i_$731 + 1)) && Number.isInteger(s_i_$731) && Number.isInteger(1)))) ? (s_i_$731 + 1) : $add(s_i_$731, 1)) : R.callBinding((C3.v ?? G3()), [s_i_$731, 1]);
                 s_i_$731 = $t15;
                 continue $loop1;
               } else {
@@ -57296,7 +57296,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               case 2:
                 $t5 = $r;
-                $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_len_$729 === 'number' && typeof $t5 === 'number') ? (s_len_$729 === $t5) : R.callBinding((C1.v ?? G1()), [s_len_$729, $t5]);
+                $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_len_$729 === 'number' && typeof $t5 === 'number') ? s_len_$729 === $t5 : $numEq(s_len_$729, $t5)) : R.callBinding((C1.v ?? G1()), [s_len_$729, $t5]);
                 if ($t6 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 s_i_$731 = 0;
@@ -57304,7 +57304,7 @@ export const LIBRARIES = {
               case 4:
                 return false;
               case 5:
-                $t7 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_i_$731 === 'number' && typeof s_len_$729 === 'number') ? (s_i_$731 === s_len_$729) : R.callBinding((C1.v ?? G1()), [s_i_$731, s_len_$729]);
+                $t7 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_i_$731 === 'number' && typeof s_len_$729 === 'number') ? s_i_$731 === s_len_$729 : $numEq(s_i_$731, s_len_$729)) : R.callBinding((C1.v ?? G1()), [s_i_$731, s_len_$729]);
                 s_x_$732 = $t7;
                 if (s_x_$732 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 6:
@@ -57332,10 +57332,10 @@ export const LIBRARIES = {
                 $pc = 9; continue;
               case 9:
                 $t13 = $r;
-                $t14 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t10 === 'number' && typeof $t13 === 'number') ? ($t10 === $t13) : R.callBinding((C1.v ?? G1()), [$t10, $t13]);
+                $t14 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t10 === 'number' && typeof $t13 === 'number') ? $t10 === $t13 : $numEq($t10, $t13)) : R.callBinding((C1.v ?? G1()), [$t10, $t13]);
                 if ($t14 !== false) { $pc = 10; continue; } $pc = 11; continue;
               case 10:
-                $t15 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$731 === 'number' && typeof 1 === 'number') ? ($add(s_i_$731, 1)) : R.callBinding((C3.v ?? G3()), [s_i_$731, 1]);
+                $t15 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$731 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$731 + 1)) || (Number.isSafeInteger((s_i_$731 + 1)) && Number.isInteger(s_i_$731) && Number.isInteger(1)))) ? (s_i_$731 + 1) : $add(s_i_$731, 1)) : R.callBinding((C3.v ?? G3()), [s_i_$731, 1]);
                 s_i_$731 = $t15;
                 $pc = 5; continue;
               case 11:
@@ -57354,7 +57354,7 @@ export const LIBRARIES = {
         constants: [intern("same"), intern("pair"), intern("vector"), intern("same"), intern("pair"), intern("vector")],
         span: {"filename":"equality.scm","line":81,"column":1,"endLine":97,"endColumn":28},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.add, $sub = R.sub, $lt = R.lt, $ge = R.ge, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "<")).v;
         const W0 = R.primitiveCell("<"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "equal-compare-shallow")).v;
@@ -57385,7 +57385,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 54;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [s_a_$733, s_b_$734, s_k_$735]);
           $loop: for (;;) {
-            $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_k_$735 === 'number' && typeof 0 === 'number') ? (s_k_$735 < 0) : R.callBinding((C0.v ?? G0()), [s_k_$735, 0]);
+            $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_k_$735 === 'number' && typeof 0 === 'number') ? s_k_$735 < 0 : $lt(s_k_$735, 0)) : R.callBinding((C0.v ?? G0()), [s_k_$735, 0]);
             if ($t0 !== false) {
               return s_k_$735;
             } else {
@@ -57406,7 +57406,7 @@ export const LIBRARIES = {
                   $t6 = (C3.v ?? G3());
                   $t7 = (W4.intact || (C4.v ?? G4()) === P4) && (s_a_$733 instanceof R.Cons) ? (s_a_$733.car) : R.callBinding((C4.v ?? G4()), [s_a_$733]);
                   $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (s_b_$734 instanceof R.Cons) ? (s_b_$734.car) : R.callBinding((C4.v ?? G4()), [s_b_$734]);
-                  $t9 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_k_$735 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$735, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$735, 1]);
+                  $t9 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_k_$735 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$735 - 1)) || (Number.isSafeInteger((s_k_$735 - 1)) && Number.isInteger(s_k_$735) && Number.isInteger(1)))) ? (s_k_$735 - 1) : $sub(s_k_$735, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$735, 1]);
                   $t10 = $t6;
                   if (typeof $t10 !== 'function') $notProc($t10);
                   $t11 = $t10[$RAW];
@@ -57416,7 +57416,7 @@ export const LIBRARIES = {
                   if ($t12 === $UNWIND) { R.reify($proc$r, 8, { $t18, s_a_$733, s_b_$734, s_k_$735 }); return $UNWIND; }
                   s_k_$737 = $t12;
                   if (s_k_$737 !== false) {
-                    $t14 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_k_$737 === 'number' && typeof 0 === 'number') ? (s_k_$737 >= 0) : R.callBinding((C6.v ?? G6()), [s_k_$737, 0]);
+                    $t14 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_k_$737 === 'number' && typeof 0 === 'number') ? s_k_$737 >= 0 : $ge(s_k_$737, 0)) : R.callBinding((C6.v ?? G6()), [s_k_$737, 0]);
                     $t13 = $t14;
                   } else {
                     $t13 = false;
@@ -57436,11 +57436,11 @@ export const LIBRARIES = {
                   if ($t21 !== false) {
                     $t22 = (W8.intact || (C8.v ?? G8()) === P8) && (Array.isArray(s_a_$733)) ? (s_a_$733.length) : R.callBinding((C8.v ?? G8()), [s_a_$733]);
                     s_len_$738 = $t22;
-                    $t23 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_k_$735 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$735, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$735, 1]);
+                    $t23 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_k_$735 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$735 - 1)) || (Number.isSafeInteger((s_k_$735 - 1)) && Number.isInteger(s_k_$735) && Number.isInteger(1)))) ? (s_k_$735 - 1) : $sub(s_k_$735, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$735, 1]);
                     s_i_$740 = 0;
                     s_k_$741 = $t23;
                     $loop1: for (;;) {
-                    $t24 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_i_$740 === 'number' && typeof s_len_$738 === 'number') ? (s_i_$740 === s_len_$738) : R.callBinding((C9.v ?? G9()), [s_i_$740, s_len_$738]);
+                    $t24 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_i_$740 === 'number' && typeof s_len_$738 === 'number') ? s_i_$740 === s_len_$738 : $numEq(s_i_$740, s_len_$738)) : R.callBinding((C9.v ?? G9()), [s_i_$740, s_len_$738]);
                     s_x_$742 = $t24;
                     if (s_x_$742 !== false) {
                       $t25 = s_x_$742;
@@ -57450,7 +57450,7 @@ export const LIBRARIES = {
                       if (s_x_$743 !== false) {
                         $t27 = s_x_$743;
                       } else {
-                        $t28 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_k_$741 === 'number' && typeof 0 === 'number') ? (s_k_$741 < 0) : R.callBinding((C0.v ?? G0()), [s_k_$741, 0]);
+                        $t28 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_k_$741 === 'number' && typeof 0 === 'number') ? s_k_$741 < 0 : $lt(s_k_$741, 0)) : R.callBinding((C0.v ?? G0()), [s_k_$741, 0]);
                         $t27 = $t28;
                       }
                       $t25 = $t27;
@@ -57458,7 +57458,7 @@ export const LIBRARIES = {
                     if ($t25 !== false) {
                       return s_k_$741;
                     } else {
-                      $t29 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_i_$740 === 'number' && typeof 1 === 'number') ? ($add(s_i_$740, 1)) : R.callBinding((C11.v ?? G11()), [s_i_$740, 1]);
+                      $t29 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_i_$740 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$740 + 1)) || (Number.isSafeInteger((s_i_$740 + 1)) && Number.isInteger(s_i_$740) && Number.isInteger(1)))) ? (s_i_$740 + 1) : $add(s_i_$740, 1)) : R.callBinding((C11.v ?? G11()), [s_i_$740, 1]);
                       $t30 = (C3.v ?? G3());
                       $t31 = (W12.intact || (C12.v ?? G12()) === P12) ? ($vectorRef(s_a_$733, s_i_$740)) : R.callBinding((C12.v ?? G12()), [s_a_$733, s_i_$740]);
                       $t32 = (W12.intact || (C12.v ?? G12()) === P12) ? ($vectorRef(s_b_$734, s_i_$740)) : R.callBinding((C12.v ?? G12()), [s_b_$734, s_i_$740]);
@@ -57488,7 +57488,7 @@ export const LIBRARIES = {
           const $d = $stack.room - 54;
           for (;;) switch ($pc) {
               case 0:
-                $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_k_$735 === 'number' && typeof 0 === 'number') ? (s_k_$735 < 0) : R.callBinding((C0.v ?? G0()), [s_k_$735, 0]);
+                $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_k_$735 === 'number' && typeof 0 === 'number') ? s_k_$735 < 0 : $lt(s_k_$735, 0)) : R.callBinding((C0.v ?? G0()), [s_k_$735, 0]);
                 if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
               case 1:
                 return s_k_$735;
@@ -57516,7 +57516,7 @@ export const LIBRARIES = {
                 $t6 = (C3.v ?? G3());
                 $t7 = (W4.intact || (C4.v ?? G4()) === P4) && (s_a_$733 instanceof R.Cons) ? (s_a_$733.car) : R.callBinding((C4.v ?? G4()), [s_a_$733]);
                 $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (s_b_$734 instanceof R.Cons) ? (s_b_$734.car) : R.callBinding((C4.v ?? G4()), [s_b_$734]);
-                $t9 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_k_$735 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$735, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$735, 1]);
+                $t9 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_k_$735 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$735 - 1)) || (Number.isSafeInteger((s_k_$735 - 1)) && Number.isInteger(s_k_$735) && Number.isInteger(1)))) ? (s_k_$735 - 1) : $sub(s_k_$735, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$735, 1]);
                 $t10 = $t6;
                 if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
@@ -57534,7 +57534,7 @@ export const LIBRARIES = {
                 s_k_$737 = $t12;
                 if (s_k_$737 !== false) { $pc = 9; continue; } $pc = 10; continue;
               case 9:
-                $t14 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_k_$737 === 'number' && typeof 0 === 'number') ? (s_k_$737 >= 0) : R.callBinding((C6.v ?? G6()), [s_k_$737, 0]);
+                $t14 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_k_$737 === 'number' && typeof 0 === 'number') ? s_k_$737 >= 0 : $ge(s_k_$737, 0)) : R.callBinding((C6.v ?? G6()), [s_k_$737, 0]);
                 $t13 = $t14;
                 $pc = 11; continue;
               case 10:
@@ -57554,14 +57554,14 @@ export const LIBRARIES = {
               case 14:
                 $t22 = (W8.intact || (C8.v ?? G8()) === P8) && (Array.isArray(s_a_$733)) ? (s_a_$733.length) : R.callBinding((C8.v ?? G8()), [s_a_$733]);
                 s_len_$738 = $t22;
-                $t23 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_k_$735 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$735, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$735, 1]);
+                $t23 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_k_$735 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$735 - 1)) || (Number.isSafeInteger((s_k_$735 - 1)) && Number.isInteger(s_k_$735) && Number.isInteger(1)))) ? (s_k_$735 - 1) : $sub(s_k_$735, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$735, 1]);
                 s_i_$740 = 0;
                 s_k_$741 = $t23;
                 $pc = 16; continue;
               case 15:
                 return false;
               case 16:
-                $t24 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_i_$740 === 'number' && typeof s_len_$738 === 'number') ? (s_i_$740 === s_len_$738) : R.callBinding((C9.v ?? G9()), [s_i_$740, s_len_$738]);
+                $t24 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_i_$740 === 'number' && typeof s_len_$738 === 'number') ? s_i_$740 === s_len_$738 : $numEq(s_i_$740, s_len_$738)) : R.callBinding((C9.v ?? G9()), [s_i_$740, s_len_$738]);
                 s_x_$742 = $t24;
                 if (s_x_$742 !== false) { $pc = 17; continue; } $pc = 18; continue;
               case 17:
@@ -57577,7 +57577,7 @@ export const LIBRARIES = {
                 $t27 = s_x_$743;
                 $pc = 22; continue;
               case 21:
-                $t28 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_k_$741 === 'number' && typeof 0 === 'number') ? (s_k_$741 < 0) : R.callBinding((C0.v ?? G0()), [s_k_$741, 0]);
+                $t28 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_k_$741 === 'number' && typeof 0 === 'number') ? s_k_$741 < 0 : $lt(s_k_$741, 0)) : R.callBinding((C0.v ?? G0()), [s_k_$741, 0]);
                 $t27 = $t28;
                 $pc = 22; continue;
               case 22:
@@ -57586,7 +57586,7 @@ export const LIBRARIES = {
               case 23:
                 return s_k_$741;
               case 24:
-                $t29 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_i_$740 === 'number' && typeof 1 === 'number') ? ($add(s_i_$740, 1)) : R.callBinding((C11.v ?? G11()), [s_i_$740, 1]);
+                $t29 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_i_$740 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$740 + 1)) || (Number.isSafeInteger((s_i_$740 + 1)) && Number.isInteger(s_i_$740) && Number.isInteger(1)))) ? (s_i_$740 + 1) : $add(s_i_$740, 1)) : R.callBinding((C11.v ?? G11()), [s_i_$740, 1]);
                 $t30 = (C3.v ?? G3());
                 $t31 = (W12.intact || (C12.v ?? G12()) === P12) ? ($vectorRef(s_a_$733, s_i_$740)) : R.callBinding((C12.v ?? G12()), [s_a_$733, s_i_$740]);
                 $t32 = (W12.intact || (C12.v ?? G12()) === P12) ? ($vectorRef(s_b_$734, s_i_$740)) : R.callBinding((C12.v ?? G12()), [s_b_$734, s_i_$740]);
@@ -57618,7 +57618,7 @@ export const LIBRARIES = {
         constants: [intern("eq"), intern("same"), intern("pair"), intern("vector"), intern("same"), intern("pair"), intern("vector"), intern("eq")],
         span: {"filename":"equality.scm","line":111,"column":1,"endLine":147,"endColumn":29},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.add, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%make-hash-store")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%hash-store-ref")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cons")).v;
@@ -57992,7 +57992,7 @@ export const LIBRARIES = {
                       s_len_$764 = $t19;
                       s_i_$766 = 0;
                       $loop1: for (;;) {
-                      $t20 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$766 === 'number' && typeof s_len_$764 === 'number') ? (s_i_$766 === s_len_$764) : R.callBinding((C10.v ?? G10()), [s_i_$766, s_len_$764]);
+                      $t20 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$766 === 'number' && typeof s_len_$764 === 'number') ? s_i_$766 === s_len_$764 : $numEq(s_i_$766, s_len_$764)) : R.callBinding((C10.v ?? G10()), [s_i_$766, s_len_$764]);
                       s_x_$767 = $t20;
                       if (s_x_$767 !== false) {
                         return s_x_$767;
@@ -58007,7 +58007,7 @@ export const LIBRARIES = {
                         while ($t25 instanceof $TailCall) { $stack.room = $d; $t25 = $step($t25); }
                         if ($t25 === $UNWIND) { R.reify($fn9$r, 20, { s_len_$764, s_i_$766, s_a_$759, s_b_$760 }); return $UNWIND; }
                         if ($t25 !== false) {
-                          $t26 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_i_$766 === 'number' && typeof 1 === 'number') ? ($add(s_i_$766, 1)) : R.callBinding((C12.v ?? G12()), [s_i_$766, 1]);
+                          $t26 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_i_$766 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$766 + 1)) || (Number.isSafeInteger((s_i_$766 + 1)) && Number.isInteger(s_i_$766) && Number.isInteger(1)))) ? (s_i_$766 + 1) : $add(s_i_$766, 1)) : R.callBinding((C12.v ?? G12()), [s_i_$766, 1]);
                           s_i_$766 = $t26;
                           continue $loop1;
                         } else {
@@ -58115,7 +58115,7 @@ export const LIBRARIES = {
                   s_i_$766 = 0;
                   $pc = 17; continue;
                 case 17:
-                  $t20 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$766 === 'number' && typeof s_len_$764 === 'number') ? (s_i_$766 === s_len_$764) : R.callBinding((C10.v ?? G10()), [s_i_$766, s_len_$764]);
+                  $t20 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$766 === 'number' && typeof s_len_$764 === 'number') ? s_i_$766 === s_len_$764 : $numEq(s_i_$766, s_len_$764)) : R.callBinding((C10.v ?? G10()), [s_i_$766, s_len_$764]);
                   s_x_$767 = $t20;
                   if (s_x_$767 !== false) { $pc = 18; continue; } $pc = 19; continue;
                 case 18:
@@ -58136,7 +58136,7 @@ export const LIBRARIES = {
                   $t25 = $r;
                   if ($t25 !== false) { $pc = 21; continue; } $pc = 22; continue;
                 case 21:
-                  $t26 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_i_$766 === 'number' && typeof 1 === 'number') ? ($add(s_i_$766, 1)) : R.callBinding((C12.v ?? G12()), [s_i_$766, 1]);
+                  $t26 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_i_$766 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$766 + 1)) || (Number.isSafeInteger((s_i_$766 + 1)) && Number.isInteger(s_i_$766) && Number.isInteger(1)))) ? (s_i_$766 + 1) : $add(s_i_$766, 1)) : R.callBinding((C12.v ?? G12()), [s_i_$766, 1]);
                   s_i_$766 = $t26;
                   $pc = 17; continue;
                 case 22:
@@ -59218,7 +59218,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"numbers.scm","line":31,"column":1,"endLine":34,"endColumn":11},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "number?")).v;
@@ -59251,7 +59251,7 @@ export const LIBRARIES = {
             $t4 = undefined;
           }
           $t4;
-          $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_x_$796 === 'number' && typeof 0 === 'number') ? (s_x_$796 === 0) : R.callBinding((C3.v ?? G3()), [s_x_$796, 0]);
+          $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_x_$796 === 'number' && typeof 0 === 'number') ? s_x_$796 === 0 : $numEq(s_x_$796, 0)) : R.callBinding((C3.v ?? G3()), [s_x_$796, 0]);
           return $t8;
         } }["zero?"];
         const $proc$r = { "zero?": function ($pc, $f) {
@@ -59288,7 +59288,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 4:
                 $t4;
-                $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_x_$796 === 'number' && typeof 0 === 'number') ? (s_x_$796 === 0) : R.callBinding((C3.v ?? G3()), [s_x_$796, 0]);
+                $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_x_$796 === 'number' && typeof 0 === 'number') ? s_x_$796 === 0 : $numEq(s_x_$796, 0)) : R.callBinding((C3.v ?? G3()), [s_x_$796, 0]);
                 return $t8;
               case 5:
                 $t7 = $r;
@@ -59308,7 +59308,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"numbers.scm","line":42,"column":1,"endLine":45,"endColumn":11},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $gt = R.gt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "number?")).v;
@@ -59341,7 +59341,7 @@ export const LIBRARIES = {
             $t4 = undefined;
           }
           $t4;
-          $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_x_$797 === 'number' && typeof 0 === 'number') ? (s_x_$797 > 0) : R.callBinding((C3.v ?? G3()), [s_x_$797, 0]);
+          $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_x_$797 === 'number' && typeof 0 === 'number') ? s_x_$797 > 0 : $gt(s_x_$797, 0)) : R.callBinding((C3.v ?? G3()), [s_x_$797, 0]);
           return $t8;
         } }["positive?"];
         const $proc$r = { "positive?": function ($pc, $f) {
@@ -59378,7 +59378,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 4:
                 $t4;
-                $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_x_$797 === 'number' && typeof 0 === 'number') ? (s_x_$797 > 0) : R.callBinding((C3.v ?? G3()), [s_x_$797, 0]);
+                $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_x_$797 === 'number' && typeof 0 === 'number') ? s_x_$797 > 0 : $gt(s_x_$797, 0)) : R.callBinding((C3.v ?? G3()), [s_x_$797, 0]);
                 return $t8;
               case 5:
                 $t7 = $r;
@@ -59398,7 +59398,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"numbers.scm","line":53,"column":1,"endLine":56,"endColumn":11},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "number?")).v;
@@ -59431,7 +59431,7 @@ export const LIBRARIES = {
             $t4 = undefined;
           }
           $t4;
-          $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_x_$798 === 'number' && typeof 0 === 'number') ? (s_x_$798 < 0) : R.callBinding((C3.v ?? G3()), [s_x_$798, 0]);
+          $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_x_$798 === 'number' && typeof 0 === 'number') ? s_x_$798 < 0 : $lt(s_x_$798, 0)) : R.callBinding((C3.v ?? G3()), [s_x_$798, 0]);
           return $t8;
         } }["negative?"];
         const $proc$r = { "negative?": function ($pc, $f) {
@@ -59468,7 +59468,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 4:
                 $t4;
-                $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_x_$798 === 'number' && typeof 0 === 'number') ? (s_x_$798 < 0) : R.callBinding((C3.v ?? G3()), [s_x_$798, 0]);
+                $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_x_$798 === 'number' && typeof 0 === 'number') ? s_x_$798 < 0 : $lt(s_x_$798, 0)) : R.callBinding((C3.v ?? G3()), [s_x_$798, 0]);
                 return $t8;
               case 5:
                 $t7 = $r;
@@ -59488,7 +59488,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"numbers.scm","line":64,"column":1,"endLine":67,"endColumn":28},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "integer?")).v;
@@ -59529,7 +59529,7 @@ export const LIBRARIES = {
           $t10 = $t9 === undefined ? ($t8[$PRIM] === true ? $t8(s_x_$799, 2) : $foreign($t8, [s_x_$799, 2])) : $t9(s_x_$799, 2);
           while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
           if ($t10 === $UNWIND) { R.reify($proc$r, 6, {  }); return $UNWIND; }
-          $t11 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t10 === 'number' && typeof 0 === 'number') ? ($t10 === 0) : R.callBinding((C3.v ?? G3()), [$t10, 0]);
+          $t11 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t10 === 'number' && typeof 0 === 'number') ? $t10 === 0 : $numEq($t10, 0)) : R.callBinding((C3.v ?? G3()), [$t10, 0]);
           $t12 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t11 === false) : R.callBinding((C0.v ?? G0()), [$t11]);
           return $t12;
         } }["odd?"];
@@ -59582,7 +59582,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 6:
                 $t10 = $r;
-                $t11 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t10 === 'number' && typeof 0 === 'number') ? ($t10 === 0) : R.callBinding((C3.v ?? G3()), [$t10, 0]);
+                $t11 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t10 === 'number' && typeof 0 === 'number') ? $t10 === 0 : $numEq($t10, 0)) : R.callBinding((C3.v ?? G3()), [$t10, 0]);
                 $t12 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t11 === false) : R.callBinding((C0.v ?? G0()), [$t11]);
                 return $t12;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -59599,7 +59599,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"numbers.scm","line":75,"column":1,"endLine":78,"endColumn":22},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "integer?")).v;
@@ -59640,7 +59640,7 @@ export const LIBRARIES = {
           $t10 = $t9 === undefined ? ($t8[$PRIM] === true ? $t8(s_x_$800, 2) : $foreign($t8, [s_x_$800, 2])) : $t9(s_x_$800, 2);
           while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
           if ($t10 === $UNWIND) { R.reify($proc$r, 6, {  }); return $UNWIND; }
-          $t11 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t10 === 'number' && typeof 0 === 'number') ? ($t10 === 0) : R.callBinding((C3.v ?? G3()), [$t10, 0]);
+          $t11 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t10 === 'number' && typeof 0 === 'number') ? $t10 === 0 : $numEq($t10, 0)) : R.callBinding((C3.v ?? G3()), [$t10, 0]);
           return $t11;
         } }["even?"];
         const $proc$r = { "even?": function ($pc, $f) {
@@ -59692,7 +59692,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 6:
                 $t10 = $r;
-                $t11 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof $t10 === 'number' && typeof 0 === 'number') ? ($t10 === 0) : R.callBinding((C3.v ?? G3()), [$t10, 0]);
+                $t11 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof $t10 === 'number' && typeof 0 === 'number') ? $t10 === 0 : $numEq($t10, 0)) : R.callBinding((C3.v ?? G3()), [$t10, 0]);
                 return $t11;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -59708,7 +59708,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"numbers.scm","line":91,"column":1,"endLine":99,"endColumn":21},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $gt = R.gt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "apply")).v;
@@ -59735,7 +59735,7 @@ export const LIBRARIES = {
             while ($t3 instanceof $TailCall) { $stack.room = $d; $t3 = $step($t3); }
             if ($t3 === $UNWIND) { R.reify($proc$r, 3, { s_x_$801 }); return $UNWIND; }
             s_res_$803 = $t3;
-            $t4 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_x_$801 === 'number' && typeof s_res_$803 === 'number') ? (s_x_$801 > s_res_$803) : R.callBinding((C3.v ?? G3()), [s_x_$801, s_res_$803]);
+            $t4 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_x_$801 === 'number' && typeof s_res_$803 === 'number') ? s_x_$801 > s_res_$803 : $gt(s_x_$801, s_res_$803)) : R.callBinding((C3.v ?? G3()), [s_x_$801, s_res_$803]);
             if ($t4 !== false) {
               $t5 = s_x_$801;
             } else {
@@ -59793,7 +59793,7 @@ export const LIBRARIES = {
               case 3:
                 $t3 = $r;
                 s_res_$803 = $t3;
-                $t4 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_x_$801 === 'number' && typeof s_res_$803 === 'number') ? (s_x_$801 > s_res_$803) : R.callBinding((C3.v ?? G3()), [s_x_$801, s_res_$803]);
+                $t4 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_x_$801 === 'number' && typeof s_res_$803 === 'number') ? s_x_$801 > s_res_$803 : $gt(s_x_$801, s_res_$803)) : R.callBinding((C3.v ?? G3()), [s_x_$801, s_res_$803]);
                 if ($t4 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 $t5 = s_x_$801;
@@ -59945,7 +59945,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"numbers.scm","line":113,"column":1,"endLine":121,"endColumn":21},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "apply")).v;
@@ -59972,7 +59972,7 @@ export const LIBRARIES = {
             while ($t3 instanceof $TailCall) { $stack.room = $d; $t3 = $step($t3); }
             if ($t3 === $UNWIND) { R.reify($proc$r, 3, { s_x_$808 }); return $UNWIND; }
             s_res_$810 = $t3;
-            $t4 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_x_$808 === 'number' && typeof s_res_$810 === 'number') ? (s_x_$808 < s_res_$810) : R.callBinding((C3.v ?? G3()), [s_x_$808, s_res_$810]);
+            $t4 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_x_$808 === 'number' && typeof s_res_$810 === 'number') ? s_x_$808 < s_res_$810 : $lt(s_x_$808, s_res_$810)) : R.callBinding((C3.v ?? G3()), [s_x_$808, s_res_$810]);
             if ($t4 !== false) {
               $t5 = s_x_$808;
             } else {
@@ -60030,7 +60030,7 @@ export const LIBRARIES = {
               case 3:
                 $t3 = $r;
                 s_res_$810 = $t3;
-                $t4 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_x_$808 === 'number' && typeof s_res_$810 === 'number') ? (s_x_$808 < s_res_$810) : R.callBinding((C3.v ?? G3()), [s_x_$808, s_res_$810]);
+                $t4 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_x_$808 === 'number' && typeof s_res_$810 === 'number') ? s_x_$808 < s_res_$810 : $lt(s_x_$808, s_res_$810)) : R.callBinding((C3.v ?? G3()), [s_x_$808, s_res_$810]);
                 if ($t4 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 $t5 = s_x_$808;
@@ -60182,7 +60182,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"numbers.scm","line":139,"column":1,"endLine":144,"endColumn":37},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "abs")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -60210,7 +60210,7 @@ export const LIBRARIES = {
             while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
             if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_aa_$817, $t11, s_a_$815, s_b_$816 }); return $UNWIND; }
             s_bb_$818 = $t5;
-            $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_bb_$818 === 'number' && typeof 0 === 'number') ? (s_bb_$818 === 0) : R.callBinding((C1.v ?? G1()), [s_bb_$818, 0]);
+            $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_bb_$818 === 'number' && typeof 0 === 'number') ? s_bb_$818 === 0 : $numEq(s_bb_$818, 0)) : R.callBinding((C1.v ?? G1()), [s_bb_$818, 0]);
             if ($t6 !== false) {
               return s_aa_$817;
             } else {
@@ -60258,7 +60258,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 s_bb_$818 = $t5;
-                $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_bb_$818 === 'number' && typeof 0 === 'number') ? (s_bb_$818 === 0) : R.callBinding((C1.v ?? G1()), [s_bb_$818, 0]);
+                $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_bb_$818 === 'number' && typeof 0 === 'number') ? s_bb_$818 === 0 : $numEq(s_bb_$818, 0)) : R.callBinding((C1.v ?? G1()), [s_bb_$818, 0]);
                 if ($t6 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 return s_aa_$817;
@@ -60488,7 +60488,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"numbers.scm","line":171,"column":1,"endLine":186,"endColumn":42},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $mul = R.mulNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $mul = R.mul, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "for-each")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "not")).v;
         const W1 = R.primitiveCell("not"), P1 = W1.primitive;
@@ -60604,19 +60604,19 @@ export const LIBRARIES = {
               while ($t17 instanceof $TailCall) { $stack.room = $d; $t17 = $step($t17); }
               if ($t17 === $UNWIND) { R.reify($proc$r, 8, { s_result_$827, s_rest_$828 }); return $UNWIND; }
               s_b_$829 = $t17;
-              $t18 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_result_$827 === 'number' && typeof 0 === 'number') ? (s_result_$827 === 0) : R.callBinding((C7.v ?? G7()), [s_result_$827, 0]);
+              $t18 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_result_$827 === 'number' && typeof 0 === 'number') ? s_result_$827 === 0 : $numEq(s_result_$827, 0)) : R.callBinding((C7.v ?? G7()), [s_result_$827, 0]);
               s_x_$830 = $t18;
               if (s_x_$830 !== false) {
                 $t19 = s_x_$830;
               } else {
-                $t20 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_b_$829 === 'number' && typeof 0 === 'number') ? (s_b_$829 === 0) : R.callBinding((C7.v ?? G7()), [s_b_$829, 0]);
+                $t20 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_b_$829 === 'number' && typeof 0 === 'number') ? s_b_$829 === 0 : $numEq(s_b_$829, 0)) : R.callBinding((C7.v ?? G7()), [s_b_$829, 0]);
                 $t19 = $t20;
               }
               if ($t19 !== false) {
                 return 0;
               } else {
                 $t21 = (C8.v ?? G8());
-                $t22 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_result_$827 === 'number' && typeof s_b_$829 === 'number') ? ($mul(s_result_$827, s_b_$829)) : R.callBinding((C9.v ?? G9()), [s_result_$827, s_b_$829]);
+                $t22 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_result_$827 === 'number' && typeof s_b_$829 === 'number' && (!Number.isInteger((s_result_$827 * s_b_$829)) || (Number.isSafeInteger((s_result_$827 * s_b_$829)) && (s_result_$827 * s_b_$829) !== 0 && Number.isInteger(s_result_$827) && Number.isInteger(s_b_$829)))) ? (s_result_$827 * s_b_$829) : $mul(s_result_$827, s_b_$829)) : R.callBinding((C9.v ?? G9()), [s_result_$827, s_b_$829]);
                 $t23 = (C10.v ?? G10());
                 if (typeof $t23 !== 'function') $notProc($t23);
                 $t24 = $t23[$RAW];
@@ -60701,14 +60701,14 @@ export const LIBRARIES = {
               case 8:
                 $t17 = $r;
                 s_b_$829 = $t17;
-                $t18 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_result_$827 === 'number' && typeof 0 === 'number') ? (s_result_$827 === 0) : R.callBinding((C7.v ?? G7()), [s_result_$827, 0]);
+                $t18 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_result_$827 === 'number' && typeof 0 === 'number') ? s_result_$827 === 0 : $numEq(s_result_$827, 0)) : R.callBinding((C7.v ?? G7()), [s_result_$827, 0]);
                 s_x_$830 = $t18;
                 if (s_x_$830 !== false) { $pc = 9; continue; } $pc = 10; continue;
               case 9:
                 $t19 = s_x_$830;
                 $pc = 11; continue;
               case 10:
-                $t20 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_b_$829 === 'number' && typeof 0 === 'number') ? (s_b_$829 === 0) : R.callBinding((C7.v ?? G7()), [s_b_$829, 0]);
+                $t20 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_b_$829 === 'number' && typeof 0 === 'number') ? s_b_$829 === 0 : $numEq(s_b_$829, 0)) : R.callBinding((C7.v ?? G7()), [s_b_$829, 0]);
                 $t19 = $t20;
                 $pc = 11; continue;
               case 11:
@@ -60717,7 +60717,7 @@ export const LIBRARIES = {
                 return 0;
               case 13:
                 $t21 = (C8.v ?? G8());
-                $t22 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_result_$827 === 'number' && typeof s_b_$829 === 'number') ? ($mul(s_result_$827, s_b_$829)) : R.callBinding((C9.v ?? G9()), [s_result_$827, s_b_$829]);
+                $t22 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_result_$827 === 'number' && typeof s_b_$829 === 'number' && (!Number.isInteger((s_result_$827 * s_b_$829)) || (Number.isSafeInteger((s_result_$827 * s_b_$829)) && (s_result_$827 * s_b_$829) !== 0 && Number.isInteger(s_result_$827) && Number.isInteger(s_b_$829)))) ? (s_result_$827 * s_b_$829) : $mul(s_result_$827, s_b_$829)) : R.callBinding((C9.v ?? G9()), [s_result_$827, s_b_$829]);
                 $t23 = (C10.v ?? G10());
                 if (typeof $t23 !== 'function') $notProc($t23);
                 $t24 = $t23[$RAW];
@@ -60758,7 +60758,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"numbers.scm","line":198,"column":1,"endLine":202,"endColumn":89},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $lt = R.lt, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "floor")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -60783,7 +60783,7 @@ export const LIBRARIES = {
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_lo_$831, s_hi_$832 }); return $UNWIND; }
           s_whole_$833 = $t2;
-          $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_whole_$833 === 'number' && typeof s_lo_$831 === 'number') ? (s_whole_$833 === s_lo_$831) : R.callBinding((C1.v ?? G1()), [s_whole_$833, s_lo_$831]);
+          $t3 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_whole_$833 === 'number' && typeof s_lo_$831 === 'number') ? s_whole_$833 === s_lo_$831 : $numEq(s_whole_$833, s_lo_$831)) : R.callBinding((C1.v ?? G1()), [s_whole_$833, s_lo_$831]);
           if ($t3 !== false) {
             return s_whole_$833;
           } else {
@@ -60794,15 +60794,15 @@ export const LIBRARIES = {
             $t6 = $t5 === undefined ? ($t4[$PRIM] === true ? $t4(s_hi_$832) : $foreign($t4, [s_hi_$832])) : $t5(s_hi_$832);
             while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
             if ($t6 === $UNWIND) { R.reify($proc$r, 4, { s_whole_$833, s_lo_$831, s_hi_$832 }); return $UNWIND; }
-            $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_whole_$833 === 'number' && typeof $t6 === 'number') ? (s_whole_$833 < $t6) : R.callBinding((C2.v ?? G2()), [s_whole_$833, $t6]);
+            $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_whole_$833 === 'number' && typeof $t6 === 'number') ? s_whole_$833 < $t6 : $lt(s_whole_$833, $t6)) : R.callBinding((C2.v ?? G2()), [s_whole_$833, $t6]);
             if ($t7 !== false) {
-              $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_whole_$833 === 'number' && typeof 1 === 'number') ? ($add(s_whole_$833, 1)) : R.callBinding((C3.v ?? G3()), [s_whole_$833, 1]);
+              $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_whole_$833 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_whole_$833 + 1)) || (Number.isSafeInteger((s_whole_$833 + 1)) && Number.isInteger(s_whole_$833) && Number.isInteger(1)))) ? (s_whole_$833 + 1) : $add(s_whole_$833, 1)) : R.callBinding((C3.v ?? G3()), [s_whole_$833, 1]);
               return $t8;
             } else {
               $t9 = (C4.v ?? G4());
               $t10 = (C5.v ?? G5());
               $t11 = (C4.v ?? G4());
-              $t12 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_hi_$832 === 'number' && typeof s_whole_$833 === 'number') ? ($sub(s_hi_$832, s_whole_$833)) : R.callBinding((C6.v ?? G6()), [s_hi_$832, s_whole_$833]);
+              $t12 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_hi_$832 === 'number' && typeof s_whole_$833 === 'number' && (!Number.isInteger((s_hi_$832 - s_whole_$833)) || (Number.isSafeInteger((s_hi_$832 - s_whole_$833)) && Number.isInteger(s_hi_$832) && Number.isInteger(s_whole_$833)))) ? (s_hi_$832 - s_whole_$833) : $sub(s_hi_$832, s_whole_$833)) : R.callBinding((C6.v ?? G6()), [s_hi_$832, s_whole_$833]);
               $t13 = $t11;
               if (typeof $t13 !== 'function') $notProc($t13);
               $t14 = $t13[$RAW];
@@ -60811,7 +60811,7 @@ export const LIBRARIES = {
               while ($t15 instanceof $TailCall) { $stack.room = $d; $t15 = $step($t15); }
               if ($t15 === $UNWIND) { R.reify($proc$r, 7, { s_whole_$833, $t9, $t10, s_lo_$831 }); return $UNWIND; }
               $t16 = (C4.v ?? G4());
-              $t17 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_lo_$831 === 'number' && typeof s_whole_$833 === 'number') ? ($sub(s_lo_$831, s_whole_$833)) : R.callBinding((C6.v ?? G6()), [s_lo_$831, s_whole_$833]);
+              $t17 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_lo_$831 === 'number' && typeof s_whole_$833 === 'number' && (!Number.isInteger((s_lo_$831 - s_whole_$833)) || (Number.isSafeInteger((s_lo_$831 - s_whole_$833)) && Number.isInteger(s_lo_$831) && Number.isInteger(s_whole_$833)))) ? (s_lo_$831 - s_whole_$833) : $sub(s_lo_$831, s_whole_$833)) : R.callBinding((C6.v ?? G6()), [s_lo_$831, s_whole_$833]);
               $t18 = $t16;
               if (typeof $t18 !== 'function') $notProc($t18);
               $t19 = $t18[$RAW];
@@ -60833,7 +60833,7 @@ export const LIBRARIES = {
               $t26 = $t25 === undefined ? ($t24[$PRIM] === true ? $t24($t23) : $foreign($t24, [$t23])) : $t25($t23);
               while ($t26 instanceof $TailCall) { $stack.room = $d; $t26 = $step($t26); }
               if ($t26 === $UNWIND) { R.reify($proc$r, 10, { s_whole_$833 }); return $UNWIND; }
-              $t27 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_whole_$833 === 'number' && typeof $t26 === 'number') ? ($add(s_whole_$833, $t26)) : R.callBinding((C3.v ?? G3()), [s_whole_$833, $t26]);
+              $t27 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_whole_$833 === 'number' && typeof $t26 === 'number' && (!Number.isInteger((s_whole_$833 + $t26)) || (Number.isSafeInteger((s_whole_$833 + $t26)) && Number.isInteger(s_whole_$833) && Number.isInteger($t26)))) ? (s_whole_$833 + $t26) : $add(s_whole_$833, $t26)) : R.callBinding((C3.v ?? G3()), [s_whole_$833, $t26]);
               return $t27;
             }
           }
@@ -60856,7 +60856,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 s_whole_$833 = $t2;
-                $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_whole_$833 === 'number' && typeof s_lo_$831 === 'number') ? (s_whole_$833 === s_lo_$831) : R.callBinding((C1.v ?? G1()), [s_whole_$833, s_lo_$831]);
+                $t3 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_whole_$833 === 'number' && typeof s_lo_$831 === 'number') ? s_whole_$833 === s_lo_$831 : $numEq(s_whole_$833, s_lo_$831)) : R.callBinding((C1.v ?? G1()), [s_whole_$833, s_lo_$831]);
                 if ($t3 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 return s_whole_$833;
@@ -60872,16 +60872,16 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 4:
                 $t6 = $r;
-                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_whole_$833 === 'number' && typeof $t6 === 'number') ? (s_whole_$833 < $t6) : R.callBinding((C2.v ?? G2()), [s_whole_$833, $t6]);
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_whole_$833 === 'number' && typeof $t6 === 'number') ? s_whole_$833 < $t6 : $lt(s_whole_$833, $t6)) : R.callBinding((C2.v ?? G2()), [s_whole_$833, $t6]);
                 if ($t7 !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 5:
-                $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_whole_$833 === 'number' && typeof 1 === 'number') ? ($add(s_whole_$833, 1)) : R.callBinding((C3.v ?? G3()), [s_whole_$833, 1]);
+                $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_whole_$833 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_whole_$833 + 1)) || (Number.isSafeInteger((s_whole_$833 + 1)) && Number.isInteger(s_whole_$833) && Number.isInteger(1)))) ? (s_whole_$833 + 1) : $add(s_whole_$833, 1)) : R.callBinding((C3.v ?? G3()), [s_whole_$833, 1]);
                 return $t8;
               case 6:
                 $t9 = (C4.v ?? G4());
                 $t10 = (C5.v ?? G5());
                 $t11 = (C4.v ?? G4());
-                $t12 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_hi_$832 === 'number' && typeof s_whole_$833 === 'number') ? ($sub(s_hi_$832, s_whole_$833)) : R.callBinding((C6.v ?? G6()), [s_hi_$832, s_whole_$833]);
+                $t12 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_hi_$832 === 'number' && typeof s_whole_$833 === 'number' && (!Number.isInteger((s_hi_$832 - s_whole_$833)) || (Number.isSafeInteger((s_hi_$832 - s_whole_$833)) && Number.isInteger(s_hi_$832) && Number.isInteger(s_whole_$833)))) ? (s_hi_$832 - s_whole_$833) : $sub(s_hi_$832, s_whole_$833)) : R.callBinding((C6.v ?? G6()), [s_hi_$832, s_whole_$833]);
                 $t13 = $t11;
                 if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
@@ -60894,7 +60894,7 @@ export const LIBRARIES = {
               case 7:
                 $t15 = $r;
                 $t16 = (C4.v ?? G4());
-                $t17 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_lo_$831 === 'number' && typeof s_whole_$833 === 'number') ? ($sub(s_lo_$831, s_whole_$833)) : R.callBinding((C6.v ?? G6()), [s_lo_$831, s_whole_$833]);
+                $t17 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_lo_$831 === 'number' && typeof s_whole_$833 === 'number' && (!Number.isInteger((s_lo_$831 - s_whole_$833)) || (Number.isSafeInteger((s_lo_$831 - s_whole_$833)) && Number.isInteger(s_lo_$831) && Number.isInteger(s_whole_$833)))) ? (s_lo_$831 - s_whole_$833) : $sub(s_lo_$831, s_whole_$833)) : R.callBinding((C6.v ?? G6()), [s_lo_$831, s_whole_$833]);
                 $t18 = $t16;
                 if (typeof $t18 !== 'function') $notProc($t18);
                 $t19 = $t18[$RAW];
@@ -60928,7 +60928,7 @@ export const LIBRARIES = {
                 $pc = 10; continue;
               case 10:
                 $t26 = $r;
-                $t27 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_whole_$833 === 'number' && typeof $t26 === 'number') ? ($add(s_whole_$833, $t26)) : R.callBinding((C3.v ?? G3()), [s_whole_$833, $t26]);
+                $t27 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_whole_$833 === 'number' && typeof $t26 === 'number' && (!Number.isInteger((s_whole_$833 + $t26)) || (Number.isSafeInteger((s_whole_$833 + $t26)) && Number.isInteger(s_whole_$833) && Number.isInteger($t26)))) ? (s_whole_$833 + $t26) : $add(s_whole_$833, $t26)) : R.callBinding((C3.v ?? G3()), [s_whole_$833, $t26]);
                 return $t27;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -61092,7 +61092,7 @@ export const LIBRARIES = {
         constants: [new Flonum(0.0), new Flonum(0.0)],
         span: {"filename":"numbers.scm","line":227,"column":1,"endLine":237,"endColumn":77},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "real?")).v;
@@ -61234,8 +61234,8 @@ export const LIBRARIES = {
                 if ($t41 === $UNWIND) { R.reify($proc$r, 29, { s_center_$839, s_x_$836, s_y_$837 }); return $UNWIND; }
                 s_radius_$840 = $t41;
                 $t42 = (C7.v ?? G7());
-                $t43 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_center_$839 === 'number' && typeof s_radius_$840 === 'number') ? ($sub(s_center_$839, s_radius_$840)) : R.callBinding((C8.v ?? G8()), [s_center_$839, s_radius_$840]);
-                $t44 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_center_$839 === 'number' && typeof s_radius_$840 === 'number') ? ($add(s_center_$839, s_radius_$840)) : R.callBinding((C9.v ?? G9()), [s_center_$839, s_radius_$840]);
+                $t43 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_center_$839 === 'number' && typeof s_radius_$840 === 'number' && (!Number.isInteger((s_center_$839 - s_radius_$840)) || (Number.isSafeInteger((s_center_$839 - s_radius_$840)) && Number.isInteger(s_center_$839) && Number.isInteger(s_radius_$840)))) ? (s_center_$839 - s_radius_$840) : $sub(s_center_$839, s_radius_$840)) : R.callBinding((C8.v ?? G8()), [s_center_$839, s_radius_$840]);
+                $t44 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_center_$839 === 'number' && typeof s_radius_$840 === 'number' && (!Number.isInteger((s_center_$839 + s_radius_$840)) || (Number.isSafeInteger((s_center_$839 + s_radius_$840)) && Number.isInteger(s_center_$839) && Number.isInteger(s_radius_$840)))) ? (s_center_$839 + s_radius_$840) : $add(s_center_$839, s_radius_$840)) : R.callBinding((C9.v ?? G9()), [s_center_$839, s_radius_$840]);
                 $t45 = $t42;
                 if (typeof $t45 !== 'function') $notProc($t45);
                 $t46 = $t45[$RAW];
@@ -61460,8 +61460,8 @@ export const LIBRARIES = {
                 $t41 = $r;
                 s_radius_$840 = $t41;
                 $t42 = (C7.v ?? G7());
-                $t43 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_center_$839 === 'number' && typeof s_radius_$840 === 'number') ? ($sub(s_center_$839, s_radius_$840)) : R.callBinding((C8.v ?? G8()), [s_center_$839, s_radius_$840]);
-                $t44 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_center_$839 === 'number' && typeof s_radius_$840 === 'number') ? ($add(s_center_$839, s_radius_$840)) : R.callBinding((C9.v ?? G9()), [s_center_$839, s_radius_$840]);
+                $t43 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_center_$839 === 'number' && typeof s_radius_$840 === 'number' && (!Number.isInteger((s_center_$839 - s_radius_$840)) || (Number.isSafeInteger((s_center_$839 - s_radius_$840)) && Number.isInteger(s_center_$839) && Number.isInteger(s_radius_$840)))) ? (s_center_$839 - s_radius_$840) : $sub(s_center_$839, s_radius_$840)) : R.callBinding((C8.v ?? G8()), [s_center_$839, s_radius_$840]);
+                $t44 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_center_$839 === 'number' && typeof s_radius_$840 === 'number' && (!Number.isInteger((s_center_$839 + s_radius_$840)) || (Number.isSafeInteger((s_center_$839 + s_radius_$840)) && Number.isInteger(s_center_$839) && Number.isInteger(s_radius_$840)))) ? (s_center_$839 + s_radius_$840) : $add(s_center_$839, s_radius_$840)) : R.callBinding((C9.v ?? G9()), [s_center_$839, s_radius_$840]);
                 $t45 = $t42;
                 if (typeof $t45 !== 'function') $notProc($t45);
                 $t46 = $t45[$RAW];
@@ -62810,7 +62810,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list.scm","line":122,"column":1,"endLine":151,"endColumn":37},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
@@ -62989,11 +62989,11 @@ export const LIBRARIES = {
             const $d = $stack.room - 19;
             if ($d < 0 && $stack.flushable) return $flush($fn26$js, [s_i_$884, s_acc_$885]);
             $loop: for (;;) {
-              $t0 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$884 === 'number' && typeof 0 === 'number') ? (s_i_$884 < 0) : R.callBinding((C10.v ?? G10()), [s_i_$884, 0]);
+              $t0 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$884 === 'number' && typeof 0 === 'number') ? s_i_$884 < 0 : $lt(s_i_$884, 0)) : R.callBinding((C10.v ?? G10()), [s_i_$884, 0]);
               if ($t0 !== false) {
                 return s_acc_$885;
               } else {
-                $t1 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_i_$884 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$884, 1)) : R.callBinding((C11.v ?? G11()), [s_i_$884, 1]);
+                $t1 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_i_$884 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$884 - 1)) || (Number.isSafeInteger((s_i_$884 - 1)) && Number.isInteger(s_i_$884) && Number.isInteger(1)))) ? (s_i_$884 - 1) : $sub(s_i_$884, 1)) : R.callBinding((C11.v ?? G11()), [s_i_$884, 1]);
                 $t2 = (C13.v ?? G13());
                 if (typeof $t2 !== 'function') $notProc($t2);
                 $t3 = $t2[$RAW];
@@ -63022,12 +63022,12 @@ export const LIBRARIES = {
             const $d = $stack.room - 19;
             for (;;) switch ($pc) {
                 case 0:
-                  $t0 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$884 === 'number' && typeof 0 === 'number') ? (s_i_$884 < 0) : R.callBinding((C10.v ?? G10()), [s_i_$884, 0]);
+                  $t0 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$884 === 'number' && typeof 0 === 'number') ? s_i_$884 < 0 : $lt(s_i_$884, 0)) : R.callBinding((C10.v ?? G10()), [s_i_$884, 0]);
                   if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
                 case 1:
                   return s_acc_$885;
                 case 2:
-                  $t1 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_i_$884 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$884, 1)) : R.callBinding((C11.v ?? G11()), [s_i_$884, 1]);
+                  $t1 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_i_$884 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$884 - 1)) || (Number.isSafeInteger((s_i_$884 - 1)) && Number.isInteger(s_i_$884) && Number.isInteger(1)))) ? (s_i_$884 - 1) : $sub(s_i_$884, 1)) : R.callBinding((C11.v ?? G11()), [s_i_$884, 1]);
                   $t2 = (C13.v ?? G13());
                   if (typeof $t2 !== 'function') $notProc($t2);
                   $t3 = $t2[$RAW];
@@ -63091,7 +63091,7 @@ export const LIBRARIES = {
             const $d = $stack.room - 25;
             if ($d < 0 && $stack.flushable) return $flush($fn35$js, [s_i_$887, s_acc_$888]);
             $loop: for (;;) {
-              $t0 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$887 === 'number' && typeof 0 === 'number') ? (s_i_$887 < 0) : R.callBinding((C10.v ?? G10()), [s_i_$887, 0]);
+              $t0 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$887 === 'number' && typeof 0 === 'number') ? s_i_$887 < 0 : $lt(s_i_$887, 0)) : R.callBinding((C10.v ?? G10()), [s_i_$887, 0]);
               if ($t0 !== false) {
                 return s_acc_$888;
               } else {
@@ -63112,7 +63112,7 @@ export const LIBRARIES = {
                 if ($t8 === $UNWIND) { R.reify($fn35$r, 4, { $t3, s_i_$887, s_acc_$888 }); return $UNWIND; }
                 $t9 = (W12.intact || (C12.v ?? G12()) === P12) ? (new R.Cons($t3, $t8)) : R.callBinding((C12.v ?? G12()), [$t3, $t8]);
                 s_chars_$889 = $t9;
-                $t10 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_i_$887 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$887, 1)) : R.callBinding((C11.v ?? G11()), [s_i_$887, 1]);
+                $t10 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_i_$887 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$887 - 1)) || (Number.isSafeInteger((s_i_$887 - 1)) && Number.isInteger(s_i_$887) && Number.isInteger(1)))) ? (s_i_$887 - 1) : $sub(s_i_$887, 1)) : R.callBinding((C11.v ?? G11()), [s_i_$887, 1]);
                 $t11 = (C15.v ?? G15());
                 if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
@@ -63134,7 +63134,7 @@ export const LIBRARIES = {
             const $d = $stack.room - 25;
             for (;;) switch ($pc) {
                 case 0:
-                  $t0 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$887 === 'number' && typeof 0 === 'number') ? (s_i_$887 < 0) : R.callBinding((C10.v ?? G10()), [s_i_$887, 0]);
+                  $t0 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$887 === 'number' && typeof 0 === 'number') ? s_i_$887 < 0 : $lt(s_i_$887, 0)) : R.callBinding((C10.v ?? G10()), [s_i_$887, 0]);
                   if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
                 case 1:
                   return s_acc_$888;
@@ -63164,7 +63164,7 @@ export const LIBRARIES = {
                   $t8 = $r;
                   $t9 = (W12.intact || (C12.v ?? G12()) === P12) ? (new R.Cons($t3, $t8)) : R.callBinding((C12.v ?? G12()), [$t3, $t8]);
                   s_chars_$889 = $t9;
-                  $t10 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_i_$887 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$887, 1)) : R.callBinding((C11.v ?? G11()), [s_i_$887, 1]);
+                  $t10 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_i_$887 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$887 - 1)) || (Number.isSafeInteger((s_i_$887 - 1)) && Number.isInteger(s_i_$887) && Number.isInteger(1)))) ? (s_i_$887 - 1) : $sub(s_i_$887, 1)) : R.callBinding((C11.v ?? G11()), [s_i_$887, 1]);
                   $t11 = (C15.v ?? G15());
                   if (typeof $t11 !== 'function') $notProc($t11);
                   $t12 = $t11[$RAW];
@@ -63257,7 +63257,7 @@ export const LIBRARIES = {
             $t25 = (C9.v ?? G9());
             $t27 = $mk$fn26(s_proc_$876, s_str_$877);
             s_loop_$883 = $t27;
-            $t28 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_len_$879 === 'number' && typeof 1 === 'number') ? ($sub(s_len_$879, 1)) : R.callBinding((C11.v ?? G11()), [s_len_$879, 1]);
+            $t28 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_len_$879 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_len_$879 - 1)) || (Number.isSafeInteger((s_len_$879 - 1)) && Number.isInteger(s_len_$879) && Number.isInteger(1)))) ? (s_len_$879 - 1) : $sub(s_len_$879, 1)) : R.callBinding((C11.v ?? G11()), [s_len_$879, 1]);
             $t29 = s_loop_$883;
             if (typeof $t29 !== 'function') $notProc($t29);
             $t30 = $t29[$RAW];
@@ -63271,7 +63271,7 @@ export const LIBRARIES = {
             $t34 = (C9.v ?? G9());
             $t36 = $mk$fn35(s_str_$877, s_strs_$878, s_proc_$876);
             s_loop_$886 = $t36;
-            $t37 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_len_$879 === 'number' && typeof 1 === 'number') ? ($sub(s_len_$879, 1)) : R.callBinding((C11.v ?? G11()), [s_len_$879, 1]);
+            $t37 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_len_$879 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_len_$879 - 1)) || (Number.isSafeInteger((s_len_$879 - 1)) && Number.isInteger(s_len_$879) && Number.isInteger(1)))) ? (s_len_$879 - 1) : $sub(s_len_$879, 1)) : R.callBinding((C11.v ?? G11()), [s_len_$879, 1]);
             $t38 = s_loop_$886;
             if (typeof $t38 !== 'function') $notProc($t38);
             $t39 = $t38[$RAW];
@@ -63384,7 +63384,7 @@ export const LIBRARIES = {
                 $t25 = (C9.v ?? G9());
                 $t27 = $mk$fn26(s_proc_$876, s_str_$877);
                 s_loop_$883 = $t27;
-                $t28 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_len_$879 === 'number' && typeof 1 === 'number') ? ($sub(s_len_$879, 1)) : R.callBinding((C11.v ?? G11()), [s_len_$879, 1]);
+                $t28 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_len_$879 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_len_$879 - 1)) || (Number.isSafeInteger((s_len_$879 - 1)) && Number.isInteger(s_len_$879) && Number.isInteger(1)))) ? (s_len_$879 - 1) : $sub(s_len_$879, 1)) : R.callBinding((C11.v ?? G11()), [s_len_$879, 1]);
                 $t29 = s_loop_$883;
                 if (typeof $t29 !== 'function') $notProc($t29);
                 $t30 = $t29[$RAW];
@@ -63398,7 +63398,7 @@ export const LIBRARIES = {
                 $t34 = (C9.v ?? G9());
                 $t36 = $mk$fn35(s_str_$877, s_strs_$878, s_proc_$876);
                 s_loop_$886 = $t36;
-                $t37 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_len_$879 === 'number' && typeof 1 === 'number') ? ($sub(s_len_$879, 1)) : R.callBinding((C11.v ?? G11()), [s_len_$879, 1]);
+                $t37 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_len_$879 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_len_$879 - 1)) || (Number.isSafeInteger((s_len_$879 - 1)) && Number.isInteger(s_len_$879) && Number.isInteger(1)))) ? (s_len_$879 - 1) : $sub(s_len_$879, 1)) : R.callBinding((C11.v ?? G11()), [s_len_$879, 1]);
                 $t38 = s_loop_$886;
                 if (typeof $t38 !== 'function') $notProc($t38);
                 $t39 = $t38[$RAW];
@@ -63430,7 +63430,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list.scm","line":161,"column":1,"endLine":188,"endColumn":23},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $lt = R.lt, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
@@ -63485,7 +63485,7 @@ export const LIBRARIES = {
             $t10 = $t9 === undefined ? ($t8[$PRIM] === true ? $t8(s_s_$895) : $foreign($t8, [s_s_$895])) : $t9(s_s_$895);
             while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
             if ($t10 === $UNWIND) { R.reify($fn19$r, 6, {  }); return $UNWIND; }
-            $t11 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof $t10 === 'number' && typeof s_len_$894 === 'number') ? ($t10 === s_len_$894) : R.callBinding((C6.v ?? G6()), [$t10, s_len_$894]);
+            $t11 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof $t10 === 'number' && typeof s_len_$894 === 'number') ? $t10 === s_len_$894 : $numEq($t10, s_len_$894)) : R.callBinding((C6.v ?? G6()), [$t10, s_len_$894]);
             $t12 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t11 === false) : R.callBinding((C0.v ?? G0()), [$t11]);
             if ($t12 !== false) {
               $t13 = (C2.v ?? G2());
@@ -63544,7 +63544,7 @@ export const LIBRARIES = {
                   $pc = 4; continue;
                 case 6:
                   $t10 = $r;
-                  $t11 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof $t10 === 'number' && typeof s_len_$894 === 'number') ? ($t10 === s_len_$894) : R.callBinding((C6.v ?? G6()), [$t10, s_len_$894]);
+                  $t11 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof $t10 === 'number' && typeof s_len_$894 === 'number') ? $t10 === s_len_$894 : $numEq($t10, s_len_$894)) : R.callBinding((C6.v ?? G6()), [$t10, s_len_$894]);
                   $t12 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t11 === false) : R.callBinding((C0.v ?? G0()), [$t11]);
                   if ($t12 !== false) { $pc = 7; continue; } $pc = 8; continue;
                 case 7:
@@ -63649,7 +63649,7 @@ export const LIBRARIES = {
           if ($t24 !== false) {
             s_i_$897 = 0;
             $loop1: for (;;) {
-            $t25 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_i_$897 === 'number' && typeof s_len_$894 === 'number') ? (s_i_$897 < s_len_$894) : R.callBinding((C8.v ?? G8()), [s_i_$897, s_len_$894]);
+            $t25 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_i_$897 === 'number' && typeof s_len_$894 === 'number') ? s_i_$897 < s_len_$894 : $lt(s_i_$897, s_len_$894)) : R.callBinding((C8.v ?? G8()), [s_i_$897, s_len_$894]);
             if ($t25 !== false) {
               $t26 = (C9.v ?? G9());
               if (typeof $t26 !== 'function') $notProc($t26);
@@ -63666,7 +63666,7 @@ export const LIBRARIES = {
               while ($t31 instanceof $TailCall) { $stack.room = $d; $t31 = $step($t31); }
               if ($t31 === $UNWIND) { R.reify($proc$r, 19, { s_len_$894, s_i_$897, s_proc_$891, s_str_$892 }); return $UNWIND; }
               $t31;
-              $t32 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$897 === 'number' && typeof 1 === 'number') ? ($add(s_i_$897, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$897, 1]);
+              $t32 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$897 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$897 + 1)) || (Number.isSafeInteger((s_i_$897 + 1)) && Number.isInteger(s_i_$897) && Number.isInteger(1)))) ? (s_i_$897 + 1) : $add(s_i_$897, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$897, 1]);
               s_i_$897 = $t32;
               continue $loop1;
             } else {
@@ -63676,7 +63676,7 @@ export const LIBRARIES = {
           } else {
             s_i_$899 = 0;
             $loop2: for (;;) {
-            $t33 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_i_$899 === 'number' && typeof s_len_$894 === 'number') ? (s_i_$899 < s_len_$894) : R.callBinding((C8.v ?? G8()), [s_i_$899, s_len_$894]);
+            $t33 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_i_$899 === 'number' && typeof s_len_$894 === 'number') ? s_i_$899 < s_len_$894 : $lt(s_i_$899, s_len_$894)) : R.callBinding((C8.v ?? G8()), [s_i_$899, s_len_$894]);
             if ($t33 !== false) {
               $t34 = (C9.v ?? G9());
               if (typeof $t34 !== 'function') $notProc($t34);
@@ -63703,7 +63703,7 @@ export const LIBRARIES = {
               while ($t45 instanceof $TailCall) { $stack.room = $d; $t45 = $step($t45); }
               if ($t45 === $UNWIND) { R.reify($proc$r, 25, { s_len_$894, s_i_$899, s_proc_$891, s_str_$892, s_strs_$893 }); return $UNWIND; }
               $t45;
-              $t46 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$899 === 'number' && typeof 1 === 'number') ? ($add(s_i_$899, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$899, 1]);
+              $t46 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$899 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$899 + 1)) || (Number.isSafeInteger((s_i_$899 + 1)) && Number.isInteger(s_i_$899) && Number.isInteger(1)))) ? (s_i_$899 + 1) : $add(s_i_$899, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$899, 1]);
               s_i_$899 = $t46;
               continue $loop2;
             } else {
@@ -63816,7 +63816,7 @@ export const LIBRARIES = {
                 s_i_$899 = 0;
                 $pc = 20; continue;
               case 15:
-                $t25 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_i_$897 === 'number' && typeof s_len_$894 === 'number') ? (s_i_$897 < s_len_$894) : R.callBinding((C8.v ?? G8()), [s_i_$897, s_len_$894]);
+                $t25 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_i_$897 === 'number' && typeof s_len_$894 === 'number') ? s_i_$897 < s_len_$894 : $lt(s_i_$897, s_len_$894)) : R.callBinding((C8.v ?? G8()), [s_i_$897, s_len_$894]);
                 if ($t25 !== false) { $pc = 16; continue; } $pc = 17; continue;
               case 16:
                 $t26 = (C9.v ?? G9());
@@ -63844,11 +63844,11 @@ export const LIBRARIES = {
               case 19:
                 $t31 = $r;
                 $t31;
-                $t32 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$897 === 'number' && typeof 1 === 'number') ? ($add(s_i_$897, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$897, 1]);
+                $t32 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$897 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$897 + 1)) || (Number.isSafeInteger((s_i_$897 + 1)) && Number.isInteger(s_i_$897) && Number.isInteger(1)))) ? (s_i_$897 + 1) : $add(s_i_$897, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$897, 1]);
                 s_i_$897 = $t32;
                 $pc = 15; continue;
               case 20:
-                $t33 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_i_$899 === 'number' && typeof s_len_$894 === 'number') ? (s_i_$899 < s_len_$894) : R.callBinding((C8.v ?? G8()), [s_i_$899, s_len_$894]);
+                $t33 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_i_$899 === 'number' && typeof s_len_$894 === 'number') ? s_i_$899 < s_len_$894 : $lt(s_i_$899, s_len_$894)) : R.callBinding((C8.v ?? G8()), [s_i_$899, s_len_$894]);
                 if ($t33 !== false) { $pc = 21; continue; } $pc = 22; continue;
               case 21:
                 $t34 = (C9.v ?? G9());
@@ -63890,7 +63890,7 @@ export const LIBRARIES = {
               case 25:
                 $t45 = $r;
                 $t45;
-                $t46 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$899 === 'number' && typeof 1 === 'number') ? ($add(s_i_$899, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$899, 1]);
+                $t46 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$899 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$899 + 1)) || (Number.isSafeInteger((s_i_$899 + 1)) && Number.isInteger(s_i_$899) && Number.isInteger(1)))) ? (s_i_$899 + 1) : $add(s_i_$899, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$899, 1]);
                 s_i_$899 = $t46;
                 $pc = 20; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -63907,7 +63907,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list.scm","line":200,"column":1,"endLine":232,"endColumn":21},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $add = R.add, $lt = R.lt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
@@ -64072,7 +64072,7 @@ export const LIBRARIES = {
             const $d = $stack.room - 16;
             if ($d < 0 && $stack.flushable) return $flush($fn26$js, [s_i_$911]);
             $loop: for (;;) {
-              $t0 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$911 === 'number' && typeof s_len_$905 === 'number') ? (s_i_$911 < s_len_$905) : R.callBinding((C10.v ?? G10()), [s_i_$911, s_len_$905]);
+              $t0 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$911 === 'number' && typeof s_len_$905 === 'number') ? s_i_$911 < s_len_$905 : $lt(s_i_$911, s_len_$905)) : R.callBinding((C10.v ?? G10()), [s_i_$911, s_len_$905]);
               if ($t0 !== false) {
                 $t1 = (W12.intact || (C12.v ?? G12()) === P12) ? ($vectorRef(s_vec_$903, s_i_$911)) : R.callBinding((C12.v ?? G12()), [s_vec_$903, s_i_$911]);
                 $t2 = s_proc_$902;
@@ -64084,7 +64084,7 @@ export const LIBRARIES = {
                 if ($t4 === $UNWIND) { R.reify($fn26$r, 3, { s_i_$911 }); return $UNWIND; }
                 $t5 = (W11.intact || (C11.v ?? G11()) === P11) ? ($vectorSet(s_result_$909, s_i_$911, $t4)) : R.callBinding((C11.v ?? G11()), [s_result_$909, s_i_$911, $t4]);
                 $t5;
-                $t6 = (W13.intact || (C13.v ?? G13()) === P13) && (typeof s_i_$911 === 'number' && typeof 1 === 'number') ? ($add(s_i_$911, 1)) : R.callBinding((C13.v ?? G13()), [s_i_$911, 1]);
+                $t6 = (W13.intact || (C13.v ?? G13()) === P13) ? ((typeof s_i_$911 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$911 + 1)) || (Number.isSafeInteger((s_i_$911 + 1)) && Number.isInteger(s_i_$911) && Number.isInteger(1)))) ? (s_i_$911 + 1) : $add(s_i_$911, 1)) : R.callBinding((C13.v ?? G13()), [s_i_$911, 1]);
                 s_i_$911 = $t6;
                 continue $loop;
               } else {
@@ -64099,7 +64099,7 @@ export const LIBRARIES = {
             const $d = $stack.room - 16;
             for (;;) switch ($pc) {
                 case 0:
-                  $t0 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$911 === 'number' && typeof s_len_$905 === 'number') ? (s_i_$911 < s_len_$905) : R.callBinding((C10.v ?? G10()), [s_i_$911, s_len_$905]);
+                  $t0 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$911 === 'number' && typeof s_len_$905 === 'number') ? s_i_$911 < s_len_$905 : $lt(s_i_$911, s_len_$905)) : R.callBinding((C10.v ?? G10()), [s_i_$911, s_len_$905]);
                   if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
                 case 1:
                   $t1 = (W12.intact || (C12.v ?? G12()) === P12) ? ($vectorRef(s_vec_$903, s_i_$911)) : R.callBinding((C12.v ?? G12()), [s_vec_$903, s_i_$911]);
@@ -64118,7 +64118,7 @@ export const LIBRARIES = {
                   $t4 = $r;
                   $t5 = (W11.intact || (C11.v ?? G11()) === P11) ? ($vectorSet(s_result_$909, s_i_$911, $t4)) : R.callBinding((C11.v ?? G11()), [s_result_$909, s_i_$911, $t4]);
                   $t5;
-                  $t6 = (W13.intact || (C13.v ?? G13()) === P13) && (typeof s_i_$911 === 'number' && typeof 1 === 'number') ? ($add(s_i_$911, 1)) : R.callBinding((C13.v ?? G13()), [s_i_$911, 1]);
+                  $t6 = (W13.intact || (C13.v ?? G13()) === P13) ? ((typeof s_i_$911 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$911 + 1)) || (Number.isSafeInteger((s_i_$911 + 1)) && Number.isInteger(s_i_$911) && Number.isInteger(1)))) ? (s_i_$911 + 1) : $add(s_i_$911, 1)) : R.callBinding((C13.v ?? G13()), [s_i_$911, 1]);
                   s_i_$911 = $t6;
                   $pc = 0; continue;
                 default: throw new Error('$fn26$r: bad resume point ' + $pc);
@@ -64157,7 +64157,7 @@ export const LIBRARIES = {
             const $d = $stack.room - 22;
             if ($d < 0 && $stack.flushable) return $flush($fn34$js, [s_i_$914]);
             $loop: for (;;) {
-              $t0 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$914 === 'number' && typeof s_len_$905 === 'number') ? (s_i_$914 < s_len_$905) : R.callBinding((C10.v ?? G10()), [s_i_$914, s_len_$905]);
+              $t0 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$914 === 'number' && typeof s_len_$905 === 'number') ? s_i_$914 < s_len_$905 : $lt(s_i_$914, s_len_$905)) : R.callBinding((C10.v ?? G10()), [s_i_$914, s_len_$905]);
               if ($t0 !== false) {
                 $t1 = (W12.intact || (C12.v ?? G12()) === P12) ? ($vectorRef(s_vec_$903, s_i_$914)) : R.callBinding((C12.v ?? G12()), [s_vec_$903, s_i_$914]);
                 $t3 = $mk$fn34_2(s_i_$914);
@@ -64179,7 +64179,7 @@ export const LIBRARIES = {
                 if ($t10 === $UNWIND) { R.reify($fn34$r, 4, { s_i_$914 }); return $UNWIND; }
                 $t11 = (W11.intact || (C11.v ?? G11()) === P11) ? ($vectorSet(s_result_$912, s_i_$914, $t10)) : R.callBinding((C11.v ?? G11()), [s_result_$912, s_i_$914, $t10]);
                 $t11;
-                $t12 = (W13.intact || (C13.v ?? G13()) === P13) && (typeof s_i_$914 === 'number' && typeof 1 === 'number') ? ($add(s_i_$914, 1)) : R.callBinding((C13.v ?? G13()), [s_i_$914, 1]);
+                $t12 = (W13.intact || (C13.v ?? G13()) === P13) ? ((typeof s_i_$914 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$914 + 1)) || (Number.isSafeInteger((s_i_$914 + 1)) && Number.isInteger(s_i_$914) && Number.isInteger(1)))) ? (s_i_$914 + 1) : $add(s_i_$914, 1)) : R.callBinding((C13.v ?? G13()), [s_i_$914, 1]);
                 s_i_$914 = $t12;
                 continue $loop;
               } else {
@@ -64194,7 +64194,7 @@ export const LIBRARIES = {
             const $d = $stack.room - 22;
             for (;;) switch ($pc) {
                 case 0:
-                  $t0 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$914 === 'number' && typeof s_len_$905 === 'number') ? (s_i_$914 < s_len_$905) : R.callBinding((C10.v ?? G10()), [s_i_$914, s_len_$905]);
+                  $t0 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$914 === 'number' && typeof s_len_$905 === 'number') ? s_i_$914 < s_len_$905 : $lt(s_i_$914, s_len_$905)) : R.callBinding((C10.v ?? G10()), [s_i_$914, s_len_$905]);
                   if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
                 case 1:
                   $t1 = (W12.intact || (C12.v ?? G12()) === P12) ? ($vectorRef(s_vec_$903, s_i_$914)) : R.callBinding((C12.v ?? G12()), [s_vec_$903, s_i_$914]);
@@ -64227,7 +64227,7 @@ export const LIBRARIES = {
                   $t10 = $r;
                   $t11 = (W11.intact || (C11.v ?? G11()) === P11) ? ($vectorSet(s_result_$912, s_i_$914, $t10)) : R.callBinding((C11.v ?? G11()), [s_result_$912, s_i_$914, $t10]);
                   $t11;
-                  $t12 = (W13.intact || (C13.v ?? G13()) === P13) && (typeof s_i_$914 === 'number' && typeof 1 === 'number') ? ($add(s_i_$914, 1)) : R.callBinding((C13.v ?? G13()), [s_i_$914, 1]);
+                  $t12 = (W13.intact || (C13.v ?? G13()) === P13) ? ((typeof s_i_$914 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$914 + 1)) || (Number.isSafeInteger((s_i_$914 + 1)) && Number.isInteger(s_i_$914) && Number.isInteger(1)))) ? (s_i_$914 + 1) : $add(s_i_$914, 1)) : R.callBinding((C13.v ?? G13()), [s_i_$914, 1]);
                   s_i_$914 = $t12;
                   $pc = 0; continue;
                 default: throw new Error('$fn34$r: bad resume point ' + $pc);
@@ -64496,7 +64496,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list.scm","line":242,"column":1,"endLine":269,"endColumn":23},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $add = R.add, $lt = R.lt, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "procedure?")).v;
@@ -64547,7 +64547,7 @@ export const LIBRARIES = {
             }
             $t4;
             $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (Array.isArray(s_v_$921)) ? (s_v_$921.length) : R.callBinding((C4.v ?? G4()), [s_v_$921]);
-            $t9 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof $t8 === 'number' && typeof s_len_$920 === 'number') ? ($t8 === s_len_$920) : R.callBinding((C6.v ?? G6()), [$t8, s_len_$920]);
+            $t9 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof $t8 === 'number' && typeof s_len_$920 === 'number') ? $t8 === s_len_$920 : $numEq($t8, s_len_$920)) : R.callBinding((C6.v ?? G6()), [$t8, s_len_$920]);
             $t10 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t9 === false) : R.callBinding((C0.v ?? G0()), [$t9]);
             if ($t10 !== false) {
               $t11 = (C2.v ?? G2());
@@ -64592,7 +64592,7 @@ export const LIBRARIES = {
                 case 4:
                   $t4;
                   $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (Array.isArray(s_v_$921)) ? (s_v_$921.length) : R.callBinding((C4.v ?? G4()), [s_v_$921]);
-                  $t9 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof $t8 === 'number' && typeof s_len_$920 === 'number') ? ($t8 === s_len_$920) : R.callBinding((C6.v ?? G6()), [$t8, s_len_$920]);
+                  $t9 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof $t8 === 'number' && typeof s_len_$920 === 'number') ? $t8 === s_len_$920 : $numEq($t8, s_len_$920)) : R.callBinding((C6.v ?? G6()), [$t8, s_len_$920]);
                   $t10 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t9 === false) : R.callBinding((C0.v ?? G0()), [$t9]);
                   if ($t10 !== false) { $pc = 6; continue; } $pc = 7; continue;
                 case 5:
@@ -64694,7 +64694,7 @@ export const LIBRARIES = {
           if ($t22 !== false) {
             s_i_$923 = 0;
             $loop1: for (;;) {
-            $t23 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_i_$923 === 'number' && typeof s_len_$920 === 'number') ? (s_i_$923 < s_len_$920) : R.callBinding((C8.v ?? G8()), [s_i_$923, s_len_$920]);
+            $t23 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_i_$923 === 'number' && typeof s_len_$920 === 'number') ? s_i_$923 < s_len_$920 : $lt(s_i_$923, s_len_$920)) : R.callBinding((C8.v ?? G8()), [s_i_$923, s_len_$920]);
             if ($t23 !== false) {
               $t24 = (W9.intact || (C9.v ?? G9()) === P9) ? ($vectorRef(s_vec_$918, s_i_$923)) : R.callBinding((C9.v ?? G9()), [s_vec_$918, s_i_$923]);
               $t25 = s_proc_$917;
@@ -64705,7 +64705,7 @@ export const LIBRARIES = {
               while ($t27 instanceof $TailCall) { $stack.room = $d; $t27 = $step($t27); }
               if ($t27 === $UNWIND) { R.reify($proc$r, 17, { s_len_$920, s_i_$923, s_proc_$917, s_vec_$918 }); return $UNWIND; }
               $t27;
-              $t28 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$923 === 'number' && typeof 1 === 'number') ? ($add(s_i_$923, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$923, 1]);
+              $t28 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$923 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$923 + 1)) || (Number.isSafeInteger((s_i_$923 + 1)) && Number.isInteger(s_i_$923) && Number.isInteger(1)))) ? (s_i_$923 + 1) : $add(s_i_$923, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$923, 1]);
               s_i_$923 = $t28;
               continue $loop1;
             } else {
@@ -64715,7 +64715,7 @@ export const LIBRARIES = {
           } else {
             s_i_$925 = 0;
             $loop2: for (;;) {
-            $t29 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_i_$925 === 'number' && typeof s_len_$920 === 'number') ? (s_i_$925 < s_len_$920) : R.callBinding((C8.v ?? G8()), [s_i_$925, s_len_$920]);
+            $t29 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_i_$925 === 'number' && typeof s_len_$920 === 'number') ? s_i_$925 < s_len_$920 : $lt(s_i_$925, s_len_$920)) : R.callBinding((C8.v ?? G8()), [s_i_$925, s_len_$920]);
             if ($t29 !== false) {
               $t30 = (W9.intact || (C9.v ?? G9()) === P9) ? ($vectorRef(s_vec_$918, s_i_$925)) : R.callBinding((C9.v ?? G9()), [s_vec_$918, s_i_$925]);
               $t32 = $mk$fn31(s_i_$925);
@@ -64736,7 +64736,7 @@ export const LIBRARIES = {
               while ($t39 instanceof $TailCall) { $stack.room = $d; $t39 = $step($t39); }
               if ($t39 === $UNWIND) { R.reify($proc$r, 22, { s_len_$920, s_i_$925, s_proc_$917, s_vec_$918, s_vecs_$919 }); return $UNWIND; }
               $t39;
-              $t40 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$925 === 'number' && typeof 1 === 'number') ? ($add(s_i_$925, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$925, 1]);
+              $t40 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$925 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$925 + 1)) || (Number.isSafeInteger((s_i_$925 + 1)) && Number.isInteger(s_i_$925) && Number.isInteger(1)))) ? (s_i_$925 + 1) : $add(s_i_$925, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$925, 1]);
               s_i_$925 = $t40;
               continue $loop2;
             } else {
@@ -64839,7 +64839,7 @@ export const LIBRARIES = {
                 s_i_$925 = 0;
                 $pc = 18; continue;
               case 14:
-                $t23 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_i_$923 === 'number' && typeof s_len_$920 === 'number') ? (s_i_$923 < s_len_$920) : R.callBinding((C8.v ?? G8()), [s_i_$923, s_len_$920]);
+                $t23 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_i_$923 === 'number' && typeof s_len_$920 === 'number') ? s_i_$923 < s_len_$920 : $lt(s_i_$923, s_len_$920)) : R.callBinding((C8.v ?? G8()), [s_i_$923, s_len_$920]);
                 if ($t23 !== false) { $pc = 15; continue; } $pc = 16; continue;
               case 15:
                 $t24 = (W9.intact || (C9.v ?? G9()) === P9) ? ($vectorRef(s_vec_$918, s_i_$923)) : R.callBinding((C9.v ?? G9()), [s_vec_$918, s_i_$923]);
@@ -64857,11 +64857,11 @@ export const LIBRARIES = {
               case 17:
                 $t27 = $r;
                 $t27;
-                $t28 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$923 === 'number' && typeof 1 === 'number') ? ($add(s_i_$923, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$923, 1]);
+                $t28 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$923 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$923 + 1)) || (Number.isSafeInteger((s_i_$923 + 1)) && Number.isInteger(s_i_$923) && Number.isInteger(1)))) ? (s_i_$923 + 1) : $add(s_i_$923, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$923, 1]);
                 s_i_$923 = $t28;
                 $pc = 14; continue;
               case 18:
-                $t29 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_i_$925 === 'number' && typeof s_len_$920 === 'number') ? (s_i_$925 < s_len_$920) : R.callBinding((C8.v ?? G8()), [s_i_$925, s_len_$920]);
+                $t29 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_i_$925 === 'number' && typeof s_len_$920 === 'number') ? s_i_$925 < s_len_$920 : $lt(s_i_$925, s_len_$920)) : R.callBinding((C8.v ?? G8()), [s_i_$925, s_len_$920]);
                 if ($t29 !== false) { $pc = 19; continue; } $pc = 20; continue;
               case 19:
                 $t30 = (W9.intact || (C9.v ?? G9()) === P9) ? ($vectorRef(s_vec_$918, s_i_$925)) : R.callBinding((C9.v ?? G9()), [s_vec_$918, s_i_$925]);
@@ -64893,7 +64893,7 @@ export const LIBRARIES = {
               case 22:
                 $t39 = $r;
                 $t39;
-                $t40 = (W10.intact || (C10.v ?? G10()) === P10) && (typeof s_i_$925 === 'number' && typeof 1 === 'number') ? ($add(s_i_$925, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$925, 1]);
+                $t40 = (W10.intact || (C10.v ?? G10()) === P10) ? ((typeof s_i_$925 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$925 + 1)) || (Number.isSafeInteger((s_i_$925 + 1)) && Number.isInteger(s_i_$925) && Number.isInteger(1)))) ? (s_i_$925 + 1) : $add(s_i_$925, 1)) : R.callBinding((C10.v ?? G10()), [s_i_$925, 1]);
                 s_i_$925 = $t40;
                 $pc = 18; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -65901,7 +65901,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list.scm","line":417,"column":1,"endLine":424,"endColumn":19},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "list?")).v;
@@ -65946,7 +65946,7 @@ export const LIBRARIES = {
             return s_count_$962;
           } else {
             $t9 = (W4.intact || (C4.v ?? G4()) === P4) && (s_l_$961 instanceof R.Cons) ? (s_l_$961.cdr) : R.callBinding((C4.v ?? G4()), [s_l_$961]);
-            $t10 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_count_$962 === 'number' && typeof 1 === 'number') ? ($add(s_count_$962, 1)) : R.callBinding((C5.v ?? G5()), [s_count_$962, 1]);
+            $t10 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_count_$962 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_count_$962 + 1)) || (Number.isSafeInteger((s_count_$962 + 1)) && Number.isInteger(s_count_$962) && Number.isInteger(1)))) ? (s_count_$962 + 1) : $add(s_count_$962, 1)) : R.callBinding((C5.v ?? G5()), [s_count_$962, 1]);
             s_l_$961 = $t9;
             s_count_$962 = $t10;
             continue $loop1;
@@ -66001,7 +66001,7 @@ export const LIBRARIES = {
                 return s_count_$962;
               case 8:
                 $t9 = (W4.intact || (C4.v ?? G4()) === P4) && (s_l_$961 instanceof R.Cons) ? (s_l_$961.cdr) : R.callBinding((C4.v ?? G4()), [s_l_$961]);
-                $t10 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_count_$962 === 'number' && typeof 1 === 'number') ? ($add(s_count_$962, 1)) : R.callBinding((C5.v ?? G5()), [s_count_$962, 1]);
+                $t10 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_count_$962 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_count_$962 + 1)) || (Number.isSafeInteger((s_count_$962 + 1)) && Number.isInteger(s_count_$962) && Number.isInteger(1)))) ? (s_count_$962 + 1) : $add(s_count_$962, 1)) : R.callBinding((C5.v ?? G5()), [s_count_$962, 1]);
                 s_l_$961 = $t9;
                 s_count_$962 = $t10;
                 $pc = 6; continue;
@@ -66019,7 +66019,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list.scm","line":433,"column":1,"endLine":446,"endColumn":19},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $lt = R.lt, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
@@ -66079,7 +66079,7 @@ export const LIBRARIES = {
             $t10 = undefined;
           }
           $t10;
-          $t14 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_k_$964 === 'number' && typeof 0 === 'number') ? (s_k_$964 < 0) : R.callBinding((C4.v ?? G4()), [s_k_$964, 0]);
+          $t14 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_k_$964 === 'number' && typeof 0 === 'number') ? s_k_$964 < 0 : $lt(s_k_$964, 0)) : R.callBinding((C4.v ?? G4()), [s_k_$964, 0]);
           if ($t14 !== false) {
             $t16 = (C2.v ?? G2());
             if (typeof $t16 !== 'function') $notProc($t16);
@@ -66107,13 +66107,13 @@ export const LIBRARIES = {
               $t24 = (C2.v ?? G2());
               if ($d > 0 && ($t25 = $t24?.[$RAW] ?? $t24)?.[$PRIM] === true) { $stack.room = $d; return $t25("list-ref: improper list", s_l_$966); } return $tailCall($t24, ["list-ref: improper list", s_l_$966]);
             } else {
-              $t26 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_i_$967 === 'number' && typeof 0 === 'number') ? (s_i_$967 === 0) : R.callBinding((C6.v ?? G6()), [s_i_$967, 0]);
+              $t26 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_i_$967 === 'number' && typeof 0 === 'number') ? s_i_$967 === 0 : $numEq(s_i_$967, 0)) : R.callBinding((C6.v ?? G6()), [s_i_$967, 0]);
               if ($t26 !== false) {
                 $t27 = (W7.intact || (C7.v ?? G7()) === P7) && (s_l_$966 instanceof R.Cons) ? (s_l_$966.car) : R.callBinding((C7.v ?? G7()), [s_l_$966]);
                 return $t27;
               } else {
                 $t28 = (W8.intact || (C8.v ?? G8()) === P8) && (s_l_$966 instanceof R.Cons) ? (s_l_$966.cdr) : R.callBinding((C8.v ?? G8()), [s_l_$966]);
-                $t29 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_i_$967 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$967, 1)) : R.callBinding((C9.v ?? G9()), [s_i_$967, 1]);
+                $t29 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_i_$967 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$967 - 1)) || (Number.isSafeInteger((s_i_$967 - 1)) && Number.isInteger(s_i_$967) && Number.isInteger(1)))) ? (s_i_$967 - 1) : $sub(s_i_$967, 1)) : R.callBinding((C9.v ?? G9()), [s_i_$967, 1]);
                 s_l_$966 = $t28;
                 s_i_$967 = $t29;
                 continue $loop1;
@@ -66178,7 +66178,7 @@ export const LIBRARIES = {
                 $pc = 8; continue;
               case 8:
                 $t10;
-                $t14 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_k_$964 === 'number' && typeof 0 === 'number') ? (s_k_$964 < 0) : R.callBinding((C4.v ?? G4()), [s_k_$964, 0]);
+                $t14 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_k_$964 === 'number' && typeof 0 === 'number') ? s_k_$964 < 0 : $lt(s_k_$964, 0)) : R.callBinding((C4.v ?? G4()), [s_k_$964, 0]);
                 if ($t14 !== false) { $pc = 10; continue; } $pc = 11; continue;
               case 9:
                 $t13 = $r;
@@ -66220,14 +66220,14 @@ export const LIBRARIES = {
                 $t24 = (C2.v ?? G2());
                 return $tailCall($t24, ["list-ref: improper list", s_l_$966]);
               case 18:
-                $t26 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_i_$967 === 'number' && typeof 0 === 'number') ? (s_i_$967 === 0) : R.callBinding((C6.v ?? G6()), [s_i_$967, 0]);
+                $t26 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_i_$967 === 'number' && typeof 0 === 'number') ? s_i_$967 === 0 : $numEq(s_i_$967, 0)) : R.callBinding((C6.v ?? G6()), [s_i_$967, 0]);
                 if ($t26 !== false) { $pc = 19; continue; } $pc = 20; continue;
               case 19:
                 $t27 = (W7.intact || (C7.v ?? G7()) === P7) && (s_l_$966 instanceof R.Cons) ? (s_l_$966.car) : R.callBinding((C7.v ?? G7()), [s_l_$966]);
                 return $t27;
               case 20:
                 $t28 = (W8.intact || (C8.v ?? G8()) === P8) && (s_l_$966 instanceof R.Cons) ? (s_l_$966.cdr) : R.callBinding((C8.v ?? G8()), [s_l_$966]);
-                $t29 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_i_$967 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$967, 1)) : R.callBinding((C9.v ?? G9()), [s_i_$967, 1]);
+                $t29 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_i_$967 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$967 - 1)) || (Number.isSafeInteger((s_i_$967 - 1)) && Number.isInteger(s_i_$967) && Number.isInteger(1)))) ? (s_i_$967 - 1) : $sub(s_i_$967, 1)) : R.callBinding((C9.v ?? G9()), [s_i_$967, 1]);
                 s_l_$966 = $t28;
                 s_i_$967 = $t29;
                 $pc = 14; continue;
@@ -66245,7 +66245,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list.scm","line":455,"column":1,"endLine":466,"endColumn":19},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $lt = R.lt, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "integer?")).v;
@@ -66288,7 +66288,7 @@ export const LIBRARIES = {
             $t4 = undefined;
           }
           $t4;
-          $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_k_$969 === 'number' && typeof 0 === 'number') ? (s_k_$969 < 0) : R.callBinding((C3.v ?? G3()), [s_k_$969, 0]);
+          $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_k_$969 === 'number' && typeof 0 === 'number') ? s_k_$969 < 0 : $lt(s_k_$969, 0)) : R.callBinding((C3.v ?? G3()), [s_k_$969, 0]);
           if ($t8 !== false) {
             $t10 = (C2.v ?? G2());
             if (typeof $t10 !== 'function') $notProc($t10);
@@ -66305,7 +66305,7 @@ export const LIBRARIES = {
           s_l_$971 = s_lst_$968;
           s_i_$972 = s_k_$969;
           $loop1: for (;;) {
-          $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$972 === 'number' && typeof 0 === 'number') ? (s_i_$972 === 0) : R.callBinding((C4.v ?? G4()), [s_i_$972, 0]);
+          $t13 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$972 === 'number' && typeof 0 === 'number') ? s_i_$972 === 0 : $numEq(s_i_$972, 0)) : R.callBinding((C4.v ?? G4()), [s_i_$972, 0]);
           if ($t13 !== false) {
             return s_l_$971;
           } else {
@@ -66321,7 +66321,7 @@ export const LIBRARIES = {
                 if ($d > 0 && ($t20 = $t19?.[$RAW] ?? $t19)?.[$PRIM] === true) { $stack.room = $d; return $t20("list-tail: improper list", s_l_$971); } return $tailCall($t19, ["list-tail: improper list", s_l_$971]);
               } else {
                 $t21 = (W7.intact || (C7.v ?? G7()) === P7) && (s_l_$971 instanceof R.Cons) ? (s_l_$971.cdr) : R.callBinding((C7.v ?? G7()), [s_l_$971]);
-                $t22 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_i_$972 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$972, 1)) : R.callBinding((C8.v ?? G8()), [s_i_$972, 1]);
+                $t22 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_i_$972 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$972 - 1)) || (Number.isSafeInteger((s_i_$972 - 1)) && Number.isInteger(s_i_$972) && Number.isInteger(1)))) ? (s_i_$972 - 1) : $sub(s_i_$972, 1)) : R.callBinding((C8.v ?? G8()), [s_i_$972, 1]);
                 s_l_$971 = $t21;
                 s_i_$972 = $t22;
                 continue $loop1;
@@ -66364,7 +66364,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 4:
                 $t4;
-                $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_k_$969 === 'number' && typeof 0 === 'number') ? (s_k_$969 < 0) : R.callBinding((C3.v ?? G3()), [s_k_$969, 0]);
+                $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_k_$969 === 'number' && typeof 0 === 'number') ? s_k_$969 < 0 : $lt(s_k_$969, 0)) : R.callBinding((C3.v ?? G3()), [s_k_$969, 0]);
                 if ($t8 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 5:
                 $t7 = $r;
@@ -66393,7 +66393,7 @@ export const LIBRARIES = {
                 $t9 = $t12;
                 $pc = 8; continue;
               case 10:
-                $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$972 === 'number' && typeof 0 === 'number') ? (s_i_$972 === 0) : R.callBinding((C4.v ?? G4()), [s_i_$972, 0]);
+                $t13 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$972 === 'number' && typeof 0 === 'number') ? s_i_$972 === 0 : $numEq(s_i_$972, 0)) : R.callBinding((C4.v ?? G4()), [s_i_$972, 0]);
                 if ($t13 !== false) { $pc = 11; continue; } $pc = 12; continue;
               case 11:
                 return s_l_$971;
@@ -66412,7 +66412,7 @@ export const LIBRARIES = {
                 return $tailCall($t19, ["list-tail: improper list", s_l_$971]);
               case 16:
                 $t21 = (W7.intact || (C7.v ?? G7()) === P7) && (s_l_$971 instanceof R.Cons) ? (s_l_$971.cdr) : R.callBinding((C7.v ?? G7()), [s_l_$971]);
-                $t22 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_i_$972 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$972, 1)) : R.callBinding((C8.v ?? G8()), [s_i_$972, 1]);
+                $t22 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_i_$972 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$972 - 1)) || (Number.isSafeInteger((s_i_$972 - 1)) && Number.isInteger(s_i_$972) && Number.isInteger(1)))) ? (s_i_$972 - 1) : $sub(s_i_$972, 1)) : R.callBinding((C8.v ?? G8()), [s_i_$972, 1]);
                 s_l_$971 = $t21;
                 s_i_$972 = $t22;
                 $pc = 10; continue;
@@ -66630,7 +66630,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list.scm","line":501,"column":1,"endLine":511,"endColumn":18},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $lt = R.lt, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "integer?")).v;
@@ -66654,11 +66654,11 @@ export const LIBRARIES = {
             if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
             const $d = $stack.room - 15;
             if ($d < 0 && $stack.flushable) return $flush($fn16$js, [s_n_$982]);
-            $t0 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_n_$982 === 'number' && typeof 0 === 'number') ? (s_n_$982 === 0) : R.callBinding((C6.v ?? G6()), [s_n_$982, 0]);
+            $t0 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_n_$982 === 'number' && typeof 0 === 'number') ? s_n_$982 === 0 : $numEq(s_n_$982, 0)) : R.callBinding((C6.v ?? G6()), [s_n_$982, 0]);
             if ($t0 !== false) {
               return null;
             } else {
-              $t1 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_n_$982 === 'number' && typeof 1 === 'number') ? ($sub(s_n_$982, 1)) : R.callBinding((C8.v ?? G8()), [s_n_$982, 1]);
+              $t1 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_n_$982 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$982 - 1)) || (Number.isSafeInteger((s_n_$982 - 1)) && Number.isInteger(s_n_$982) && Number.isInteger(1)))) ? (s_n_$982 - 1) : $sub(s_n_$982, 1)) : R.callBinding((C8.v ?? G8()), [s_n_$982, 1]);
               $t2 = s_loop_$981;
               if (typeof $t2 !== 'function') $notProc($t2);
               $t3 = $t2[$RAW];
@@ -66677,12 +66677,12 @@ export const LIBRARIES = {
             const $d = $stack.room - 15;
             for (;;) switch ($pc) {
                 case 0:
-                  $t0 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_n_$982 === 'number' && typeof 0 === 'number') ? (s_n_$982 === 0) : R.callBinding((C6.v ?? G6()), [s_n_$982, 0]);
+                  $t0 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_n_$982 === 'number' && typeof 0 === 'number') ? s_n_$982 === 0 : $numEq(s_n_$982, 0)) : R.callBinding((C6.v ?? G6()), [s_n_$982, 0]);
                   if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
                 case 1:
                   return null;
                 case 2:
-                  $t1 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_n_$982 === 'number' && typeof 1 === 'number') ? ($sub(s_n_$982, 1)) : R.callBinding((C8.v ?? G8()), [s_n_$982, 1]);
+                  $t1 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_n_$982 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$982 - 1)) || (Number.isSafeInteger((s_n_$982 - 1)) && Number.isInteger(s_n_$982) && Number.isInteger(1)))) ? (s_n_$982 - 1) : $sub(s_n_$982, 1)) : R.callBinding((C8.v ?? G8()), [s_n_$982, 1]);
                   $t2 = s_loop_$981;
                   if (typeof $t2 !== 'function') $notProc($t2);
                   $t3 = $t2[$RAW];
@@ -66730,7 +66730,7 @@ export const LIBRARIES = {
             $t4 = undefined;
           }
           $t4;
-          $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_k_$978 === 'number' && typeof 0 === 'number') ? (s_k_$978 < 0) : R.callBinding((C3.v ?? G3()), [s_k_$978, 0]);
+          $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_k_$978 === 'number' && typeof 0 === 'number') ? s_k_$978 < 0 : $lt(s_k_$978, 0)) : R.callBinding((C3.v ?? G3()), [s_k_$978, 0]);
           if ($t8 !== false) {
             $t10 = (C2.v ?? G2());
             if (typeof $t10 !== 'function') $notProc($t10);
@@ -66791,7 +66791,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 4:
                 $t4;
-                $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_k_$978 === 'number' && typeof 0 === 'number') ? (s_k_$978 < 0) : R.callBinding((C3.v ?? G3()), [s_k_$978, 0]);
+                $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_k_$978 === 'number' && typeof 0 === 'number') ? s_k_$978 < 0 : $lt(s_k_$978, 0)) : R.callBinding((C3.v ?? G3()), [s_k_$978, 0]);
                 if ($t8 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 5:
                 $t7 = $r;
@@ -66845,7 +66845,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list.scm","line":522,"column":1,"endLine":531,"endColumn":42},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $lt = R.lt, $ge = R.ge, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "list?")).v;
@@ -66912,7 +66912,7 @@ export const LIBRARIES = {
               $t12 = undefined;
             }
             $t12;
-            $t16 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_k_$984 === 'number' && typeof 0 === 'number') ? (s_k_$984 < 0) : R.callBinding((C4.v ?? G4()), [s_k_$984, 0]);
+            $t16 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_k_$984 === 'number' && typeof 0 === 'number') ? s_k_$984 < 0 : $lt(s_k_$984, 0)) : R.callBinding((C4.v ?? G4()), [s_k_$984, 0]);
             s_x_$986 = $t16;
             if (s_x_$986 !== false) {
               $t17 = s_x_$986;
@@ -66924,7 +66924,7 @@ export const LIBRARIES = {
               $t20 = $t19 === undefined ? ($t18[$PRIM] === true ? $t18(s_lst_$983) : $foreign($t18, [s_lst_$983])) : $t19(s_lst_$983);
               while ($t20 instanceof $TailCall) { $stack.room = $d; $t20 = $step($t20); }
               if ($t20 === $UNWIND) { R.reify($proc$r, 14, { s_lst_$983, s_k_$984, s_obj_$985 }); return $UNWIND; }
-              $t21 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_k_$984 === 'number' && typeof $t20 === 'number') ? (s_k_$984 >= $t20) : R.callBinding((C5.v ?? G5()), [s_k_$984, $t20]);
+              $t21 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_k_$984 === 'number' && typeof $t20 === 'number') ? s_k_$984 >= $t20 : $ge(s_k_$984, $t20)) : R.callBinding((C5.v ?? G5()), [s_k_$984, $t20]);
               $t17 = $t21;
             }
             if ($t17 !== false) {
@@ -66940,14 +66940,14 @@ export const LIBRARIES = {
               $t22 = undefined;
             }
             $t22;
-            $t26 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_k_$984 === 'number' && typeof 0 === 'number') ? (s_k_$984 === 0) : R.callBinding((C7.v ?? G7()), [s_k_$984, 0]);
+            $t26 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_k_$984 === 'number' && typeof 0 === 'number') ? s_k_$984 === 0 : $numEq(s_k_$984, 0)) : R.callBinding((C7.v ?? G7()), [s_k_$984, 0]);
             if ($t26 !== false) {
               $t27 = (C8.v ?? G8());
               if ($d > 0 && ($t28 = $t27?.[$RAW] ?? $t27)?.[$PRIM] === true) { $stack.room = $d; return $t28(s_lst_$983, s_obj_$985); } return $tailCall($t27, [s_lst_$983, s_obj_$985]);
             } else {
               $t29 = (C9.v ?? G9());
               $t30 = (W10.intact || (C10.v ?? G10()) === P10) && (s_lst_$983 instanceof R.Cons) ? (s_lst_$983.cdr) : R.callBinding((C10.v ?? G10()), [s_lst_$983]);
-              $t31 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_k_$984 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$984, 1)) : R.callBinding((C11.v ?? G11()), [s_k_$984, 1]);
+              $t31 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_k_$984 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$984 - 1)) || (Number.isSafeInteger((s_k_$984 - 1)) && Number.isInteger(s_k_$984) && Number.isInteger(1)))) ? (s_k_$984 - 1) : $sub(s_k_$984, 1)) : R.callBinding((C11.v ?? G11()), [s_k_$984, 1]);
               if ($t29 === $proc$js) { s_lst_$983 = $t30; s_k_$984 = $t31; continue $loop; }
               $t32 = $t29;
               if ($d > 0 && ($t33 = $t32?.[$RAW] ?? $t32)?.[$PRIM] === true) { $stack.room = $d; return $t33($t30, $t31, s_obj_$985); } return $tailCall($t32, [$t30, $t31, s_obj_$985]);
@@ -67020,7 +67020,7 @@ export const LIBRARIES = {
                 $pc = 9; continue;
               case 9:
                 $t12;
-                $t16 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_k_$984 === 'number' && typeof 0 === 'number') ? (s_k_$984 < 0) : R.callBinding((C4.v ?? G4()), [s_k_$984, 0]);
+                $t16 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_k_$984 === 'number' && typeof 0 === 'number') ? s_k_$984 < 0 : $lt(s_k_$984, 0)) : R.callBinding((C4.v ?? G4()), [s_k_$984, 0]);
                 s_x_$986 = $t16;
                 if (s_x_$986 !== false) { $pc = 11; continue; } $pc = 12; continue;
               case 10:
@@ -67044,7 +67044,7 @@ export const LIBRARIES = {
                 if ($t17 !== false) { $pc = 15; continue; } $pc = 16; continue;
               case 14:
                 $t20 = $r;
-                $t21 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_k_$984 === 'number' && typeof $t20 === 'number') ? (s_k_$984 >= $t20) : R.callBinding((C5.v ?? G5()), [s_k_$984, $t20]);
+                $t21 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_k_$984 === 'number' && typeof $t20 === 'number') ? s_k_$984 >= $t20 : $ge(s_k_$984, $t20)) : R.callBinding((C5.v ?? G5()), [s_k_$984, $t20]);
                 $t17 = $t21;
                 $pc = 13; continue;
               case 15:
@@ -67062,7 +67062,7 @@ export const LIBRARIES = {
                 $pc = 17; continue;
               case 17:
                 $t22;
-                $t26 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_k_$984 === 'number' && typeof 0 === 'number') ? (s_k_$984 === 0) : R.callBinding((C7.v ?? G7()), [s_k_$984, 0]);
+                $t26 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_k_$984 === 'number' && typeof 0 === 'number') ? s_k_$984 === 0 : $numEq(s_k_$984, 0)) : R.callBinding((C7.v ?? G7()), [s_k_$984, 0]);
                 if ($t26 !== false) { $pc = 19; continue; } $pc = 20; continue;
               case 18:
                 $t25 = $r;
@@ -67074,7 +67074,7 @@ export const LIBRARIES = {
               case 20:
                 $t29 = (C9.v ?? G9());
                 $t30 = (W10.intact || (C10.v ?? G10()) === P10) && (s_lst_$983 instanceof R.Cons) ? (s_lst_$983.cdr) : R.callBinding((C10.v ?? G10()), [s_lst_$983]);
-                $t31 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_k_$984 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$984, 1)) : R.callBinding((C11.v ?? G11()), [s_k_$984, 1]);
+                $t31 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_k_$984 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$984 - 1)) || (Number.isSafeInteger((s_k_$984 - 1)) && Number.isInteger(s_k_$984) && Number.isInteger(1)))) ? (s_k_$984 - 1) : $sub(s_k_$984, 1)) : R.callBinding((C11.v ?? G11()), [s_k_$984, 1]);
                 if ($t29 === $proc$js) { s_lst_$983 = $t30; s_k_$984 = $t31; $pc = 0; continue; }
                 $t32 = $t29;
                 return $tailCall($t32, [$t30, $t31, s_obj_$985]);
@@ -69234,7 +69234,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"ports.scm","line":154,"column":1,"endLine":169,"endColumn":49},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "bytevector?")).v;
@@ -69433,7 +69433,7 @@ export const LIBRARIES = {
             $t60 = undefined;
           }
           $t60;
-          $t64 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_start_$1039 === 'number' && typeof s_end_$1040 === 'number') ? (s_start_$1039 === s_end_$1040) : R.callBinding((C12.v ?? G12()), [s_start_$1039, s_end_$1040]);
+          $t64 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_start_$1039 === 'number' && typeof s_end_$1040 === 'number') ? s_start_$1039 === s_end_$1040 : $numEq(s_start_$1039, s_end_$1040)) : R.callBinding((C12.v ?? G12()), [s_start_$1039, s_end_$1040]);
           if ($t64 !== false) {
             $t66 = (C13.v ?? G13());
             if (typeof $t66 !== 'function') $notProc($t66);
@@ -69445,7 +69445,7 @@ export const LIBRARIES = {
             $t65 = $t68;
           } else {
             $t69 = (C14.v ?? G14());
-            $t70 = (W15.intact || (C15.v ?? G15()) === P15) && (typeof s_end_$1040 === 'number' && typeof s_start_$1039 === 'number') ? ($sub(s_end_$1040, s_start_$1039)) : R.callBinding((C15.v ?? G15()), [s_end_$1040, s_start_$1039]);
+            $t70 = (W15.intact || (C15.v ?? G15()) === P15) ? ((typeof s_end_$1040 === 'number' && typeof s_start_$1039 === 'number' && (!Number.isInteger((s_end_$1040 - s_start_$1039)) || (Number.isSafeInteger((s_end_$1040 - s_start_$1039)) && Number.isInteger(s_end_$1040) && Number.isInteger(s_start_$1039)))) ? (s_end_$1040 - s_start_$1039) : $sub(s_end_$1040, s_start_$1039)) : R.callBinding((C15.v ?? G15()), [s_end_$1040, s_start_$1039]);
             $t71 = $t69;
             if (typeof $t71 !== 'function') $notProc($t71);
             $t72 = $t71[$RAW];
@@ -69731,7 +69731,7 @@ export const LIBRARIES = {
                 $pc = 47; continue;
               case 47:
                 $t60;
-                $t64 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_start_$1039 === 'number' && typeof s_end_$1040 === 'number') ? (s_start_$1039 === s_end_$1040) : R.callBinding((C12.v ?? G12()), [s_start_$1039, s_end_$1040]);
+                $t64 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_start_$1039 === 'number' && typeof s_end_$1040 === 'number') ? s_start_$1039 === s_end_$1040 : $numEq(s_start_$1039, s_end_$1040)) : R.callBinding((C12.v ?? G12()), [s_start_$1039, s_end_$1040]);
                 if ($t64 !== false) { $pc = 49; continue; } $pc = 50; continue;
               case 48:
                 $t63 = $r;
@@ -69749,7 +69749,7 @@ export const LIBRARIES = {
                 $pc = 52; continue;
               case 50:
                 $t69 = (C14.v ?? G14());
-                $t70 = (W15.intact || (C15.v ?? G15()) === P15) && (typeof s_end_$1040 === 'number' && typeof s_start_$1039 === 'number') ? ($sub(s_end_$1040, s_start_$1039)) : R.callBinding((C15.v ?? G15()), [s_end_$1040, s_start_$1039]);
+                $t70 = (W15.intact || (C15.v ?? G15()) === P15) ? ((typeof s_end_$1040 === 'number' && typeof s_start_$1039 === 'number' && (!Number.isInteger((s_end_$1040 - s_start_$1039)) || (Number.isSafeInteger((s_end_$1040 - s_start_$1039)) && Number.isInteger(s_end_$1040) && Number.isInteger(s_start_$1039)))) ? (s_end_$1040 - s_start_$1039) : $sub(s_end_$1040, s_start_$1039)) : R.callBinding((C15.v ?? G15()), [s_end_$1040, s_start_$1039]);
                 $t71 = $t69;
                 if (typeof $t71 !== 'function') $notProc($t71);
                 $t72 = $t71[$RAW];
@@ -71633,7 +71633,7 @@ export const LIBRARIES = {
   },
   "scheme.cxr": {
     fingerprint: "5091d727",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["cxr.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"cxr\"],[\"l\",\"import\",[\"l\",\"scheme\",\"core\"]],[\"l\",\"export\",\"caar\",\"cadr\",\"cdar\",\"cddr\",\"caaar\",\"caadr\",\"cadar\",\"caddr\",\"cdaar\",\"cdadr\",\"cddar\",\"cdddr\",\"caaaar\",\"caaadr\",\"caadar\",\"caaddr\",\"cadaar\",\"cadadr\",\"caddar\",\"cadddr\",\"cdaaar\",\"cdaadr\",\"cdadar\",\"cdaddr\",\"cddaar\",\"cddadr\",\"cdddar\",\"cddddr\"]]",
     procedures: {
@@ -71645,7 +71645,7 @@ export const LIBRARIES = {
   },
   "scheme.eval": {
     fingerprint: "57557cf9",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["eval.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"eval\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"eval\",\"%import-environment\"]],[\"l\",\"export\",\"eval\",\"environment\"],[\"l\",\"begin\",[\"l\",\"define\",[\"d\",\"sets\",\"environment\"],[\"l\",\"%import-environment\",\"sets\"]]]]",
     procedures: {
@@ -71686,7 +71686,7 @@ export const LIBRARIES = {
   },
   "scheme.file": {
     fingerprint: "0c16e342",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["file.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"file\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"]],[\"l\",\"import\",[\"l\",\"only\",[\"l\",\"scheme\",\"core\"],\"call-with-input-file\",\"call-with-output-file\",\"with-input-from-file\",\"with-output-to-file\"]],[\"l\",\"export\",\"open-input-file\",\"open-output-file\",\"open-binary-input-file\",\"open-binary-output-file\",\"call-with-input-file\",\"call-with-output-file\",\"with-input-from-file\",\"with-output-to-file\",\"file-exists?\",\"delete-file\"],[\"l\",\"begin\"]]",
     procedures: {
@@ -71698,7 +71698,7 @@ export const LIBRARIES = {
   },
   "scheme.inexact": {
     fingerprint: "680164ac",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["inexact.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"inexact\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"]],[\"l\",\"export\",\"acos\",\"asin\",\"atan\",\"cos\",\"sin\",\"tan\",\"exp\",\"log\",\"sqrt\",\"finite?\",\"infinite?\",\"nan?\"]]",
     procedures: {
@@ -71710,7 +71710,7 @@ export const LIBRARIES = {
   },
   "scheme.lazy": {
     fingerprint: "552f3931",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["lazy.sld","lazy.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"lazy\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"]],[\"l\",\"export\",\"delay\",\"force\",\"make-promise\",\"promise?\",\"delay-force\"],[\"l\",\"include\",[\"s\",\"lazy.scm\"]],[\"l\",\"begin\",[\"l\",\"define-syntax\",\"delay\",[\"l\",\"syntax-rules\",null,[\"l\",[\"l\",\"delay\",\"expr\"],[\"l\",\"cons\",[\"l\",\"cons\",[\"l\",\"quote\",\"promise-tag\"],false],[\"l\",\"lambda\",null,\"expr\"]]]]],[\"l\",\"define-syntax\",\"delay-force\",[\"l\",\"syntax-rules\",null,[\"l\",[\"l\",\"delay-force\",\"expr\"],[\"l\",\"cons\",[\"l\",\"cons\",[\"l\",\"quote\",\"promise-tag\"],false],[\"l\",\"lambda\",null,[\"l\",\"force\",\"expr\"]]]]]]]]",
     procedures: {
@@ -72111,7 +72111,7 @@ export const LIBRARIES = {
   },
   "scheme.load": {
     fingerprint: "17b0c762",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["load.sld","load.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"load\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"scheme\",\"read\"],[\"l\",\"scheme\",\"eval\"],[\"l\",\"scheme\",\"repl\"],[\"l\",\"scheme\",\"file\"]],[\"l\",\"export\",\"load\"],[\"l\",\"include\",[\"s\",\"load.scm\"]]]",
     procedures: {
@@ -72123,7 +72123,7 @@ export const LIBRARIES = {
   },
   "scheme.process-context": {
     fingerprint: "98fa790d",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["process-context.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"process-context\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"command-line\",\"exit\",\"get-environment-variable\",\"get-environment-variables\",\"emergency-exit\"]],[\"l\",\"export\",\"command-line\",\"exit\",\"get-environment-variable\",\"get-environment-variables\",\"emergency-exit\"],[\"l\",\"begin\"]]",
     procedures: {
@@ -72135,7 +72135,7 @@ export const LIBRARIES = {
   },
   "scheme.r5rs": {
     fingerprint: "1ff030ca",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["r5rs.sld","r5rs.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"r5rs\"],[\"l\",\"import\",[\"l\",\"except\",[\"l\",\"scheme\",\"base\"],\"exact\",\"inexact\"],[\"l\",\"rename\",[\"l\",\"only\",[\"l\",\"scheme\",\"base\"],\"exact\",\"inexact\"],[\"l\",\"exact\",\"inexact->exact\"],[\"l\",\"inexact\",\"exact->inexact\"]],[\"l\",\"scheme\",\"char\"],[\"l\",\"scheme\",\"complex\"],[\"l\",\"scheme\",\"cxr\"],[\"l\",\"scheme\",\"eval\"],[\"l\",\"scheme\",\"file\"],[\"l\",\"scheme\",\"inexact\"],[\"l\",\"scheme\",\"lazy\"],[\"l\",\"scheme\",\"load\"],[\"l\",\"scheme\",\"read\"],[\"l\",\"scheme\",\"repl\"],[\"l\",\"scheme\",\"write\"]],[\"l\",\"export\",\"*\",\"+\",\"-\",\"/\",\"<\",\"<=\",\"=\",\">\",\">=\",\"abs\",\"acos\",\"and\",\"angle\",\"append\",\"apply\",\"asin\",\"assoc\",\"assq\",\"assv\",\"atan\",\"begin\",\"boolean?\",\"caaaar\",\"caaadr\",\"caaar\",\"caadar\",\"caaddr\",\"caadr\",\"caar\",\"cadaar\",\"cadadr\",\"cadar\",\"caddar\",\"cadddr\",\"caddr\",\"cadr\",\"call-with-current-continuation\",\"call-with-input-file\",\"call-with-output-file\",\"call-with-values\",\"car\",\"case\",\"cdaaar\",\"cdaadr\",\"cdaar\",\"cdadar\",\"cdaddr\",\"cdadr\",\"cdar\",\"cddaar\",\"cddadr\",\"cddar\",\"cdddar\",\"cddddr\",\"cdddr\",\"cddr\",\"cdr\",\"ceiling\",\"char->integer\",\"char-alphabetic?\",\"char-ci<=?\",\"char-ci<?\",\"char-ci=?\",\"char-ci>=?\",\"char-ci>?\",\"char-downcase\",\"char-lower-case?\",\"char-numeric?\",\"char-ready?\",\"char-upcase\",\"char-upper-case?\",\"char-whitespace?\",\"char<=?\",\"char<?\",\"char=?\",\"char>=?\",\"char>?\",\"char?\",\"close-input-port\",\"close-output-port\",\"complex?\",\"cond\",\"cons\",\"cos\",\"current-input-port\",\"current-output-port\",\"define\",\"define-syntax\",\"delay\",\"denominator\",\"display\",\"do\",\"dynamic-wind\",\"else\",\"eof-object?\",\"eq?\",\"equal?\",\"eqv?\",\"eval\",\"even?\",\"exact->inexact\",\"exact?\",\"exp\",\"expt\",\"floor\",\"for-each\",\"force\",\"gcd\",\"if\",\"imag-part\",\"inexact->exact\",\"inexact?\",\"input-port?\",\"integer->char\",\"integer?\",\"interaction-environment\",\"lambda\",\"lcm\",\"length\",\"let\",\"let*\",\"let-syntax\",\"letrec\",\"letrec-syntax\",\"list\",\"list->string\",\"list->vector\",\"list-ref\",\"list-tail\",\"list?\",\"load\",\"log\",\"magnitude\",\"make-polar\",\"make-rectangular\",\"make-string\",\"make-vector\",\"map\",\"max\",\"member\",\"memq\",\"memv\",\"min\",\"modulo\",\"negative?\",\"newline\",\"not\",\"null-environment\",\"null?\",\"number->string\",\"number?\",\"numerator\",\"odd?\",\"open-input-file\",\"open-output-file\",\"or\",\"output-port?\",\"pair?\",\"peek-char\",\"positive?\",\"procedure?\",\"quasiquote\",\"quote\",\"quotient\",\"rational?\",\"rationalize\",\"read\",\"read-char\",\"real-part\",\"real?\",\"remainder\",\"reverse\",\"round\",\"scheme-report-environment\",\"set!\",\"set-car!\",\"set-cdr!\",\"sin\",\"sqrt\",\"string\",\"string->list\",\"string->number\",\"string->symbol\",\"string-append\",\"string-ci<=?\",\"string-ci<?\",\"string-ci=?\",\"string-ci>=?\",\"string-ci>?\",\"string-copy\",\"string-fill!\",\"string-length\",\"string-ref\",\"string-set!\",\"string<=?\",\"string<?\",\"string=?\",\"string>=?\",\"string>?\",\"string?\",\"substring\",\"symbol->string\",\"symbol?\",\"syntax-rules\",\"tan\",\"truncate\",\"values\",\"vector\",\"vector->list\",\"vector-fill!\",\"vector-length\",\"vector-ref\",\"vector-set!\",\"vector?\",\"with-input-from-file\",\"with-output-to-file\",\"write\",\"write-char\",\"zero?\",\"=>\",\"...\"],[\"l\",\"include\",[\"s\",\"r5rs.scm\"]]]",
     procedures: {
@@ -72327,7 +72327,7 @@ export const LIBRARIES = {
   },
   "scheme.read": {
     fingerprint: "d3b129fe",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["read.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"read\"],[\"l\",\"import\",[\"l\",\"only\",[\"l\",\"scheme\",\"core\"],\"read\"]],[\"l\",\"export\",\"read\"]]",
     procedures: {
@@ -72339,7 +72339,7 @@ export const LIBRARIES = {
   },
   "scheme.repl": {
     fingerprint: "9a9b00fa",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["repl.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"repl\"],[\"l\",\"import\",[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"interaction-environment\"]],[\"l\",\"export\",\"interaction-environment\"],[\"l\",\"begin\"]]",
     procedures: {
@@ -72351,7 +72351,7 @@ export const LIBRARIES = {
   },
   "scheme.time": {
     fingerprint: "a2e1d3e1",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["time.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"time\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"current-second\",\"current-jiffy\",\"jiffies-per-second\"]],[\"l\",\"export\",\"current-second\",\"current-jiffy\",\"jiffies-per-second\"],[\"l\",\"begin\"]]",
     procedures: {
@@ -72363,7 +72363,7 @@ export const LIBRARIES = {
   },
   "scheme.write": {
     fingerprint: "86ec4af0",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["write.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"write\"],[\"l\",\"import\",[\"l\",\"only\",[\"l\",\"scheme\",\"core\"],\"display\",\"write\",\"write-shared\",\"write-simple\"]],[\"l\",\"export\",\"display\",\"write\",\"write-shared\",\"write-simple\"]]",
     procedures: {
@@ -72375,7 +72375,7 @@ export const LIBRARIES = {
   },
   "srfi.1": {
     fingerprint: "bd2a2c03",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["1.sld","list_lib.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"srfi\",1],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"scheme\",\"cxr\"]],[\"l\",\"export\",\"cons\",\"list\",\"xcons\",\"cons*\",\"make-list\",\"list-tabulate\",\"list-copy\",\"circular-list\",\"iota\",\"pair?\",\"null?\",\"proper-list?\",\"circular-list?\",\"dotted-list?\",\"not-pair?\",\"null-list?\",\"list=\",\"car\",\"cdr\",\"caar\",\"cadr\",\"cdar\",\"cddr\",\"caaar\",\"caadr\",\"cadar\",\"caddr\",\"cdaar\",\"cdadr\",\"cddar\",\"cdddr\",\"caaaar\",\"caaadr\",\"caadar\",\"caaddr\",\"cadaar\",\"cadadr\",\"caddar\",\"cadddr\",\"cdaaar\",\"cdaadr\",\"cdadar\",\"cdaddr\",\"cddaar\",\"cddadr\",\"cdddar\",\"cddddr\",\"list-ref\",\"first\",\"second\",\"third\",\"fourth\",\"fifth\",\"sixth\",\"seventh\",\"eighth\",\"ninth\",\"tenth\",\"car+cdr\",\"take\",\"drop\",\"take-right\",\"drop-right\",\"take!\",\"drop-right!\",\"split-at\",\"split-at!\",\"last\",\"last-pair\",\"length\",\"length+\",\"append\",\"concatenate\",\"reverse\",\"append!\",\"concatenate!\",\"reverse!\",\"append-reverse\",\"append-reverse!\",\"zip\",\"unzip1\",\"unzip2\",\"unzip3\",\"unzip4\",\"unzip5\",\"count\",\"fold\",\"unfold\",\"pair-fold\",\"reduce\",\"fold-right\",\"unfold-right\",\"pair-fold-right\",\"reduce-right\",\"append-map\",\"append-map!\",\"pair-for-each\",\"filter-map\",\"map-in-order\",\"map\",\"for-each\",\"map!\",\"filter\",\"partition\",\"remove\",\"filter!\",\"partition!\",\"remove!\",\"member\",\"memq\",\"memv\",\"find\",\"find-tail\",\"any\",\"every\",\"list-index\",\"take-while\",\"drop-while\",\"take-while!\",\"span\",\"break\",\"span!\",\"break!\",\"delete\",\"delete-duplicates\",\"delete!\",\"delete-duplicates!\",\"assoc\",\"assq\",\"assv\",\"alist-cons\",\"alist-copy\",\"alist-delete\",\"alist-delete!\",\"lset<=\",\"lset=\",\"lset-adjoin\",\"lset-union\",\"lset-union!\",\"lset-intersection\",\"lset-intersection!\",\"lset-difference\",\"lset-difference!\",\"lset-xor\",\"lset-xor!\",\"lset-diff+intersection\",\"lset-diff+intersection!\",\"set-car!\",\"set-cdr!\"],[\"l\",\"include\",[\"s\",\"list_lib.scm\"]]]",
     procedures: {
@@ -72469,7 +72469,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list_lib.scm","line":39,"column":1,"endLine":41,"endColumn":80},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $ge = R.ge, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "exact-integer?")).v;
@@ -72490,7 +72490,7 @@ export const LIBRARIES = {
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_who_$1078, s_k_$1079 }); return $UNWIND; }
           if ($t2 !== false) {
-            $t4 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_k_$1079 === 'number' && typeof 0 === 'number') ? (s_k_$1079 >= 0) : R.callBinding((C2.v ?? G2()), [s_k_$1079, 0]);
+            $t4 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_k_$1079 === 'number' && typeof 0 === 'number') ? s_k_$1079 >= 0 : $ge(s_k_$1079, 0)) : R.callBinding((C2.v ?? G2()), [s_k_$1079, 0]);
             $t3 = $t4;
           } else {
             $t3 = false;
@@ -72530,7 +72530,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 if ($t2 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
-                $t4 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_k_$1079 === 'number' && typeof 0 === 'number') ? (s_k_$1079 >= 0) : R.callBinding((C2.v ?? G2()), [s_k_$1079, 0]);
+                $t4 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_k_$1079 === 'number' && typeof 0 === 'number') ? s_k_$1079 >= 0 : $ge(s_k_$1079, 0)) : R.callBinding((C2.v ?? G2()), [s_k_$1079, 0]);
                 $t3 = $t4;
                 $pc = 4; continue;
               case 3:
@@ -72797,7 +72797,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list_lib.scm","line":95,"column":1,"endLine":99,"endColumn":58},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $lt = R.lt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-procedure")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "<")).v;
@@ -72827,15 +72827,15 @@ export const LIBRARIES = {
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_n_$1090, s_init_$1091 }); return $UNWIND; }
           $t5;
-          $t6 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$1090 === 'number' && typeof 1 === 'number') ? ($sub(s_n_$1090, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$1090, 1]);
+          $t6 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$1090 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$1090 - 1)) || (Number.isSafeInteger((s_n_$1090 - 1)) && Number.isInteger(s_n_$1090) && Number.isInteger(1)))) ? (s_n_$1090 - 1) : $sub(s_n_$1090, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$1090, 1]);
           s_i_$1093 = $t6;
           s_acc_$1094 = null;
           $loop1: for (;;) {
-          $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_i_$1093 === 'number' && typeof 0 === 'number') ? (s_i_$1093 < 0) : R.callBinding((C2.v ?? G2()), [s_i_$1093, 0]);
+          $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_i_$1093 === 'number' && typeof 0 === 'number') ? s_i_$1093 < 0 : $lt(s_i_$1093, 0)) : R.callBinding((C2.v ?? G2()), [s_i_$1093, 0]);
           if ($t7 !== false) {
             return s_acc_$1094;
           } else {
-            $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$1093 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$1093, 1)) : R.callBinding((C3.v ?? G3()), [s_i_$1093, 1]);
+            $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$1093 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1093 - 1)) || (Number.isSafeInteger((s_i_$1093 - 1)) && Number.isInteger(s_i_$1093) && Number.isInteger(1)))) ? (s_i_$1093 - 1) : $sub(s_i_$1093, 1)) : R.callBinding((C3.v ?? G3()), [s_i_$1093, 1]);
             $t9 = s_init_$1091;
             if (typeof $t9 !== 'function') $notProc($t9);
             $t10 = $t9[$RAW];
@@ -72880,17 +72880,17 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 $t5;
-                $t6 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$1090 === 'number' && typeof 1 === 'number') ? ($sub(s_n_$1090, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$1090, 1]);
+                $t6 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$1090 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$1090 - 1)) || (Number.isSafeInteger((s_n_$1090 - 1)) && Number.isInteger(s_n_$1090) && Number.isInteger(1)))) ? (s_n_$1090 - 1) : $sub(s_n_$1090, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$1090, 1]);
                 s_i_$1093 = $t6;
                 s_acc_$1094 = null;
                 $pc = 3; continue;
               case 3:
-                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_i_$1093 === 'number' && typeof 0 === 'number') ? (s_i_$1093 < 0) : R.callBinding((C2.v ?? G2()), [s_i_$1093, 0]);
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_i_$1093 === 'number' && typeof 0 === 'number') ? s_i_$1093 < 0 : $lt(s_i_$1093, 0)) : R.callBinding((C2.v ?? G2()), [s_i_$1093, 0]);
                 if ($t7 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 return s_acc_$1094;
               case 5:
-                $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$1093 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$1093, 1)) : R.callBinding((C3.v ?? G3()), [s_i_$1093, 1]);
+                $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$1093 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1093 - 1)) || (Number.isSafeInteger((s_i_$1093 - 1)) && Number.isInteger(s_i_$1093) && Number.isInteger(1)))) ? (s_i_$1093 - 1) : $sub(s_i_$1093, 1)) : R.callBinding((C3.v ?? G3()), [s_i_$1093, 1]);
                 $t9 = s_init_$1091;
                 if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
@@ -72998,7 +72998,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list_lib.scm","line":119,"column":1,"endLine":124,"endColumn":73},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $mul = R.mulNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $mul = R.mul, $lt = R.lt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
         const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
@@ -73060,17 +73060,17 @@ export const LIBRARIES = {
             $t10 = 1;
           }
           s_step_$1101 = $t10;
-          $t14 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_count_$1098 === 'number' && typeof 1 === 'number') ? ($sub(s_count_$1098, 1)) : R.callBinding((C6.v ?? G6()), [s_count_$1098, 1]);
+          $t14 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_count_$1098 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_count_$1098 - 1)) || (Number.isSafeInteger((s_count_$1098 - 1)) && Number.isInteger(s_count_$1098) && Number.isInteger(1)))) ? (s_count_$1098 - 1) : $sub(s_count_$1098, 1)) : R.callBinding((C6.v ?? G6()), [s_count_$1098, 1]);
           s_i_$1103 = $t14;
           s_acc_$1104 = null;
           $loop1: for (;;) {
-          $t15 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$1103 === 'number' && typeof 0 === 'number') ? (s_i_$1103 < 0) : R.callBinding((C5.v ?? G5()), [s_i_$1103, 0]);
+          $t15 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$1103 === 'number' && typeof 0 === 'number') ? s_i_$1103 < 0 : $lt(s_i_$1103, 0)) : R.callBinding((C5.v ?? G5()), [s_i_$1103, 0]);
           if ($t15 !== false) {
             return s_acc_$1104;
           } else {
-            $t16 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_i_$1103 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$1103, 1)) : R.callBinding((C6.v ?? G6()), [s_i_$1103, 1]);
-            $t17 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_i_$1103 === 'number' && typeof s_step_$1101 === 'number') ? ($mul(s_i_$1103, s_step_$1101)) : R.callBinding((C9.v ?? G9()), [s_i_$1103, s_step_$1101]);
-            $t18 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_start_$1100 === 'number' && typeof $t17 === 'number') ? ($add(s_start_$1100, $t17)) : R.callBinding((C8.v ?? G8()), [s_start_$1100, $t17]);
+            $t16 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_i_$1103 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1103 - 1)) || (Number.isSafeInteger((s_i_$1103 - 1)) && Number.isInteger(s_i_$1103) && Number.isInteger(1)))) ? (s_i_$1103 - 1) : $sub(s_i_$1103, 1)) : R.callBinding((C6.v ?? G6()), [s_i_$1103, 1]);
+            $t17 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_i_$1103 === 'number' && typeof s_step_$1101 === 'number' && (!Number.isInteger((s_i_$1103 * s_step_$1101)) || (Number.isSafeInteger((s_i_$1103 * s_step_$1101)) && (s_i_$1103 * s_step_$1101) !== 0 && Number.isInteger(s_i_$1103) && Number.isInteger(s_step_$1101)))) ? (s_i_$1103 * s_step_$1101) : $mul(s_i_$1103, s_step_$1101)) : R.callBinding((C9.v ?? G9()), [s_i_$1103, s_step_$1101]);
+            $t18 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_start_$1100 === 'number' && typeof $t17 === 'number' && (!Number.isInteger((s_start_$1100 + $t17)) || (Number.isSafeInteger((s_start_$1100 + $t17)) && Number.isInteger(s_start_$1100) && Number.isInteger($t17)))) ? (s_start_$1100 + $t17) : $add(s_start_$1100, $t17)) : R.callBinding((C8.v ?? G8()), [s_start_$1100, $t17]);
             $t19 = (W7.intact || (C7.v ?? G7()) === P7) ? (new R.Cons($t18, s_acc_$1104)) : R.callBinding((C7.v ?? G7()), [$t18, s_acc_$1104]);
             s_i_$1103 = $t16;
             s_acc_$1104 = $t19;
@@ -73134,7 +73134,7 @@ export const LIBRARIES = {
                 $pc = 10; continue;
               case 10:
                 s_step_$1101 = $t10;
-                $t14 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_count_$1098 === 'number' && typeof 1 === 'number') ? ($sub(s_count_$1098, 1)) : R.callBinding((C6.v ?? G6()), [s_count_$1098, 1]);
+                $t14 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_count_$1098 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_count_$1098 - 1)) || (Number.isSafeInteger((s_count_$1098 - 1)) && Number.isInteger(s_count_$1098) && Number.isInteger(1)))) ? (s_count_$1098 - 1) : $sub(s_count_$1098, 1)) : R.callBinding((C6.v ?? G6()), [s_count_$1098, 1]);
                 s_i_$1103 = $t14;
                 s_acc_$1104 = null;
                 $pc = 12; continue;
@@ -73143,14 +73143,14 @@ export const LIBRARIES = {
                 $t10 = $t13;
                 $pc = 10; continue;
               case 12:
-                $t15 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$1103 === 'number' && typeof 0 === 'number') ? (s_i_$1103 < 0) : R.callBinding((C5.v ?? G5()), [s_i_$1103, 0]);
+                $t15 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$1103 === 'number' && typeof 0 === 'number') ? s_i_$1103 < 0 : $lt(s_i_$1103, 0)) : R.callBinding((C5.v ?? G5()), [s_i_$1103, 0]);
                 if ($t15 !== false) { $pc = 13; continue; } $pc = 14; continue;
               case 13:
                 return s_acc_$1104;
               case 14:
-                $t16 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_i_$1103 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$1103, 1)) : R.callBinding((C6.v ?? G6()), [s_i_$1103, 1]);
-                $t17 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_i_$1103 === 'number' && typeof s_step_$1101 === 'number') ? ($mul(s_i_$1103, s_step_$1101)) : R.callBinding((C9.v ?? G9()), [s_i_$1103, s_step_$1101]);
-                $t18 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_start_$1100 === 'number' && typeof $t17 === 'number') ? ($add(s_start_$1100, $t17)) : R.callBinding((C8.v ?? G8()), [s_start_$1100, $t17]);
+                $t16 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_i_$1103 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1103 - 1)) || (Number.isSafeInteger((s_i_$1103 - 1)) && Number.isInteger(s_i_$1103) && Number.isInteger(1)))) ? (s_i_$1103 - 1) : $sub(s_i_$1103, 1)) : R.callBinding((C6.v ?? G6()), [s_i_$1103, 1]);
+                $t17 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_i_$1103 === 'number' && typeof s_step_$1101 === 'number' && (!Number.isInteger((s_i_$1103 * s_step_$1101)) || (Number.isSafeInteger((s_i_$1103 * s_step_$1101)) && (s_i_$1103 * s_step_$1101) !== 0 && Number.isInteger(s_i_$1103) && Number.isInteger(s_step_$1101)))) ? (s_i_$1103 * s_step_$1101) : $mul(s_i_$1103, s_step_$1101)) : R.callBinding((C9.v ?? G9()), [s_i_$1103, s_step_$1101]);
+                $t18 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_start_$1100 === 'number' && typeof $t17 === 'number' && (!Number.isInteger((s_start_$1100 + $t17)) || (Number.isSafeInteger((s_start_$1100 + $t17)) && Number.isInteger(s_start_$1100) && Number.isInteger($t17)))) ? (s_start_$1100 + $t17) : $add(s_start_$1100, $t17)) : R.callBinding((C8.v ?? G8()), [s_start_$1100, $t17]);
                 $t19 = (W7.intact || (C7.v ?? G7()) === P7) ? (new R.Cons($t18, s_acc_$1104)) : R.callBinding((C7.v ?? G7()), [$t18, s_acc_$1104]);
                 s_i_$1103 = $t16;
                 s_acc_$1104 = $t19;
@@ -74097,7 +74097,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list_lib.scm","line":229,"column":1,"endLine":234,"endColumn":77},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -74130,7 +74130,7 @@ export const LIBRARIES = {
           s_k_$1150 = s_k_$1147;
           s_acc_$1151 = null;
           $loop1: for (;;) {
-          $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_k_$1150 === 'number' && typeof 0 === 'number') ? (s_k_$1150 === 0) : R.callBinding((C1.v ?? G1()), [s_k_$1150, 0]);
+          $t3 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_k_$1150 === 'number' && typeof 0 === 'number') ? s_k_$1150 === 0 : $numEq(s_k_$1150, 0)) : R.callBinding((C1.v ?? G1()), [s_k_$1150, 0]);
           if ($t3 !== false) {
             $t4 = (C2.v ?? G2());
             if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5(s_acc_$1151); } return $tailCall($t4, [s_acc_$1151]);
@@ -74138,7 +74138,7 @@ export const LIBRARIES = {
             $t6 = (W3.intact || (C3.v ?? G3()) === P3) ? (s_l_$1149 instanceof R.Cons) : R.callBinding((C3.v ?? G3()), [s_l_$1149]);
             if ($t6 !== false) {
               $t7 = (W4.intact || (C4.v ?? G4()) === P4) && (s_l_$1149 instanceof R.Cons) ? (s_l_$1149.cdr) : R.callBinding((C4.v ?? G4()), [s_l_$1149]);
-              $t8 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_k_$1150 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$1150, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$1150, 1]);
+              $t8 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_k_$1150 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$1150 - 1)) || (Number.isSafeInteger((s_k_$1150 - 1)) && Number.isInteger(s_k_$1150) && Number.isInteger(1)))) ? (s_k_$1150 - 1) : $sub(s_k_$1150, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$1150, 1]);
               $t9 = (W7.intact || (C7.v ?? G7()) === P7) && (s_l_$1149 instanceof R.Cons) ? (s_l_$1149.car) : R.callBinding((C7.v ?? G7()), [s_l_$1149]);
               $t10 = (W6.intact || (C6.v ?? G6()) === P6) ? (new R.Cons($t9, s_acc_$1151)) : R.callBinding((C6.v ?? G6()), [$t9, s_acc_$1151]);
               s_l_$1149 = $t7;
@@ -74175,7 +74175,7 @@ export const LIBRARIES = {
                 s_acc_$1151 = null;
                 $pc = 2; continue;
               case 2:
-                $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_k_$1150 === 'number' && typeof 0 === 'number') ? (s_k_$1150 === 0) : R.callBinding((C1.v ?? G1()), [s_k_$1150, 0]);
+                $t3 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_k_$1150 === 'number' && typeof 0 === 'number') ? s_k_$1150 === 0 : $numEq(s_k_$1150, 0)) : R.callBinding((C1.v ?? G1()), [s_k_$1150, 0]);
                 if ($t3 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t4 = (C2.v ?? G2());
@@ -74185,7 +74185,7 @@ export const LIBRARIES = {
                 if ($t6 !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 5:
                 $t7 = (W4.intact || (C4.v ?? G4()) === P4) && (s_l_$1149 instanceof R.Cons) ? (s_l_$1149.cdr) : R.callBinding((C4.v ?? G4()), [s_l_$1149]);
-                $t8 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_k_$1150 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$1150, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$1150, 1]);
+                $t8 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_k_$1150 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$1150 - 1)) || (Number.isSafeInteger((s_k_$1150 - 1)) && Number.isInteger(s_k_$1150) && Number.isInteger(1)))) ? (s_k_$1150 - 1) : $sub(s_k_$1150, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$1150, 1]);
                 $t9 = (W7.intact || (C7.v ?? G7()) === P7) && (s_l_$1149 instanceof R.Cons) ? (s_l_$1149.car) : R.callBinding((C7.v ?? G7()), [s_l_$1149]);
                 $t10 = (W6.intact || (C6.v ?? G6()) === P6) ? (new R.Cons($t9, s_acc_$1151)) : R.callBinding((C6.v ?? G6()), [$t9, s_acc_$1151]);
                 s_l_$1149 = $t7;
@@ -74209,7 +74209,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list_lib.scm","line":242,"column":1,"endLine":247,"endColumn":77},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -74236,14 +74236,14 @@ export const LIBRARIES = {
           s_l_$1155 = s_l_$1152;
           s_k_$1156 = s_k_$1153;
           $loop1: for (;;) {
-          $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_k_$1156 === 'number' && typeof 0 === 'number') ? (s_k_$1156 === 0) : R.callBinding((C1.v ?? G1()), [s_k_$1156, 0]);
+          $t3 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_k_$1156 === 'number' && typeof 0 === 'number') ? s_k_$1156 === 0 : $numEq(s_k_$1156, 0)) : R.callBinding((C1.v ?? G1()), [s_k_$1156, 0]);
           if ($t3 !== false) {
             return s_l_$1155;
           } else {
             $t4 = (W2.intact || (C2.v ?? G2()) === P2) ? (s_l_$1155 instanceof R.Cons) : R.callBinding((C2.v ?? G2()), [s_l_$1155]);
             if ($t4 !== false) {
               $t5 = (W3.intact || (C3.v ?? G3()) === P3) && (s_l_$1155 instanceof R.Cons) ? (s_l_$1155.cdr) : R.callBinding((C3.v ?? G3()), [s_l_$1155]);
-              $t6 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_k_$1156 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$1156, 1)) : R.callBinding((C4.v ?? G4()), [s_k_$1156, 1]);
+              $t6 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_k_$1156 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$1156 - 1)) || (Number.isSafeInteger((s_k_$1156 - 1)) && Number.isInteger(s_k_$1156) && Number.isInteger(1)))) ? (s_k_$1156 - 1) : $sub(s_k_$1156, 1)) : R.callBinding((C4.v ?? G4()), [s_k_$1156, 1]);
               s_l_$1155 = $t5;
               s_k_$1156 = $t6;
               continue $loop1;
@@ -74276,7 +74276,7 @@ export const LIBRARIES = {
                 s_k_$1156 = s_k_$1153;
                 $pc = 2; continue;
               case 2:
-                $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_k_$1156 === 'number' && typeof 0 === 'number') ? (s_k_$1156 === 0) : R.callBinding((C1.v ?? G1()), [s_k_$1156, 0]);
+                $t3 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_k_$1156 === 'number' && typeof 0 === 'number') ? s_k_$1156 === 0 : $numEq(s_k_$1156, 0)) : R.callBinding((C1.v ?? G1()), [s_k_$1156, 0]);
                 if ($t3 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 return s_l_$1155;
@@ -74285,7 +74285,7 @@ export const LIBRARIES = {
                 if ($t4 !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 5:
                 $t5 = (W3.intact || (C3.v ?? G3()) === P3) && (s_l_$1155 instanceof R.Cons) ? (s_l_$1155.cdr) : R.callBinding((C3.v ?? G3()), [s_l_$1155]);
-                $t6 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_k_$1156 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$1156, 1)) : R.callBinding((C4.v ?? G4()), [s_k_$1156, 1]);
+                $t6 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_k_$1156 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$1156 - 1)) || (Number.isSafeInteger((s_k_$1156 - 1)) && Number.isInteger(s_k_$1156) && Number.isInteger(1)))) ? (s_k_$1156 - 1) : $sub(s_k_$1156, 1)) : R.callBinding((C4.v ?? G4()), [s_k_$1156, 1]);
                 s_l_$1155 = $t5;
                 s_k_$1156 = $t6;
                 $pc = 2; continue;
@@ -74828,7 +74828,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list_lib.scm","line":312,"column":1,"endLine":320,"endColumn":65},
         make: (R, E, K) => {
-        const $add = R.addNumbers;
+        const $add = R.add;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
@@ -74853,7 +74853,7 @@ export const LIBRARIES = {
           } else {
             $t2 = (W2.intact || (C2.v ?? G2()) === P2) && (s_fast_$1183 instanceof R.Cons) ? (s_fast_$1183.cdr) : R.callBinding((C2.v ?? G2()), [s_fast_$1183]);
             s_fast_$1185 = $t2;
-            $t3 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$1184 === 'number' && typeof 1 === 'number') ? ($add(s_n_$1184, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$1184, 1]);
+            $t3 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$1184 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$1184 + 1)) || (Number.isSafeInteger((s_n_$1184 + 1)) && Number.isInteger(s_n_$1184) && Number.isInteger(1)))) ? (s_n_$1184 + 1) : $add(s_n_$1184, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$1184, 1]);
             s_n_$1186 = $t3;
             $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? (s_fast_$1185 instanceof R.Cons) : R.callBinding((C1.v ?? G1()), [s_fast_$1185]);
             $t5 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t4 === false) : R.callBinding((C0.v ?? G0()), [$t4]);
@@ -74864,7 +74864,7 @@ export const LIBRARIES = {
               s_fast_$1187 = $t6;
               $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (s_slow_$1182 instanceof R.Cons) ? (s_slow_$1182.cdr) : R.callBinding((C2.v ?? G2()), [s_slow_$1182]);
               s_slow_$1188 = $t7;
-              $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$1186 === 'number' && typeof 1 === 'number') ? ($add(s_n_$1186, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$1186, 1]);
+              $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$1186 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$1186 + 1)) || (Number.isSafeInteger((s_n_$1186 + 1)) && Number.isInteger(s_n_$1186) && Number.isInteger(1)))) ? (s_n_$1186 + 1) : $add(s_n_$1186, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$1186, 1]);
               s_n_$1189 = $t8;
               $t9 = (W4.intact || (C4.v ?? G4()) === P4) ? (s_fast_$1187 === s_slow_$1188) : R.callBinding((C4.v ?? G4()), [s_fast_$1187, s_slow_$1188]);
               if ($t9 !== false) {
@@ -74900,7 +74900,7 @@ export const LIBRARIES = {
               case 3:
                 $t2 = (W2.intact || (C2.v ?? G2()) === P2) && (s_fast_$1183 instanceof R.Cons) ? (s_fast_$1183.cdr) : R.callBinding((C2.v ?? G2()), [s_fast_$1183]);
                 s_fast_$1185 = $t2;
-                $t3 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$1184 === 'number' && typeof 1 === 'number') ? ($add(s_n_$1184, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$1184, 1]);
+                $t3 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$1184 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$1184 + 1)) || (Number.isSafeInteger((s_n_$1184 + 1)) && Number.isInteger(s_n_$1184) && Number.isInteger(1)))) ? (s_n_$1184 + 1) : $add(s_n_$1184, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$1184, 1]);
                 s_n_$1186 = $t3;
                 $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? (s_fast_$1185 instanceof R.Cons) : R.callBinding((C1.v ?? G1()), [s_fast_$1185]);
                 $t5 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t4 === false) : R.callBinding((C0.v ?? G0()), [$t4]);
@@ -74912,7 +74912,7 @@ export const LIBRARIES = {
                 s_fast_$1187 = $t6;
                 $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (s_slow_$1182 instanceof R.Cons) ? (s_slow_$1182.cdr) : R.callBinding((C2.v ?? G2()), [s_slow_$1182]);
                 s_slow_$1188 = $t7;
-                $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$1186 === 'number' && typeof 1 === 'number') ? ($add(s_n_$1186, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$1186, 1]);
+                $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$1186 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$1186 + 1)) || (Number.isSafeInteger((s_n_$1186 + 1)) && Number.isInteger(s_n_$1186) && Number.isInteger(1)))) ? (s_n_$1186 + 1) : $add(s_n_$1186, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$1186, 1]);
                 s_n_$1189 = $t8;
                 $t9 = (W4.intact || (C4.v ?? G4()) === P4) ? (s_fast_$1187 === s_slow_$1188) : R.callBinding((C4.v ?? G4()), [s_fast_$1187, s_slow_$1188]);
                 if ($t9 !== false) { $pc = 6; continue; } $pc = 7; continue;
@@ -75598,7 +75598,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list_lib.scm","line":363,"column":1,"endLine":368,"endColumn":21},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "apply")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "fold")).v;
@@ -75636,7 +75636,7 @@ export const LIBRARIES = {
             while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
             if ($t9 === $UNWIND) { R.reify($fn3$r, 3, { s_n_$1209 }); return $UNWIND; }
             if ($t9 !== false) {
-              $t10 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_n_$1209 === 'number' && typeof 1 === 'number') ? ($add(s_n_$1209, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$1209, 1]);
+              $t10 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_n_$1209 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$1209 + 1)) || (Number.isSafeInteger((s_n_$1209 + 1)) && Number.isInteger(s_n_$1209) && Number.isInteger(1)))) ? (s_n_$1209 + 1) : $add(s_n_$1209, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$1209, 1]);
               return $t10;
             } else {
               return s_n_$1209;
@@ -75686,7 +75686,7 @@ export const LIBRARIES = {
                   $t9 = $r;
                   if ($t9 !== false) { $pc = 4; continue; } $pc = 5; continue;
                 case 4:
-                  $t10 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_n_$1209 === 'number' && typeof 1 === 'number') ? ($add(s_n_$1209, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$1209, 1]);
+                  $t10 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_n_$1209 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$1209 + 1)) || (Number.isSafeInteger((s_n_$1209 + 1)) && Number.isInteger(s_n_$1209) && Number.isInteger(1)))) ? (s_n_$1209 + 1) : $add(s_n_$1209, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$1209, 1]);
                   return $t10;
                 case 5:
                   return s_n_$1209;
@@ -78752,7 +78752,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"list_lib.scm","line":689,"column":1,"endLine":694,"endColumn":68},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "cars-of")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "apply")).v;
@@ -78805,7 +78805,7 @@ export const LIBRARIES = {
               $t12 = $t11 === undefined ? ($t10[$PRIM] === true ? $t10(s_ls_$1351) : $foreign($t10, [s_ls_$1351])) : $t11(s_ls_$1351);
               while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
               if ($t12 === $UNWIND) { R.reify($proc$r, 9, { s_i_$1352, s_pred_$1347 }); return $UNWIND; }
-              $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$1352 === 'number' && typeof 1 === 'number') ? ($add(s_i_$1352, 1)) : R.callBinding((C4.v ?? G4()), [s_i_$1352, 1]);
+              $t13 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$1352 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1352 + 1)) || (Number.isSafeInteger((s_i_$1352 + 1)) && Number.isInteger(s_i_$1352) && Number.isInteger(1)))) ? (s_i_$1352 + 1) : $add(s_i_$1352, 1)) : R.callBinding((C4.v ?? G4()), [s_i_$1352, 1]);
               s_ls_$1351 = $t12;
               s_i_$1352 = $t13;
               continue $loop1;
@@ -78880,7 +78880,7 @@ export const LIBRARIES = {
                 $pc = 9; continue;
               case 9:
                 $t12 = $r;
-                $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$1352 === 'number' && typeof 1 === 'number') ? ($add(s_i_$1352, 1)) : R.callBinding((C4.v ?? G4()), [s_i_$1352, 1]);
+                $t13 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$1352 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1352 + 1)) || (Number.isSafeInteger((s_i_$1352 + 1)) && Number.isInteger(s_i_$1352) && Number.isInteger(1)))) ? (s_i_$1352 + 1) : $add(s_i_$1352, 1)) : R.callBinding((C4.v ?? G4()), [s_i_$1352, 1]);
                 s_ls_$1351 = $t12;
                 s_i_$1352 = $t13;
                 $pc = 2; continue;
@@ -81671,7 +81671,7 @@ export const LIBRARIES = {
   },
   "srfi.125": {
     fingerprint: "172c753c",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["125.sld","hash_table.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"srfi\",125],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"scheme\",\"case-lambda\"],[\"l\",\"only\",[\"l\",\"scheme\",\"char\"],\"string-ci=?\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"%make-hash-store\",\"%hash-store-ref\",\"%hash-store-set!\",\"%hash-store-delete!\",\"%hash-store-contains?\",\"%hash-store-size\",\"%hash-store-keys\",\"%hash-store-values\",\"%hash-store-clear!\",\"%hash-store-copy\",\"%hash-store-some-key\"],[\"l\",\"srfi\",128]],[\"l\",\"export\",\"make-hash-table\",\"hash-table\",\"hash-table-unfold\",\"alist->hash-table\",\"hash-table?\",\"hash-table-contains?\",\"hash-table-exists?\",\"hash-table-empty?\",\"hash-table=?\",\"hash-table-mutable?\",\"hash-table-ref\",\"hash-table-ref/default\",\"hash-table-set!\",\"hash-table-delete!\",\"hash-table-intern!\",\"hash-table-update!\",\"hash-table-update!/default\",\"hash-table-pop!\",\"hash-table-clear!\",\"hash-table-size\",\"hash-table-keys\",\"hash-table-values\",\"hash-table-entries\",\"hash-table-find\",\"hash-table-count\",\"hash-table-map\",\"hash-table-for-each\",\"hash-table-walk\",\"hash-table-map!\",\"hash-table-map->list\",\"hash-table-fold\",\"hash-table-prune!\",\"hash-table-copy\",\"hash-table-empty-copy\",\"hash-table->alist\",\"hash-table-union!\",\"hash-table-merge!\",\"hash-table-intersection!\",\"hash-table-difference!\",\"hash-table-xor!\",\"hash\",\"string-hash\",\"string-ci-hash\",\"hash-by-identity\",\"hash-table-equivalence-function\",\"hash-table-hash-function\"],[\"l\",\"include\",[\"s\",\"hash_table.scm\"]]]",
     procedures: {
@@ -82806,7 +82806,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"hash_table.scm","line":168,"column":1,"endLine":180,"endColumn":43},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "table-kind")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%hash-store-set!")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "table-store")).v;
@@ -82913,7 +82913,7 @@ export const LIBRARIES = {
               $t34 = $t33 === undefined ? ($t32[$PRIM] === true ? $t32(s_ht_$1692) : $foreign($t32, [s_ht_$1692])) : $t33(s_ht_$1692);
               while ($t34 instanceof $TailCall) { $stack.room = $d; $t34 = $step($t34); }
               if ($t34 === $UNWIND) { R.reify($proc$r, 14, { $t31, s_ht_$1692 }); return $UNWIND; }
-              $t35 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof $t34 === 'number' && typeof 1 === 'number') ? ($add($t34, 1)) : R.callBinding((C9.v ?? G9()), [$t34, 1]);
+              $t35 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof $t34 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t34 + 1)) || (Number.isSafeInteger(($t34 + 1)) && Number.isInteger($t34) && Number.isInteger(1)))) ? ($t34 + 1) : $add($t34, 1)) : R.callBinding((C9.v ?? G9()), [$t34, 1]);
               $t36 = $t31;
               if ($d > 0 && ($t37 = $t36?.[$RAW] ?? $t36)?.[$PRIM] === true) { $stack.room = $d; return $t37(s_ht_$1692, $t35); } return $tailCall($t36, [s_ht_$1692, $t35]);
             } else {
@@ -83081,7 +83081,7 @@ export const LIBRARIES = {
                 $pc = 14; continue;
               case 14:
                 $t34 = $r;
-                $t35 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof $t34 === 'number' && typeof 1 === 'number') ? ($add($t34, 1)) : R.callBinding((C9.v ?? G9()), [$t34, 1]);
+                $t35 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof $t34 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t34 + 1)) || (Number.isSafeInteger(($t34 + 1)) && Number.isInteger($t34) && Number.isInteger(1)))) ? ($t34 + 1) : $add($t34, 1)) : R.callBinding((C9.v ?? G9()), [$t34, 1]);
                 $t36 = $t31;
                 return $tailCall($t36, [s_ht_$1692, $t35]);
               case 15:
@@ -83121,7 +83121,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"hash_table.scm","line":189,"column":1,"endLine":204,"endColumn":63},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "table-kind")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%hash-store-delete!")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "table-store")).v;
@@ -83266,7 +83266,7 @@ export const LIBRARIES = {
                 $t47 = $t46 === undefined ? ($t45[$PRIM] === true ? $t45(s_ht_$1701) : $foreign($t45, [s_ht_$1701])) : $t46(s_ht_$1701);
                 while ($t47 instanceof $TailCall) { $stack.room = $d; $t47 = $step($t47); }
                 if ($t47 === $UNWIND) { R.reify($proc$r, 23, { $t44, s_ht_$1701 }); return $UNWIND; }
-                $t48 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof $t47 === 'number' && typeof 1 === 'number') ? ($sub($t47, 1)) : R.callBinding((C11.v ?? G11()), [$t47, 1]);
+                $t48 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof $t47 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t47 - 1)) || (Number.isSafeInteger(($t47 - 1)) && Number.isInteger($t47) && Number.isInteger(1)))) ? ($t47 - 1) : $sub($t47, 1)) : R.callBinding((C11.v ?? G11()), [$t47, 1]);
                 $t49 = $t44;
                 if (typeof $t49 !== 'function') $notProc($t49);
                 $t50 = $t49[$RAW];
@@ -83478,7 +83478,7 @@ export const LIBRARIES = {
                 $pc = 20; continue;
               case 23:
                 $t47 = $r;
-                $t48 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof $t47 === 'number' && typeof 1 === 'number') ? ($sub($t47, 1)) : R.callBinding((C11.v ?? G11()), [$t47, 1]);
+                $t48 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof $t47 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t47 - 1)) || (Number.isSafeInteger(($t47 - 1)) && Number.isInteger($t47) && Number.isInteger(1)))) ? ($t47 - 1) : $sub($t47, 1)) : R.callBinding((C11.v ?? G11()), [$t47, 1]);
                 $t49 = $t44;
                 if (typeof $t49 !== 'function') $notProc($t49);
                 $t50 = $t49[$RAW];
@@ -84743,7 +84743,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"hash_table.scm","line":325,"column":1,"endLine":326,"endColumn":30},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "hash-table-size")).v;
@@ -84759,7 +84759,7 @@ export const LIBRARIES = {
           $t2 = $t1 === undefined ? ($t0[$PRIM] === true ? $t0(s_ht_$1745) : $foreign($t0, [s_ht_$1745])) : $t1(s_ht_$1745);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, {  }); return $UNWIND; }
-          $t3 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t2 === 'number' && typeof 0 === 'number') ? ($t2 === 0) : R.callBinding((C0.v ?? G0()), [$t2, 0]);
+          $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t2 === 'number' && typeof 0 === 'number') ? $t2 === 0 : $numEq($t2, 0)) : R.callBinding((C0.v ?? G0()), [$t2, 0]);
           return $t3;
         } }["hash-table-empty?"];
         const $proc$r = { "hash-table-empty?": function ($pc, $f) {
@@ -84779,7 +84779,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               case 1:
                 $t2 = $r;
-                $t3 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t2 === 'number' && typeof 0 === 'number') ? ($t2 === 0) : R.callBinding((C0.v ?? G0()), [$t2, 0]);
+                $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t2 === 'number' && typeof 0 === 'number') ? $t2 === 0 : $numEq($t2, 0)) : R.callBinding((C0.v ?? G0()), [$t2, 0]);
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -84795,7 +84795,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"hash_table.scm","line":336,"column":1,"endLine":346,"endColumn":45},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "comparator-equality-predicate")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "=")).v;
@@ -84857,7 +84857,7 @@ export const LIBRARIES = {
           $t14 = $t13 === undefined ? ($t12[$PRIM] === true ? $t12(s_ht2_$1748) : $foreign($t12, [s_ht2_$1748])) : $t13(s_ht2_$1748);
           while ($t14 instanceof $TailCall) { $stack.room = $d; $t14 = $step($t14); }
           if ($t14 === $UNWIND) { R.reify($proc$r, 5, { s_same_3f_$1749, $t11, s_ht1_$1747, s_ht2_$1748 }); return $UNWIND; }
-          $t15 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof $t11 === 'number' && typeof $t14 === 'number') ? ($t11 === $t14) : R.callBinding((C2.v ?? G2()), [$t11, $t14]);
+          $t15 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof $t11 === 'number' && typeof $t14 === 'number') ? $t11 === $t14 : $numEq($t11, $t14)) : R.callBinding((C2.v ?? G2()), [$t11, $t14]);
           if ($t15 !== false) {
             $t16 = (C12.v ?? G12());
             if (typeof $t16 !== 'function') $notProc($t16);
@@ -84987,7 +84987,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 5:
                 $t14 = $r;
-                $t15 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof $t11 === 'number' && typeof $t14 === 'number') ? ($t11 === $t14) : R.callBinding((C2.v ?? G2()), [$t11, $t14]);
+                $t15 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof $t11 === 'number' && typeof $t14 === 'number') ? $t11 === $t14 : $numEq($t11, $t14)) : R.callBinding((C2.v ?? G2()), [$t11, $t14]);
                 if ($t15 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 6:
                 $t16 = (C12.v ?? G12());
@@ -85138,7 +85138,7 @@ export const LIBRARIES = {
         rest: "args_$1755",
         constants: [{library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(K[0], "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[1], "cdr")).v;
@@ -85309,7 +85309,7 @@ export const LIBRARIES = {
               $t56 = $t55 === undefined ? ($t54[$PRIM] === true ? $t54(s_args_$1755) : $foreign($t54, [s_args_$1755])) : $t55(s_args_$1755);
               while ($t56 instanceof $TailCall) { $stack.room = $d; $t56 = $step($t56); }
               if ($t56 === $UNWIND) { R.reify($proc$r, 34, { s_args_$1755 }); return $UNWIND; }
-              $t57 = (W13.intact || (C13.v ?? G13()) === P13) && (typeof $t56 === 'number' && typeof 4 === 'number') ? ($t56 === 4) : R.callBinding((C13.v ?? G13()), [$t56, 4]);
+              $t57 = (W13.intact || (C13.v ?? G13()) === P13) ? ((typeof $t56 === 'number' && typeof 4 === 'number') ? $t56 === 4 : $numEq($t56, 4)) : R.callBinding((C13.v ?? G13()), [$t56, 4]);
               if ($t57 !== false) {
                 $t58 = (W4.intact || (C4.v ?? G4()) === P4) && (s_args_$1755 instanceof R.Cons) ? (s_args_$1755.car) : R.callBinding((C4.v ?? G4()), [s_args_$1755]);
                 s_ht_$1763 = $t58;
@@ -85587,7 +85587,7 @@ export const LIBRARIES = {
                 return s_value_$1762;
               case 34:
                 $t56 = $r;
-                $t57 = (W13.intact || (C13.v ?? G13()) === P13) && (typeof $t56 === 'number' && typeof 4 === 'number') ? ($t56 === 4) : R.callBinding((C13.v ?? G13()), [$t56, 4]);
+                $t57 = (W13.intact || (C13.v ?? G13()) === P13) ? ((typeof $t56 === 'number' && typeof 4 === 'number') ? $t56 === 4 : $numEq($t56, 4)) : R.callBinding((C13.v ?? G13()), [$t56, 4]);
                 if ($t57 !== false) { $pc = 35; continue; } $pc = 36; continue;
               case 35:
                 $t58 = (W4.intact || (C4.v ?? G4()) === P4) && (s_args_$1755 instanceof R.Cons) ? (s_args_$1755.car) : R.callBinding((C4.v ?? G4()), [s_args_$1755]);
@@ -86197,7 +86197,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"hash_table.scm","line":430,"column":1,"endLine":435,"endColumn":68},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-mutable")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -86240,7 +86240,7 @@ export const LIBRARIES = {
             while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
             if ($t9 === $UNWIND) { R.reify($proc$r, 5, { s_n_$1784, $t4, s_ht_$1780 }); return $UNWIND; }
             if ($t9 !== false) {
-              $t11 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_n_$1784 === 'number' && typeof 1 === 'number') ? ($add(s_n_$1784, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$1784, 1]);
+              $t11 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_n_$1784 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$1784 + 1)) || (Number.isSafeInteger((s_n_$1784 + 1)) && Number.isInteger(s_n_$1784) && Number.isInteger(1)))) ? (s_n_$1784 + 1) : $add(s_n_$1784, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$1784, 1]);
               $t10 = $t11;
             } else {
               $t10 = s_n_$1784;
@@ -86294,7 +86294,7 @@ export const LIBRARIES = {
                 $t9 = $r;
                 if ($t9 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 6:
-                $t11 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_n_$1784 === 'number' && typeof 1 === 'number') ? ($add(s_n_$1784, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$1784, 1]);
+                $t11 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_n_$1784 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$1784 + 1)) || (Number.isSafeInteger((s_n_$1784 + 1)) && Number.isInteger(s_n_$1784) && Number.isInteger(1)))) ? (s_n_$1784 + 1) : $add(s_n_$1784, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$1784, 1]);
                 $t10 = $t11;
                 $pc = 8; continue;
               case 7:
@@ -86444,7 +86444,7 @@ export const LIBRARIES = {
         rest: "args_$1790",
         constants: [new Cons(intern("ht"), new Cons(intern("key"), new Cons(intern("updater"), new Cons(intern("failure"), new Cons(intern("success"), null))))), new Cons(intern("ht"), new Cons(intern("key"), new Cons(intern("updater"), new Cons(intern("failure"), new Cons(intern("success"), null))))), {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}, {library: ["scheme","case-lambda"]}],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(K[2], "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(K[3], "cdr")).v;
@@ -86639,7 +86639,7 @@ export const LIBRARIES = {
             $t35 = $t34 === undefined ? ($t33[$PRIM] === true ? $t33(s_args_$1790) : $foreign($t33, [s_args_$1790])) : $t34(s_args_$1790);
             while ($t35 instanceof $TailCall) { $stack.room = $d; $t35 = $step($t35); }
             if ($t35 === $UNWIND) { R.reify($proc$r, 19, { s_args_$1790 }); return $UNWIND; }
-            $t36 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof $t35 === 'number' && typeof 4 === 'number') ? ($t35 === 4) : R.callBinding((C11.v ?? G11()), [$t35, 4]);
+            $t36 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof $t35 === 'number' && typeof 4 === 'number') ? $t35 === 4 : $numEq($t35, 4)) : R.callBinding((C11.v ?? G11()), [$t35, 4]);
             if ($t36 !== false) {
               $t37 = (W5.intact || (C5.v ?? G5()) === P5) && (s_args_$1790 instanceof R.Cons) ? (s_args_$1790.car) : R.callBinding((C5.v ?? G5()), [s_args_$1790]);
               s_ht_$1794 = $t37;
@@ -86707,7 +86707,7 @@ export const LIBRARIES = {
               $t64 = $t63 === undefined ? ($t62[$PRIM] === true ? $t62(K[1]) : $foreign($t62, [K[1]])) : $t63(K[1]);
               while ($t64 instanceof $TailCall) { $stack.room = $d; $t64 = $step($t64); }
               if ($t64 === $UNWIND) { R.reify($proc$r, 29, { $t61, s_args_$1790 }); return $UNWIND; }
-              $t65 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof $t61 === 'number' && typeof $t64 === 'number') ? ($t61 === $t64) : R.callBinding((C11.v ?? G11()), [$t61, $t64]);
+              $t65 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof $t61 === 'number' && typeof $t64 === 'number') ? $t61 === $t64 : $numEq($t61, $t64)) : R.callBinding((C11.v ?? G11()), [$t61, $t64]);
               if ($t65 !== false) {
                 $t67 = $mk$fn66();
                 $t68 = (C14.v ?? G14());
@@ -86862,7 +86862,7 @@ export const LIBRARIES = {
                 return $tailCall($t31, [s_ht_$1791, s_key_$1792, $t30]);
               case 19:
                 $t35 = $r;
-                $t36 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof $t35 === 'number' && typeof 4 === 'number') ? ($t35 === 4) : R.callBinding((C11.v ?? G11()), [$t35, 4]);
+                $t36 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof $t35 === 'number' && typeof 4 === 'number') ? $t35 === 4 : $numEq($t35, 4)) : R.callBinding((C11.v ?? G11()), [$t35, 4]);
                 if ($t36 !== false) { $pc = 20; continue; } $pc = 21; continue;
               case 20:
                 $t37 = (W5.intact || (C5.v ?? G5()) === P5) && (s_args_$1790 instanceof R.Cons) ? (s_args_$1790.car) : R.callBinding((C5.v ?? G5()), [s_args_$1790]);
@@ -86963,7 +86963,7 @@ export const LIBRARIES = {
                 $pc = 29; continue;
               case 29:
                 $t64 = $r;
-                $t65 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof $t61 === 'number' && typeof $t64 === 'number') ? ($t61 === $t64) : R.callBinding((C11.v ?? G11()), [$t61, $t64]);
+                $t65 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof $t61 === 'number' && typeof $t64 === 'number') ? $t61 === $t64 : $numEq($t61, $t64)) : R.callBinding((C11.v ?? G11()), [$t61, $t64]);
                 if ($t65 !== false) { $pc = 30; continue; } $pc = 31; continue;
               case 30:
                 $t67 = $mk$fn66();
@@ -88089,7 +88089,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"hash_table.scm","line":586,"column":1,"endLine":591,"endColumn":69},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-table")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "null?")).v;
         const W1 = R.primitiveCell("null?"), P1 = W1.primitive;
@@ -88150,7 +88150,7 @@ export const LIBRARIES = {
             while ($t16 instanceof $TailCall) { $stack.room = $d; $t16 = $step($t16); }
             if ($t16 === $UNWIND) { R.reify($proc$r, 8, { s_n_$1829, $t7, s_pred_$1825 }); return $UNWIND; }
             if ($t16 !== false) {
-              $t18 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_n_$1829 === 'number' && typeof 1 === 'number') ? ($add(s_n_$1829, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$1829, 1]);
+              $t18 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_n_$1829 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$1829 + 1)) || (Number.isSafeInteger((s_n_$1829 + 1)) && Number.isInteger(s_n_$1829) && Number.isInteger(1)))) ? (s_n_$1829 + 1) : $add(s_n_$1829, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$1829, 1]);
               $t17 = $t18;
             } else {
               $t17 = s_n_$1829;
@@ -88235,7 +88235,7 @@ export const LIBRARIES = {
                 $t16 = $r;
                 if ($t16 !== false) { $pc = 9; continue; } $pc = 10; continue;
               case 9:
-                $t18 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_n_$1829 === 'number' && typeof 1 === 'number') ? ($add(s_n_$1829, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$1829, 1]);
+                $t18 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_n_$1829 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$1829 + 1)) || (Number.isSafeInteger((s_n_$1829 + 1)) && Number.isInteger(s_n_$1829) && Number.isInteger(1)))) ? (s_n_$1829 + 1) : $add(s_n_$1829, 1)) : R.callBinding((C5.v ?? G5()), [s_n_$1829, 1]);
                 $t17 = $t18;
                 $pc = 11; continue;
               case 10:
@@ -91082,7 +91082,7 @@ export const LIBRARIES = {
   },
   "srfi.128": {
     fingerprint: "57113b86",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["128.sld","comparator.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"srfi\",128],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"scheme\",\"char\"],[\"l\",\"scheme\",\"complex\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"%hash-bound\",\"%hash-salt\",\"%identity-hash\",\"number-hash\",\"string-hash\",\"string-ci-hash\"]],[\"l\",\"export\",\"comparator?\",\"comparator-ordered?\",\"comparator-hashable?\",\"make-comparator\",\"make-pair-comparator\",\"make-list-comparator\",\"make-vector-comparator\",\"make-eq-comparator\",\"make-eqv-comparator\",\"make-equal-comparator\",\"boolean-hash\",\"char-hash\",\"char-ci-hash\",\"string-hash\",\"string-ci-hash\",\"symbol-hash\",\"number-hash\",\"hash-bound\",\"hash-salt\",\"make-default-comparator\",\"default-hash\",\"comparator-register-default!\",\"comparator-type-test-predicate\",\"comparator-equality-predicate\",\"comparator-ordering-predicate\",\"comparator-hash-function\",\"comparator-test-type\",\"comparator-check-type\",\"comparator-hash\",\"=?\",\"<?\",\">?\",\"<=?\",\">=?\",\"comparator-if<=>\"],[\"l\",\"include\",[\"s\",\"comparator.scm\"]]]",
     procedures: {
@@ -92015,7 +92015,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"comparator.scm","line":194,"column":1,"endLine":195,"endColumn":33},
         make: (R, E, K) => {
-        const $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $mul = R.mulNumbers, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $RAW = R.SCHEME_RAW_CALL, $add = R.add, $mul = R.mul, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "modulo")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "+")).v;
         const W1 = R.primitiveCell("+"), P1 = W1.primitive;
@@ -92027,8 +92027,8 @@ export const LIBRARIES = {
           if (arguments.length !== 2) R.wrongArity("combine", 2, false, arguments.length);
           const $d = $stack.room - 15;
           $t0 = (C0.v ?? G0());
-          $t1 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_h_$1529 === 'number' && typeof 31 === 'number') ? ($mul(s_h_$1529, 31)) : R.callBinding((C2.v ?? G2()), [s_h_$1529, 31]);
-          $t2 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t1 === 'number' && typeof s_x_$1530 === 'number') ? ($add($t1, s_x_$1530)) : R.callBinding((C1.v ?? G1()), [$t1, s_x_$1530]);
+          $t1 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_h_$1529 === 'number' && typeof 31 === 'number' && (!Number.isInteger((s_h_$1529 * 31)) || (Number.isSafeInteger((s_h_$1529 * 31)) && (s_h_$1529 * 31) !== 0 && Number.isInteger(s_h_$1529) && Number.isInteger(31)))) ? (s_h_$1529 * 31) : $mul(s_h_$1529, 31)) : R.callBinding((C2.v ?? G2()), [s_h_$1529, 31]);
+          $t2 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t1 === 'number' && typeof s_x_$1530 === 'number' && (!Number.isInteger(($t1 + s_x_$1530)) || (Number.isSafeInteger(($t1 + s_x_$1530)) && Number.isInteger($t1) && Number.isInteger(s_x_$1530)))) ? ($t1 + s_x_$1530) : $add($t1, s_x_$1530)) : R.callBinding((C1.v ?? G1()), [$t1, s_x_$1530]);
           $t3 = $t0;
           if ($d > 0 && ($t4 = $t3?.[$RAW] ?? $t3)?.[$PRIM] === true) { $stack.room = $d; return $t4($t2, (C3.v ?? G3())); } return $tailCall($t3, [$t2, (C3.v ?? G3())]);
         } }["combine"];
@@ -92038,8 +92038,8 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
-                $t1 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_h_$1529 === 'number' && typeof 31 === 'number') ? ($mul(s_h_$1529, 31)) : R.callBinding((C2.v ?? G2()), [s_h_$1529, 31]);
-                $t2 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t1 === 'number' && typeof s_x_$1530 === 'number') ? ($add($t1, s_x_$1530)) : R.callBinding((C1.v ?? G1()), [$t1, s_x_$1530]);
+                $t1 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_h_$1529 === 'number' && typeof 31 === 'number' && (!Number.isInteger((s_h_$1529 * 31)) || (Number.isSafeInteger((s_h_$1529 * 31)) && (s_h_$1529 * 31) !== 0 && Number.isInteger(s_h_$1529) && Number.isInteger(31)))) ? (s_h_$1529 * 31) : $mul(s_h_$1529, 31)) : R.callBinding((C2.v ?? G2()), [s_h_$1529, 31]);
+                $t2 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t1 === 'number' && typeof s_x_$1530 === 'number' && (!Number.isInteger(($t1 + s_x_$1530)) || (Number.isSafeInteger(($t1 + s_x_$1530)) && Number.isInteger($t1) && Number.isInteger(s_x_$1530)))) ? ($t1 + s_x_$1530) : $add($t1, s_x_$1530)) : R.callBinding((C1.v ?? G1()), [$t1, s_x_$1530]);
                 $t3 = $t0;
                 return $tailCall($t3, [$t2, (C3.v ?? G3())]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -92263,7 +92263,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"comparator.scm","line":238,"column":1,"endLine":242,"endColumn":61},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "+")).v;
@@ -92277,11 +92277,11 @@ export const LIBRARIES = {
           s_i_$1543 = 0;
           s_h_$1544 = s_n_$1540;
           $loop1: for (;;) {
-          $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_i_$1543 === 'number' && typeof s_n_$1540 === 'number') ? (s_i_$1543 === s_n_$1540) : R.callBinding((C0.v ?? G0()), [s_i_$1543, s_n_$1540]);
+          $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_i_$1543 === 'number' && typeof s_n_$1540 === 'number') ? s_i_$1543 === s_n_$1540 : $numEq(s_i_$1543, s_n_$1540)) : R.callBinding((C0.v ?? G0()), [s_i_$1543, s_n_$1540]);
           if ($t0 !== false) {
             return s_h_$1544;
           } else {
-            $t1 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_i_$1543 === 'number' && typeof 1 === 'number') ? ($add(s_i_$1543, 1)) : R.callBinding((C1.v ?? G1()), [s_i_$1543, 1]);
+            $t1 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_i_$1543 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1543 + 1)) || (Number.isSafeInteger((s_i_$1543 + 1)) && Number.isInteger(s_i_$1543) && Number.isInteger(1)))) ? (s_i_$1543 + 1) : $add(s_i_$1543, 1)) : R.callBinding((C1.v ?? G1()), [s_i_$1543, 1]);
             $t2 = (C2.v ?? G2());
             $t3 = s_ref_$1541;
             if (typeof $t3 !== 'function') $notProc($t3);
@@ -92320,12 +92320,12 @@ export const LIBRARIES = {
                 s_h_$1544 = s_n_$1540;
                 $pc = 1; continue;
               case 1:
-                $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_i_$1543 === 'number' && typeof s_n_$1540 === 'number') ? (s_i_$1543 === s_n_$1540) : R.callBinding((C0.v ?? G0()), [s_i_$1543, s_n_$1540]);
+                $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_i_$1543 === 'number' && typeof s_n_$1540 === 'number') ? s_i_$1543 === s_n_$1540 : $numEq(s_i_$1543, s_n_$1540)) : R.callBinding((C0.v ?? G0()), [s_i_$1543, s_n_$1540]);
                 if ($t0 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 return s_h_$1544;
               case 3:
-                $t1 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_i_$1543 === 'number' && typeof 1 === 'number') ? ($add(s_i_$1543, 1)) : R.callBinding((C1.v ?? G1()), [s_i_$1543, 1]);
+                $t1 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_i_$1543 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1543 + 1)) || (Number.isSafeInteger((s_i_$1543 + 1)) && Number.isInteger(s_i_$1543) && Number.isInteger(1)))) ? (s_i_$1543 + 1) : $add(s_i_$1543, 1)) : R.callBinding((C1.v ?? G1()), [s_i_$1543, 1]);
                 $t2 = (C2.v ?? G2());
                 $t3 = s_ref_$1541;
                 if (typeof $t3 !== 'function') $notProc($t3);
@@ -94236,7 +94236,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"comparator.scm","line":356,"column":1,"endLine":386,"endColumn":51},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $lt = R.lt, $gt = R.gt, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "comparator-type-test-predicate")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "comparator-equality-predicate")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "comparator-ordering-predicate")).v;
@@ -94277,7 +94277,7 @@ export const LIBRARIES = {
               s_n_$1605 = $t5;
               s_i_$1607 = 0;
               $loop1: for (;;) {
-              $t6 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$1607 === 'number' && typeof s_n_$1605 === 'number') ? (s_i_$1607 === s_n_$1605) : R.callBinding((C4.v ?? G4()), [s_i_$1607, s_n_$1605]);
+              $t6 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$1607 === 'number' && typeof s_n_$1605 === 'number') ? s_i_$1607 === s_n_$1605 : $numEq(s_i_$1607, s_n_$1605)) : R.callBinding((C4.v ?? G4()), [s_i_$1607, s_n_$1605]);
               s_x_$1608 = $t6;
               if (s_x_$1608 !== false) {
                 return s_x_$1608;
@@ -94297,7 +94297,7 @@ export const LIBRARIES = {
                 while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
                 if ($t12 === $UNWIND) { R.reify($fn10$r, 9, { s_n_$1605, s_i_$1607, s_x_$1604 }); return $UNWIND; }
                 if ($t12 !== false) {
-                  $t13 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$1607 === 'number' && typeof 1 === 'number') ? ($add(s_i_$1607, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$1607, 1]);
+                  $t13 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$1607 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1607 + 1)) || (Number.isSafeInteger((s_i_$1607 + 1)) && Number.isInteger(s_i_$1607) && Number.isInteger(1)))) ? (s_i_$1607 + 1) : $add(s_i_$1607, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$1607, 1]);
                   s_i_$1607 = $t13;
                   continue $loop1;
                 } else {
@@ -94346,7 +94346,7 @@ export const LIBRARIES = {
                   s_i_$1607 = 0;
                   $pc = 5; continue;
                 case 5:
-                  $t6 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$1607 === 'number' && typeof s_n_$1605 === 'number') ? (s_i_$1607 === s_n_$1605) : R.callBinding((C4.v ?? G4()), [s_i_$1607, s_n_$1605]);
+                  $t6 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$1607 === 'number' && typeof s_n_$1605 === 'number') ? s_i_$1607 === s_n_$1605 : $numEq(s_i_$1607, s_n_$1605)) : R.callBinding((C4.v ?? G4()), [s_i_$1607, s_n_$1605]);
                   s_x_$1608 = $t6;
                   if (s_x_$1608 !== false) { $pc = 6; continue; } $pc = 7; continue;
                 case 6:
@@ -94376,7 +94376,7 @@ export const LIBRARIES = {
                   $t12 = $r;
                   if ($t12 !== false) { $pc = 10; continue; } $pc = 11; continue;
                 case 10:
-                  $t13 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$1607 === 'number' && typeof 1 === 'number') ? ($add(s_i_$1607, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$1607, 1]);
+                  $t13 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$1607 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1607 + 1)) || (Number.isSafeInteger((s_i_$1607 + 1)) && Number.isInteger(s_i_$1607) && Number.isInteger(1)))) ? (s_i_$1607 + 1) : $add(s_i_$1607, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$1607, 1]);
                   s_i_$1607 = $t13;
                   $pc = 5; continue;
                 case 11:
@@ -94408,11 +94408,11 @@ export const LIBRARIES = {
             $t5 = $t4 === undefined ? ($t3[$PRIM] === true ? $t3(s_b_$1610) : $foreign($t3, [s_b_$1610])) : $t4(s_b_$1610);
             while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
             if ($t5 === $UNWIND) { R.reify($fn12$r, 2, { s_n_$1611, s_a_$1609, s_b_$1610 }); return $UNWIND; }
-            $t6 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_n_$1611 === 'number' && typeof $t5 === 'number') ? (s_n_$1611 === $t5) : R.callBinding((C4.v ?? G4()), [s_n_$1611, $t5]);
+            $t6 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_n_$1611 === 'number' && typeof $t5 === 'number') ? s_n_$1611 === $t5 : $numEq(s_n_$1611, $t5)) : R.callBinding((C4.v ?? G4()), [s_n_$1611, $t5]);
             if ($t6 !== false) {
               s_i_$1613 = 0;
               $loop1: for (;;) {
-              $t7 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$1613 === 'number' && typeof s_n_$1611 === 'number') ? (s_i_$1613 === s_n_$1611) : R.callBinding((C4.v ?? G4()), [s_i_$1613, s_n_$1611]);
+              $t7 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$1613 === 'number' && typeof s_n_$1611 === 'number') ? s_i_$1613 === s_n_$1611 : $numEq(s_i_$1613, s_n_$1611)) : R.callBinding((C4.v ?? G4()), [s_i_$1613, s_n_$1611]);
               s_x_$1614 = $t7;
               if (s_x_$1614 !== false) {
                 return s_x_$1614;
@@ -94439,7 +94439,7 @@ export const LIBRARIES = {
                 while ($t16 instanceof $TailCall) { $stack.room = $d; $t16 = $step($t16); }
                 if ($t16 === $UNWIND) { R.reify($fn12$r, 10, { s_n_$1611, s_i_$1613, s_a_$1609, s_b_$1610 }); return $UNWIND; }
                 if ($t16 !== false) {
-                  $t17 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$1613 === 'number' && typeof 1 === 'number') ? ($add(s_i_$1613, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$1613, 1]);
+                  $t17 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$1613 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1613 + 1)) || (Number.isSafeInteger((s_i_$1613 + 1)) && Number.isInteger(s_i_$1613) && Number.isInteger(1)))) ? (s_i_$1613 + 1) : $add(s_i_$1613, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$1613, 1]);
                   s_i_$1613 = $t17;
                   continue $loop1;
                 } else {
@@ -94481,7 +94481,7 @@ export const LIBRARIES = {
                   $pc = 2; continue;
                 case 2:
                   $t5 = $r;
-                  $t6 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_n_$1611 === 'number' && typeof $t5 === 'number') ? (s_n_$1611 === $t5) : R.callBinding((C4.v ?? G4()), [s_n_$1611, $t5]);
+                  $t6 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_n_$1611 === 'number' && typeof $t5 === 'number') ? s_n_$1611 === $t5 : $numEq(s_n_$1611, $t5)) : R.callBinding((C4.v ?? G4()), [s_n_$1611, $t5]);
                   if ($t6 !== false) { $pc = 3; continue; } $pc = 4; continue;
                 case 3:
                   s_i_$1613 = 0;
@@ -94489,7 +94489,7 @@ export const LIBRARIES = {
                 case 4:
                   return false;
                 case 5:
-                  $t7 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$1613 === 'number' && typeof s_n_$1611 === 'number') ? (s_i_$1613 === s_n_$1611) : R.callBinding((C4.v ?? G4()), [s_i_$1613, s_n_$1611]);
+                  $t7 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$1613 === 'number' && typeof s_n_$1611 === 'number') ? s_i_$1613 === s_n_$1611 : $numEq(s_i_$1613, s_n_$1611)) : R.callBinding((C4.v ?? G4()), [s_i_$1613, s_n_$1611]);
                   s_x_$1614 = $t7;
                   if (s_x_$1614 !== false) { $pc = 6; continue; } $pc = 7; continue;
                 case 6:
@@ -94530,7 +94530,7 @@ export const LIBRARIES = {
                   $t16 = $r;
                   if ($t16 !== false) { $pc = 11; continue; } $pc = 12; continue;
                 case 11:
-                  $t17 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$1613 === 'number' && typeof 1 === 'number') ? ($add(s_i_$1613, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$1613, 1]);
+                  $t17 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$1613 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1613 + 1)) || (Number.isSafeInteger((s_i_$1613 + 1)) && Number.isInteger(s_i_$1613) && Number.isInteger(1)))) ? (s_i_$1613 + 1) : $add(s_i_$1613, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$1613, 1]);
                   s_i_$1613 = $t17;
                   $pc = 5; continue;
                 case 12:
@@ -94563,17 +94563,17 @@ export const LIBRARIES = {
             while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
             if ($t5 === $UNWIND) { R.reify($fn14$r, 2, { s_na_$1617, s_a_$1615, s_b_$1616 }); return $UNWIND; }
             s_nb_$1618 = $t5;
-            $t6 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_na_$1617 === 'number' && typeof s_nb_$1618 === 'number') ? (s_na_$1617 < s_nb_$1618) : R.callBinding((C6.v ?? G6()), [s_na_$1617, s_nb_$1618]);
+            $t6 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_na_$1617 === 'number' && typeof s_nb_$1618 === 'number') ? s_na_$1617 < s_nb_$1618 : $lt(s_na_$1617, s_nb_$1618)) : R.callBinding((C6.v ?? G6()), [s_na_$1617, s_nb_$1618]);
             if ($t6 !== false) {
               return true;
             } else {
-              $t7 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_na_$1617 === 'number' && typeof s_nb_$1618 === 'number') ? (s_na_$1617 > s_nb_$1618) : R.callBinding((C7.v ?? G7()), [s_na_$1617, s_nb_$1618]);
+              $t7 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_na_$1617 === 'number' && typeof s_nb_$1618 === 'number') ? s_na_$1617 > s_nb_$1618 : $gt(s_na_$1617, s_nb_$1618)) : R.callBinding((C7.v ?? G7()), [s_na_$1617, s_nb_$1618]);
               if ($t7 !== false) {
                 return false;
               } else {
                 s_i_$1620 = 0;
                 $loop1: for (;;) {
-                $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$1620 === 'number' && typeof s_na_$1617 === 'number') ? (s_i_$1620 === s_na_$1617) : R.callBinding((C4.v ?? G4()), [s_i_$1620, s_na_$1617]);
+                $t8 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$1620 === 'number' && typeof s_na_$1617 === 'number') ? s_i_$1620 === s_na_$1617 : $numEq(s_i_$1620, s_na_$1617)) : R.callBinding((C4.v ?? G4()), [s_i_$1620, s_na_$1617]);
                 if ($t8 !== false) {
                   return false;
                 } else {
@@ -94599,7 +94599,7 @@ export const LIBRARIES = {
                   while ($t17 instanceof $TailCall) { $stack.room = $d; $t17 = $step($t17); }
                   if ($t17 === $UNWIND) { R.reify($fn14$r, 12, { s_na_$1617, s_i_$1620, s_a_$1615, s_b_$1616 }); return $UNWIND; }
                   if ($t17 !== false) {
-                    $t18 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$1620 === 'number' && typeof 1 === 'number') ? ($add(s_i_$1620, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$1620, 1]);
+                    $t18 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$1620 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1620 + 1)) || (Number.isSafeInteger((s_i_$1620 + 1)) && Number.isInteger(s_i_$1620) && Number.isInteger(1)))) ? (s_i_$1620 + 1) : $add(s_i_$1620, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$1620, 1]);
                     s_i_$1620 = $t18;
                     continue $loop1;
                   } else {
@@ -94656,12 +94656,12 @@ export const LIBRARIES = {
                 case 2:
                   $t5 = $r;
                   s_nb_$1618 = $t5;
-                  $t6 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_na_$1617 === 'number' && typeof s_nb_$1618 === 'number') ? (s_na_$1617 < s_nb_$1618) : R.callBinding((C6.v ?? G6()), [s_na_$1617, s_nb_$1618]);
+                  $t6 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_na_$1617 === 'number' && typeof s_nb_$1618 === 'number') ? s_na_$1617 < s_nb_$1618 : $lt(s_na_$1617, s_nb_$1618)) : R.callBinding((C6.v ?? G6()), [s_na_$1617, s_nb_$1618]);
                   if ($t6 !== false) { $pc = 3; continue; } $pc = 4; continue;
                 case 3:
                   return true;
                 case 4:
-                  $t7 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_na_$1617 === 'number' && typeof s_nb_$1618 === 'number') ? (s_na_$1617 > s_nb_$1618) : R.callBinding((C7.v ?? G7()), [s_na_$1617, s_nb_$1618]);
+                  $t7 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_na_$1617 === 'number' && typeof s_nb_$1618 === 'number') ? s_na_$1617 > s_nb_$1618 : $gt(s_na_$1617, s_nb_$1618)) : R.callBinding((C7.v ?? G7()), [s_na_$1617, s_nb_$1618]);
                   if ($t7 !== false) { $pc = 5; continue; } $pc = 6; continue;
                 case 5:
                   return false;
@@ -94669,7 +94669,7 @@ export const LIBRARIES = {
                   s_i_$1620 = 0;
                   $pc = 7; continue;
                 case 7:
-                  $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$1620 === 'number' && typeof s_na_$1617 === 'number') ? (s_i_$1620 === s_na_$1617) : R.callBinding((C4.v ?? G4()), [s_i_$1620, s_na_$1617]);
+                  $t8 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$1620 === 'number' && typeof s_na_$1617 === 'number') ? s_i_$1620 === s_na_$1617 : $numEq(s_i_$1620, s_na_$1617)) : R.callBinding((C4.v ?? G4()), [s_i_$1620, s_na_$1617]);
                   if ($t8 !== false) { $pc = 8; continue; } $pc = 9; continue;
                 case 8:
                   return false;
@@ -94709,7 +94709,7 @@ export const LIBRARIES = {
                   $t17 = $r;
                   if ($t17 !== false) { $pc = 13; continue; } $pc = 14; continue;
                 case 13:
-                  $t18 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$1620 === 'number' && typeof 1 === 'number') ? ($add(s_i_$1620, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$1620, 1]);
+                  $t18 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$1620 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1620 + 1)) || (Number.isSafeInteger((s_i_$1620 + 1)) && Number.isInteger(s_i_$1620) && Number.isInteger(1)))) ? (s_i_$1620 + 1) : $add(s_i_$1620, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$1620, 1]);
                   s_i_$1620 = $t18;
                   $pc = 7; continue;
                 case 14:
@@ -95129,7 +95129,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"comparator.scm","line":423,"column":1,"endLine":437,"endColumn":56},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
@@ -95252,7 +95252,7 @@ export const LIBRARIES = {
                                 return s_rank_$1631;
                               } else {
                                 $t29 = (W11.intact || (C11.v ?? G11()) === P11) && (s_cs_$1630 instanceof R.Cons) ? (s_cs_$1630.cdr) : R.callBinding((C11.v ?? G11()), [s_cs_$1630]);
-                                $t30 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_rank_$1631 === 'number' && typeof 1 === 'number') ? ($add(s_rank_$1631, 1)) : R.callBinding((C12.v ?? G12()), [s_rank_$1631, 1]);
+                                $t30 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_rank_$1631 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_rank_$1631 + 1)) || (Number.isSafeInteger((s_rank_$1631 + 1)) && Number.isInteger(s_rank_$1631) && Number.isInteger(1)))) ? (s_rank_$1631 + 1) : $add(s_rank_$1631, 1)) : R.callBinding((C12.v ?? G12()), [s_rank_$1631, 1]);
                                 s_cs_$1630 = $t29;
                                 s_rank_$1631 = $t30;
                                 continue $loop1;
@@ -95417,7 +95417,7 @@ export const LIBRARIES = {
                 return s_rank_$1631;
               case 31:
                 $t29 = (W11.intact || (C11.v ?? G11()) === P11) && (s_cs_$1630 instanceof R.Cons) ? (s_cs_$1630.cdr) : R.callBinding((C11.v ?? G11()), [s_cs_$1630]);
-                $t30 = (W12.intact || (C12.v ?? G12()) === P12) && (typeof s_rank_$1631 === 'number' && typeof 1 === 'number') ? ($add(s_rank_$1631, 1)) : R.callBinding((C12.v ?? G12()), [s_rank_$1631, 1]);
+                $t30 = (W12.intact || (C12.v ?? G12()) === P12) ? ((typeof s_rank_$1631 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_rank_$1631 + 1)) || (Number.isSafeInteger((s_rank_$1631 + 1)) && Number.isInteger(s_rank_$1631) && Number.isInteger(1)))) ? (s_rank_$1631 + 1) : $add(s_rank_$1631, 1)) : R.callBinding((C12.v ?? G12()), [s_rank_$1631, 1]);
                 s_cs_$1630 = $t29;
                 s_rank_$1631 = $t30;
                 $pc = 26; continue;
@@ -95435,7 +95435,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"comparator.scm","line":446,"column":1,"endLine":453,"endColumn":73},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $gt = R.gt, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "real?")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "<")).v;
         const W1 = R.primitiveCell("<"), P1 = W1.primitive;
@@ -95470,11 +95470,11 @@ export const LIBRARIES = {
             $t3 = false;
           }
           if ($t3 !== false) {
-            $t7 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_a_$1632 === 'number' && typeof s_b_$1633 === 'number') ? (s_a_$1632 < s_b_$1633) : R.callBinding((C1.v ?? G1()), [s_a_$1632, s_b_$1633]);
+            $t7 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_a_$1632 === 'number' && typeof s_b_$1633 === 'number') ? s_a_$1632 < s_b_$1633 : $lt(s_a_$1632, s_b_$1633)) : R.callBinding((C1.v ?? G1()), [s_a_$1632, s_b_$1633]);
             if ($t7 !== false) {
               return -1;
             } else {
-              $t8 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_a_$1632 === 'number' && typeof s_b_$1633 === 'number') ? (s_a_$1632 === s_b_$1633) : R.callBinding((C2.v ?? G2()), [s_a_$1632, s_b_$1633]);
+              $t8 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_a_$1632 === 'number' && typeof s_b_$1633 === 'number') ? s_a_$1632 === s_b_$1633 : $numEq(s_a_$1632, s_b_$1633)) : R.callBinding((C2.v ?? G2()), [s_a_$1632, s_b_$1633]);
               if ($t8 !== false) {
                 return 0;
               } else {
@@ -95498,11 +95498,11 @@ export const LIBRARIES = {
             while ($t14 instanceof $TailCall) { $stack.room = $d; $t14 = $step($t14); }
             if ($t14 === $UNWIND) { R.reify($proc$r, 13, { s_ra_$1634, s_a_$1632, s_b_$1633 }); return $UNWIND; }
             s_rb_$1635 = $t14;
-            $t15 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_ra_$1634 === 'number' && typeof s_rb_$1635 === 'number') ? (s_ra_$1634 < s_rb_$1635) : R.callBinding((C1.v ?? G1()), [s_ra_$1634, s_rb_$1635]);
+            $t15 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_ra_$1634 === 'number' && typeof s_rb_$1635 === 'number') ? s_ra_$1634 < s_rb_$1635 : $lt(s_ra_$1634, s_rb_$1635)) : R.callBinding((C1.v ?? G1()), [s_ra_$1634, s_rb_$1635]);
             if ($t15 !== false) {
               return -1;
             } else {
-              $t16 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_ra_$1634 === 'number' && typeof s_rb_$1635 === 'number') ? (s_ra_$1634 > s_rb_$1635) : R.callBinding((C4.v ?? G4()), [s_ra_$1634, s_rb_$1635]);
+              $t16 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_ra_$1634 === 'number' && typeof s_rb_$1635 === 'number') ? s_ra_$1634 > s_rb_$1635 : $gt(s_ra_$1634, s_rb_$1635)) : R.callBinding((C4.v ?? G4()), [s_ra_$1634, s_rb_$1635]);
               if ($t16 !== false) {
                 return 1;
               } else {
@@ -95522,11 +95522,11 @@ export const LIBRARIES = {
                 while ($t22 instanceof $TailCall) { $stack.room = $d; $t22 = $step($t22); }
                 if ($t22 === $UNWIND) { R.reify($proc$r, 19, { s_ia_$1636 }); return $UNWIND; }
                 s_ib_$1637 = $t22;
-                $t23 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_ia_$1636 === 'number' && typeof s_ib_$1637 === 'number') ? (s_ia_$1636 < s_ib_$1637) : R.callBinding((C1.v ?? G1()), [s_ia_$1636, s_ib_$1637]);
+                $t23 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_ia_$1636 === 'number' && typeof s_ib_$1637 === 'number') ? s_ia_$1636 < s_ib_$1637 : $lt(s_ia_$1636, s_ib_$1637)) : R.callBinding((C1.v ?? G1()), [s_ia_$1636, s_ib_$1637]);
                 if ($t23 !== false) {
                   return -1;
                 } else {
-                  $t24 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_ia_$1636 === 'number' && typeof s_ib_$1637 === 'number') ? (s_ia_$1636 === s_ib_$1637) : R.callBinding((C2.v ?? G2()), [s_ia_$1636, s_ib_$1637]);
+                  $t24 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_ia_$1636 === 'number' && typeof s_ib_$1637 === 'number') ? s_ia_$1636 === s_ib_$1637 : $numEq(s_ia_$1636, s_ib_$1637)) : R.callBinding((C2.v ?? G2()), [s_ia_$1636, s_ib_$1637]);
                   if ($t24 !== false) {
                     return 0;
                   } else {
@@ -95575,7 +95575,7 @@ export const LIBRARIES = {
                 $t3 = $t6;
                 $pc = 4; continue;
               case 6:
-                $t7 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_a_$1632 === 'number' && typeof s_b_$1633 === 'number') ? (s_a_$1632 < s_b_$1633) : R.callBinding((C1.v ?? G1()), [s_a_$1632, s_b_$1633]);
+                $t7 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_a_$1632 === 'number' && typeof s_b_$1633 === 'number') ? s_a_$1632 < s_b_$1633 : $lt(s_a_$1632, s_b_$1633)) : R.callBinding((C1.v ?? G1()), [s_a_$1632, s_b_$1633]);
                 if ($t7 !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 7:
                 $t9 = (C3.v ?? G3());
@@ -95590,7 +95590,7 @@ export const LIBRARIES = {
               case 8:
                 return -1;
               case 9:
-                $t8 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_a_$1632 === 'number' && typeof s_b_$1633 === 'number') ? (s_a_$1632 === s_b_$1633) : R.callBinding((C2.v ?? G2()), [s_a_$1632, s_b_$1633]);
+                $t8 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_a_$1632 === 'number' && typeof s_b_$1633 === 'number') ? s_a_$1632 === s_b_$1633 : $numEq(s_a_$1632, s_b_$1633)) : R.callBinding((C2.v ?? G2()), [s_a_$1632, s_b_$1633]);
                 if ($t8 !== false) { $pc = 10; continue; } $pc = 11; continue;
               case 10:
                 return 0;
@@ -95611,12 +95611,12 @@ export const LIBRARIES = {
               case 13:
                 $t14 = $r;
                 s_rb_$1635 = $t14;
-                $t15 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_ra_$1634 === 'number' && typeof s_rb_$1635 === 'number') ? (s_ra_$1634 < s_rb_$1635) : R.callBinding((C1.v ?? G1()), [s_ra_$1634, s_rb_$1635]);
+                $t15 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_ra_$1634 === 'number' && typeof s_rb_$1635 === 'number') ? s_ra_$1634 < s_rb_$1635 : $lt(s_ra_$1634, s_rb_$1635)) : R.callBinding((C1.v ?? G1()), [s_ra_$1634, s_rb_$1635]);
                 if ($t15 !== false) { $pc = 14; continue; } $pc = 15; continue;
               case 14:
                 return -1;
               case 15:
-                $t16 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_ra_$1634 === 'number' && typeof s_rb_$1635 === 'number') ? (s_ra_$1634 > s_rb_$1635) : R.callBinding((C4.v ?? G4()), [s_ra_$1634, s_rb_$1635]);
+                $t16 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_ra_$1634 === 'number' && typeof s_rb_$1635 === 'number') ? s_ra_$1634 > s_rb_$1635 : $gt(s_ra_$1634, s_rb_$1635)) : R.callBinding((C4.v ?? G4()), [s_ra_$1634, s_rb_$1635]);
                 if ($t16 !== false) { $pc = 16; continue; } $pc = 17; continue;
               case 16:
                 return 1;
@@ -95645,12 +95645,12 @@ export const LIBRARIES = {
               case 19:
                 $t22 = $r;
                 s_ib_$1637 = $t22;
-                $t23 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_ia_$1636 === 'number' && typeof s_ib_$1637 === 'number') ? (s_ia_$1636 < s_ib_$1637) : R.callBinding((C1.v ?? G1()), [s_ia_$1636, s_ib_$1637]);
+                $t23 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_ia_$1636 === 'number' && typeof s_ib_$1637 === 'number') ? s_ia_$1636 < s_ib_$1637 : $lt(s_ia_$1636, s_ib_$1637)) : R.callBinding((C1.v ?? G1()), [s_ia_$1636, s_ib_$1637]);
                 if ($t23 !== false) { $pc = 20; continue; } $pc = 21; continue;
               case 20:
                 return -1;
               case 21:
-                $t24 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_ia_$1636 === 'number' && typeof s_ib_$1637 === 'number') ? (s_ia_$1636 === s_ib_$1637) : R.callBinding((C2.v ?? G2()), [s_ia_$1636, s_ib_$1637]);
+                $t24 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_ia_$1636 === 'number' && typeof s_ib_$1637 === 'number') ? s_ia_$1636 === s_ib_$1637 : $numEq(s_ia_$1636, s_ib_$1637)) : R.callBinding((C2.v ?? G2()), [s_ia_$1636, s_ib_$1637]);
                 if ($t24 !== false) { $pc = 22; continue; } $pc = 23; continue;
               case 22:
                 return 0;
@@ -95670,7 +95670,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"comparator.scm","line":459,"column":1,"endLine":468,"endColumn":56},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $lt = R.lt, $gt = R.gt, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "<")).v;
         const W0 = R.primitiveCell("<"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, ">")).v;
@@ -95700,17 +95700,17 @@ export const LIBRARIES = {
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_na_$1643, s_a_$1638, s_b_$1639, s_ref_$1641, s_compare_$1642 }); return $UNWIND; }
           s_nb_$1644 = $t5;
-          $t6 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_na_$1643 === 'number' && typeof s_nb_$1644 === 'number') ? (s_na_$1643 < s_nb_$1644) : R.callBinding((C0.v ?? G0()), [s_na_$1643, s_nb_$1644]);
+          $t6 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_na_$1643 === 'number' && typeof s_nb_$1644 === 'number') ? s_na_$1643 < s_nb_$1644 : $lt(s_na_$1643, s_nb_$1644)) : R.callBinding((C0.v ?? G0()), [s_na_$1643, s_nb_$1644]);
           if ($t6 !== false) {
             return -1;
           } else {
-            $t7 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_na_$1643 === 'number' && typeof s_nb_$1644 === 'number') ? (s_na_$1643 > s_nb_$1644) : R.callBinding((C1.v ?? G1()), [s_na_$1643, s_nb_$1644]);
+            $t7 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_na_$1643 === 'number' && typeof s_nb_$1644 === 'number') ? s_na_$1643 > s_nb_$1644 : $gt(s_na_$1643, s_nb_$1644)) : R.callBinding((C1.v ?? G1()), [s_na_$1643, s_nb_$1644]);
             if ($t7 !== false) {
               return 1;
             } else {
               s_i_$1646 = 0;
               $loop1: for (;;) {
-              $t8 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_i_$1646 === 'number' && typeof s_na_$1643 === 'number') ? (s_i_$1646 === s_na_$1643) : R.callBinding((C2.v ?? G2()), [s_i_$1646, s_na_$1643]);
+              $t8 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_i_$1646 === 'number' && typeof s_na_$1643 === 'number') ? s_i_$1646 === s_na_$1643 : $numEq(s_i_$1646, s_na_$1643)) : R.callBinding((C2.v ?? G2()), [s_i_$1646, s_na_$1643]);
               if ($t8 !== false) {
                 return 0;
               } else {
@@ -95736,9 +95736,9 @@ export const LIBRARIES = {
                 while ($t17 instanceof $TailCall) { $stack.room = $d; $t17 = $step($t17); }
                 if ($t17 === $UNWIND) { R.reify($proc$r, 12, { s_na_$1643, s_i_$1646, s_a_$1638, s_b_$1639, s_ref_$1641, s_compare_$1642 }); return $UNWIND; }
                 s_c_$1647 = $t17;
-                $t18 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_c_$1647 === 'number' && typeof 0 === 'number') ? (s_c_$1647 === 0) : R.callBinding((C2.v ?? G2()), [s_c_$1647, 0]);
+                $t18 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_c_$1647 === 'number' && typeof 0 === 'number') ? s_c_$1647 === 0 : $numEq(s_c_$1647, 0)) : R.callBinding((C2.v ?? G2()), [s_c_$1647, 0]);
                 if ($t18 !== false) {
-                  $t19 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$1646 === 'number' && typeof 1 === 'number') ? ($add(s_i_$1646, 1)) : R.callBinding((C3.v ?? G3()), [s_i_$1646, 1]);
+                  $t19 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$1646 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1646 + 1)) || (Number.isSafeInteger((s_i_$1646 + 1)) && Number.isInteger(s_i_$1646) && Number.isInteger(1)))) ? (s_i_$1646 + 1) : $add(s_i_$1646, 1)) : R.callBinding((C3.v ?? G3()), [s_i_$1646, 1]);
                   s_i_$1646 = $t19;
                   continue $loop1;
                 } else {
@@ -95779,12 +95779,12 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 s_nb_$1644 = $t5;
-                $t6 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_na_$1643 === 'number' && typeof s_nb_$1644 === 'number') ? (s_na_$1643 < s_nb_$1644) : R.callBinding((C0.v ?? G0()), [s_na_$1643, s_nb_$1644]);
+                $t6 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_na_$1643 === 'number' && typeof s_nb_$1644 === 'number') ? s_na_$1643 < s_nb_$1644 : $lt(s_na_$1643, s_nb_$1644)) : R.callBinding((C0.v ?? G0()), [s_na_$1643, s_nb_$1644]);
                 if ($t6 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 return -1;
               case 4:
-                $t7 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_na_$1643 === 'number' && typeof s_nb_$1644 === 'number') ? (s_na_$1643 > s_nb_$1644) : R.callBinding((C1.v ?? G1()), [s_na_$1643, s_nb_$1644]);
+                $t7 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_na_$1643 === 'number' && typeof s_nb_$1644 === 'number') ? s_na_$1643 > s_nb_$1644 : $gt(s_na_$1643, s_nb_$1644)) : R.callBinding((C1.v ?? G1()), [s_na_$1643, s_nb_$1644]);
                 if ($t7 !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 5:
                 return 1;
@@ -95792,7 +95792,7 @@ export const LIBRARIES = {
                 s_i_$1646 = 0;
                 $pc = 7; continue;
               case 7:
-                $t8 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_i_$1646 === 'number' && typeof s_na_$1643 === 'number') ? (s_i_$1646 === s_na_$1643) : R.callBinding((C2.v ?? G2()), [s_i_$1646, s_na_$1643]);
+                $t8 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_i_$1646 === 'number' && typeof s_na_$1643 === 'number') ? s_i_$1646 === s_na_$1643 : $numEq(s_i_$1646, s_na_$1643)) : R.callBinding((C2.v ?? G2()), [s_i_$1646, s_na_$1643]);
                 if ($t8 !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 8:
                 return 0;
@@ -95831,10 +95831,10 @@ export const LIBRARIES = {
               case 12:
                 $t17 = $r;
                 s_c_$1647 = $t17;
-                $t18 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_c_$1647 === 'number' && typeof 0 === 'number') ? (s_c_$1647 === 0) : R.callBinding((C2.v ?? G2()), [s_c_$1647, 0]);
+                $t18 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_c_$1647 === 'number' && typeof 0 === 'number') ? s_c_$1647 === 0 : $numEq(s_c_$1647, 0)) : R.callBinding((C2.v ?? G2()), [s_c_$1647, 0]);
                 if ($t18 !== false) { $pc = 13; continue; } $pc = 14; continue;
               case 13:
-                $t19 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$1646 === 'number' && typeof 1 === 'number') ? ($add(s_i_$1646, 1)) : R.callBinding((C3.v ?? G3()), [s_i_$1646, 1]);
+                $t19 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$1646 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$1646 + 1)) || (Number.isSafeInteger((s_i_$1646 + 1)) && Number.isInteger(s_i_$1646) && Number.isInteger(1)))) ? (s_i_$1646 + 1) : $add(s_i_$1646, 1)) : R.callBinding((C3.v ?? G3()), [s_i_$1646, 1]);
                 s_i_$1646 = $t19;
                 $pc = 7; continue;
               case 14:
@@ -95853,7 +95853,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"comparator.scm","line":480,"column":1,"endLine":505,"endColumn":81},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $gt = R.gt, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "type-rank")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "<")).v;
         const W1 = R.primitiveCell("<"), P1 = W1.primitive;
@@ -95902,11 +95902,11 @@ export const LIBRARIES = {
           const $fn72 = { "anonymous": function (s_x_$1655, s_y_$1656) {
             let $t0, $t1;
             if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
-            $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_x_$1655 === 'number' && typeof s_y_$1656 === 'number') ? (s_x_$1655 < s_y_$1656) : R.callBinding((C1.v ?? G1()), [s_x_$1655, s_y_$1656]);
+            $t0 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_x_$1655 === 'number' && typeof s_y_$1656 === 'number') ? s_x_$1655 < s_y_$1656 : $lt(s_x_$1655, s_y_$1656)) : R.callBinding((C1.v ?? G1()), [s_x_$1655, s_y_$1656]);
             if ($t0 !== false) {
               return -1;
             } else {
-              $t1 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_x_$1655 === 'number' && typeof s_y_$1656 === 'number') ? (s_x_$1655 === s_y_$1656) : R.callBinding((C6.v ?? G6()), [s_x_$1655, s_y_$1656]);
+              $t1 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_x_$1655 === 'number' && typeof s_y_$1656 === 'number') ? s_x_$1655 === s_y_$1656 : $numEq(s_x_$1655, s_y_$1656)) : R.callBinding((C6.v ?? G6()), [s_x_$1655, s_y_$1656]);
               if ($t1 !== false) {
                 return 0;
               } else {
@@ -95920,12 +95920,12 @@ export const LIBRARIES = {
             ({ $t0, $t1, s_x_$1655, s_y_$1656, $r } = $f);
             for (;;) switch ($pc) {
                 case 0:
-                  $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_x_$1655 === 'number' && typeof s_y_$1656 === 'number') ? (s_x_$1655 < s_y_$1656) : R.callBinding((C1.v ?? G1()), [s_x_$1655, s_y_$1656]);
+                  $t0 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_x_$1655 === 'number' && typeof s_y_$1656 === 'number') ? s_x_$1655 < s_y_$1656 : $lt(s_x_$1655, s_y_$1656)) : R.callBinding((C1.v ?? G1()), [s_x_$1655, s_y_$1656]);
                   if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
                 case 1:
                   return -1;
                 case 2:
-                  $t1 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_x_$1655 === 'number' && typeof s_y_$1656 === 'number') ? (s_x_$1655 === s_y_$1656) : R.callBinding((C6.v ?? G6()), [s_x_$1655, s_y_$1656]);
+                  $t1 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_x_$1655 === 'number' && typeof s_y_$1656 === 'number') ? s_x_$1655 === s_y_$1656 : $numEq(s_x_$1655, s_y_$1656)) : R.callBinding((C6.v ?? G6()), [s_x_$1655, s_y_$1656]);
                   if ($t1 !== false) { $pc = 3; continue; } $pc = 4; continue;
                 case 3:
                   return 0;
@@ -95959,11 +95959,11 @@ export const LIBRARIES = {
             while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
             if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_ra_$1650, s_a_$1648, s_b_$1649 }); return $UNWIND; }
             s_rb_$1651 = $t5;
-            $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_ra_$1650 === 'number' && typeof s_rb_$1651 === 'number') ? (s_ra_$1650 < s_rb_$1651) : R.callBinding((C1.v ?? G1()), [s_ra_$1650, s_rb_$1651]);
+            $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_ra_$1650 === 'number' && typeof s_rb_$1651 === 'number') ? s_ra_$1650 < s_rb_$1651 : $lt(s_ra_$1650, s_rb_$1651)) : R.callBinding((C1.v ?? G1()), [s_ra_$1650, s_rb_$1651]);
             if ($t6 !== false) {
               return -1;
             } else {
-              $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_ra_$1650 === 'number' && typeof s_rb_$1651 === 'number') ? (s_ra_$1650 > s_rb_$1651) : R.callBinding((C2.v ?? G2()), [s_ra_$1650, s_rb_$1651]);
+              $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_ra_$1650 === 'number' && typeof s_rb_$1651 === 'number') ? s_ra_$1650 > s_rb_$1651 : $gt(s_ra_$1650, s_rb_$1651)) : R.callBinding((C2.v ?? G2()), [s_ra_$1650, s_rb_$1651]);
               if ($t7 !== false) {
                 return 1;
               } else {
@@ -95980,7 +95980,7 @@ export const LIBRARIES = {
                   while ($t14 instanceof $TailCall) { $stack.room = $d; $t14 = $step($t14); }
                   if ($t14 === $UNWIND) { R.reify($proc$r, 9, { s_a_$1648, s_b_$1649 }); return $UNWIND; }
                   s_c_$1652 = $t14;
-                  $t15 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_c_$1652 === 'number' && typeof 0 === 'number') ? (s_c_$1652 === 0) : R.callBinding((C6.v ?? G6()), [s_c_$1652, 0]);
+                  $t15 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_c_$1652 === 'number' && typeof 0 === 'number') ? s_c_$1652 === 0 : $numEq(s_c_$1652, 0)) : R.callBinding((C6.v ?? G6()), [s_c_$1652, 0]);
                   if ($t15 !== false) {
                     $t16 = (C4.v ?? G4());
                     $t17 = (W7.intact || (C7.v ?? G7()) === P7) && (s_a_$1648 instanceof R.Cons) ? (s_a_$1648.cdr) : R.callBinding((C7.v ?? G7()), [s_a_$1648]);
@@ -96266,12 +96266,12 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 s_rb_$1651 = $t5;
-                $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_ra_$1650 === 'number' && typeof s_rb_$1651 === 'number') ? (s_ra_$1650 < s_rb_$1651) : R.callBinding((C1.v ?? G1()), [s_ra_$1650, s_rb_$1651]);
+                $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_ra_$1650 === 'number' && typeof s_rb_$1651 === 'number') ? s_ra_$1650 < s_rb_$1651 : $lt(s_ra_$1650, s_rb_$1651)) : R.callBinding((C1.v ?? G1()), [s_ra_$1650, s_rb_$1651]);
                 if ($t6 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 return -1;
               case 4:
-                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_ra_$1650 === 'number' && typeof s_rb_$1651 === 'number') ? (s_ra_$1650 > s_rb_$1651) : R.callBinding((C2.v ?? G2()), [s_ra_$1650, s_rb_$1651]);
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_ra_$1650 === 'number' && typeof s_rb_$1651 === 'number') ? s_ra_$1650 > s_rb_$1651 : $gt(s_ra_$1650, s_rb_$1651)) : R.callBinding((C2.v ?? G2()), [s_ra_$1650, s_rb_$1651]);
                 if ($t7 !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 5:
                 return 1;
@@ -96297,7 +96297,7 @@ export const LIBRARIES = {
               case 9:
                 $t14 = $r;
                 s_c_$1652 = $t14;
-                $t15 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_c_$1652 === 'number' && typeof 0 === 'number') ? (s_c_$1652 === 0) : R.callBinding((C6.v ?? G6()), [s_c_$1652, 0]);
+                $t15 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_c_$1652 === 'number' && typeof 0 === 'number') ? s_c_$1652 === 0 : $numEq(s_c_$1652, 0)) : R.callBinding((C6.v ?? G6()), [s_c_$1652, 0]);
                 if ($t15 !== false) { $pc = 10; continue; } $pc = 11; continue;
               case 10:
                 $t16 = (C4.v ?? G4());
@@ -96643,7 +96643,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"comparator.scm","line":514,"column":1,"endLine":519,"endColumn":28},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "type-rank")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -96673,9 +96673,9 @@ export const LIBRARIES = {
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_ra_$1661, s_a_$1659, s_b_$1660 }); return $UNWIND; }
           s_rb_$1662 = $t5;
-          $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_ra_$1661 === 'number' && typeof s_rb_$1662 === 'number') ? (s_ra_$1661 === s_rb_$1662) : R.callBinding((C1.v ?? G1()), [s_ra_$1661, s_rb_$1662]);
+          $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_ra_$1661 === 'number' && typeof s_rb_$1662 === 'number') ? s_ra_$1661 === s_rb_$1662 : $numEq(s_ra_$1661, s_rb_$1662)) : R.callBinding((C1.v ?? G1()), [s_ra_$1661, s_rb_$1662]);
           if ($t6 !== false) {
-            $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_ra_$1661 === 'number' && typeof 1000000 === 'number') ? (s_ra_$1661 < 1000000) : R.callBinding((C2.v ?? G2()), [s_ra_$1661, 1000000]);
+            $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_ra_$1661 === 'number' && typeof 1000000 === 'number') ? s_ra_$1661 < 1000000 : $lt(s_ra_$1661, 1000000)) : R.callBinding((C2.v ?? G2()), [s_ra_$1661, 1000000]);
             if ($t7 !== false) {
               $t8 = (C3.v ?? G3());
               if (typeof $t8 !== 'function') $notProc($t8);
@@ -96684,7 +96684,7 @@ export const LIBRARIES = {
               $t10 = $t9 === undefined ? ($t8[$PRIM] === true ? $t8(s_a_$1659, s_b_$1660) : $foreign($t8, [s_a_$1659, s_b_$1660])) : $t9(s_a_$1659, s_b_$1660);
               while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
               if ($t10 === $UNWIND) { R.reify($proc$r, 7, {  }); return $UNWIND; }
-              $t11 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t10 === 'number' && typeof 0 === 'number') ? ($t10 === 0) : R.callBinding((C1.v ?? G1()), [$t10, 0]);
+              $t11 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t10 === 'number' && typeof 0 === 'number') ? $t10 === 0 : $numEq($t10, 0)) : R.callBinding((C1.v ?? G1()), [$t10, 0]);
               return $t11;
             } else {
               $t12 = (C4.v ?? G4());
@@ -96724,10 +96724,10 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 s_rb_$1662 = $t5;
-                $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_ra_$1661 === 'number' && typeof s_rb_$1662 === 'number') ? (s_ra_$1661 === s_rb_$1662) : R.callBinding((C1.v ?? G1()), [s_ra_$1661, s_rb_$1662]);
+                $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_ra_$1661 === 'number' && typeof s_rb_$1662 === 'number') ? s_ra_$1661 === s_rb_$1662 : $numEq(s_ra_$1661, s_rb_$1662)) : R.callBinding((C1.v ?? G1()), [s_ra_$1661, s_rb_$1662]);
                 if ($t6 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
-                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_ra_$1661 === 'number' && typeof 1000000 === 'number') ? (s_ra_$1661 < 1000000) : R.callBinding((C2.v ?? G2()), [s_ra_$1661, 1000000]);
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_ra_$1661 === 'number' && typeof 1000000 === 'number') ? s_ra_$1661 < 1000000 : $lt(s_ra_$1661, 1000000)) : R.callBinding((C2.v ?? G2()), [s_ra_$1661, 1000000]);
                 if ($t7 !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 4:
                 return false;
@@ -96746,7 +96746,7 @@ export const LIBRARIES = {
                 return $tailCall($t12, [s_a_$1659, s_b_$1660]);
               case 7:
                 $t10 = $r;
-                $t11 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t10 === 'number' && typeof 0 === 'number') ? ($t10 === 0) : R.callBinding((C1.v ?? G1()), [$t10, 0]);
+                $t11 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t10 === 'number' && typeof 0 === 'number') ? $t10 === 0 : $numEq($t10, 0)) : R.callBinding((C1.v ?? G1()), [$t10, 0]);
                 return $t11;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -96786,7 +96786,7 @@ export const LIBRARIES = {
         rest: null,
         constants: [],
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "<")).v;
         const W0 = R.primitiveCell("<"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "default-compare")).v;
@@ -96802,7 +96802,7 @@ export const LIBRARIES = {
           $t2 = $t1 === undefined ? ($t0[$PRIM] === true ? $t0(s_a_$1663, s_b_$1664) : $foreign($t0, [s_a_$1663, s_b_$1664])) : $t1(s_a_$1663, s_b_$1664);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, {  }); return $UNWIND; }
-          $t3 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t2 === 'number' && typeof 0 === 'number') ? ($t2 < 0) : R.callBinding((C0.v ?? G0()), [$t2, 0]);
+          $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t2 === 'number' && typeof 0 === 'number') ? $t2 < 0 : $lt($t2, 0)) : R.callBinding((C0.v ?? G0()), [$t2, 0]);
           return $t3;
         } }["default-ordering"];
         const $proc$r = { "default-ordering": function ($pc, $f) {
@@ -96822,7 +96822,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               case 1:
                 $t2 = $r;
-                $t3 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t2 === 'number' && typeof 0 === 'number') ? ($t2 < 0) : R.callBinding((C0.v ?? G0()), [$t2, 0]);
+                $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t2 === 'number' && typeof 0 === 'number') ? $t2 < 0 : $lt($t2, 0)) : R.callBinding((C0.v ?? G0()), [$t2, 0]);
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -96956,7 +96956,7 @@ export const LIBRARIES = {
   },
   "srfi.151": {
     fingerprint: "5b4e045c",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["151.sld","bitwise.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"srfi\",151],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"scheme\",\"case-lambda\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"%bitwise-and\",\"%bitwise-ior\",\"%bitwise-xor\",\"%arithmetic-shift\",\"%integer-length\",\"%bit-count\"]],[\"l\",\"export\",\"bitwise-not\",[\"l\",\"rename\",\"%bitwise-and\",\"bitwise-and\"],[\"l\",\"rename\",\"%bitwise-ior\",\"bitwise-ior\"],[\"l\",\"rename\",\"%bitwise-xor\",\"bitwise-xor\"],\"bitwise-eqv\",\"bitwise-nand\",\"bitwise-nor\",\"bitwise-andc1\",\"bitwise-andc2\",\"bitwise-orc1\",\"bitwise-orc2\",[\"l\",\"rename\",\"%arithmetic-shift\",\"arithmetic-shift\"],[\"l\",\"rename\",\"%bit-count\",\"bit-count\"],[\"l\",\"rename\",\"%integer-length\",\"integer-length\"],\"bitwise-if\",\"bit-set?\",\"copy-bit\",\"bit-swap\",\"any-bit-set?\",\"every-bit-set?\",\"first-set-bit\",\"bit-field\",\"bit-field-any?\",\"bit-field-every?\",\"bit-field-clear\",\"bit-field-set\",\"bit-field-replace\",\"bit-field-replace-same\",\"bit-field-rotate\",\"bit-field-reverse\",\"bits->list\",\"list->bits\",\"bits->vector\",\"vector->bits\",\"bits\",\"bitwise-fold\",\"bitwise-for-each\",\"bitwise-unfold\",\"make-bitwise-generator\"],[\"l\",\"include\",[\"s\",\"bitwise.scm\"]]]",
     procedures: {
@@ -97050,7 +97050,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":34,"column":1,"endLine":36,"endColumn":80},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $ge = R.ge, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
         const W0 = R.primitiveCell("not"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "exact-integer?")).v;
@@ -97071,7 +97071,7 @@ export const LIBRARIES = {
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_who_$1885, s_k_$1886 }); return $UNWIND; }
           if ($t2 !== false) {
-            $t4 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_k_$1886 === 'number' && typeof 0 === 'number') ? (s_k_$1886 >= 0) : R.callBinding((C2.v ?? G2()), [s_k_$1886, 0]);
+            $t4 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_k_$1886 === 'number' && typeof 0 === 'number') ? s_k_$1886 >= 0 : $ge(s_k_$1886, 0)) : R.callBinding((C2.v ?? G2()), [s_k_$1886, 0]);
             $t3 = $t4;
           } else {
             $t3 = false;
@@ -97111,7 +97111,7 @@ export const LIBRARIES = {
                 $t2 = $r;
                 if ($t2 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
-                $t4 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_k_$1886 === 'number' && typeof 0 === 'number') ? (s_k_$1886 >= 0) : R.callBinding((C2.v ?? G2()), [s_k_$1886, 0]);
+                $t4 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_k_$1886 === 'number' && typeof 0 === 'number') ? s_k_$1886 >= 0 : $ge(s_k_$1886, 0)) : R.callBinding((C2.v ?? G2()), [s_k_$1886, 0]);
                 $t3 = $t4;
                 $pc = 4; continue;
               case 3:
@@ -97151,7 +97151,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":46,"column":1,"endLine":50,"endColumn":84},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-index")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "<")).v;
         const W1 = R.primitiveCell("<"), P1 = W1.primitive;
@@ -97178,7 +97178,7 @@ export const LIBRARIES = {
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_who_$1887, s_start_$1888, s_end_$1889 }); return $UNWIND; }
           $t5;
-          $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_end_$1889 === 'number' && typeof s_start_$1888 === 'number') ? (s_end_$1889 < s_start_$1888) : R.callBinding((C1.v ?? G1()), [s_end_$1889, s_start_$1888]);
+          $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_end_$1889 === 'number' && typeof s_start_$1888 === 'number') ? s_end_$1889 < s_start_$1888 : $lt(s_end_$1889, s_start_$1888)) : R.callBinding((C1.v ?? G1()), [s_end_$1889, s_start_$1888]);
           if ($t6 !== false) {
             $t7 = (C2.v ?? G2());
             $t8 = (C3.v ?? G3());
@@ -97224,7 +97224,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 $t5;
-                $t6 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_end_$1889 === 'number' && typeof s_start_$1888 === 'number') ? (s_end_$1889 < s_start_$1888) : R.callBinding((C1.v ?? G1()), [s_end_$1889, s_start_$1888]);
+                $t6 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_end_$1889 === 'number' && typeof s_start_$1888 === 'number') ? s_end_$1889 < s_start_$1888 : $lt(s_end_$1889, s_start_$1888)) : R.callBinding((C1.v ?? G1()), [s_end_$1889, s_start_$1888]);
                 if ($t6 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
                 $t7 = (C2.v ?? G2());
@@ -97425,7 +97425,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":81,"column":1,"endLine":83,"endColumn":12},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "-")).v;
         const W1 = R.primitiveCell("-"), P1 = W1.primitive;
@@ -97442,7 +97442,7 @@ export const LIBRARIES = {
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { s_i_$1894 }); return $UNWIND; }
           $t2;
-          $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof -1 === 'number' && typeof s_i_$1894 === 'number') ? ($sub(-1, s_i_$1894)) : R.callBinding((C1.v ?? G1()), [-1, s_i_$1894]);
+          $t3 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof -1 === 'number' && typeof s_i_$1894 === 'number' && (!Number.isInteger((-1 - s_i_$1894)) || (Number.isSafeInteger((-1 - s_i_$1894)) && Number.isInteger(-1) && Number.isInteger(s_i_$1894)))) ? (-1 - s_i_$1894) : $sub(-1, s_i_$1894)) : R.callBinding((C1.v ?? G1()), [-1, s_i_$1894]);
           return $t3;
         } }["bitwise-not"];
         const $proc$r = { "bitwise-not": function ($pc, $f) {
@@ -97463,7 +97463,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 $t2;
-                $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof -1 === 'number' && typeof s_i_$1894 === 'number') ? ($sub(-1, s_i_$1894)) : R.callBinding((C1.v ?? G1()), [-1, s_i_$1894]);
+                $t3 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof -1 === 'number' && typeof s_i_$1894 === 'number' && (!Number.isInteger((-1 - s_i_$1894)) || (Number.isSafeInteger((-1 - s_i_$1894)) && Number.isInteger(-1) && Number.isInteger(s_i_$1894)))) ? (-1 - s_i_$1894) : $sub(-1, s_i_$1894)) : R.callBinding((C1.v ?? G1()), [-1, s_i_$1894]);
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -97479,7 +97479,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":92,"column":1,"endLine":98,"endColumn":65},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
         const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-integer")).v;
@@ -97523,7 +97523,7 @@ export const LIBRARIES = {
             $t12 = $t11 === undefined ? ($t10[$PRIM] === true ? $t10(s_acc_$1898, $t9) : $foreign($t10, [s_acc_$1898, $t9])) : $t11(s_acc_$1898, $t9);
             while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
             if ($t12 === $UNWIND) { R.reify($proc$r, 5, { $t7 }); return $UNWIND; }
-            $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof -1 === 'number' && typeof $t12 === 'number') ? ($sub(-1, $t12)) : R.callBinding((C4.v ?? G4()), [-1, $t12]);
+            $t13 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof -1 === 'number' && typeof $t12 === 'number' && (!Number.isInteger((-1 - $t12)) || (Number.isSafeInteger((-1 - $t12)) && Number.isInteger(-1) && Number.isInteger($t12)))) ? (-1 - $t12) : $sub(-1, $t12)) : R.callBinding((C4.v ?? G4()), [-1, $t12]);
             s_is_$1897 = $t7;
             s_acc_$1898 = $t13;
             continue $loop1;
@@ -97574,7 +97574,7 @@ export const LIBRARIES = {
                 $pc = 5; continue;
               case 5:
                 $t12 = $r;
-                $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof -1 === 'number' && typeof $t12 === 'number') ? ($sub(-1, $t12)) : R.callBinding((C4.v ?? G4()), [-1, $t12]);
+                $t13 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof -1 === 'number' && typeof $t12 === 'number' && (!Number.isInteger((-1 - $t12)) || (Number.isSafeInteger((-1 - $t12)) && Number.isInteger(-1) && Number.isInteger($t12)))) ? (-1 - $t12) : $sub(-1, $t12)) : R.callBinding((C4.v ?? G4()), [-1, $t12]);
                 s_is_$1897 = $t7;
                 s_acc_$1898 = $t13;
                 $pc = 1; continue;
@@ -97592,7 +97592,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":106,"column":1,"endLine":109,"endColumn":29},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "-")).v;
         const W1 = R.primitiveCell("-"), P1 = W1.primitive;
@@ -97625,7 +97625,7 @@ export const LIBRARIES = {
           $t8 = $t7 === undefined ? ($t6[$PRIM] === true ? $t6(s_i_$1899, s_j_$1900) : $foreign($t6, [s_i_$1899, s_j_$1900])) : $t7(s_i_$1899, s_j_$1900);
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, {  }); return $UNWIND; }
-          $t9 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof -1 === 'number' && typeof $t8 === 'number') ? ($sub(-1, $t8)) : R.callBinding((C1.v ?? G1()), [-1, $t8]);
+          $t9 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof -1 === 'number' && typeof $t8 === 'number' && (!Number.isInteger((-1 - $t8)) || (Number.isSafeInteger((-1 - $t8)) && Number.isInteger(-1) && Number.isInteger($t8)))) ? (-1 - $t8) : $sub(-1, $t8)) : R.callBinding((C1.v ?? G1()), [-1, $t8]);
           return $t9;
         } }["bitwise-nand"];
         const $proc$r = { "bitwise-nand": function ($pc, $f) {
@@ -97669,7 +97669,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               case 3:
                 $t8 = $r;
-                $t9 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof -1 === 'number' && typeof $t8 === 'number') ? ($sub(-1, $t8)) : R.callBinding((C1.v ?? G1()), [-1, $t8]);
+                $t9 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof -1 === 'number' && typeof $t8 === 'number' && (!Number.isInteger((-1 - $t8)) || (Number.isSafeInteger((-1 - $t8)) && Number.isInteger(-1) && Number.isInteger($t8)))) ? (-1 - $t8) : $sub(-1, $t8)) : R.callBinding((C1.v ?? G1()), [-1, $t8]);
                 return $t9;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -97685,7 +97685,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":117,"column":1,"endLine":120,"endColumn":29},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "-")).v;
         const W1 = R.primitiveCell("-"), P1 = W1.primitive;
@@ -97718,7 +97718,7 @@ export const LIBRARIES = {
           $t8 = $t7 === undefined ? ($t6[$PRIM] === true ? $t6(s_i_$1901, s_j_$1902) : $foreign($t6, [s_i_$1901, s_j_$1902])) : $t7(s_i_$1901, s_j_$1902);
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, {  }); return $UNWIND; }
-          $t9 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof -1 === 'number' && typeof $t8 === 'number') ? ($sub(-1, $t8)) : R.callBinding((C1.v ?? G1()), [-1, $t8]);
+          $t9 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof -1 === 'number' && typeof $t8 === 'number' && (!Number.isInteger((-1 - $t8)) || (Number.isSafeInteger((-1 - $t8)) && Number.isInteger(-1) && Number.isInteger($t8)))) ? (-1 - $t8) : $sub(-1, $t8)) : R.callBinding((C1.v ?? G1()), [-1, $t8]);
           return $t9;
         } }["bitwise-nor"];
         const $proc$r = { "bitwise-nor": function ($pc, $f) {
@@ -97762,7 +97762,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               case 3:
                 $t8 = $r;
-                $t9 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof -1 === 'number' && typeof $t8 === 'number') ? ($sub(-1, $t8)) : R.callBinding((C1.v ?? G1()), [-1, $t8]);
+                $t9 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof -1 === 'number' && typeof $t8 === 'number' && (!Number.isInteger((-1 - $t8)) || (Number.isSafeInteger((-1 - $t8)) && Number.isInteger(-1) && Number.isInteger($t8)))) ? (-1 - $t8) : $sub(-1, $t8)) : R.callBinding((C1.v ?? G1()), [-1, $t8]);
                 return $t9;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -97778,7 +97778,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":128,"column":1,"endLine":131,"endColumn":29},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%bitwise-and")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
@@ -97805,7 +97805,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_i_$1903, s_j_$1904 }); return $UNWIND; }
           $t5;
           $t6 = (C1.v ?? G1());
-          $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof -1 === 'number' && typeof s_i_$1903 === 'number') ? ($sub(-1, s_i_$1903)) : R.callBinding((C2.v ?? G2()), [-1, s_i_$1903]);
+          $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof -1 === 'number' && typeof s_i_$1903 === 'number' && (!Number.isInteger((-1 - s_i_$1903)) || (Number.isSafeInteger((-1 - s_i_$1903)) && Number.isInteger(-1) && Number.isInteger(s_i_$1903)))) ? (-1 - s_i_$1903) : $sub(-1, s_i_$1903)) : R.callBinding((C2.v ?? G2()), [-1, s_i_$1903]);
           $t8 = $t6;
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9($t7, s_j_$1904); } return $tailCall($t8, [$t7, s_j_$1904]);
         } }["bitwise-andc1"];
@@ -97840,7 +97840,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 $t5;
                 $t6 = (C1.v ?? G1());
-                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof -1 === 'number' && typeof s_i_$1903 === 'number') ? ($sub(-1, s_i_$1903)) : R.callBinding((C2.v ?? G2()), [-1, s_i_$1903]);
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof -1 === 'number' && typeof s_i_$1903 === 'number' && (!Number.isInteger((-1 - s_i_$1903)) || (Number.isSafeInteger((-1 - s_i_$1903)) && Number.isInteger(-1) && Number.isInteger(s_i_$1903)))) ? (-1 - s_i_$1903) : $sub(-1, s_i_$1903)) : R.callBinding((C2.v ?? G2()), [-1, s_i_$1903]);
                 $t8 = $t6;
                 return $tailCall($t8, [$t7, s_j_$1904]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -97857,7 +97857,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":139,"column":1,"endLine":142,"endColumn":29},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%bitwise-and")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
@@ -97884,7 +97884,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_i_$1905, s_j_$1906 }); return $UNWIND; }
           $t5;
           $t6 = (C1.v ?? G1());
-          $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof -1 === 'number' && typeof s_j_$1906 === 'number') ? ($sub(-1, s_j_$1906)) : R.callBinding((C2.v ?? G2()), [-1, s_j_$1906]);
+          $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof -1 === 'number' && typeof s_j_$1906 === 'number' && (!Number.isInteger((-1 - s_j_$1906)) || (Number.isSafeInteger((-1 - s_j_$1906)) && Number.isInteger(-1) && Number.isInteger(s_j_$1906)))) ? (-1 - s_j_$1906) : $sub(-1, s_j_$1906)) : R.callBinding((C2.v ?? G2()), [-1, s_j_$1906]);
           $t8 = $t6;
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9(s_i_$1905, $t7); } return $tailCall($t8, [s_i_$1905, $t7]);
         } }["bitwise-andc2"];
@@ -97919,7 +97919,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 $t5;
                 $t6 = (C1.v ?? G1());
-                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof -1 === 'number' && typeof s_j_$1906 === 'number') ? ($sub(-1, s_j_$1906)) : R.callBinding((C2.v ?? G2()), [-1, s_j_$1906]);
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof -1 === 'number' && typeof s_j_$1906 === 'number' && (!Number.isInteger((-1 - s_j_$1906)) || (Number.isSafeInteger((-1 - s_j_$1906)) && Number.isInteger(-1) && Number.isInteger(s_j_$1906)))) ? (-1 - s_j_$1906) : $sub(-1, s_j_$1906)) : R.callBinding((C2.v ?? G2()), [-1, s_j_$1906]);
                 $t8 = $t6;
                 return $tailCall($t8, [s_i_$1905, $t7]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -97936,7 +97936,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":150,"column":1,"endLine":153,"endColumn":29},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%bitwise-ior")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
@@ -97963,7 +97963,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_i_$1907, s_j_$1908 }); return $UNWIND; }
           $t5;
           $t6 = (C1.v ?? G1());
-          $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof -1 === 'number' && typeof s_i_$1907 === 'number') ? ($sub(-1, s_i_$1907)) : R.callBinding((C2.v ?? G2()), [-1, s_i_$1907]);
+          $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof -1 === 'number' && typeof s_i_$1907 === 'number' && (!Number.isInteger((-1 - s_i_$1907)) || (Number.isSafeInteger((-1 - s_i_$1907)) && Number.isInteger(-1) && Number.isInteger(s_i_$1907)))) ? (-1 - s_i_$1907) : $sub(-1, s_i_$1907)) : R.callBinding((C2.v ?? G2()), [-1, s_i_$1907]);
           $t8 = $t6;
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9($t7, s_j_$1908); } return $tailCall($t8, [$t7, s_j_$1908]);
         } }["bitwise-orc1"];
@@ -97998,7 +97998,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 $t5;
                 $t6 = (C1.v ?? G1());
-                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof -1 === 'number' && typeof s_i_$1907 === 'number') ? ($sub(-1, s_i_$1907)) : R.callBinding((C2.v ?? G2()), [-1, s_i_$1907]);
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof -1 === 'number' && typeof s_i_$1907 === 'number' && (!Number.isInteger((-1 - s_i_$1907)) || (Number.isSafeInteger((-1 - s_i_$1907)) && Number.isInteger(-1) && Number.isInteger(s_i_$1907)))) ? (-1 - s_i_$1907) : $sub(-1, s_i_$1907)) : R.callBinding((C2.v ?? G2()), [-1, s_i_$1907]);
                 $t8 = $t6;
                 return $tailCall($t8, [$t7, s_j_$1908]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -98015,7 +98015,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":161,"column":1,"endLine":164,"endColumn":29},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%bitwise-ior")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
@@ -98042,7 +98042,7 @@ export const LIBRARIES = {
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_i_$1909, s_j_$1910 }); return $UNWIND; }
           $t5;
           $t6 = (C1.v ?? G1());
-          $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof -1 === 'number' && typeof s_j_$1910 === 'number') ? ($sub(-1, s_j_$1910)) : R.callBinding((C2.v ?? G2()), [-1, s_j_$1910]);
+          $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof -1 === 'number' && typeof s_j_$1910 === 'number' && (!Number.isInteger((-1 - s_j_$1910)) || (Number.isSafeInteger((-1 - s_j_$1910)) && Number.isInteger(-1) && Number.isInteger(s_j_$1910)))) ? (-1 - s_j_$1910) : $sub(-1, s_j_$1910)) : R.callBinding((C2.v ?? G2()), [-1, s_j_$1910]);
           $t8 = $t6;
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9(s_i_$1909, $t7); } return $tailCall($t8, [s_i_$1909, $t7]);
         } }["bitwise-orc2"];
@@ -98077,7 +98077,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 $t5;
                 $t6 = (C1.v ?? G1());
-                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof -1 === 'number' && typeof s_j_$1910 === 'number') ? ($sub(-1, s_j_$1910)) : R.callBinding((C2.v ?? G2()), [-1, s_j_$1910]);
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof -1 === 'number' && typeof s_j_$1910 === 'number' && (!Number.isInteger((-1 - s_j_$1910)) || (Number.isSafeInteger((-1 - s_j_$1910)) && Number.isInteger(-1) && Number.isInteger(s_j_$1910)))) ? (-1 - s_j_$1910) : $sub(-1, s_j_$1910)) : R.callBinding((C2.v ?? G2()), [-1, s_j_$1910]);
                 $t8 = $t6;
                 return $tailCall($t8, [s_i_$1909, $t7]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -98094,7 +98094,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":177,"column":1,"endLine":181,"endColumn":69},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%bitwise-ior")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%bitwise-and")).v;
@@ -98138,7 +98138,7 @@ export const LIBRARIES = {
           while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
           if ($t12 === $UNWIND) { R.reify($proc$r, 4, { $t9, s_mask_$1911, s_j_$1913 }); return $UNWIND; }
           $t13 = (C2.v ?? G2());
-          $t14 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof -1 === 'number' && typeof s_mask_$1911 === 'number') ? ($sub(-1, s_mask_$1911)) : R.callBinding((C3.v ?? G3()), [-1, s_mask_$1911]);
+          $t14 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof -1 === 'number' && typeof s_mask_$1911 === 'number' && (!Number.isInteger((-1 - s_mask_$1911)) || (Number.isSafeInteger((-1 - s_mask_$1911)) && Number.isInteger(-1) && Number.isInteger(s_mask_$1911)))) ? (-1 - s_mask_$1911) : $sub(-1, s_mask_$1911)) : R.callBinding((C3.v ?? G3()), [-1, s_mask_$1911]);
           $t15 = $t13;
           if (typeof $t15 !== 'function') $notProc($t15);
           $t16 = $t15[$RAW];
@@ -98204,7 +98204,7 @@ export const LIBRARIES = {
               case 4:
                 $t12 = $r;
                 $t13 = (C2.v ?? G2());
-                $t14 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof -1 === 'number' && typeof s_mask_$1911 === 'number') ? ($sub(-1, s_mask_$1911)) : R.callBinding((C3.v ?? G3()), [-1, s_mask_$1911]);
+                $t14 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof -1 === 'number' && typeof s_mask_$1911 === 'number' && (!Number.isInteger((-1 - s_mask_$1911)) || (Number.isSafeInteger((-1 - s_mask_$1911)) && Number.isInteger(-1) && Number.isInteger(s_mask_$1911)))) ? (-1 - s_mask_$1911) : $sub(-1, s_mask_$1911)) : R.callBinding((C3.v ?? G3()), [-1, s_mask_$1911]);
                 $t15 = $t13;
                 if (typeof $t15 !== 'function') $notProc($t15);
                 $t16 = $t15[$RAW];
@@ -98379,7 +98379,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":212,"column":1,"endLine":218,"endColumn":51},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-index")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-integer")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "check-boolean")).v;
@@ -98437,7 +98437,7 @@ export const LIBRARIES = {
             $t18 = $t17 === undefined ? ($t16[$PRIM] === true ? $t16(s_index_$1917) : $foreign($t16, [s_index_$1917])) : $t17(s_index_$1917);
             while ($t18 instanceof $TailCall) { $stack.room = $d; $t18 = $step($t18); }
             if ($t18 === $UNWIND) { R.reify($proc$r, 7, { $t15, s_i_$1918 }); return $UNWIND; }
-            $t19 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof -1 === 'number' && typeof $t18 === 'number') ? ($sub(-1, $t18)) : R.callBinding((C6.v ?? G6()), [-1, $t18]);
+            $t19 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof -1 === 'number' && typeof $t18 === 'number' && (!Number.isInteger((-1 - $t18)) || (Number.isSafeInteger((-1 - $t18)) && Number.isInteger(-1) && Number.isInteger($t18)))) ? (-1 - $t18) : $sub(-1, $t18)) : R.callBinding((C6.v ?? G6()), [-1, $t18]);
             $t20 = $t15;
             if ($d > 0 && ($t21 = $t20?.[$RAW] ?? $t20)?.[$PRIM] === true) { $stack.room = $d; return $t21(s_i_$1918, $t19); } return $tailCall($t20, [s_i_$1918, $t19]);
           }
@@ -98513,7 +98513,7 @@ export const LIBRARIES = {
                 return $tailCall($t13, [s_i_$1918, $t12]);
               case 7:
                 $t18 = $r;
-                $t19 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof -1 === 'number' && typeof $t18 === 'number') ? ($sub(-1, $t18)) : R.callBinding((C6.v ?? G6()), [-1, $t18]);
+                $t19 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof -1 === 'number' && typeof $t18 === 'number' && (!Number.isInteger((-1 - $t18)) || (Number.isSafeInteger((-1 - $t18)) && Number.isInteger(-1) && Number.isInteger($t18)))) ? (-1 - $t18) : $sub(-1, $t18)) : R.callBinding((C6.v ?? G6()), [-1, $t18]);
                 $t20 = $t15;
                 return $tailCall($t20, [s_i_$1918, $t19]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -98799,7 +98799,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":252,"column":1,"endLine":255,"endColumn":44},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -98832,7 +98832,7 @@ export const LIBRARIES = {
           $t8 = $t7 === undefined ? ($t6[$PRIM] === true ? $t6(s_test_2dbits_$1927, s_i_$1928) : $foreign($t6, [s_test_2dbits_$1927, s_i_$1928])) : $t7(s_test_2dbits_$1927, s_i_$1928);
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, { s_test_2dbits_$1927 }); return $UNWIND; }
-          $t9 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_test_2dbits_$1927 === 'number' && typeof $t8 === 'number') ? (s_test_2dbits_$1927 === $t8) : R.callBinding((C1.v ?? G1()), [s_test_2dbits_$1927, $t8]);
+          $t9 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_test_2dbits_$1927 === 'number' && typeof $t8 === 'number') ? s_test_2dbits_$1927 === $t8 : $numEq(s_test_2dbits_$1927, $t8)) : R.callBinding((C1.v ?? G1()), [s_test_2dbits_$1927, $t8]);
           return $t9;
         } }["every-bit-set?"];
         const $proc$r = { "every-bit-set?": function ($pc, $f) {
@@ -98876,7 +98876,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               case 3:
                 $t8 = $r;
-                $t9 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_test_2dbits_$1927 === 'number' && typeof $t8 === 'number') ? (s_test_2dbits_$1927 === $t8) : R.callBinding((C1.v ?? G1()), [s_test_2dbits_$1927, $t8]);
+                $t9 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_test_2dbits_$1927 === 'number' && typeof $t8 === 'number') ? s_test_2dbits_$1927 === $t8 : $numEq(s_test_2dbits_$1927, $t8)) : R.callBinding((C1.v ?? G1()), [s_test_2dbits_$1927, $t8]);
                 return $t9;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -98892,7 +98892,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":264,"column":1,"endLine":266,"endColumn":50},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "-")).v;
         const W1 = R.primitiveCell("-"), P1 = W1.primitive;
@@ -98934,7 +98934,7 @@ export const LIBRARIES = {
           $t13 = $t12 === undefined ? ($t11[$PRIM] === true ? $t11($t10) : $foreign($t11, [$t10])) : $t12($t10);
           while ($t13 instanceof $TailCall) { $stack.room = $d; $t13 = $step($t13); }
           if ($t13 === $UNWIND) { R.reify($proc$r, 4, {  }); return $UNWIND; }
-          $t14 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t13 === 'number' && typeof 1 === 'number') ? ($sub($t13, 1)) : R.callBinding((C1.v ?? G1()), [$t13, 1]);
+          $t14 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t13 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t13 - 1)) || (Number.isSafeInteger(($t13 - 1)) && Number.isInteger($t13) && Number.isInteger(1)))) ? ($t13 - 1) : $sub($t13, 1)) : R.callBinding((C1.v ?? G1()), [$t13, 1]);
           return $t14;
         } }["first-set-bit"];
         const $proc$r = { "first-set-bit": function ($pc, $f) {
@@ -98990,7 +98990,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 4:
                 $t13 = $r;
-                $t14 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t13 === 'number' && typeof 1 === 'number') ? ($sub($t13, 1)) : R.callBinding((C1.v ?? G1()), [$t13, 1]);
+                $t14 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t13 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t13 - 1)) || (Number.isSafeInteger(($t13 - 1)) && Number.isInteger($t13) && Number.isInteger(1)))) ? ($t13 - 1) : $sub($t13, 1)) : R.callBinding((C1.v ?? G1()), [$t13, 1]);
                 return $t14;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -99006,7 +99006,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":277,"column":1,"endLine":277,"endColumn":51},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "-")).v;
         const W0 = R.primitiveCell("-"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "single-bit")).v;
@@ -99022,7 +99022,7 @@ export const LIBRARIES = {
           $t2 = $t1 === undefined ? ($t0[$PRIM] === true ? $t0(s_width_$1930) : $foreign($t0, [s_width_$1930])) : $t1(s_width_$1930);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, {  }); return $UNWIND; }
-          $t3 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t2 === 'number' && typeof 1 === 'number') ? ($sub($t2, 1)) : R.callBinding((C0.v ?? G0()), [$t2, 1]);
+          $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t2 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t2 - 1)) || (Number.isSafeInteger(($t2 - 1)) && Number.isInteger($t2) && Number.isInteger(1)))) ? ($t2 - 1) : $sub($t2, 1)) : R.callBinding((C0.v ?? G0()), [$t2, 1]);
           return $t3;
         } }["low-bits"];
         const $proc$r = { "low-bits": function ($pc, $f) {
@@ -99042,7 +99042,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               case 1:
                 $t2 = $r;
-                $t3 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t2 === 'number' && typeof 1 === 'number') ? ($sub($t2, 1)) : R.callBinding((C0.v ?? G0()), [$t2, 1]);
+                $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t2 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t2 - 1)) || (Number.isSafeInteger(($t2 - 1)) && Number.isInteger($t2) && Number.isInteger(1)))) ? ($t2 - 1) : $sub($t2, 1)) : R.callBinding((C0.v ?? G0()), [$t2, 1]);
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -99058,7 +99058,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":285,"column":1,"endLine":285,"endColumn":83},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%arithmetic-shift")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "low-bits")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
@@ -99070,7 +99070,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [s_start_$1931, s_end_$1932]);
           $t0 = (C0.v ?? G0());
           $t1 = (C1.v ?? G1());
-          $t2 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_end_$1932 === 'number' && typeof s_start_$1931 === 'number') ? ($sub(s_end_$1932, s_start_$1931)) : R.callBinding((C2.v ?? G2()), [s_end_$1932, s_start_$1931]);
+          $t2 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_end_$1932 === 'number' && typeof s_start_$1931 === 'number' && (!Number.isInteger((s_end_$1932 - s_start_$1931)) || (Number.isSafeInteger((s_end_$1932 - s_start_$1931)) && Number.isInteger(s_end_$1932) && Number.isInteger(s_start_$1931)))) ? (s_end_$1932 - s_start_$1931) : $sub(s_end_$1932, s_start_$1931)) : R.callBinding((C2.v ?? G2()), [s_end_$1932, s_start_$1931]);
           $t3 = $t1;
           if (typeof $t3 !== 'function') $notProc($t3);
           $t4 = $t3[$RAW];
@@ -99089,7 +99089,7 @@ export const LIBRARIES = {
               case 0:
                 $t0 = (C0.v ?? G0());
                 $t1 = (C1.v ?? G1());
-                $t2 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_end_$1932 === 'number' && typeof s_start_$1931 === 'number') ? ($sub(s_end_$1932, s_start_$1931)) : R.callBinding((C2.v ?? G2()), [s_end_$1932, s_start_$1931]);
+                $t2 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_end_$1932 === 'number' && typeof s_start_$1931 === 'number' && (!Number.isInteger((s_end_$1932 - s_start_$1931)) || (Number.isSafeInteger((s_end_$1932 - s_start_$1931)) && Number.isInteger(s_end_$1932) && Number.isInteger(s_start_$1931)))) ? (s_end_$1932 - s_start_$1931) : $sub(s_end_$1932, s_start_$1931)) : R.callBinding((C2.v ?? G2()), [s_end_$1932, s_start_$1931]);
                 $t3 = $t1;
                 if (typeof $t3 !== 'function') $notProc($t3);
                 $t4 = $t3[$RAW];
@@ -99117,7 +99117,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":294,"column":1,"endLine":297,"endColumn":75},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-field")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%bitwise-and")).v;
@@ -99163,7 +99163,7 @@ export const LIBRARIES = {
           while ($t13 instanceof $TailCall) { $stack.room = $d; $t13 = $step($t13); }
           if ($t13 === $UNWIND) { R.reify($proc$r, 4, { $t6, s_start_$1934, s_end_$1935 }); return $UNWIND; }
           $t14 = (C5.v ?? G5());
-          $t15 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_end_$1935 === 'number' && typeof s_start_$1934 === 'number') ? ($sub(s_end_$1935, s_start_$1934)) : R.callBinding((C4.v ?? G4()), [s_end_$1935, s_start_$1934]);
+          $t15 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_end_$1935 === 'number' && typeof s_start_$1934 === 'number' && (!Number.isInteger((s_end_$1935 - s_start_$1934)) || (Number.isSafeInteger((s_end_$1935 - s_start_$1934)) && Number.isInteger(s_end_$1935) && Number.isInteger(s_start_$1934)))) ? (s_end_$1935 - s_start_$1934) : $sub(s_end_$1935, s_start_$1934)) : R.callBinding((C4.v ?? G4()), [s_end_$1935, s_start_$1934]);
           $t16 = $t14;
           if (typeof $t16 !== 'function') $notProc($t16);
           $t17 = $t16[$RAW];
@@ -99229,7 +99229,7 @@ export const LIBRARIES = {
               case 4:
                 $t13 = $r;
                 $t14 = (C5.v ?? G5());
-                $t15 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_end_$1935 === 'number' && typeof s_start_$1934 === 'number') ? ($sub(s_end_$1935, s_start_$1934)) : R.callBinding((C4.v ?? G4()), [s_end_$1935, s_start_$1934]);
+                $t15 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_end_$1935 === 'number' && typeof s_start_$1934 === 'number' && (!Number.isInteger((s_end_$1935 - s_start_$1934)) || (Number.isSafeInteger((s_end_$1935 - s_start_$1934)) && Number.isInteger(s_end_$1935) && Number.isInteger(s_start_$1934)))) ? (s_end_$1935 - s_start_$1934) : $sub(s_end_$1935, s_start_$1934)) : R.callBinding((C4.v ?? G4()), [s_end_$1935, s_start_$1934]);
                 $t16 = $t14;
                 if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
@@ -99393,7 +99393,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":318,"column":1,"endLine":322,"endColumn":37},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-field")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "field-mask")).v;
@@ -99436,7 +99436,7 @@ export const LIBRARIES = {
           $t11 = $t10 === undefined ? ($t9[$PRIM] === true ? $t9(s_i_$1939, s_mask_$1942) : $foreign($t9, [s_i_$1939, s_mask_$1942])) : $t10(s_i_$1939, s_mask_$1942);
           while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
           if ($t11 === $UNWIND) { R.reify($proc$r, 4, { s_mask_$1942 }); return $UNWIND; }
-          $t12 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_mask_$1942 === 'number' && typeof $t11 === 'number') ? (s_mask_$1942 === $t11) : R.callBinding((C3.v ?? G3()), [s_mask_$1942, $t11]);
+          $t12 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_mask_$1942 === 'number' && typeof $t11 === 'number') ? s_mask_$1942 === $t11 : $numEq(s_mask_$1942, $t11)) : R.callBinding((C3.v ?? G3()), [s_mask_$1942, $t11]);
           return $t12;
         } }["bit-field-every?"];
         const $proc$r = { "bit-field-every?": function ($pc, $f) {
@@ -99492,7 +99492,7 @@ export const LIBRARIES = {
                 $pc = 4; continue;
               case 4:
                 $t11 = $r;
-                $t12 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_mask_$1942 === 'number' && typeof $t11 === 'number') ? (s_mask_$1942 === $t11) : R.callBinding((C3.v ?? G3()), [s_mask_$1942, $t11]);
+                $t12 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_mask_$1942 === 'number' && typeof $t11 === 'number') ? s_mask_$1942 === $t11 : $numEq(s_mask_$1942, $t11)) : R.callBinding((C3.v ?? G3()), [s_mask_$1942, $t11]);
                 return $t12;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -99508,7 +99508,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":331,"column":1,"endLine":334,"endColumn":50},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-field")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%bitwise-and")).v;
@@ -99544,7 +99544,7 @@ export const LIBRARIES = {
           $t9 = $t8 === undefined ? ($t7[$PRIM] === true ? $t7(s_start_$1944, s_end_$1945) : $foreign($t7, [s_start_$1944, s_end_$1945])) : $t8(s_start_$1944, s_end_$1945);
           while ($t9 instanceof $TailCall) { $stack.room = $d; $t9 = $step($t9); }
           if ($t9 === $UNWIND) { R.reify($proc$r, 3, { $t6, s_i_$1943 }); return $UNWIND; }
-          $t10 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof -1 === 'number' && typeof $t9 === 'number') ? ($sub(-1, $t9)) : R.callBinding((C3.v ?? G3()), [-1, $t9]);
+          $t10 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof -1 === 'number' && typeof $t9 === 'number' && (!Number.isInteger((-1 - $t9)) || (Number.isSafeInteger((-1 - $t9)) && Number.isInteger(-1) && Number.isInteger($t9)))) ? (-1 - $t9) : $sub(-1, $t9)) : R.callBinding((C3.v ?? G3()), [-1, $t9]);
           $t11 = $t6;
           if ($d > 0 && ($t12 = $t11?.[$RAW] ?? $t11)?.[$PRIM] === true) { $stack.room = $d; return $t12(s_i_$1943, $t10); } return $tailCall($t11, [s_i_$1943, $t10]);
         } }["bit-field-clear"];
@@ -99590,7 +99590,7 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               case 3:
                 $t9 = $r;
-                $t10 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof -1 === 'number' && typeof $t9 === 'number') ? ($sub(-1, $t9)) : R.callBinding((C3.v ?? G3()), [-1, $t9]);
+                $t10 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof -1 === 'number' && typeof $t9 === 'number' && (!Number.isInteger((-1 - $t9)) || (Number.isSafeInteger((-1 - $t9)) && Number.isInteger(-1) && Number.isInteger($t9)))) ? (-1 - $t9) : $sub(-1, $t9)) : R.callBinding((C3.v ?? G3()), [-1, $t9]);
                 $t11 = $t6;
                 return $tailCall($t11, [s_i_$1943, $t10]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -99911,7 +99911,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":384,"column":1,"endLine":386,"endColumn":78},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "field-mask")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "%bitwise-ior")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "%bitwise-and")).v;
@@ -99939,7 +99939,7 @@ export const LIBRARIES = {
           while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { s_mask_$1961, $t3, s_dest_$1957 }); return $UNWIND; }
           $t7 = (C2.v ?? G2());
-          $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof -1 === 'number' && typeof s_mask_$1961 === 'number') ? ($sub(-1, s_mask_$1961)) : R.callBinding((C3.v ?? G3()), [-1, s_mask_$1961]);
+          $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof -1 === 'number' && typeof s_mask_$1961 === 'number' && (!Number.isInteger((-1 - s_mask_$1961)) || (Number.isSafeInteger((-1 - s_mask_$1961)) && Number.isInteger(-1) && Number.isInteger(s_mask_$1961)))) ? (-1 - s_mask_$1961) : $sub(-1, s_mask_$1961)) : R.callBinding((C3.v ?? G3()), [-1, s_mask_$1961]);
           $t9 = $t7;
           if (typeof $t9 !== 'function') $notProc($t9);
           $t10 = $t9[$RAW];
@@ -99981,7 +99981,7 @@ export const LIBRARIES = {
               case 2:
                 $t6 = $r;
                 $t7 = (C2.v ?? G2());
-                $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof -1 === 'number' && typeof s_mask_$1961 === 'number') ? ($sub(-1, s_mask_$1961)) : R.callBinding((C3.v ?? G3()), [-1, s_mask_$1961]);
+                $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof -1 === 'number' && typeof s_mask_$1961 === 'number' && (!Number.isInteger((-1 - s_mask_$1961)) || (Number.isSafeInteger((-1 - s_mask_$1961)) && Number.isInteger(-1) && Number.isInteger(s_mask_$1961)))) ? (-1 - s_mask_$1961) : $sub(-1, s_mask_$1961)) : R.callBinding((C3.v ?? G3()), [-1, s_mask_$1961]);
                 $t9 = $t7;
                 if (typeof $t9 !== 'function') $notProc($t9);
                 $t10 = $t9[$RAW];
@@ -100009,7 +100009,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":398,"column":1,"endLine":409,"endColumn":76},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-field")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
@@ -100051,7 +100051,7 @@ export const LIBRARIES = {
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, { s_i_$1962, s_count_$1963, s_start_$1964, s_end_$1965 }); return $UNWIND; }
           $t8;
-          $t9 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_end_$1965 === 'number' && typeof s_start_$1964 === 'number') ? ($sub(s_end_$1965, s_start_$1964)) : R.callBinding((C2.v ?? G2()), [s_end_$1965, s_start_$1964]);
+          $t9 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_end_$1965 === 'number' && typeof s_start_$1964 === 'number' && (!Number.isInteger((s_end_$1965 - s_start_$1964)) || (Number.isSafeInteger((s_end_$1965 - s_start_$1964)) && Number.isInteger(s_end_$1965) && Number.isInteger(s_start_$1964)))) ? (s_end_$1965 - s_start_$1964) : $sub(s_end_$1965, s_start_$1964)) : R.callBinding((C2.v ?? G2()), [s_end_$1965, s_start_$1964]);
           s_width_$1966 = $t9;
           $t10 = (C3.v ?? G3());
           if (typeof $t10 !== 'function') $notProc($t10);
@@ -100103,7 +100103,7 @@ export const LIBRARIES = {
             while ($t29 instanceof $TailCall) { $stack.room = $d; $t29 = $step($t29); }
             if ($t29 === $UNWIND) { R.reify($proc$r, 11, { s_width_$1966, s_by_$1967, s_field_$1968, $t19, s_i_$1962, s_start_$1964, s_end_$1965 }); return $UNWIND; }
             $t30 = (C8.v ?? G8());
-            $t31 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_by_$1967 === 'number' && typeof s_width_$1966 === 'number') ? ($sub(s_by_$1967, s_width_$1966)) : R.callBinding((C2.v ?? G2()), [s_by_$1967, s_width_$1966]);
+            $t31 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_by_$1967 === 'number' && typeof s_width_$1966 === 'number' && (!Number.isInteger((s_by_$1967 - s_width_$1966)) || (Number.isSafeInteger((s_by_$1967 - s_width_$1966)) && Number.isInteger(s_by_$1967) && Number.isInteger(s_width_$1966)))) ? (s_by_$1967 - s_width_$1966) : $sub(s_by_$1967, s_width_$1966)) : R.callBinding((C2.v ?? G2()), [s_by_$1967, s_width_$1966]);
             $t32 = $t30;
             if (typeof $t32 !== 'function') $notProc($t32);
             $t33 = $t32[$RAW];
@@ -100173,7 +100173,7 @@ export const LIBRARIES = {
               case 3:
                 $t8 = $r;
                 $t8;
-                $t9 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_end_$1965 === 'number' && typeof s_start_$1964 === 'number') ? ($sub(s_end_$1965, s_start_$1964)) : R.callBinding((C2.v ?? G2()), [s_end_$1965, s_start_$1964]);
+                $t9 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_end_$1965 === 'number' && typeof s_start_$1964 === 'number' && (!Number.isInteger((s_end_$1965 - s_start_$1964)) || (Number.isSafeInteger((s_end_$1965 - s_start_$1964)) && Number.isInteger(s_end_$1965) && Number.isInteger(s_start_$1964)))) ? (s_end_$1965 - s_start_$1964) : $sub(s_end_$1965, s_start_$1964)) : R.callBinding((C2.v ?? G2()), [s_end_$1965, s_start_$1964]);
                 s_width_$1966 = $t9;
                 $t10 = (C3.v ?? G3());
                 if (typeof $t10 !== 'function') $notProc($t10);
@@ -100250,7 +100250,7 @@ export const LIBRARIES = {
               case 11:
                 $t29 = $r;
                 $t30 = (C8.v ?? G8());
-                $t31 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_by_$1967 === 'number' && typeof s_width_$1966 === 'number') ? ($sub(s_by_$1967, s_width_$1966)) : R.callBinding((C2.v ?? G2()), [s_by_$1967, s_width_$1966]);
+                $t31 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_by_$1967 === 'number' && typeof s_width_$1966 === 'number' && (!Number.isInteger((s_by_$1967 - s_width_$1966)) || (Number.isSafeInteger((s_by_$1967 - s_width_$1966)) && Number.isInteger(s_by_$1967) && Number.isInteger(s_width_$1966)))) ? (s_by_$1967 - s_width_$1966) : $sub(s_by_$1967, s_width_$1966)) : R.callBinding((C2.v ?? G2()), [s_by_$1967, s_width_$1966]);
                 $t32 = $t30;
                 if (typeof $t32 !== 'function') $notProc($t32);
                 $t33 = $t32[$RAW];
@@ -100302,7 +100302,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":418,"column":1,"endLine":426,"endColumn":87},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-integer")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-field")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "zero?")).v;
@@ -100334,7 +100334,7 @@ export const LIBRARIES = {
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_i_$1970, s_start_$1971, s_end_$1972 }); return $UNWIND; }
           $t5;
-          $t6 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_end_$1972 === 'number' && typeof s_start_$1971 === 'number') ? ($sub(s_end_$1972, s_start_$1971)) : R.callBinding((C5.v ?? G5()), [s_end_$1972, s_start_$1971]);
+          $t6 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_end_$1972 === 'number' && typeof s_start_$1971 === 'number' && (!Number.isInteger((s_end_$1972 - s_start_$1971)) || (Number.isSafeInteger((s_end_$1972 - s_start_$1971)) && Number.isInteger(s_end_$1972) && Number.isInteger(s_start_$1971)))) ? (s_end_$1972 - s_start_$1971) : $sub(s_end_$1972, s_start_$1971)) : R.callBinding((C5.v ?? G5()), [s_end_$1972, s_start_$1971]);
           $t7 = (C8.v ?? G8());
           if (typeof $t7 !== 'function') $notProc($t7);
           $t8 = $t7[$RAW];
@@ -100365,7 +100365,7 @@ export const LIBRARIES = {
             $t17 = $t13;
             if ($d > 0 && ($t18 = $t17?.[$RAW] ?? $t17)?.[$PRIM] === true) { $stack.room = $d; return $t18(s_i_$1970, $t16, s_start_$1971, s_end_$1972); } return $tailCall($t17, [s_i_$1970, $t16, s_start_$1971, s_end_$1972]);
           } else {
-            $t19 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_k_$1974 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$1974, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$1974, 1]);
+            $t19 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_k_$1974 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$1974 - 1)) || (Number.isSafeInteger((s_k_$1974 - 1)) && Number.isInteger(s_k_$1974) && Number.isInteger(1)))) ? (s_k_$1974 - 1) : $sub(s_k_$1974, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$1974, 1]);
             $t20 = (C4.v ?? G4());
             if (typeof $t20 !== 'function') $notProc($t20);
             $t21 = $t20[$RAW];
@@ -100432,7 +100432,7 @@ export const LIBRARIES = {
               case 2:
                 $t5 = $r;
                 $t5;
-                $t6 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_end_$1972 === 'number' && typeof s_start_$1971 === 'number') ? ($sub(s_end_$1972, s_start_$1971)) : R.callBinding((C5.v ?? G5()), [s_end_$1972, s_start_$1971]);
+                $t6 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_end_$1972 === 'number' && typeof s_start_$1971 === 'number' && (!Number.isInteger((s_end_$1972 - s_start_$1971)) || (Number.isSafeInteger((s_end_$1972 - s_start_$1971)) && Number.isInteger(s_end_$1972) && Number.isInteger(s_start_$1971)))) ? (s_end_$1972 - s_start_$1971) : $sub(s_end_$1972, s_start_$1971)) : R.callBinding((C5.v ?? G5()), [s_end_$1972, s_start_$1971]);
                 $t7 = (C8.v ?? G8());
                 if (typeof $t7 !== 'function') $notProc($t7);
                 $t8 = $t7[$RAW];
@@ -100473,7 +100473,7 @@ export const LIBRARIES = {
                 $r = $t16;
                 $pc = 8; continue;
               case 7:
-                $t19 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_k_$1974 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$1974, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$1974, 1]);
+                $t19 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_k_$1974 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$1974 - 1)) || (Number.isSafeInteger((s_k_$1974 - 1)) && Number.isInteger(s_k_$1974) && Number.isInteger(1)))) ? (s_k_$1974 - 1) : $sub(s_k_$1974, 1)) : R.callBinding((C5.v ?? G5()), [s_k_$1974, 1]);
                 $t20 = (C4.v ?? G4());
                 if (typeof $t20 !== 'function') $notProc($t20);
                 $t21 = $t20[$RAW];
@@ -100807,7 +100807,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":450,"column":1,"endLine":454,"endColumn":77},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "reverse")).v;
@@ -100826,12 +100826,12 @@ export const LIBRARIES = {
           s_rest_$1985 = s_i_$1981;
           s_acc_$1986 = null;
           $loop1: for (;;) {
-          $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_k_$1984 === 'number' && typeof s_len_$1982 === 'number') ? (s_k_$1984 === s_len_$1982) : R.callBinding((C0.v ?? G0()), [s_k_$1984, s_len_$1982]);
+          $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_k_$1984 === 'number' && typeof s_len_$1982 === 'number') ? s_k_$1984 === s_len_$1982 : $numEq(s_k_$1984, s_len_$1982)) : R.callBinding((C0.v ?? G0()), [s_k_$1984, s_len_$1982]);
           if ($t0 !== false) {
             $t1 = (C1.v ?? G1());
             if ($d > 0 && ($t2 = $t1?.[$RAW] ?? $t1)?.[$PRIM] === true) { $stack.room = $d; return $t2(s_acc_$1986); } return $tailCall($t1, [s_acc_$1986]);
           } else {
-            $t3 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_k_$1984 === 'number' && typeof 1 === 'number') ? ($add(s_k_$1984, 1)) : R.callBinding((C2.v ?? G2()), [s_k_$1984, 1]);
+            $t3 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_k_$1984 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$1984 + 1)) || (Number.isSafeInteger((s_k_$1984 + 1)) && Number.isInteger(s_k_$1984) && Number.isInteger(1)))) ? (s_k_$1984 + 1) : $add(s_k_$1984, 1)) : R.callBinding((C2.v ?? G2()), [s_k_$1984, 1]);
             $t4 = (C3.v ?? G3());
             if (typeof $t4 !== 'function') $notProc($t4);
             $t5 = $t4[$RAW];
@@ -100865,13 +100865,13 @@ export const LIBRARIES = {
                 s_acc_$1986 = null;
                 $pc = 1; continue;
               case 1:
-                $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_k_$1984 === 'number' && typeof s_len_$1982 === 'number') ? (s_k_$1984 === s_len_$1982) : R.callBinding((C0.v ?? G0()), [s_k_$1984, s_len_$1982]);
+                $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_k_$1984 === 'number' && typeof s_len_$1982 === 'number') ? s_k_$1984 === s_len_$1982 : $numEq(s_k_$1984, s_len_$1982)) : R.callBinding((C0.v ?? G0()), [s_k_$1984, s_len_$1982]);
                 if ($t0 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 $t1 = (C1.v ?? G1());
                 return $tailCall($t1, [s_acc_$1986]);
               case 3:
-                $t3 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_k_$1984 === 'number' && typeof 1 === 'number') ? ($add(s_k_$1984, 1)) : R.callBinding((C2.v ?? G2()), [s_k_$1984, 1]);
+                $t3 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_k_$1984 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$1984 + 1)) || (Number.isSafeInteger((s_k_$1984 + 1)) && Number.isInteger(s_k_$1984) && Number.isInteger(1)))) ? (s_k_$1984 + 1) : $add(s_k_$1984, 1)) : R.callBinding((C2.v ?? G2()), [s_k_$1984, 1]);
                 $t4 = (C3.v ?? G3());
                 if (typeof $t4 !== 'function') $notProc($t4);
                 $t5 = $t4[$RAW];
@@ -101628,7 +101628,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":527,"column":1,"endLine":533,"endColumn":77},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-integer")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "zero?")).v;
@@ -101679,7 +101679,7 @@ export const LIBRARIES = {
           if ($t11 !== false) {
             return s_acc_$2005;
           } else {
-            $t12 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_k_$2003 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$2003, 1)) : R.callBinding((C3.v ?? G3()), [s_k_$2003, 1]);
+            $t12 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_k_$2003 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$2003 - 1)) || (Number.isSafeInteger((s_k_$2003 - 1)) && Number.isInteger(s_k_$2003) && Number.isInteger(1)))) ? (s_k_$2003 - 1) : $sub(s_k_$2003, 1)) : R.callBinding((C3.v ?? G3()), [s_k_$2003, 1]);
             $t13 = (C4.v ?? G4());
             if (typeof $t13 !== 'function') $notProc($t13);
             $t14 = $t13[$RAW];
@@ -101769,7 +101769,7 @@ export const LIBRARIES = {
               case 6:
                 return s_acc_$2005;
               case 7:
-                $t12 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_k_$2003 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$2003, 1)) : R.callBinding((C3.v ?? G3()), [s_k_$2003, 1]);
+                $t12 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_k_$2003 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$2003 - 1)) || (Number.isSafeInteger((s_k_$2003 - 1)) && Number.isInteger(s_k_$2003) && Number.isInteger(1)))) ? (s_k_$2003 - 1) : $sub(s_k_$2003, 1)) : R.callBinding((C3.v ?? G3()), [s_k_$2003, 1]);
                 $t13 = (C4.v ?? G4());
                 if (typeof $t13 !== 'function') $notProc($t13);
                 $t14 = $t13[$RAW];
@@ -101821,7 +101821,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":542,"column":1,"endLine":549,"endColumn":57},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $gt = R.gt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "check-integer")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, ">")).v;
@@ -101862,7 +101862,7 @@ export const LIBRARIES = {
           s_k_$2009 = $t8;
           s_rest_$2010 = s_i_$2007;
           $loop1: for (;;) {
-          $t9 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_k_$2009 === 'number' && typeof 0 === 'number') ? (s_k_$2009 > 0) : R.callBinding((C2.v ?? G2()), [s_k_$2009, 0]);
+          $t9 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_k_$2009 === 'number' && typeof 0 === 'number') ? s_k_$2009 > 0 : $gt(s_k_$2009, 0)) : R.callBinding((C2.v ?? G2()), [s_k_$2009, 0]);
           if ($t9 !== false) {
             $t10 = (C3.v ?? G3());
             if (typeof $t10 !== 'function') $notProc($t10);
@@ -101879,7 +101879,7 @@ export const LIBRARIES = {
             while ($t15 instanceof $TailCall) { $stack.room = $d; $t15 = $step($t15); }
             if ($t15 === $UNWIND) { R.reify($proc$r, 8, { s_k_$2009, s_rest_$2010, s_proc_$2006 }); return $UNWIND; }
             $t15;
-            $t16 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_k_$2009 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$2009, 1)) : R.callBinding((C4.v ?? G4()), [s_k_$2009, 1]);
+            $t16 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_k_$2009 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$2009 - 1)) || (Number.isSafeInteger((s_k_$2009 - 1)) && Number.isInteger(s_k_$2009) && Number.isInteger(1)))) ? (s_k_$2009 - 1) : $sub(s_k_$2009, 1)) : R.callBinding((C4.v ?? G4()), [s_k_$2009, 1]);
             $t17 = (C5.v ?? G5());
             if (typeof $t17 !== 'function') $notProc($t17);
             $t18 = $t17[$RAW];
@@ -101940,7 +101940,7 @@ export const LIBRARIES = {
                 s_rest_$2010 = s_i_$2007;
                 $pc = 4; continue;
               case 4:
-                $t9 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_k_$2009 === 'number' && typeof 0 === 'number') ? (s_k_$2009 > 0) : R.callBinding((C2.v ?? G2()), [s_k_$2009, 0]);
+                $t9 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_k_$2009 === 'number' && typeof 0 === 'number') ? s_k_$2009 > 0 : $gt(s_k_$2009, 0)) : R.callBinding((C2.v ?? G2()), [s_k_$2009, 0]);
                 if ($t9 !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 5:
                 $t10 = (C3.v ?? G3());
@@ -101968,7 +101968,7 @@ export const LIBRARIES = {
               case 8:
                 $t15 = $r;
                 $t15;
-                $t16 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_k_$2009 === 'number' && typeof 1 === 'number') ? ($sub(s_k_$2009, 1)) : R.callBinding((C4.v ?? G4()), [s_k_$2009, 1]);
+                $t16 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_k_$2009 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$2009 - 1)) || (Number.isSafeInteger((s_k_$2009 - 1)) && Number.isInteger(s_k_$2009) && Number.isInteger(1)))) ? (s_k_$2009 - 1) : $sub(s_k_$2009, 1)) : R.callBinding((C4.v ?? G4()), [s_k_$2009, 1]);
                 $t17 = (C5.v ?? G5());
                 if (typeof $t17 !== 'function') $notProc($t17);
                 $t18 = $t17[$RAW];
@@ -101997,7 +101997,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"bitwise.scm","line":561,"column":1,"endLine":570,"endColumn":76},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "+")).v;
         const W1 = R.primitiveCell("+"), P1 = W1.primitive;
@@ -102053,7 +102053,7 @@ export const LIBRARIES = {
             $t14 = $t13 === undefined ? ($t12[$PRIM] === true ? $t12(s_state_$2016) : $foreign($t12, [s_state_$2016])) : $t13(s_state_$2016);
             while ($t14 instanceof $TailCall) { $stack.room = $d; $t14 = $step($t14); }
             if ($t14 === $UNWIND) { R.reify($proc$r, 8, { s_state_$2016, s_k_$2017, s_acc_$2018, s_stop_3f_$2011, s_mapper_$2012, s_successor_$2013 }); return $UNWIND; }
-            $t15 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_k_$2017 === 'number' && typeof 1 === 'number') ? ($add(s_k_$2017, 1)) : R.callBinding((C1.v ?? G1()), [s_k_$2017, 1]);
+            $t15 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_k_$2017 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$2017 + 1)) || (Number.isSafeInteger((s_k_$2017 + 1)) && Number.isInteger(s_k_$2017) && Number.isInteger(1)))) ? (s_k_$2017 + 1) : $add(s_k_$2017, 1)) : R.callBinding((C1.v ?? G1()), [s_k_$2017, 1]);
             $t16 = s_mapper_$2012;
             if (typeof $t16 !== 'function') $notProc($t16);
             $t17 = $t16[$RAW];
@@ -102161,7 +102161,7 @@ export const LIBRARIES = {
                 $pc = 8; continue;
               case 8:
                 $t14 = $r;
-                $t15 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_k_$2017 === 'number' && typeof 1 === 'number') ? ($add(s_k_$2017, 1)) : R.callBinding((C1.v ?? G1()), [s_k_$2017, 1]);
+                $t15 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_k_$2017 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$2017 + 1)) || (Number.isSafeInteger((s_k_$2017 + 1)) && Number.isInteger(s_k_$2017) && Number.isInteger(1)))) ? (s_k_$2017 + 1) : $add(s_k_$2017, 1)) : R.callBinding((C1.v ?? G1()), [s_k_$2017, 1]);
                 $t16 = s_mapper_$2012;
                 if (typeof $t16 !== 'function') $notProc($t16);
                 $t17 = $t16[$RAW];
@@ -102386,7 +102386,7 @@ export const LIBRARIES = {
   },
   "srfi.152": {
     fingerprint: "eecece92",
-    runtime: "197c59b6",
+    runtime: "23c5a51a",
     files: ["152.sld","string_lib.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"srfi\",152],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"scheme\",\"char\"]],[\"l\",\"export\",\"string?\",\"string-null?\",\"string-every\",\"string-any\",\"make-string\",\"string\",\"string-tabulate\",\"string-unfold\",\"string-unfold-right\",\"string->vector\",\"string->list\",\"vector->string\",\"list->string\",\"reverse-list->string\",\"string-length\",\"string-ref\",\"substring\",\"string-copy\",\"string-take\",\"string-take-right\",\"string-drop\",\"string-drop-right\",\"string-pad\",\"string-pad-right\",\"string-trim\",\"string-trim-right\",\"string-trim-both\",\"string-replace\",\"string=?\",\"string<?\",\"string>?\",\"string<=?\",\"string>=?\",\"string-ci=?\",\"string-ci<?\",\"string-ci>?\",\"string-ci<=?\",\"string-ci>=?\",\"string-prefix-length\",\"string-suffix-length\",\"string-prefix?\",\"string-suffix?\",\"string-index\",\"string-index-right\",\"string-skip\",\"string-skip-right\",\"string-contains\",\"string-contains-right\",\"string-append\",\"string-concatenate\",\"string-concatenate-reverse\",\"string-join\",\"string-fold\",\"string-fold-right\",\"string-map\",\"string-for-each\",\"string-count\",\"string-filter\",\"string-remove\",\"string-replicate\",\"string-split\",\"read-string\",\"write-string\",\"string-set!\",\"string-fill!\"],[\"l\",\"include\",[\"s\",\"string_lib.scm\"]]]",
     procedures: {
@@ -102828,7 +102828,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":51,"column":1,"endLine":55,"endColumn":35},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $ge = R.ge, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, ">=")).v;
         const W0 = R.primitiveCell(">="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-ref")).v;
@@ -102841,7 +102841,7 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [s_s_$2030, s_pred_$2031, s_start_$2032, s_end_$2033]);
           s_i_$2035 = s_start_$2032;
           $loop1: for (;;) {
-          $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_i_$2035 === 'number' && typeof s_end_$2033 === 'number') ? (s_i_$2035 >= s_end_$2033) : R.callBinding((C0.v ?? G0()), [s_i_$2035, s_end_$2033]);
+          $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_i_$2035 === 'number' && typeof s_end_$2033 === 'number') ? s_i_$2035 >= s_end_$2033 : $ge(s_i_$2035, s_end_$2033)) : R.callBinding((C0.v ?? G0()), [s_i_$2035, s_end_$2033]);
           if ($t0 !== false) {
             return false;
           } else {
@@ -102862,7 +102862,7 @@ export const LIBRARIES = {
             if ($t6 !== false) {
               return s_i_$2035;
             } else {
-              $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_i_$2035 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2035, 1)) : R.callBinding((C2.v ?? G2()), [s_i_$2035, 1]);
+              $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_i_$2035 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2035 + 1)) || (Number.isSafeInteger((s_i_$2035 + 1)) && Number.isInteger(s_i_$2035) && Number.isInteger(1)))) ? (s_i_$2035 + 1) : $add(s_i_$2035, 1)) : R.callBinding((C2.v ?? G2()), [s_i_$2035, 1]);
               s_i_$2035 = $t7;
               continue $loop1;
             }
@@ -102878,7 +102878,7 @@ export const LIBRARIES = {
                 s_i_$2035 = s_start_$2032;
                 $pc = 1; continue;
               case 1:
-                $t0 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_i_$2035 === 'number' && typeof s_end_$2033 === 'number') ? (s_i_$2035 >= s_end_$2033) : R.callBinding((C0.v ?? G0()), [s_i_$2035, s_end_$2033]);
+                $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_i_$2035 === 'number' && typeof s_end_$2033 === 'number') ? s_i_$2035 >= s_end_$2033 : $ge(s_i_$2035, s_end_$2033)) : R.callBinding((C0.v ?? G0()), [s_i_$2035, s_end_$2033]);
                 if ($t0 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 return false;
@@ -102909,7 +102909,7 @@ export const LIBRARIES = {
               case 6:
                 return s_i_$2035;
               case 7:
-                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_i_$2035 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2035, 1)) : R.callBinding((C2.v ?? G2()), [s_i_$2035, 1]);
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_i_$2035 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2035 + 1)) || (Number.isSafeInteger((s_i_$2035 + 1)) && Number.isInteger(s_i_$2035) && Number.isInteger(1)))) ? (s_i_$2035 + 1) : $add(s_i_$2035, 1)) : R.callBinding((C2.v ?? G2()), [s_i_$2035, 1]);
                 s_i_$2035 = $t7;
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -102926,7 +102926,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":65,"column":1,"endLine":69,"endColumn":35},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $lt = R.lt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "<")).v;
         const W0 = R.primitiveCell("<"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-ref")).v;
@@ -102937,10 +102937,10 @@ export const LIBRARIES = {
           if (arguments.length !== 4) R.wrongArity("index-where-right", 4, false, arguments.length);
           const $d = $stack.room - 22;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [s_s_$2036, s_pred_$2037, s_start_$2038, s_end_$2039]);
-          $t0 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_end_$2039 === 'number' && typeof 1 === 'number') ? ($sub(s_end_$2039, 1)) : R.callBinding((C2.v ?? G2()), [s_end_$2039, 1]);
+          $t0 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_end_$2039 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_end_$2039 - 1)) || (Number.isSafeInteger((s_end_$2039 - 1)) && Number.isInteger(s_end_$2039) && Number.isInteger(1)))) ? (s_end_$2039 - 1) : $sub(s_end_$2039, 1)) : R.callBinding((C2.v ?? G2()), [s_end_$2039, 1]);
           s_i_$2041 = $t0;
           $loop1: for (;;) {
-          $t1 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_i_$2041 === 'number' && typeof s_start_$2038 === 'number') ? (s_i_$2041 < s_start_$2038) : R.callBinding((C0.v ?? G0()), [s_i_$2041, s_start_$2038]);
+          $t1 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_i_$2041 === 'number' && typeof s_start_$2038 === 'number') ? s_i_$2041 < s_start_$2038 : $lt(s_i_$2041, s_start_$2038)) : R.callBinding((C0.v ?? G0()), [s_i_$2041, s_start_$2038]);
           if ($t1 !== false) {
             return false;
           } else {
@@ -102961,7 +102961,7 @@ export const LIBRARIES = {
             if ($t7 !== false) {
               return s_i_$2041;
             } else {
-              $t8 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_i_$2041 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$2041, 1)) : R.callBinding((C2.v ?? G2()), [s_i_$2041, 1]);
+              $t8 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_i_$2041 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2041 - 1)) || (Number.isSafeInteger((s_i_$2041 - 1)) && Number.isInteger(s_i_$2041) && Number.isInteger(1)))) ? (s_i_$2041 - 1) : $sub(s_i_$2041, 1)) : R.callBinding((C2.v ?? G2()), [s_i_$2041, 1]);
               s_i_$2041 = $t8;
               continue $loop1;
             }
@@ -102974,11 +102974,11 @@ export const LIBRARIES = {
           const $d = $stack.room - 22;
           for (;;) switch ($pc) {
               case 0:
-                $t0 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_end_$2039 === 'number' && typeof 1 === 'number') ? ($sub(s_end_$2039, 1)) : R.callBinding((C2.v ?? G2()), [s_end_$2039, 1]);
+                $t0 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_end_$2039 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_end_$2039 - 1)) || (Number.isSafeInteger((s_end_$2039 - 1)) && Number.isInteger(s_end_$2039) && Number.isInteger(1)))) ? (s_end_$2039 - 1) : $sub(s_end_$2039, 1)) : R.callBinding((C2.v ?? G2()), [s_end_$2039, 1]);
                 s_i_$2041 = $t0;
                 $pc = 1; continue;
               case 1:
-                $t1 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof s_i_$2041 === 'number' && typeof s_start_$2038 === 'number') ? (s_i_$2041 < s_start_$2038) : R.callBinding((C0.v ?? G0()), [s_i_$2041, s_start_$2038]);
+                $t1 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof s_i_$2041 === 'number' && typeof s_start_$2038 === 'number') ? s_i_$2041 < s_start_$2038 : $lt(s_i_$2041, s_start_$2038)) : R.callBinding((C0.v ?? G0()), [s_i_$2041, s_start_$2038]);
                 if ($t1 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
                 return false;
@@ -103009,7 +103009,7 @@ export const LIBRARIES = {
               case 6:
                 return s_i_$2041;
               case 7:
-                $t8 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_i_$2041 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$2041, 1)) : R.callBinding((C2.v ?? G2()), [s_i_$2041, 1]);
+                $t8 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_i_$2041 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2041 - 1)) || (Number.isSafeInteger((s_i_$2041 - 1)) && Number.isInteger(s_i_$2041) && Number.isInteger(1)))) ? (s_i_$2041 - 1) : $sub(s_i_$2041, 1)) : R.callBinding((C2.v ?? G2()), [s_i_$2041, 1]);
                 s_i_$2041 = $t8;
                 $pc = 1; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -103026,7 +103026,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":75,"column":1,"endLine":75,"endColumn":50},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-length")).v;
@@ -103042,7 +103042,7 @@ export const LIBRARIES = {
           $t2 = $t1 === undefined ? ($t0[$PRIM] === true ? $t0(s_s_$2042) : $foreign($t0, [s_s_$2042])) : $t1(s_s_$2042);
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, {  }); return $UNWIND; }
-          $t3 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t2 === 'number' && typeof 0 === 'number') ? ($t2 === 0) : R.callBinding((C0.v ?? G0()), [$t2, 0]);
+          $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t2 === 'number' && typeof 0 === 'number') ? $t2 === 0 : $numEq($t2, 0)) : R.callBinding((C0.v ?? G0()), [$t2, 0]);
           return $t3;
         } }["string-null?"];
         const $proc$r = { "string-null?": function ($pc, $f) {
@@ -103062,7 +103062,7 @@ export const LIBRARIES = {
                 $pc = 1; continue;
               case 1:
                 $t2 = $r;
-                $t3 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t2 === 'number' && typeof 0 === 'number') ? ($t2 === 0) : R.callBinding((C0.v ?? G0()), [$t2, 0]);
+                $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t2 === 'number' && typeof 0 === 'number') ? $t2 === 0 : $numEq($t2, 0)) : R.callBinding((C0.v ?? G0()), [$t2, 0]);
                 return $t3;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -103078,7 +103078,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":86,"column":1,"endLine":93,"endColumn":42},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $ge = R.ge, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-range")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cdr")).v;
@@ -103118,7 +103118,7 @@ export const LIBRARIES = {
           s_i_$2049 = $t7;
           s_last_$2050 = true;
           $loop1: for (;;) {
-          $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$2049 === 'number' && typeof s_end_$2047 === 'number') ? (s_i_$2049 >= s_end_$2047) : R.callBinding((C3.v ?? G3()), [s_i_$2049, s_end_$2047]);
+          $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$2049 === 'number' && typeof s_end_$2047 === 'number') ? s_i_$2049 >= s_end_$2047 : $ge(s_i_$2049, s_end_$2047)) : R.callBinding((C3.v ?? G3()), [s_i_$2049, s_end_$2047]);
           if ($t8 !== false) {
             return s_last_$2050;
           } else {
@@ -103138,7 +103138,7 @@ export const LIBRARIES = {
             if ($t14 === $UNWIND) { R.reify($proc$r, 7, { s_end_$2047, s_i_$2049, s_pred_$2043, s_s_$2044 }); return $UNWIND; }
             s_v_$2051 = $t14;
             if (s_v_$2051 !== false) {
-              $t15 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$2049 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2049, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$2049, 1]);
+              $t15 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$2049 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2049 + 1)) || (Number.isSafeInteger((s_i_$2049 + 1)) && Number.isInteger(s_i_$2049) && Number.isInteger(1)))) ? (s_i_$2049 + 1) : $add(s_i_$2049, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$2049, 1]);
               $t16 = s_v_$2051;
               s_i_$2049 = $t15;
               s_last_$2050 = $t16;
@@ -103186,7 +103186,7 @@ export const LIBRARIES = {
                 s_last_$2050 = true;
                 $pc = 3; continue;
               case 3:
-                $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$2049 === 'number' && typeof s_end_$2047 === 'number') ? (s_i_$2049 >= s_end_$2047) : R.callBinding((C3.v ?? G3()), [s_i_$2049, s_end_$2047]);
+                $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$2049 === 'number' && typeof s_end_$2047 === 'number') ? s_i_$2049 >= s_end_$2047 : $ge(s_i_$2049, s_end_$2047)) : R.callBinding((C3.v ?? G3()), [s_i_$2049, s_end_$2047]);
                 if ($t8 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 return s_last_$2050;
@@ -103216,7 +103216,7 @@ export const LIBRARIES = {
                 s_v_$2051 = $t14;
                 if (s_v_$2051 !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 8:
-                $t15 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$2049 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2049, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$2049, 1]);
+                $t15 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$2049 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2049 + 1)) || (Number.isSafeInteger((s_i_$2049 + 1)) && Number.isInteger(s_i_$2049) && Number.isInteger(1)))) ? (s_i_$2049 + 1) : $add(s_i_$2049, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$2049, 1]);
                 $t16 = s_v_$2051;
                 s_i_$2049 = $t15;
                 s_last_$2050 = $t16;
@@ -103237,7 +103237,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":103,"column":1,"endLine":108,"endColumn":59},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $lt = R.lt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-range")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cdr")).v;
@@ -103276,7 +103276,7 @@ export const LIBRARIES = {
           $t7 = (W6.intact || (C6.v ?? G6()) === P6) && (s_r_$2055 instanceof R.Cons) ? (s_r_$2055.car) : R.callBinding((C6.v ?? G6()), [s_r_$2055]);
           s_i_$2058 = $t7;
           $loop1: for (;;) {
-          $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$2058 === 'number' && typeof s_end_$2056 === 'number') ? (s_i_$2058 < s_end_$2056) : R.callBinding((C3.v ?? G3()), [s_i_$2058, s_end_$2056]);
+          $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$2058 === 'number' && typeof s_end_$2056 === 'number') ? s_i_$2058 < s_end_$2056 : $lt(s_i_$2058, s_end_$2056)) : R.callBinding((C3.v ?? G3()), [s_i_$2058, s_end_$2056]);
           if ($t8 !== false) {
             $t9 = (C4.v ?? G4());
             if (typeof $t9 !== 'function') $notProc($t9);
@@ -103296,7 +103296,7 @@ export const LIBRARIES = {
             if (s_x_$2059 !== false) {
               return s_x_$2059;
             } else {
-              $t15 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$2058 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2058, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$2058, 1]);
+              $t15 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$2058 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2058 + 1)) || (Number.isSafeInteger((s_i_$2058 + 1)) && Number.isInteger(s_i_$2058) && Number.isInteger(1)))) ? (s_i_$2058 + 1) : $add(s_i_$2058, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$2058, 1]);
               s_i_$2058 = $t15;
               continue $loop1;
             }
@@ -103341,7 +103341,7 @@ export const LIBRARIES = {
                 s_i_$2058 = $t7;
                 $pc = 3; continue;
               case 3:
-                $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$2058 === 'number' && typeof s_end_$2056 === 'number') ? (s_i_$2058 < s_end_$2056) : R.callBinding((C3.v ?? G3()), [s_i_$2058, s_end_$2056]);
+                $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$2058 === 'number' && typeof s_end_$2056 === 'number') ? s_i_$2058 < s_end_$2056 : $lt(s_i_$2058, s_end_$2056)) : R.callBinding((C3.v ?? G3()), [s_i_$2058, s_end_$2056]);
                 if ($t8 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 $t9 = (C4.v ?? G4());
@@ -103373,7 +103373,7 @@ export const LIBRARIES = {
               case 8:
                 return s_x_$2059;
               case 9:
-                $t15 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$2058 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2058, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$2058, 1]);
+                $t15 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$2058 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2058 + 1)) || (Number.isSafeInteger((s_i_$2058 + 1)) && Number.isInteger(s_i_$2058) && Number.isInteger(1)))) ? (s_i_$2058 + 1) : $add(s_i_$2058, 1)) : R.callBinding((C5.v ?? G5()), [s_i_$2058, 1]);
                 s_i_$2058 = $t15;
                 $pc = 3; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -103390,7 +103390,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":120,"column":1,"endLine":125,"endColumn":77},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $lt = R.lt, $ge = R.ge, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "not")).v;
         const W1 = R.primitiveCell("not"), P1 = W1.primitive;
@@ -103426,7 +103426,7 @@ export const LIBRARIES = {
           while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
           if ($t5 === $UNWIND) { R.reify($proc$r, 2, { s_proc_$2060, s_len_$2061 }); return $UNWIND; }
           if ($t5 !== false) {
-            $t7 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_len_$2061 === 'number' && typeof 0 === 'number') ? (s_len_$2061 >= 0) : R.callBinding((C3.v ?? G3()), [s_len_$2061, 0]);
+            $t7 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_len_$2061 === 'number' && typeof 0 === 'number') ? s_len_$2061 >= 0 : $ge(s_len_$2061, 0)) : R.callBinding((C3.v ?? G3()), [s_len_$2061, 0]);
             $t6 = $t7;
           } else {
             $t6 = false;
@@ -103445,16 +103445,16 @@ export const LIBRARIES = {
             $t9 = undefined;
           }
           $t9;
-          $t13 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_len_$2061 === 'number' && typeof 1 === 'number') ? ($sub(s_len_$2061, 1)) : R.callBinding((C7.v ?? G7()), [s_len_$2061, 1]);
+          $t13 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_len_$2061 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_len_$2061 - 1)) || (Number.isSafeInteger((s_len_$2061 - 1)) && Number.isInteger(s_len_$2061) && Number.isInteger(1)))) ? (s_len_$2061 - 1) : $sub(s_len_$2061, 1)) : R.callBinding((C7.v ?? G7()), [s_len_$2061, 1]);
           s_i_$2063 = $t13;
           s_chars_$2064 = null;
           $loop1: for (;;) {
-          $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$2063 === 'number' && typeof 0 === 'number') ? (s_i_$2063 < 0) : R.callBinding((C5.v ?? G5()), [s_i_$2063, 0]);
+          $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$2063 === 'number' && typeof 0 === 'number') ? s_i_$2063 < 0 : $lt(s_i_$2063, 0)) : R.callBinding((C5.v ?? G5()), [s_i_$2063, 0]);
           if ($t14 !== false) {
             $t15 = (C6.v ?? G6());
             if ($d > 0 && ($t16 = $t15?.[$RAW] ?? $t15)?.[$PRIM] === true) { $stack.room = $d; return $t16(s_chars_$2064); } return $tailCall($t15, [s_chars_$2064]);
           } else {
-            $t17 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_i_$2063 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$2063, 1)) : R.callBinding((C7.v ?? G7()), [s_i_$2063, 1]);
+            $t17 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_i_$2063 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2063 - 1)) || (Number.isSafeInteger((s_i_$2063 - 1)) && Number.isInteger(s_i_$2063) && Number.isInteger(1)))) ? (s_i_$2063 - 1) : $sub(s_i_$2063, 1)) : R.callBinding((C7.v ?? G7()), [s_i_$2063, 1]);
             $t18 = s_proc_$2060;
             if (typeof $t18 !== 'function') $notProc($t18);
             $t19 = $t18[$RAW];
@@ -103500,7 +103500,7 @@ export const LIBRARIES = {
                 $t5 = $r;
                 if ($t5 !== false) { $pc = 3; continue; } $pc = 4; continue;
               case 3:
-                $t7 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_len_$2061 === 'number' && typeof 0 === 'number') ? (s_len_$2061 >= 0) : R.callBinding((C3.v ?? G3()), [s_len_$2061, 0]);
+                $t7 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_len_$2061 === 'number' && typeof 0 === 'number') ? s_len_$2061 >= 0 : $ge(s_len_$2061, 0)) : R.callBinding((C3.v ?? G3()), [s_len_$2061, 0]);
                 $t6 = $t7;
                 $pc = 5; continue;
               case 4:
@@ -103524,7 +103524,7 @@ export const LIBRARIES = {
                 $pc = 8; continue;
               case 8:
                 $t9;
-                $t13 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_len_$2061 === 'number' && typeof 1 === 'number') ? ($sub(s_len_$2061, 1)) : R.callBinding((C7.v ?? G7()), [s_len_$2061, 1]);
+                $t13 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_len_$2061 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_len_$2061 - 1)) || (Number.isSafeInteger((s_len_$2061 - 1)) && Number.isInteger(s_len_$2061) && Number.isInteger(1)))) ? (s_len_$2061 - 1) : $sub(s_len_$2061, 1)) : R.callBinding((C7.v ?? G7()), [s_len_$2061, 1]);
                 s_i_$2063 = $t13;
                 s_chars_$2064 = null;
                 $pc = 10; continue;
@@ -103533,13 +103533,13 @@ export const LIBRARIES = {
                 $t9 = $t12;
                 $pc = 8; continue;
               case 10:
-                $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$2063 === 'number' && typeof 0 === 'number') ? (s_i_$2063 < 0) : R.callBinding((C5.v ?? G5()), [s_i_$2063, 0]);
+                $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$2063 === 'number' && typeof 0 === 'number') ? s_i_$2063 < 0 : $lt(s_i_$2063, 0)) : R.callBinding((C5.v ?? G5()), [s_i_$2063, 0]);
                 if ($t14 !== false) { $pc = 11; continue; } $pc = 12; continue;
               case 11:
                 $t15 = (C6.v ?? G6());
                 return $tailCall($t15, [s_chars_$2064]);
               case 12:
-                $t17 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_i_$2063 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$2063, 1)) : R.callBinding((C7.v ?? G7()), [s_i_$2063, 1]);
+                $t17 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_i_$2063 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2063 - 1)) || (Number.isSafeInteger((s_i_$2063 - 1)) && Number.isInteger(s_i_$2063) && Number.isInteger(1)))) ? (s_i_$2063 - 1) : $sub(s_i_$2063, 1)) : R.callBinding((C7.v ?? G7()), [s_i_$2063, 1]);
                 $t18 = s_proc_$2060;
                 if (typeof $t18 !== 'function') $notProc($t18);
                 $t19 = $t18[$RAW];
@@ -104528,7 +104528,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":197,"column":1,"endLine":199,"endColumn":59},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count-within")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "substring")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
@@ -104555,7 +104555,7 @@ export const LIBRARIES = {
           $t6 = $t5 === undefined ? ($t4[$PRIM] === true ? $t4(s_s_$2096) : $foreign($t4, [s_s_$2096])) : $t5(s_s_$2096);
           while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { $t3, s_s_$2096, s_n_$2097 }); return $UNWIND; }
-          $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof $t6 === 'number' && typeof s_n_$2097 === 'number') ? ($sub($t6, s_n_$2097)) : R.callBinding((C2.v ?? G2()), [$t6, s_n_$2097]);
+          $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof $t6 === 'number' && typeof s_n_$2097 === 'number' && (!Number.isInteger(($t6 - s_n_$2097)) || (Number.isSafeInteger(($t6 - s_n_$2097)) && Number.isInteger($t6) && Number.isInteger(s_n_$2097)))) ? ($t6 - s_n_$2097) : $sub($t6, s_n_$2097)) : R.callBinding((C2.v ?? G2()), [$t6, s_n_$2097]);
           $t8 = (C3.v ?? G3());
           if (typeof $t8 !== 'function') $notProc($t8);
           $t9 = $t8[$RAW];
@@ -104596,7 +104596,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               case 2:
                 $t6 = $r;
-                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof $t6 === 'number' && typeof s_n_$2097 === 'number') ? ($sub($t6, s_n_$2097)) : R.callBinding((C2.v ?? G2()), [$t6, s_n_$2097]);
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof $t6 === 'number' && typeof s_n_$2097 === 'number' && (!Number.isInteger(($t6 - s_n_$2097)) || (Number.isSafeInteger(($t6 - s_n_$2097)) && Number.isInteger($t6) && Number.isInteger(s_n_$2097)))) ? ($t6 - s_n_$2097) : $sub($t6, s_n_$2097)) : R.callBinding((C2.v ?? G2()), [$t6, s_n_$2097]);
                 $t8 = (C3.v ?? G3());
                 if (typeof $t8 !== 'function') $notProc($t8);
                 $t9 = $t8[$RAW];
@@ -104624,7 +104624,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":200,"column":1,"endLine":202,"endColumn":43},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "check-count-within")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "substring")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "-")).v;
@@ -104651,7 +104651,7 @@ export const LIBRARIES = {
           $t6 = $t5 === undefined ? ($t4[$PRIM] === true ? $t4(s_s_$2098) : $foreign($t4, [s_s_$2098])) : $t5(s_s_$2098);
           while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
           if ($t6 === $UNWIND) { R.reify($proc$r, 2, { $t3, s_s_$2098, s_n_$2099 }); return $UNWIND; }
-          $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof $t6 === 'number' && typeof s_n_$2099 === 'number') ? ($sub($t6, s_n_$2099)) : R.callBinding((C2.v ?? G2()), [$t6, s_n_$2099]);
+          $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof $t6 === 'number' && typeof s_n_$2099 === 'number' && (!Number.isInteger(($t6 - s_n_$2099)) || (Number.isSafeInteger(($t6 - s_n_$2099)) && Number.isInteger($t6) && Number.isInteger(s_n_$2099)))) ? ($t6 - s_n_$2099) : $sub($t6, s_n_$2099)) : R.callBinding((C2.v ?? G2()), [$t6, s_n_$2099]);
           $t8 = $t3;
           if ($d > 0 && ($t9 = $t8?.[$RAW] ?? $t8)?.[$PRIM] === true) { $stack.room = $d; return $t9(s_s_$2098, 0, $t7); } return $tailCall($t8, [s_s_$2098, 0, $t7]);
         } }["string-drop-right"];
@@ -104685,7 +104685,7 @@ export const LIBRARIES = {
                 $pc = 2; continue;
               case 2:
                 $t6 = $r;
-                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof $t6 === 'number' && typeof s_n_$2099 === 'number') ? ($sub($t6, s_n_$2099)) : R.callBinding((C2.v ?? G2()), [$t6, s_n_$2099]);
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof $t6 === 'number' && typeof s_n_$2099 === 'number' && (!Number.isInteger(($t6 - s_n_$2099)) || (Number.isSafeInteger(($t6 - s_n_$2099)) && Number.isInteger($t6) && Number.isInteger(s_n_$2099)))) ? ($t6 - s_n_$2099) : $sub($t6, s_n_$2099)) : R.callBinding((C2.v ?? G2()), [$t6, s_n_$2099]);
                 $t8 = $t3;
                 return $tailCall($t8, [s_s_$2098, 0, $t7]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -104702,7 +104702,7 @@ export const LIBRARIES = {
         constants: [new Char(32), new Char(32)],
         span: {"filename":"string_lib.scm","line":214,"column":1,"endLine":220,"endColumn":80},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $le = R.le, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -104752,18 +104752,18 @@ export const LIBRARIES = {
           s_start_$2105 = $t11;
           $t12 = (W3.intact || (C3.v ?? G3()) === P3) && (s_r_$2104 instanceof R.Cons) ? (s_r_$2104.cdr) : R.callBinding((C3.v ?? G3()), [s_r_$2104]);
           s_end_$2106 = $t12;
-          $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_end_$2106 === 'number' && typeof s_start_$2105 === 'number') ? ($sub(s_end_$2106, s_start_$2105)) : R.callBinding((C4.v ?? G4()), [s_end_$2106, s_start_$2105]);
+          $t13 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_end_$2106 === 'number' && typeof s_start_$2105 === 'number' && (!Number.isInteger((s_end_$2106 - s_start_$2105)) || (Number.isSafeInteger((s_end_$2106 - s_start_$2105)) && Number.isInteger(s_end_$2106) && Number.isInteger(s_start_$2105)))) ? (s_end_$2106 - s_start_$2105) : $sub(s_end_$2106, s_start_$2105)) : R.callBinding((C4.v ?? G4()), [s_end_$2106, s_start_$2105]);
           s_n_$2107 = $t13;
-          $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_len_$2101 === 'number' && typeof s_n_$2107 === 'number') ? (s_len_$2101 <= s_n_$2107) : R.callBinding((C5.v ?? G5()), [s_len_$2101, s_n_$2107]);
+          $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_len_$2101 === 'number' && typeof s_n_$2107 === 'number') ? s_len_$2101 <= s_n_$2107 : $le(s_len_$2101, s_n_$2107)) : R.callBinding((C5.v ?? G5()), [s_len_$2101, s_n_$2107]);
           if ($t14 !== false) {
             $t15 = (C6.v ?? G6());
-            $t16 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_end_$2106 === 'number' && typeof s_len_$2101 === 'number') ? ($sub(s_end_$2106, s_len_$2101)) : R.callBinding((C4.v ?? G4()), [s_end_$2106, s_len_$2101]);
+            $t16 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_end_$2106 === 'number' && typeof s_len_$2101 === 'number' && (!Number.isInteger((s_end_$2106 - s_len_$2101)) || (Number.isSafeInteger((s_end_$2106 - s_len_$2101)) && Number.isInteger(s_end_$2106) && Number.isInteger(s_len_$2101)))) ? (s_end_$2106 - s_len_$2101) : $sub(s_end_$2106, s_len_$2101)) : R.callBinding((C4.v ?? G4()), [s_end_$2106, s_len_$2101]);
             $t17 = $t15;
             if ($d > 0 && ($t18 = $t17?.[$RAW] ?? $t17)?.[$PRIM] === true) { $stack.room = $d; return $t18(s_s_$2100, $t16, s_end_$2106); } return $tailCall($t17, [s_s_$2100, $t16, s_end_$2106]);
           } else {
             $t19 = (C7.v ?? G7());
             $t20 = (C8.v ?? G8());
-            $t21 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_len_$2101 === 'number' && typeof s_n_$2107 === 'number') ? ($sub(s_len_$2101, s_n_$2107)) : R.callBinding((C4.v ?? G4()), [s_len_$2101, s_n_$2107]);
+            $t21 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_len_$2101 === 'number' && typeof s_n_$2107 === 'number' && (!Number.isInteger((s_len_$2101 - s_n_$2107)) || (Number.isSafeInteger((s_len_$2101 - s_n_$2107)) && Number.isInteger(s_len_$2101) && Number.isInteger(s_n_$2107)))) ? (s_len_$2101 - s_n_$2107) : $sub(s_len_$2101, s_n_$2107)) : R.callBinding((C4.v ?? G4()), [s_len_$2101, s_n_$2107]);
             $t22 = $t20;
             if (typeof $t22 !== 'function') $notProc($t22);
             $t23 = $t22[$RAW];
@@ -104827,19 +104827,19 @@ export const LIBRARIES = {
                 s_start_$2105 = $t11;
                 $t12 = (W3.intact || (C3.v ?? G3()) === P3) && (s_r_$2104 instanceof R.Cons) ? (s_r_$2104.cdr) : R.callBinding((C3.v ?? G3()), [s_r_$2104]);
                 s_end_$2106 = $t12;
-                $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_end_$2106 === 'number' && typeof s_start_$2105 === 'number') ? ($sub(s_end_$2106, s_start_$2105)) : R.callBinding((C4.v ?? G4()), [s_end_$2106, s_start_$2105]);
+                $t13 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_end_$2106 === 'number' && typeof s_start_$2105 === 'number' && (!Number.isInteger((s_end_$2106 - s_start_$2105)) || (Number.isSafeInteger((s_end_$2106 - s_start_$2105)) && Number.isInteger(s_end_$2106) && Number.isInteger(s_start_$2105)))) ? (s_end_$2106 - s_start_$2105) : $sub(s_end_$2106, s_start_$2105)) : R.callBinding((C4.v ?? G4()), [s_end_$2106, s_start_$2105]);
                 s_n_$2107 = $t13;
-                $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_len_$2101 === 'number' && typeof s_n_$2107 === 'number') ? (s_len_$2101 <= s_n_$2107) : R.callBinding((C5.v ?? G5()), [s_len_$2101, s_n_$2107]);
+                $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_len_$2101 === 'number' && typeof s_n_$2107 === 'number') ? s_len_$2101 <= s_n_$2107 : $le(s_len_$2101, s_n_$2107)) : R.callBinding((C5.v ?? G5()), [s_len_$2101, s_n_$2107]);
                 if ($t14 !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 8:
                 $t15 = (C6.v ?? G6());
-                $t16 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_end_$2106 === 'number' && typeof s_len_$2101 === 'number') ? ($sub(s_end_$2106, s_len_$2101)) : R.callBinding((C4.v ?? G4()), [s_end_$2106, s_len_$2101]);
+                $t16 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_end_$2106 === 'number' && typeof s_len_$2101 === 'number' && (!Number.isInteger((s_end_$2106 - s_len_$2101)) || (Number.isSafeInteger((s_end_$2106 - s_len_$2101)) && Number.isInteger(s_end_$2106) && Number.isInteger(s_len_$2101)))) ? (s_end_$2106 - s_len_$2101) : $sub(s_end_$2106, s_len_$2101)) : R.callBinding((C4.v ?? G4()), [s_end_$2106, s_len_$2101]);
                 $t17 = $t15;
                 return $tailCall($t17, [s_s_$2100, $t16, s_end_$2106]);
               case 9:
                 $t19 = (C7.v ?? G7());
                 $t20 = (C8.v ?? G8());
-                $t21 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_len_$2101 === 'number' && typeof s_n_$2107 === 'number') ? ($sub(s_len_$2101, s_n_$2107)) : R.callBinding((C4.v ?? G4()), [s_len_$2101, s_n_$2107]);
+                $t21 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_len_$2101 === 'number' && typeof s_n_$2107 === 'number' && (!Number.isInteger((s_len_$2101 - s_n_$2107)) || (Number.isSafeInteger((s_len_$2101 - s_n_$2107)) && Number.isInteger(s_len_$2101) && Number.isInteger(s_n_$2107)))) ? (s_len_$2101 - s_n_$2107) : $sub(s_len_$2101, s_n_$2107)) : R.callBinding((C4.v ?? G4()), [s_len_$2101, s_n_$2107]);
                 $t22 = $t20;
                 if (typeof $t22 !== 'function') $notProc($t22);
                 $t23 = $t22[$RAW];
@@ -104878,7 +104878,7 @@ export const LIBRARIES = {
         constants: [new Char(32), new Char(32)],
         span: {"filename":"string_lib.scm","line":232,"column":1,"endLine":238,"endColumn":80},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $le = R.le, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -104930,12 +104930,12 @@ export const LIBRARIES = {
           s_start_$2113 = $t11;
           $t12 = (W3.intact || (C3.v ?? G3()) === P3) && (s_r_$2112 instanceof R.Cons) ? (s_r_$2112.cdr) : R.callBinding((C3.v ?? G3()), [s_r_$2112]);
           s_end_$2114 = $t12;
-          $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_end_$2114 === 'number' && typeof s_start_$2113 === 'number') ? ($sub(s_end_$2114, s_start_$2113)) : R.callBinding((C4.v ?? G4()), [s_end_$2114, s_start_$2113]);
+          $t13 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_end_$2114 === 'number' && typeof s_start_$2113 === 'number' && (!Number.isInteger((s_end_$2114 - s_start_$2113)) || (Number.isSafeInteger((s_end_$2114 - s_start_$2113)) && Number.isInteger(s_end_$2114) && Number.isInteger(s_start_$2113)))) ? (s_end_$2114 - s_start_$2113) : $sub(s_end_$2114, s_start_$2113)) : R.callBinding((C4.v ?? G4()), [s_end_$2114, s_start_$2113]);
           s_n_$2115 = $t13;
-          $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_len_$2109 === 'number' && typeof s_n_$2115 === 'number') ? (s_len_$2109 <= s_n_$2115) : R.callBinding((C5.v ?? G5()), [s_len_$2109, s_n_$2115]);
+          $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_len_$2109 === 'number' && typeof s_n_$2115 === 'number') ? s_len_$2109 <= s_n_$2115 : $le(s_len_$2109, s_n_$2115)) : R.callBinding((C5.v ?? G5()), [s_len_$2109, s_n_$2115]);
           if ($t14 !== false) {
             $t15 = (C6.v ?? G6());
-            $t16 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_start_$2113 === 'number' && typeof s_len_$2109 === 'number') ? ($add(s_start_$2113, s_len_$2109)) : R.callBinding((C7.v ?? G7()), [s_start_$2113, s_len_$2109]);
+            $t16 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_start_$2113 === 'number' && typeof s_len_$2109 === 'number' && (!Number.isInteger((s_start_$2113 + s_len_$2109)) || (Number.isSafeInteger((s_start_$2113 + s_len_$2109)) && Number.isInteger(s_start_$2113) && Number.isInteger(s_len_$2109)))) ? (s_start_$2113 + s_len_$2109) : $add(s_start_$2113, s_len_$2109)) : R.callBinding((C7.v ?? G7()), [s_start_$2113, s_len_$2109]);
             $t17 = $t15;
             if ($d > 0 && ($t18 = $t17?.[$RAW] ?? $t17)?.[$PRIM] === true) { $stack.room = $d; return $t18(s_s_$2108, s_start_$2113, $t16); } return $tailCall($t17, [s_s_$2108, s_start_$2113, $t16]);
           } else {
@@ -104948,7 +104948,7 @@ export const LIBRARIES = {
             while ($t22 instanceof $TailCall) { $stack.room = $d; $t22 = $step($t22); }
             if ($t22 === $UNWIND) { R.reify($proc$r, 10, { s_char_$2111, s_n_$2115, $t19, s_len_$2109 }); return $UNWIND; }
             $t23 = (C9.v ?? G9());
-            $t24 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_len_$2109 === 'number' && typeof s_n_$2115 === 'number') ? ($sub(s_len_$2109, s_n_$2115)) : R.callBinding((C4.v ?? G4()), [s_len_$2109, s_n_$2115]);
+            $t24 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_len_$2109 === 'number' && typeof s_n_$2115 === 'number' && (!Number.isInteger((s_len_$2109 - s_n_$2115)) || (Number.isSafeInteger((s_len_$2109 - s_n_$2115)) && Number.isInteger(s_len_$2109) && Number.isInteger(s_n_$2115)))) ? (s_len_$2109 - s_n_$2115) : $sub(s_len_$2109, s_n_$2115)) : R.callBinding((C4.v ?? G4()), [s_len_$2109, s_n_$2115]);
             $t25 = $t23;
             if (typeof $t25 !== 'function') $notProc($t25);
             $t26 = $t25[$RAW];
@@ -105005,13 +105005,13 @@ export const LIBRARIES = {
                 s_start_$2113 = $t11;
                 $t12 = (W3.intact || (C3.v ?? G3()) === P3) && (s_r_$2112 instanceof R.Cons) ? (s_r_$2112.cdr) : R.callBinding((C3.v ?? G3()), [s_r_$2112]);
                 s_end_$2114 = $t12;
-                $t13 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_end_$2114 === 'number' && typeof s_start_$2113 === 'number') ? ($sub(s_end_$2114, s_start_$2113)) : R.callBinding((C4.v ?? G4()), [s_end_$2114, s_start_$2113]);
+                $t13 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_end_$2114 === 'number' && typeof s_start_$2113 === 'number' && (!Number.isInteger((s_end_$2114 - s_start_$2113)) || (Number.isSafeInteger((s_end_$2114 - s_start_$2113)) && Number.isInteger(s_end_$2114) && Number.isInteger(s_start_$2113)))) ? (s_end_$2114 - s_start_$2113) : $sub(s_end_$2114, s_start_$2113)) : R.callBinding((C4.v ?? G4()), [s_end_$2114, s_start_$2113]);
                 s_n_$2115 = $t13;
-                $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_len_$2109 === 'number' && typeof s_n_$2115 === 'number') ? (s_len_$2109 <= s_n_$2115) : R.callBinding((C5.v ?? G5()), [s_len_$2109, s_n_$2115]);
+                $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_len_$2109 === 'number' && typeof s_n_$2115 === 'number') ? s_len_$2109 <= s_n_$2115 : $le(s_len_$2109, s_n_$2115)) : R.callBinding((C5.v ?? G5()), [s_len_$2109, s_n_$2115]);
                 if ($t14 !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 8:
                 $t15 = (C6.v ?? G6());
-                $t16 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_start_$2113 === 'number' && typeof s_len_$2109 === 'number') ? ($add(s_start_$2113, s_len_$2109)) : R.callBinding((C7.v ?? G7()), [s_start_$2113, s_len_$2109]);
+                $t16 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_start_$2113 === 'number' && typeof s_len_$2109 === 'number' && (!Number.isInteger((s_start_$2113 + s_len_$2109)) || (Number.isSafeInteger((s_start_$2113 + s_len_$2109)) && Number.isInteger(s_start_$2113) && Number.isInteger(s_len_$2109)))) ? (s_start_$2113 + s_len_$2109) : $add(s_start_$2113, s_len_$2109)) : R.callBinding((C7.v ?? G7()), [s_start_$2113, s_len_$2109]);
                 $t17 = $t15;
                 return $tailCall($t17, [s_s_$2108, s_start_$2113, $t16]);
               case 9:
@@ -105028,7 +105028,7 @@ export const LIBRARIES = {
               case 10:
                 $t22 = $r;
                 $t23 = (C9.v ?? G9());
-                $t24 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_len_$2109 === 'number' && typeof s_n_$2115 === 'number') ? ($sub(s_len_$2109, s_n_$2115)) : R.callBinding((C4.v ?? G4()), [s_len_$2109, s_n_$2115]);
+                $t24 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_len_$2109 === 'number' && typeof s_n_$2115 === 'number' && (!Number.isInteger((s_len_$2109 - s_n_$2115)) || (Number.isSafeInteger((s_len_$2109 - s_n_$2115)) && Number.isInteger(s_len_$2109) && Number.isInteger(s_n_$2115)))) ? (s_len_$2109 - s_n_$2115) : $sub(s_len_$2109, s_n_$2115)) : R.callBinding((C4.v ?? G4()), [s_len_$2109, s_n_$2115]);
                 $t25 = $t23;
                 if (typeof $t25 !== 'function') $notProc($t25);
                 $t26 = $t25[$RAW];
@@ -105242,7 +105242,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":264,"column":1,"endLine":268,"endColumn":48},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -105345,7 +105345,7 @@ export const LIBRARIES = {
           if (s_to_$2126 !== false) {
             $t19 = (C7.v ?? G7());
             $t20 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2125 instanceof R.Cons) ? (s_r_$2125.car) : R.callBinding((C1.v ?? G1()), [s_r_$2125]);
-            $t21 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_to_$2126 === 'number' && typeof 1 === 'number') ? ($add(s_to_$2126, 1)) : R.callBinding((C8.v ?? G8()), [s_to_$2126, 1]);
+            $t21 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_to_$2126 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_to_$2126 + 1)) || (Number.isSafeInteger((s_to_$2126 + 1)) && Number.isInteger(s_to_$2126) && Number.isInteger(1)))) ? (s_to_$2126 + 1) : $add(s_to_$2126, 1)) : R.callBinding((C8.v ?? G8()), [s_to_$2126, 1]);
             $t22 = $t19;
             if ($d > 0 && ($t23 = $t22?.[$RAW] ?? $t22)?.[$PRIM] === true) { $stack.room = $d; return $t23(s_s_$2122, $t20, $t21); } return $tailCall($t22, [s_s_$2122, $t20, $t21]);
           } else {
@@ -105413,7 +105413,7 @@ export const LIBRARIES = {
               case 9:
                 $t19 = (C7.v ?? G7());
                 $t20 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2125 instanceof R.Cons) ? (s_r_$2125.car) : R.callBinding((C1.v ?? G1()), [s_r_$2125]);
-                $t21 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_to_$2126 === 'number' && typeof 1 === 'number') ? ($add(s_to_$2126, 1)) : R.callBinding((C8.v ?? G8()), [s_to_$2126, 1]);
+                $t21 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_to_$2126 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_to_$2126 + 1)) || (Number.isSafeInteger((s_to_$2126 + 1)) && Number.isInteger(s_to_$2126) && Number.isInteger(1)))) ? (s_to_$2126 + 1) : $add(s_to_$2126, 1)) : R.callBinding((C8.v ?? G8()), [s_to_$2126, 1]);
                 $t22 = $t19;
                 return $tailCall($t22, [s_s_$2122, $t20, $t21]);
               case 10:
@@ -105878,7 +105878,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":328,"column":1,"endLine":335,"endColumn":16},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $lt = R.lt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "two-ranges")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
@@ -105933,15 +105933,15 @@ export const LIBRARIES = {
           s_end2_$2151 = $t12;
           s_i_$2153 = 0;
           $loop1: for (;;) {
-          $t13 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_start1_$2148 === 'number' && typeof s_i_$2153 === 'number') ? ($add(s_start1_$2148, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start1_$2148, s_i_$2153]);
-          $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t13 === 'number' && typeof s_end1_$2149 === 'number') ? ($t13 < s_end1_$2149) : R.callBinding((C5.v ?? G5()), [$t13, s_end1_$2149]);
+          $t13 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_start1_$2148 === 'number' && typeof s_i_$2153 === 'number' && (!Number.isInteger((s_start1_$2148 + s_i_$2153)) || (Number.isSafeInteger((s_start1_$2148 + s_i_$2153)) && Number.isInteger(s_start1_$2148) && Number.isInteger(s_i_$2153)))) ? (s_start1_$2148 + s_i_$2153) : $add(s_start1_$2148, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start1_$2148, s_i_$2153]);
+          $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t13 === 'number' && typeof s_end1_$2149 === 'number') ? $t13 < s_end1_$2149 : $lt($t13, s_end1_$2149)) : R.callBinding((C5.v ?? G5()), [$t13, s_end1_$2149]);
           if ($t14 !== false) {
-            $t16 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_start2_$2150 === 'number' && typeof s_i_$2153 === 'number') ? ($add(s_start2_$2150, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start2_$2150, s_i_$2153]);
-            $t17 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t16 === 'number' && typeof s_end2_$2151 === 'number') ? ($t16 < s_end2_$2151) : R.callBinding((C5.v ?? G5()), [$t16, s_end2_$2151]);
+            $t16 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_start2_$2150 === 'number' && typeof s_i_$2153 === 'number' && (!Number.isInteger((s_start2_$2150 + s_i_$2153)) || (Number.isSafeInteger((s_start2_$2150 + s_i_$2153)) && Number.isInteger(s_start2_$2150) && Number.isInteger(s_i_$2153)))) ? (s_start2_$2150 + s_i_$2153) : $add(s_start2_$2150, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start2_$2150, s_i_$2153]);
+            $t17 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t16 === 'number' && typeof s_end2_$2151 === 'number') ? $t16 < s_end2_$2151 : $lt($t16, s_end2_$2151)) : R.callBinding((C5.v ?? G5()), [$t16, s_end2_$2151]);
             if ($t17 !== false) {
               $t19 = (C7.v ?? G7());
               $t20 = (C8.v ?? G8());
-              $t21 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_start1_$2148 === 'number' && typeof s_i_$2153 === 'number') ? ($add(s_start1_$2148, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start1_$2148, s_i_$2153]);
+              $t21 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_start1_$2148 === 'number' && typeof s_i_$2153 === 'number' && (!Number.isInteger((s_start1_$2148 + s_i_$2153)) || (Number.isSafeInteger((s_start1_$2148 + s_i_$2153)) && Number.isInteger(s_start1_$2148) && Number.isInteger(s_i_$2153)))) ? (s_start1_$2148 + s_i_$2153) : $add(s_start1_$2148, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start1_$2148, s_i_$2153]);
               $t22 = $t20;
               if (typeof $t22 !== 'function') $notProc($t22);
               $t23 = $t22[$RAW];
@@ -105950,7 +105950,7 @@ export const LIBRARIES = {
               while ($t24 instanceof $TailCall) { $stack.room = $d; $t24 = $step($t24); }
               if ($t24 === $UNWIND) { R.reify($proc$r, 12, { s_start1_$2148, s_end1_$2149, s_start2_$2150, s_end2_$2151, s_i_$2153, $t19, s_s1_$2144, s_s2_$2145 }); return $UNWIND; }
               $t25 = (C8.v ?? G8());
-              $t26 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_start2_$2150 === 'number' && typeof s_i_$2153 === 'number') ? ($add(s_start2_$2150, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start2_$2150, s_i_$2153]);
+              $t26 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_start2_$2150 === 'number' && typeof s_i_$2153 === 'number' && (!Number.isInteger((s_start2_$2150 + s_i_$2153)) || (Number.isSafeInteger((s_start2_$2150 + s_i_$2153)) && Number.isInteger(s_start2_$2150) && Number.isInteger(s_i_$2153)))) ? (s_start2_$2150 + s_i_$2153) : $add(s_start2_$2150, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start2_$2150, s_i_$2153]);
               $t27 = $t25;
               if (typeof $t27 !== 'function') $notProc($t27);
               $t28 = $t27[$RAW];
@@ -105974,7 +105974,7 @@ export const LIBRARIES = {
             $t15 = false;
           }
           if ($t15 !== false) {
-            $t33 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_i_$2153 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2153, 1)) : R.callBinding((C6.v ?? G6()), [s_i_$2153, 1]);
+            $t33 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_i_$2153 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2153 + 1)) || (Number.isSafeInteger((s_i_$2153 + 1)) && Number.isInteger(s_i_$2153) && Number.isInteger(1)))) ? (s_i_$2153 + 1) : $add(s_i_$2153, 1)) : R.callBinding((C6.v ?? G6()), [s_i_$2153, 1]);
             s_i_$2153 = $t33;
             continue $loop1;
           } else {
@@ -106041,12 +106041,12 @@ export const LIBRARIES = {
                 s_i_$2153 = 0;
                 $pc = 5; continue;
               case 5:
-                $t13 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_start1_$2148 === 'number' && typeof s_i_$2153 === 'number') ? ($add(s_start1_$2148, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start1_$2148, s_i_$2153]);
-                $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t13 === 'number' && typeof s_end1_$2149 === 'number') ? ($t13 < s_end1_$2149) : R.callBinding((C5.v ?? G5()), [$t13, s_end1_$2149]);
+                $t13 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_start1_$2148 === 'number' && typeof s_i_$2153 === 'number' && (!Number.isInteger((s_start1_$2148 + s_i_$2153)) || (Number.isSafeInteger((s_start1_$2148 + s_i_$2153)) && Number.isInteger(s_start1_$2148) && Number.isInteger(s_i_$2153)))) ? (s_start1_$2148 + s_i_$2153) : $add(s_start1_$2148, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start1_$2148, s_i_$2153]);
+                $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t13 === 'number' && typeof s_end1_$2149 === 'number') ? $t13 < s_end1_$2149 : $lt($t13, s_end1_$2149)) : R.callBinding((C5.v ?? G5()), [$t13, s_end1_$2149]);
                 if ($t14 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 6:
-                $t16 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_start2_$2150 === 'number' && typeof s_i_$2153 === 'number') ? ($add(s_start2_$2150, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start2_$2150, s_i_$2153]);
-                $t17 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t16 === 'number' && typeof s_end2_$2151 === 'number') ? ($t16 < s_end2_$2151) : R.callBinding((C5.v ?? G5()), [$t16, s_end2_$2151]);
+                $t16 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_start2_$2150 === 'number' && typeof s_i_$2153 === 'number' && (!Number.isInteger((s_start2_$2150 + s_i_$2153)) || (Number.isSafeInteger((s_start2_$2150 + s_i_$2153)) && Number.isInteger(s_start2_$2150) && Number.isInteger(s_i_$2153)))) ? (s_start2_$2150 + s_i_$2153) : $add(s_start2_$2150, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start2_$2150, s_i_$2153]);
+                $t17 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t16 === 'number' && typeof s_end2_$2151 === 'number') ? $t16 < s_end2_$2151 : $lt($t16, s_end2_$2151)) : R.callBinding((C5.v ?? G5()), [$t16, s_end2_$2151]);
                 if ($t17 !== false) { $pc = 9; continue; } $pc = 10; continue;
               case 7:
                 $t15 = false;
@@ -106056,7 +106056,7 @@ export const LIBRARIES = {
               case 9:
                 $t19 = (C7.v ?? G7());
                 $t20 = (C8.v ?? G8());
-                $t21 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_start1_$2148 === 'number' && typeof s_i_$2153 === 'number') ? ($add(s_start1_$2148, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start1_$2148, s_i_$2153]);
+                $t21 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_start1_$2148 === 'number' && typeof s_i_$2153 === 'number' && (!Number.isInteger((s_start1_$2148 + s_i_$2153)) || (Number.isSafeInteger((s_start1_$2148 + s_i_$2153)) && Number.isInteger(s_start1_$2148) && Number.isInteger(s_i_$2153)))) ? (s_start1_$2148 + s_i_$2153) : $add(s_start1_$2148, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start1_$2148, s_i_$2153]);
                 $t22 = $t20;
                 if (typeof $t22 !== 'function') $notProc($t22);
                 $t23 = $t22[$RAW];
@@ -106075,7 +106075,7 @@ export const LIBRARIES = {
               case 12:
                 $t24 = $r;
                 $t25 = (C8.v ?? G8());
-                $t26 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_start2_$2150 === 'number' && typeof s_i_$2153 === 'number') ? ($add(s_start2_$2150, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start2_$2150, s_i_$2153]);
+                $t26 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_start2_$2150 === 'number' && typeof s_i_$2153 === 'number' && (!Number.isInteger((s_start2_$2150 + s_i_$2153)) || (Number.isSafeInteger((s_start2_$2150 + s_i_$2153)) && Number.isInteger(s_start2_$2150) && Number.isInteger(s_i_$2153)))) ? (s_start2_$2150 + s_i_$2153) : $add(s_start2_$2150, s_i_$2153)) : R.callBinding((C6.v ?? G6()), [s_start2_$2150, s_i_$2153]);
                 $t27 = $t25;
                 if (typeof $t27 !== 'function') $notProc($t27);
                 $t28 = $t27[$RAW];
@@ -106101,7 +106101,7 @@ export const LIBRARIES = {
                 $t18 = $t32;
                 $pc = 11; continue;
               case 15:
-                $t33 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_i_$2153 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2153, 1)) : R.callBinding((C6.v ?? G6()), [s_i_$2153, 1]);
+                $t33 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_i_$2153 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2153 + 1)) || (Number.isSafeInteger((s_i_$2153 + 1)) && Number.isInteger(s_i_$2153) && Number.isInteger(1)))) ? (s_i_$2153 + 1) : $add(s_i_$2153, 1)) : R.callBinding((C6.v ?? G6()), [s_i_$2153, 1]);
                 s_i_$2153 = $t33;
                 $pc = 5; continue;
               case 16:
@@ -106120,7 +106120,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":344,"column":1,"endLine":351,"endColumn":16},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $gt = R.gt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "two-ranges")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
@@ -106177,11 +106177,11 @@ export const LIBRARIES = {
           s_end2_$2161 = $t12;
           s_i_$2163 = 0;
           $loop1: for (;;) {
-          $t13 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_end1_$2159 === 'number' && typeof s_i_$2163 === 'number') ? ($sub(s_end1_$2159, s_i_$2163)) : R.callBinding((C6.v ?? G6()), [s_end1_$2159, s_i_$2163]);
-          $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t13 === 'number' && typeof s_start1_$2158 === 'number') ? ($t13 > s_start1_$2158) : R.callBinding((C5.v ?? G5()), [$t13, s_start1_$2158]);
+          $t13 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_end1_$2159 === 'number' && typeof s_i_$2163 === 'number' && (!Number.isInteger((s_end1_$2159 - s_i_$2163)) || (Number.isSafeInteger((s_end1_$2159 - s_i_$2163)) && Number.isInteger(s_end1_$2159) && Number.isInteger(s_i_$2163)))) ? (s_end1_$2159 - s_i_$2163) : $sub(s_end1_$2159, s_i_$2163)) : R.callBinding((C6.v ?? G6()), [s_end1_$2159, s_i_$2163]);
+          $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t13 === 'number' && typeof s_start1_$2158 === 'number') ? $t13 > s_start1_$2158 : $gt($t13, s_start1_$2158)) : R.callBinding((C5.v ?? G5()), [$t13, s_start1_$2158]);
           if ($t14 !== false) {
-            $t16 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_end2_$2161 === 'number' && typeof s_i_$2163 === 'number') ? ($sub(s_end2_$2161, s_i_$2163)) : R.callBinding((C6.v ?? G6()), [s_end2_$2161, s_i_$2163]);
-            $t17 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t16 === 'number' && typeof s_start2_$2160 === 'number') ? ($t16 > s_start2_$2160) : R.callBinding((C5.v ?? G5()), [$t16, s_start2_$2160]);
+            $t16 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_end2_$2161 === 'number' && typeof s_i_$2163 === 'number' && (!Number.isInteger((s_end2_$2161 - s_i_$2163)) || (Number.isSafeInteger((s_end2_$2161 - s_i_$2163)) && Number.isInteger(s_end2_$2161) && Number.isInteger(s_i_$2163)))) ? (s_end2_$2161 - s_i_$2163) : $sub(s_end2_$2161, s_i_$2163)) : R.callBinding((C6.v ?? G6()), [s_end2_$2161, s_i_$2163]);
+            $t17 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t16 === 'number' && typeof s_start2_$2160 === 'number') ? $t16 > s_start2_$2160 : $gt($t16, s_start2_$2160)) : R.callBinding((C5.v ?? G5()), [$t16, s_start2_$2160]);
             if ($t17 !== false) {
               $t19 = (C7.v ?? G7());
               $t20 = (C8.v ?? G8());
@@ -106230,7 +106230,7 @@ export const LIBRARIES = {
             $t15 = false;
           }
           if ($t15 !== false) {
-            $t37 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_i_$2163 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2163, 1)) : R.callBinding((C9.v ?? G9()), [s_i_$2163, 1]);
+            $t37 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_i_$2163 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2163 + 1)) || (Number.isSafeInteger((s_i_$2163 + 1)) && Number.isInteger(s_i_$2163) && Number.isInteger(1)))) ? (s_i_$2163 + 1) : $add(s_i_$2163, 1)) : R.callBinding((C9.v ?? G9()), [s_i_$2163, 1]);
             s_i_$2163 = $t37;
             continue $loop1;
           } else {
@@ -106297,12 +106297,12 @@ export const LIBRARIES = {
                 s_i_$2163 = 0;
                 $pc = 5; continue;
               case 5:
-                $t13 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_end1_$2159 === 'number' && typeof s_i_$2163 === 'number') ? ($sub(s_end1_$2159, s_i_$2163)) : R.callBinding((C6.v ?? G6()), [s_end1_$2159, s_i_$2163]);
-                $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t13 === 'number' && typeof s_start1_$2158 === 'number') ? ($t13 > s_start1_$2158) : R.callBinding((C5.v ?? G5()), [$t13, s_start1_$2158]);
+                $t13 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_end1_$2159 === 'number' && typeof s_i_$2163 === 'number' && (!Number.isInteger((s_end1_$2159 - s_i_$2163)) || (Number.isSafeInteger((s_end1_$2159 - s_i_$2163)) && Number.isInteger(s_end1_$2159) && Number.isInteger(s_i_$2163)))) ? (s_end1_$2159 - s_i_$2163) : $sub(s_end1_$2159, s_i_$2163)) : R.callBinding((C6.v ?? G6()), [s_end1_$2159, s_i_$2163]);
+                $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t13 === 'number' && typeof s_start1_$2158 === 'number') ? $t13 > s_start1_$2158 : $gt($t13, s_start1_$2158)) : R.callBinding((C5.v ?? G5()), [$t13, s_start1_$2158]);
                 if ($t14 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 6:
-                $t16 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_end2_$2161 === 'number' && typeof s_i_$2163 === 'number') ? ($sub(s_end2_$2161, s_i_$2163)) : R.callBinding((C6.v ?? G6()), [s_end2_$2161, s_i_$2163]);
-                $t17 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof $t16 === 'number' && typeof s_start2_$2160 === 'number') ? ($t16 > s_start2_$2160) : R.callBinding((C5.v ?? G5()), [$t16, s_start2_$2160]);
+                $t16 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_end2_$2161 === 'number' && typeof s_i_$2163 === 'number' && (!Number.isInteger((s_end2_$2161 - s_i_$2163)) || (Number.isSafeInteger((s_end2_$2161 - s_i_$2163)) && Number.isInteger(s_end2_$2161) && Number.isInteger(s_i_$2163)))) ? (s_end2_$2161 - s_i_$2163) : $sub(s_end2_$2161, s_i_$2163)) : R.callBinding((C6.v ?? G6()), [s_end2_$2161, s_i_$2163]);
+                $t17 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof $t16 === 'number' && typeof s_start2_$2160 === 'number') ? $t16 > s_start2_$2160 : $gt($t16, s_start2_$2160)) : R.callBinding((C5.v ?? G5()), [$t16, s_start2_$2160]);
                 if ($t17 !== false) { $pc = 9; continue; } $pc = 10; continue;
               case 7:
                 $t15 = false;
@@ -106377,7 +106377,7 @@ export const LIBRARIES = {
                 $t18 = $t36;
                 $pc = 11; continue;
               case 17:
-                $t37 = (W9.intact || (C9.v ?? G9()) === P9) && (typeof s_i_$2163 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2163, 1)) : R.callBinding((C9.v ?? G9()), [s_i_$2163, 1]);
+                $t37 = (W9.intact || (C9.v ?? G9()) === P9) ? ((typeof s_i_$2163 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2163 + 1)) || (Number.isSafeInteger((s_i_$2163 + 1)) && Number.isInteger(s_i_$2163) && Number.isInteger(1)))) ? (s_i_$2163 + 1) : $add(s_i_$2163, 1)) : R.callBinding((C9.v ?? G9()), [s_i_$2163, 1]);
                 s_i_$2163 = $t37;
                 $pc = 5; continue;
               case 18:
@@ -106396,7 +106396,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":360,"column":1,"endLine":362,"endColumn":68},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "two-ranges")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -106436,8 +106436,8 @@ export const LIBRARIES = {
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, { s_r_$2167, $t5 }); return $UNWIND; }
           $t9 = (W6.intact || (C6.v ?? G6()) === P6) && (s_r_$2167 instanceof R.Cons) ? (s_r_$2167.car) : R.callBinding((C6.v ?? G6()), [s_r_$2167]);
-          $t10 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof $t8 === 'number' && typeof $t9 === 'number') ? ($sub($t8, $t9)) : R.callBinding((C4.v ?? G4()), [$t8, $t9]);
-          $t11 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t5 === 'number' && typeof $t10 === 'number') ? ($t5 === $t10) : R.callBinding((C1.v ?? G1()), [$t5, $t10]);
+          $t10 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof $t8 === 'number' && typeof $t9 === 'number' && (!Number.isInteger(($t8 - $t9)) || (Number.isSafeInteger(($t8 - $t9)) && Number.isInteger($t8) && Number.isInteger($t9)))) ? ($t8 - $t9) : $sub($t8, $t9)) : R.callBinding((C4.v ?? G4()), [$t8, $t9]);
+          $t11 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t5 === 'number' && typeof $t10 === 'number') ? $t5 === $t10 : $numEq($t5, $t10)) : R.callBinding((C1.v ?? G1()), [$t5, $t10]);
           return $t11;
         } }["string-prefix?"];
         const $proc$r = { "string-prefix?": function ($pc, $f) {
@@ -106481,8 +106481,8 @@ export const LIBRARIES = {
               case 3:
                 $t8 = $r;
                 $t9 = (W6.intact || (C6.v ?? G6()) === P6) && (s_r_$2167 instanceof R.Cons) ? (s_r_$2167.car) : R.callBinding((C6.v ?? G6()), [s_r_$2167]);
-                $t10 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof $t8 === 'number' && typeof $t9 === 'number') ? ($sub($t8, $t9)) : R.callBinding((C4.v ?? G4()), [$t8, $t9]);
-                $t11 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t5 === 'number' && typeof $t10 === 'number') ? ($t5 === $t10) : R.callBinding((C1.v ?? G1()), [$t5, $t10]);
+                $t10 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof $t8 === 'number' && typeof $t9 === 'number' && (!Number.isInteger(($t8 - $t9)) || (Number.isSafeInteger(($t8 - $t9)) && Number.isInteger($t8) && Number.isInteger($t9)))) ? ($t8 - $t9) : $sub($t8, $t9)) : R.callBinding((C4.v ?? G4()), [$t8, $t9]);
+                $t11 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t5 === 'number' && typeof $t10 === 'number') ? $t5 === $t10 : $numEq($t5, $t10)) : R.callBinding((C1.v ?? G1()), [$t5, $t10]);
                 return $t11;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -106498,7 +106498,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":371,"column":1,"endLine":373,"endColumn":68},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "two-ranges")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "=")).v;
         const W1 = R.primitiveCell("="), P1 = W1.primitive;
@@ -106538,8 +106538,8 @@ export const LIBRARIES = {
           while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
           if ($t8 === $UNWIND) { R.reify($proc$r, 3, { s_r_$2171, $t5 }); return $UNWIND; }
           $t9 = (W6.intact || (C6.v ?? G6()) === P6) && (s_r_$2171 instanceof R.Cons) ? (s_r_$2171.car) : R.callBinding((C6.v ?? G6()), [s_r_$2171]);
-          $t10 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof $t8 === 'number' && typeof $t9 === 'number') ? ($sub($t8, $t9)) : R.callBinding((C4.v ?? G4()), [$t8, $t9]);
-          $t11 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t5 === 'number' && typeof $t10 === 'number') ? ($t5 === $t10) : R.callBinding((C1.v ?? G1()), [$t5, $t10]);
+          $t10 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof $t8 === 'number' && typeof $t9 === 'number' && (!Number.isInteger(($t8 - $t9)) || (Number.isSafeInteger(($t8 - $t9)) && Number.isInteger($t8) && Number.isInteger($t9)))) ? ($t8 - $t9) : $sub($t8, $t9)) : R.callBinding((C4.v ?? G4()), [$t8, $t9]);
+          $t11 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t5 === 'number' && typeof $t10 === 'number') ? $t5 === $t10 : $numEq($t5, $t10)) : R.callBinding((C1.v ?? G1()), [$t5, $t10]);
           return $t11;
         } }["string-suffix?"];
         const $proc$r = { "string-suffix?": function ($pc, $f) {
@@ -106583,8 +106583,8 @@ export const LIBRARIES = {
               case 3:
                 $t8 = $r;
                 $t9 = (W6.intact || (C6.v ?? G6()) === P6) && (s_r_$2171 instanceof R.Cons) ? (s_r_$2171.car) : R.callBinding((C6.v ?? G6()), [s_r_$2171]);
-                $t10 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof $t8 === 'number' && typeof $t9 === 'number') ? ($sub($t8, $t9)) : R.callBinding((C4.v ?? G4()), [$t8, $t9]);
-                $t11 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof $t5 === 'number' && typeof $t10 === 'number') ? ($t5 === $t10) : R.callBinding((C1.v ?? G1()), [$t5, $t10]);
+                $t10 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof $t8 === 'number' && typeof $t9 === 'number' && (!Number.isInteger(($t8 - $t9)) || (Number.isSafeInteger(($t8 - $t9)) && Number.isInteger($t8) && Number.isInteger($t9)))) ? ($t8 - $t9) : $sub($t8, $t9)) : R.callBinding((C4.v ?? G4()), [$t8, $t9]);
+                $t11 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof $t5 === 'number' && typeof $t10 === 'number') ? $t5 === $t10 : $numEq($t5, $t10)) : R.callBinding((C1.v ?? G1()), [$t5, $t10]);
                 return $t11;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -106972,7 +106972,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":422,"column":1,"endLine":426,"endColumn":32},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "=")).v;
         const W0 = R.primitiveCell("="), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "+")).v;
@@ -106986,15 +106986,15 @@ export const LIBRARIES = {
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [s_s1_$2188, s_i_$2189, s_s2_$2190, s_start2_$2191, s_end2_$2192]);
           s_k_$2194 = 0;
           $loop1: for (;;) {
-          $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_start2_$2191 === 'number' && typeof s_k_$2194 === 'number') ? ($add(s_start2_$2191, s_k_$2194)) : R.callBinding((C1.v ?? G1()), [s_start2_$2191, s_k_$2194]);
-          $t1 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t0 === 'number' && typeof s_end2_$2192 === 'number') ? ($t0 === s_end2_$2192) : R.callBinding((C0.v ?? G0()), [$t0, s_end2_$2192]);
+          $t0 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_start2_$2191 === 'number' && typeof s_k_$2194 === 'number' && (!Number.isInteger((s_start2_$2191 + s_k_$2194)) || (Number.isSafeInteger((s_start2_$2191 + s_k_$2194)) && Number.isInteger(s_start2_$2191) && Number.isInteger(s_k_$2194)))) ? (s_start2_$2191 + s_k_$2194) : $add(s_start2_$2191, s_k_$2194)) : R.callBinding((C1.v ?? G1()), [s_start2_$2191, s_k_$2194]);
+          $t1 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t0 === 'number' && typeof s_end2_$2192 === 'number') ? $t0 === s_end2_$2192 : $numEq($t0, s_end2_$2192)) : R.callBinding((C0.v ?? G0()), [$t0, s_end2_$2192]);
           s_x_$2195 = $t1;
           if (s_x_$2195 !== false) {
             return s_x_$2195;
           } else {
             $t2 = (C2.v ?? G2());
             $t3 = (C3.v ?? G3());
-            $t4 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_i_$2189 === 'number' && typeof s_k_$2194 === 'number') ? ($add(s_i_$2189, s_k_$2194)) : R.callBinding((C1.v ?? G1()), [s_i_$2189, s_k_$2194]);
+            $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_i_$2189 === 'number' && typeof s_k_$2194 === 'number' && (!Number.isInteger((s_i_$2189 + s_k_$2194)) || (Number.isSafeInteger((s_i_$2189 + s_k_$2194)) && Number.isInteger(s_i_$2189) && Number.isInteger(s_k_$2194)))) ? (s_i_$2189 + s_k_$2194) : $add(s_i_$2189, s_k_$2194)) : R.callBinding((C1.v ?? G1()), [s_i_$2189, s_k_$2194]);
             $t5 = $t3;
             if (typeof $t5 !== 'function') $notProc($t5);
             $t6 = $t5[$RAW];
@@ -107003,7 +107003,7 @@ export const LIBRARIES = {
             while ($t7 instanceof $TailCall) { $stack.room = $d; $t7 = $step($t7); }
             if ($t7 === $UNWIND) { R.reify($proc$r, 4, { s_k_$2194, $t2, s_s1_$2188, s_i_$2189, s_s2_$2190, s_start2_$2191, s_end2_$2192 }); return $UNWIND; }
             $t8 = (C3.v ?? G3());
-            $t9 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_start2_$2191 === 'number' && typeof s_k_$2194 === 'number') ? ($add(s_start2_$2191, s_k_$2194)) : R.callBinding((C1.v ?? G1()), [s_start2_$2191, s_k_$2194]);
+            $t9 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_start2_$2191 === 'number' && typeof s_k_$2194 === 'number' && (!Number.isInteger((s_start2_$2191 + s_k_$2194)) || (Number.isSafeInteger((s_start2_$2191 + s_k_$2194)) && Number.isInteger(s_start2_$2191) && Number.isInteger(s_k_$2194)))) ? (s_start2_$2191 + s_k_$2194) : $add(s_start2_$2191, s_k_$2194)) : R.callBinding((C1.v ?? G1()), [s_start2_$2191, s_k_$2194]);
             $t10 = $t8;
             if (typeof $t10 !== 'function') $notProc($t10);
             $t11 = $t10[$RAW];
@@ -107019,7 +107019,7 @@ export const LIBRARIES = {
             while ($t15 instanceof $TailCall) { $stack.room = $d; $t15 = $step($t15); }
             if ($t15 === $UNWIND) { R.reify($proc$r, 6, { s_k_$2194, s_s1_$2188, s_i_$2189, s_s2_$2190, s_start2_$2191, s_end2_$2192 }); return $UNWIND; }
             if ($t15 !== false) {
-              $t16 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_k_$2194 === 'number' && typeof 1 === 'number') ? ($add(s_k_$2194, 1)) : R.callBinding((C1.v ?? G1()), [s_k_$2194, 1]);
+              $t16 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_k_$2194 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$2194 + 1)) || (Number.isSafeInteger((s_k_$2194 + 1)) && Number.isInteger(s_k_$2194) && Number.isInteger(1)))) ? (s_k_$2194 + 1) : $add(s_k_$2194, 1)) : R.callBinding((C1.v ?? G1()), [s_k_$2194, 1]);
               s_k_$2194 = $t16;
               continue $loop1;
             } else {
@@ -107037,8 +107037,8 @@ export const LIBRARIES = {
                 s_k_$2194 = 0;
                 $pc = 1; continue;
               case 1:
-                $t0 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_start2_$2191 === 'number' && typeof s_k_$2194 === 'number') ? ($add(s_start2_$2191, s_k_$2194)) : R.callBinding((C1.v ?? G1()), [s_start2_$2191, s_k_$2194]);
-                $t1 = (W0.intact || (C0.v ?? G0()) === P0) && (typeof $t0 === 'number' && typeof s_end2_$2192 === 'number') ? ($t0 === s_end2_$2192) : R.callBinding((C0.v ?? G0()), [$t0, s_end2_$2192]);
+                $t0 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_start2_$2191 === 'number' && typeof s_k_$2194 === 'number' && (!Number.isInteger((s_start2_$2191 + s_k_$2194)) || (Number.isSafeInteger((s_start2_$2191 + s_k_$2194)) && Number.isInteger(s_start2_$2191) && Number.isInteger(s_k_$2194)))) ? (s_start2_$2191 + s_k_$2194) : $add(s_start2_$2191, s_k_$2194)) : R.callBinding((C1.v ?? G1()), [s_start2_$2191, s_k_$2194]);
+                $t1 = (W0.intact || (C0.v ?? G0()) === P0) ? ((typeof $t0 === 'number' && typeof s_end2_$2192 === 'number') ? $t0 === s_end2_$2192 : $numEq($t0, s_end2_$2192)) : R.callBinding((C0.v ?? G0()), [$t0, s_end2_$2192]);
                 s_x_$2195 = $t1;
                 if (s_x_$2195 !== false) { $pc = 2; continue; } $pc = 3; continue;
               case 2:
@@ -107046,7 +107046,7 @@ export const LIBRARIES = {
               case 3:
                 $t2 = (C2.v ?? G2());
                 $t3 = (C3.v ?? G3());
-                $t4 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_i_$2189 === 'number' && typeof s_k_$2194 === 'number') ? ($add(s_i_$2189, s_k_$2194)) : R.callBinding((C1.v ?? G1()), [s_i_$2189, s_k_$2194]);
+                $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_i_$2189 === 'number' && typeof s_k_$2194 === 'number' && (!Number.isInteger((s_i_$2189 + s_k_$2194)) || (Number.isSafeInteger((s_i_$2189 + s_k_$2194)) && Number.isInteger(s_i_$2189) && Number.isInteger(s_k_$2194)))) ? (s_i_$2189 + s_k_$2194) : $add(s_i_$2189, s_k_$2194)) : R.callBinding((C1.v ?? G1()), [s_i_$2189, s_k_$2194]);
                 $t5 = $t3;
                 if (typeof $t5 !== 'function') $notProc($t5);
                 $t6 = $t5[$RAW];
@@ -107059,7 +107059,7 @@ export const LIBRARIES = {
               case 4:
                 $t7 = $r;
                 $t8 = (C3.v ?? G3());
-                $t9 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_start2_$2191 === 'number' && typeof s_k_$2194 === 'number') ? ($add(s_start2_$2191, s_k_$2194)) : R.callBinding((C1.v ?? G1()), [s_start2_$2191, s_k_$2194]);
+                $t9 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_start2_$2191 === 'number' && typeof s_k_$2194 === 'number' && (!Number.isInteger((s_start2_$2191 + s_k_$2194)) || (Number.isSafeInteger((s_start2_$2191 + s_k_$2194)) && Number.isInteger(s_start2_$2191) && Number.isInteger(s_k_$2194)))) ? (s_start2_$2191 + s_k_$2194) : $add(s_start2_$2191, s_k_$2194)) : R.callBinding((C1.v ?? G1()), [s_start2_$2191, s_k_$2194]);
                 $t10 = $t8;
                 if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
@@ -107084,7 +107084,7 @@ export const LIBRARIES = {
                 $t15 = $r;
                 if ($t15 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
-                $t16 = (W1.intact || (C1.v ?? G1()) === P1) && (typeof s_k_$2194 === 'number' && typeof 1 === 'number') ? ($add(s_k_$2194, 1)) : R.callBinding((C1.v ?? G1()), [s_k_$2194, 1]);
+                $t16 = (W1.intact || (C1.v ?? G1()) === P1) ? ((typeof s_k_$2194 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_k_$2194 + 1)) || (Number.isSafeInteger((s_k_$2194 + 1)) && Number.isInteger(s_k_$2194) && Number.isInteger(1)))) ? (s_k_$2194 + 1) : $add(s_k_$2194, 1)) : R.callBinding((C1.v ?? G1()), [s_k_$2194, 1]);
                 s_k_$2194 = $t16;
                 $pc = 1; continue;
               case 8:
@@ -107103,7 +107103,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":435,"column":1,"endLine":442,"endColumn":38},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $gt = R.gt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "two-ranges")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
@@ -107157,12 +107157,12 @@ export const LIBRARIES = {
           while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
           if ($t12 === $UNWIND) { R.reify($proc$r, 4, { s_start1_$2200, s_end1_$2201, s_start2_$2202, s_s1_$2196, s_s2_$2197 }); return $UNWIND; }
           s_end2_$2203 = $t12;
-          $t13 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_end2_$2203 === 'number' && typeof s_start2_$2202 === 'number') ? ($sub(s_end2_$2203, s_start2_$2202)) : R.callBinding((C5.v ?? G5()), [s_end2_$2203, s_start2_$2202]);
-          $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_end1_$2201 === 'number' && typeof $t13 === 'number') ? ($sub(s_end1_$2201, $t13)) : R.callBinding((C5.v ?? G5()), [s_end1_$2201, $t13]);
+          $t13 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_end2_$2203 === 'number' && typeof s_start2_$2202 === 'number' && (!Number.isInteger((s_end2_$2203 - s_start2_$2202)) || (Number.isSafeInteger((s_end2_$2203 - s_start2_$2202)) && Number.isInteger(s_end2_$2203) && Number.isInteger(s_start2_$2202)))) ? (s_end2_$2203 - s_start2_$2202) : $sub(s_end2_$2203, s_start2_$2202)) : R.callBinding((C5.v ?? G5()), [s_end2_$2203, s_start2_$2202]);
+          $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_end1_$2201 === 'number' && typeof $t13 === 'number' && (!Number.isInteger((s_end1_$2201 - $t13)) || (Number.isSafeInteger((s_end1_$2201 - $t13)) && Number.isInteger(s_end1_$2201) && Number.isInteger($t13)))) ? (s_end1_$2201 - $t13) : $sub(s_end1_$2201, $t13)) : R.callBinding((C5.v ?? G5()), [s_end1_$2201, $t13]);
           s_last_$2204 = $t14;
           s_i_$2206 = s_start1_$2200;
           $loop1: for (;;) {
-          $t15 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_i_$2206 === 'number' && typeof s_last_$2204 === 'number') ? (s_i_$2206 > s_last_$2204) : R.callBinding((C6.v ?? G6()), [s_i_$2206, s_last_$2204]);
+          $t15 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_i_$2206 === 'number' && typeof s_last_$2204 === 'number') ? s_i_$2206 > s_last_$2204 : $gt(s_i_$2206, s_last_$2204)) : R.callBinding((C6.v ?? G6()), [s_i_$2206, s_last_$2204]);
           if ($t15 !== false) {
             return false;
           } else {
@@ -107176,7 +107176,7 @@ export const LIBRARIES = {
             if ($t18 !== false) {
               return s_i_$2206;
             } else {
-              $t19 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_i_$2206 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2206, 1)) : R.callBinding((C8.v ?? G8()), [s_i_$2206, 1]);
+              $t19 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_i_$2206 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2206 + 1)) || (Number.isSafeInteger((s_i_$2206 + 1)) && Number.isInteger(s_i_$2206) && Number.isInteger(1)))) ? (s_i_$2206 + 1) : $add(s_i_$2206, 1)) : R.callBinding((C8.v ?? G8()), [s_i_$2206, 1]);
               s_i_$2206 = $t19;
               continue $loop1;
             }
@@ -107239,13 +107239,13 @@ export const LIBRARIES = {
               case 4:
                 $t12 = $r;
                 s_end2_$2203 = $t12;
-                $t13 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_end2_$2203 === 'number' && typeof s_start2_$2202 === 'number') ? ($sub(s_end2_$2203, s_start2_$2202)) : R.callBinding((C5.v ?? G5()), [s_end2_$2203, s_start2_$2202]);
-                $t14 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_end1_$2201 === 'number' && typeof $t13 === 'number') ? ($sub(s_end1_$2201, $t13)) : R.callBinding((C5.v ?? G5()), [s_end1_$2201, $t13]);
+                $t13 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_end2_$2203 === 'number' && typeof s_start2_$2202 === 'number' && (!Number.isInteger((s_end2_$2203 - s_start2_$2202)) || (Number.isSafeInteger((s_end2_$2203 - s_start2_$2202)) && Number.isInteger(s_end2_$2203) && Number.isInteger(s_start2_$2202)))) ? (s_end2_$2203 - s_start2_$2202) : $sub(s_end2_$2203, s_start2_$2202)) : R.callBinding((C5.v ?? G5()), [s_end2_$2203, s_start2_$2202]);
+                $t14 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_end1_$2201 === 'number' && typeof $t13 === 'number' && (!Number.isInteger((s_end1_$2201 - $t13)) || (Number.isSafeInteger((s_end1_$2201 - $t13)) && Number.isInteger(s_end1_$2201) && Number.isInteger($t13)))) ? (s_end1_$2201 - $t13) : $sub(s_end1_$2201, $t13)) : R.callBinding((C5.v ?? G5()), [s_end1_$2201, $t13]);
                 s_last_$2204 = $t14;
                 s_i_$2206 = s_start1_$2200;
                 $pc = 5; continue;
               case 5:
-                $t15 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_i_$2206 === 'number' && typeof s_last_$2204 === 'number') ? (s_i_$2206 > s_last_$2204) : R.callBinding((C6.v ?? G6()), [s_i_$2206, s_last_$2204]);
+                $t15 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_i_$2206 === 'number' && typeof s_last_$2204 === 'number') ? s_i_$2206 > s_last_$2204 : $gt(s_i_$2206, s_last_$2204)) : R.callBinding((C6.v ?? G6()), [s_i_$2206, s_last_$2204]);
                 if ($t15 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 6:
                 return false;
@@ -107265,7 +107265,7 @@ export const LIBRARIES = {
               case 9:
                 return s_i_$2206;
               case 10:
-                $t19 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_i_$2206 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2206, 1)) : R.callBinding((C8.v ?? G8()), [s_i_$2206, 1]);
+                $t19 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_i_$2206 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2206 + 1)) || (Number.isSafeInteger((s_i_$2206 + 1)) && Number.isInteger(s_i_$2206) && Number.isInteger(1)))) ? (s_i_$2206 + 1) : $add(s_i_$2206, 1)) : R.callBinding((C8.v ?? G8()), [s_i_$2206, 1]);
                 s_i_$2206 = $t19;
                 $pc = 5; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -107282,7 +107282,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":451,"column":1,"endLine":457,"endColumn":38},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $lt = R.lt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "two-ranges")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
@@ -107334,11 +107334,11 @@ export const LIBRARIES = {
           while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
           if ($t12 === $UNWIND) { R.reify($proc$r, 4, { s_start1_$2211, s_end1_$2212, s_start2_$2213, s_s1_$2207, s_s2_$2208 }); return $UNWIND; }
           s_end2_$2214 = $t12;
-          $t13 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_end2_$2214 === 'number' && typeof s_start2_$2213 === 'number') ? ($sub(s_end2_$2214, s_start2_$2213)) : R.callBinding((C7.v ?? G7()), [s_end2_$2214, s_start2_$2213]);
-          $t14 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_end1_$2212 === 'number' && typeof $t13 === 'number') ? ($sub(s_end1_$2212, $t13)) : R.callBinding((C7.v ?? G7()), [s_end1_$2212, $t13]);
+          $t13 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_end2_$2214 === 'number' && typeof s_start2_$2213 === 'number' && (!Number.isInteger((s_end2_$2214 - s_start2_$2213)) || (Number.isSafeInteger((s_end2_$2214 - s_start2_$2213)) && Number.isInteger(s_end2_$2214) && Number.isInteger(s_start2_$2213)))) ? (s_end2_$2214 - s_start2_$2213) : $sub(s_end2_$2214, s_start2_$2213)) : R.callBinding((C7.v ?? G7()), [s_end2_$2214, s_start2_$2213]);
+          $t14 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_end1_$2212 === 'number' && typeof $t13 === 'number' && (!Number.isInteger((s_end1_$2212 - $t13)) || (Number.isSafeInteger((s_end1_$2212 - $t13)) && Number.isInteger(s_end1_$2212) && Number.isInteger($t13)))) ? (s_end1_$2212 - $t13) : $sub(s_end1_$2212, $t13)) : R.callBinding((C7.v ?? G7()), [s_end1_$2212, $t13]);
           s_i_$2216 = $t14;
           $loop1: for (;;) {
-          $t15 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$2216 === 'number' && typeof s_start1_$2211 === 'number') ? (s_i_$2216 < s_start1_$2211) : R.callBinding((C5.v ?? G5()), [s_i_$2216, s_start1_$2211]);
+          $t15 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$2216 === 'number' && typeof s_start1_$2211 === 'number') ? s_i_$2216 < s_start1_$2211 : $lt(s_i_$2216, s_start1_$2211)) : R.callBinding((C5.v ?? G5()), [s_i_$2216, s_start1_$2211]);
           if ($t15 !== false) {
             return false;
           } else {
@@ -107352,7 +107352,7 @@ export const LIBRARIES = {
             if ($t18 !== false) {
               return s_i_$2216;
             } else {
-              $t19 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_i_$2216 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$2216, 1)) : R.callBinding((C7.v ?? G7()), [s_i_$2216, 1]);
+              $t19 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_i_$2216 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2216 - 1)) || (Number.isSafeInteger((s_i_$2216 - 1)) && Number.isInteger(s_i_$2216) && Number.isInteger(1)))) ? (s_i_$2216 - 1) : $sub(s_i_$2216, 1)) : R.callBinding((C7.v ?? G7()), [s_i_$2216, 1]);
               s_i_$2216 = $t19;
               continue $loop1;
             }
@@ -107415,12 +107415,12 @@ export const LIBRARIES = {
               case 4:
                 $t12 = $r;
                 s_end2_$2214 = $t12;
-                $t13 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_end2_$2214 === 'number' && typeof s_start2_$2213 === 'number') ? ($sub(s_end2_$2214, s_start2_$2213)) : R.callBinding((C7.v ?? G7()), [s_end2_$2214, s_start2_$2213]);
-                $t14 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_end1_$2212 === 'number' && typeof $t13 === 'number') ? ($sub(s_end1_$2212, $t13)) : R.callBinding((C7.v ?? G7()), [s_end1_$2212, $t13]);
+                $t13 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_end2_$2214 === 'number' && typeof s_start2_$2213 === 'number' && (!Number.isInteger((s_end2_$2214 - s_start2_$2213)) || (Number.isSafeInteger((s_end2_$2214 - s_start2_$2213)) && Number.isInteger(s_end2_$2214) && Number.isInteger(s_start2_$2213)))) ? (s_end2_$2214 - s_start2_$2213) : $sub(s_end2_$2214, s_start2_$2213)) : R.callBinding((C7.v ?? G7()), [s_end2_$2214, s_start2_$2213]);
+                $t14 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_end1_$2212 === 'number' && typeof $t13 === 'number' && (!Number.isInteger((s_end1_$2212 - $t13)) || (Number.isSafeInteger((s_end1_$2212 - $t13)) && Number.isInteger(s_end1_$2212) && Number.isInteger($t13)))) ? (s_end1_$2212 - $t13) : $sub(s_end1_$2212, $t13)) : R.callBinding((C7.v ?? G7()), [s_end1_$2212, $t13]);
                 s_i_$2216 = $t14;
                 $pc = 5; continue;
               case 5:
-                $t15 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_i_$2216 === 'number' && typeof s_start1_$2211 === 'number') ? (s_i_$2216 < s_start1_$2211) : R.callBinding((C5.v ?? G5()), [s_i_$2216, s_start1_$2211]);
+                $t15 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_i_$2216 === 'number' && typeof s_start1_$2211 === 'number') ? s_i_$2216 < s_start1_$2211 : $lt(s_i_$2216, s_start1_$2211)) : R.callBinding((C5.v ?? G5()), [s_i_$2216, s_start1_$2211]);
                 if ($t15 !== false) { $pc = 6; continue; } $pc = 7; continue;
               case 6:
                 return false;
@@ -107440,7 +107440,7 @@ export const LIBRARIES = {
               case 9:
                 return s_i_$2216;
               case 10:
-                $t19 = (W7.intact || (C7.v ?? G7()) === P7) && (typeof s_i_$2216 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$2216, 1)) : R.callBinding((C7.v ?? G7()), [s_i_$2216, 1]);
+                $t19 = (W7.intact || (C7.v ?? G7()) === P7) ? ((typeof s_i_$2216 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2216 - 1)) || (Number.isSafeInteger((s_i_$2216 - 1)) && Number.isInteger(s_i_$2216) && Number.isInteger(1)))) ? (s_i_$2216 - 1) : $sub(s_i_$2216, 1)) : R.callBinding((C7.v ?? G7()), [s_i_$2216, 1]);
                 s_i_$2216 = $t19;
                 $pc = 5; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -108203,7 +108203,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":536,"column":1,"endLine":540,"endColumn":72},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $ge = R.ge, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-range")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cdr")).v;
@@ -108243,11 +108243,11 @@ export const LIBRARIES = {
           s_i_$2244 = $t7;
           s_acc_$2245 = s_knil_$2238;
           $loop1: for (;;) {
-          $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$2244 === 'number' && typeof s_end_$2242 === 'number') ? (s_i_$2244 >= s_end_$2242) : R.callBinding((C3.v ?? G3()), [s_i_$2244, s_end_$2242]);
+          $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$2244 === 'number' && typeof s_end_$2242 === 'number') ? s_i_$2244 >= s_end_$2242 : $ge(s_i_$2244, s_end_$2242)) : R.callBinding((C3.v ?? G3()), [s_i_$2244, s_end_$2242]);
           if ($t8 !== false) {
             return s_acc_$2245;
           } else {
-            $t9 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$2244 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2244, 1)) : R.callBinding((C4.v ?? G4()), [s_i_$2244, 1]);
+            $t9 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$2244 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2244 + 1)) || (Number.isSafeInteger((s_i_$2244 + 1)) && Number.isInteger(s_i_$2244) && Number.isInteger(1)))) ? (s_i_$2244 + 1) : $add(s_i_$2244, 1)) : R.callBinding((C4.v ?? G4()), [s_i_$2244, 1]);
             $t10 = (C5.v ?? G5());
             if (typeof $t10 !== 'function') $notProc($t10);
             $t11 = $t10[$RAW];
@@ -108305,12 +108305,12 @@ export const LIBRARIES = {
                 s_acc_$2245 = s_knil_$2238;
                 $pc = 3; continue;
               case 3:
-                $t8 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$2244 === 'number' && typeof s_end_$2242 === 'number') ? (s_i_$2244 >= s_end_$2242) : R.callBinding((C3.v ?? G3()), [s_i_$2244, s_end_$2242]);
+                $t8 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$2244 === 'number' && typeof s_end_$2242 === 'number') ? s_i_$2244 >= s_end_$2242 : $ge(s_i_$2244, s_end_$2242)) : R.callBinding((C3.v ?? G3()), [s_i_$2244, s_end_$2242]);
                 if ($t8 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 return s_acc_$2245;
               case 5:
-                $t9 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$2244 === 'number' && typeof 1 === 'number') ? ($add(s_i_$2244, 1)) : R.callBinding((C4.v ?? G4()), [s_i_$2244, 1]);
+                $t9 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$2244 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2244 + 1)) || (Number.isSafeInteger((s_i_$2244 + 1)) && Number.isInteger(s_i_$2244) && Number.isInteger(1)))) ? (s_i_$2244 + 1) : $add(s_i_$2244, 1)) : R.callBinding((C4.v ?? G4()), [s_i_$2244, 1]);
                 $t10 = (C5.v ?? G5());
                 if (typeof $t10 !== 'function') $notProc($t10);
                 $t11 = $t10[$RAW];
@@ -108350,7 +108350,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":551,"column":1,"endLine":555,"endColumn":73},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $lt = R.lt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "string-range")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "car")).v;
@@ -108387,15 +108387,15 @@ export const LIBRARIES = {
           $t6 = (W2.intact || (C2.v ?? G2()) === P2) && (s_r_$2250 instanceof R.Cons) ? (s_r_$2250.car) : R.callBinding((C2.v ?? G2()), [s_r_$2250]);
           s_start_$2251 = $t6;
           $t7 = (W6.intact || (C6.v ?? G6()) === P6) && (s_r_$2250 instanceof R.Cons) ? (s_r_$2250.cdr) : R.callBinding((C6.v ?? G6()), [s_r_$2250]);
-          $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof $t7 === 'number' && typeof 1 === 'number') ? ($sub($t7, 1)) : R.callBinding((C4.v ?? G4()), [$t7, 1]);
+          $t8 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof $t7 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t7 - 1)) || (Number.isSafeInteger(($t7 - 1)) && Number.isInteger($t7) && Number.isInteger(1)))) ? ($t7 - 1) : $sub($t7, 1)) : R.callBinding((C4.v ?? G4()), [$t7, 1]);
           s_i_$2253 = $t8;
           s_acc_$2254 = s_knil_$2247;
           $loop1: for (;;) {
-          $t9 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$2253 === 'number' && typeof s_start_$2251 === 'number') ? (s_i_$2253 < s_start_$2251) : R.callBinding((C3.v ?? G3()), [s_i_$2253, s_start_$2251]);
+          $t9 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$2253 === 'number' && typeof s_start_$2251 === 'number') ? s_i_$2253 < s_start_$2251 : $lt(s_i_$2253, s_start_$2251)) : R.callBinding((C3.v ?? G3()), [s_i_$2253, s_start_$2251]);
           if ($t9 !== false) {
             return s_acc_$2254;
           } else {
-            $t10 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$2253 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$2253, 1)) : R.callBinding((C4.v ?? G4()), [s_i_$2253, 1]);
+            $t10 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$2253 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2253 - 1)) || (Number.isSafeInteger((s_i_$2253 - 1)) && Number.isInteger(s_i_$2253) && Number.isInteger(1)))) ? (s_i_$2253 - 1) : $sub(s_i_$2253, 1)) : R.callBinding((C4.v ?? G4()), [s_i_$2253, 1]);
             $t11 = (C5.v ?? G5());
             if (typeof $t11 !== 'function') $notProc($t11);
             $t12 = $t11[$RAW];
@@ -108449,17 +108449,17 @@ export const LIBRARIES = {
                 $t6 = (W2.intact || (C2.v ?? G2()) === P2) && (s_r_$2250 instanceof R.Cons) ? (s_r_$2250.car) : R.callBinding((C2.v ?? G2()), [s_r_$2250]);
                 s_start_$2251 = $t6;
                 $t7 = (W6.intact || (C6.v ?? G6()) === P6) && (s_r_$2250 instanceof R.Cons) ? (s_r_$2250.cdr) : R.callBinding((C6.v ?? G6()), [s_r_$2250]);
-                $t8 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof $t7 === 'number' && typeof 1 === 'number') ? ($sub($t7, 1)) : R.callBinding((C4.v ?? G4()), [$t7, 1]);
+                $t8 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof $t7 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t7 - 1)) || (Number.isSafeInteger(($t7 - 1)) && Number.isInteger($t7) && Number.isInteger(1)))) ? ($t7 - 1) : $sub($t7, 1)) : R.callBinding((C4.v ?? G4()), [$t7, 1]);
                 s_i_$2253 = $t8;
                 s_acc_$2254 = s_knil_$2247;
                 $pc = 3; continue;
               case 3:
-                $t9 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_i_$2253 === 'number' && typeof s_start_$2251 === 'number') ? (s_i_$2253 < s_start_$2251) : R.callBinding((C3.v ?? G3()), [s_i_$2253, s_start_$2251]);
+                $t9 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_i_$2253 === 'number' && typeof s_start_$2251 === 'number') ? s_i_$2253 < s_start_$2251 : $lt(s_i_$2253, s_start_$2251)) : R.callBinding((C3.v ?? G3()), [s_i_$2253, s_start_$2251]);
                 if ($t9 !== false) { $pc = 4; continue; } $pc = 5; continue;
               case 4:
                 return s_acc_$2254;
               case 5:
-                $t10 = (W4.intact || (C4.v ?? G4()) === P4) && (typeof s_i_$2253 === 'number' && typeof 1 === 'number') ? ($sub(s_i_$2253, 1)) : R.callBinding((C4.v ?? G4()), [s_i_$2253, 1]);
+                $t10 = (W4.intact || (C4.v ?? G4()) === P4) ? ((typeof s_i_$2253 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_i_$2253 - 1)) || (Number.isSafeInteger((s_i_$2253 - 1)) && Number.isInteger(s_i_$2253) && Number.isInteger(1)))) ? (s_i_$2253 - 1) : $sub(s_i_$2253, 1)) : R.callBinding((C4.v ?? G4()), [s_i_$2253, 1]);
                 $t11 = (C5.v ?? G5());
                 if (typeof $t11 !== 'function') $notProc($t11);
                 $t12 = $t11[$RAW];
@@ -108499,7 +108499,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":565,"column":1,"endLine":567,"endColumn":72},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-check-procedure")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "apply")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "string-fold")).v;
@@ -108519,7 +108519,7 @@ export const LIBRARIES = {
             while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
             if ($t2 === $UNWIND) { R.reify($fn3$r, 1, { s_n_$2259 }); return $UNWIND; }
             if ($t2 !== false) {
-              $t3 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$2259 === 'number' && typeof 1 === 'number') ? ($add(s_n_$2259, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2259, 1]);
+              $t3 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$2259 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2259 + 1)) || (Number.isSafeInteger((s_n_$2259 + 1)) && Number.isInteger(s_n_$2259) && Number.isInteger(1)))) ? (s_n_$2259 + 1) : $add(s_n_$2259, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2259, 1]);
               return $t3;
             } else {
               return s_n_$2259;
@@ -108545,7 +108545,7 @@ export const LIBRARIES = {
                   $t2 = $r;
                   if ($t2 !== false) { $pc = 2; continue; } $pc = 3; continue;
                 case 2:
-                  $t3 = (W3.intact || (C3.v ?? G3()) === P3) && (typeof s_n_$2259 === 'number' && typeof 1 === 'number') ? ($add(s_n_$2259, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2259, 1]);
+                  $t3 = (W3.intact || (C3.v ?? G3()) === P3) ? ((typeof s_n_$2259 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_n_$2259 + 1)) || (Number.isSafeInteger((s_n_$2259 + 1)) && Number.isInteger(s_n_$2259) && Number.isInteger(1)))) ? (s_n_$2259 + 1) : $add(s_n_$2259, 1)) : R.callBinding((C3.v ?? G3()), [s_n_$2259, 1]);
                   return $t3;
                 case 3:
                   return s_n_$2259;
@@ -108839,7 +108839,7 @@ export const LIBRARIES = {
         constants: [],
         span: {"filename":"string_lib.scm","line":608,"column":1,"endLine":616,"endColumn":50},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $le = R.le, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-range")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
         const W1 = R.primitiveCell("car"), P1 = W1.primitive;
@@ -108868,7 +108868,7 @@ export const LIBRARIES = {
             if ($d < 0 && $stack.flushable) return $flush($fn23$js, [s_i_$2276]);
             $t0 = (C10.v ?? G10());
             $t1 = (C12.v ?? G12());
-            $t2 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_from_$2270 === 'number' && typeof s_i_$2276 === 'number') ? ($add(s_from_$2270, s_i_$2276)) : R.callBinding((C11.v ?? G11()), [s_from_$2270, s_i_$2276]);
+            $t2 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_from_$2270 === 'number' && typeof s_i_$2276 === 'number' && (!Number.isInteger((s_from_$2270 + s_i_$2276)) || (Number.isSafeInteger((s_from_$2270 + s_i_$2276)) && Number.isInteger(s_from_$2270) && Number.isInteger(s_i_$2276)))) ? (s_from_$2270 + s_i_$2276) : $add(s_from_$2270, s_i_$2276)) : R.callBinding((C11.v ?? G11()), [s_from_$2270, s_i_$2276]);
             $t3 = $t1;
             if (typeof $t3 !== 'function') $notProc($t3);
             $t4 = $t3[$RAW];
@@ -108876,7 +108876,7 @@ export const LIBRARIES = {
             $t5 = $t4 === undefined ? ($t3[$PRIM] === true ? $t3($t2, s_n_$2275) : $foreign($t3, [$t2, s_n_$2275])) : $t4($t2, s_n_$2275);
             while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
             if ($t5 === $UNWIND) { R.reify($fn23$r, 1, { $t0 }); return $UNWIND; }
-            $t6 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_start_$2274 === 'number' && typeof $t5 === 'number') ? ($add(s_start_$2274, $t5)) : R.callBinding((C11.v ?? G11()), [s_start_$2274, $t5]);
+            $t6 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_start_$2274 === 'number' && typeof $t5 === 'number' && (!Number.isInteger((s_start_$2274 + $t5)) || (Number.isSafeInteger((s_start_$2274 + $t5)) && Number.isInteger(s_start_$2274) && Number.isInteger($t5)))) ? (s_start_$2274 + $t5) : $add(s_start_$2274, $t5)) : R.callBinding((C11.v ?? G11()), [s_start_$2274, $t5]);
             $t7 = $t0;
             if ($d > 0 && ($t8 = $t7?.[$RAW] ?? $t7)?.[$PRIM] === true) { $stack.room = $d; return $t8(s_s_$2269, $t6); } return $tailCall($t7, [s_s_$2269, $t6]);
           } }["anonymous"];
@@ -108889,7 +108889,7 @@ export const LIBRARIES = {
                 case 0:
                   $t0 = (C10.v ?? G10());
                   $t1 = (C12.v ?? G12());
-                  $t2 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_from_$2270 === 'number' && typeof s_i_$2276 === 'number') ? ($add(s_from_$2270, s_i_$2276)) : R.callBinding((C11.v ?? G11()), [s_from_$2270, s_i_$2276]);
+                  $t2 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_from_$2270 === 'number' && typeof s_i_$2276 === 'number' && (!Number.isInteger((s_from_$2270 + s_i_$2276)) || (Number.isSafeInteger((s_from_$2270 + s_i_$2276)) && Number.isInteger(s_from_$2270) && Number.isInteger(s_i_$2276)))) ? (s_from_$2270 + s_i_$2276) : $add(s_from_$2270, s_i_$2276)) : R.callBinding((C11.v ?? G11()), [s_from_$2270, s_i_$2276]);
                   $t3 = $t1;
                   if (typeof $t3 !== 'function') $notProc($t3);
                   $t4 = $t3[$RAW];
@@ -108901,7 +108901,7 @@ export const LIBRARIES = {
                   $pc = 1; continue;
                 case 1:
                   $t5 = $r;
-                  $t6 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_start_$2274 === 'number' && typeof $t5 === 'number') ? ($add(s_start_$2274, $t5)) : R.callBinding((C11.v ?? G11()), [s_start_$2274, $t5]);
+                  $t6 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_start_$2274 === 'number' && typeof $t5 === 'number' && (!Number.isInteger((s_start_$2274 + $t5)) || (Number.isSafeInteger((s_start_$2274 + $t5)) && Number.isInteger(s_start_$2274) && Number.isInteger($t5)))) ? (s_start_$2274 + $t5) : $add(s_start_$2274, $t5)) : R.callBinding((C11.v ?? G11()), [s_start_$2274, $t5]);
                   $t7 = $t0;
                   return $tailCall($t7, [s_s_$2269, $t6]);
                 default: throw new Error('$fn23$r: bad resume point ' + $pc);
@@ -108927,7 +108927,7 @@ export const LIBRARIES = {
           $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2273 instanceof R.Cons) ? (s_r_$2273.car) : R.callBinding((C1.v ?? G1()), [s_r_$2273]);
           s_start_$2274 = $t3;
           $t4 = (W3.intact || (C3.v ?? G3()) === P3) && (s_r_$2273 instanceof R.Cons) ? (s_r_$2273.cdr) : R.callBinding((C3.v ?? G3()), [s_r_$2273]);
-          $t5 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof $t4 === 'number' && typeof s_start_$2274 === 'number') ? ($sub($t4, s_start_$2274)) : R.callBinding((C2.v ?? G2()), [$t4, s_start_$2274]);
+          $t5 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof $t4 === 'number' && typeof s_start_$2274 === 'number' && (!Number.isInteger(($t4 - s_start_$2274)) || (Number.isSafeInteger(($t4 - s_start_$2274)) && Number.isInteger($t4) && Number.isInteger(s_start_$2274)))) ? ($t4 - s_start_$2274) : $sub($t4, s_start_$2274)) : R.callBinding((C2.v ?? G2()), [$t4, s_start_$2274]);
           s_n_$2275 = $t5;
           $t6 = (C5.v ?? G5());
           if (typeof $t6 !== 'function') $notProc($t6);
@@ -108945,7 +108945,7 @@ export const LIBRARIES = {
             while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
             if ($t12 === $UNWIND) { R.reify($proc$r, 6, { s_start_$2274, s_n_$2275, s_s_$2269, s_from_$2270, s_to_$2271 }); return $UNWIND; }
             if ($t12 !== false) {
-              $t14 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_from_$2270 === 'number' && typeof s_to_$2271 === 'number') ? (s_from_$2270 <= s_to_$2271) : R.callBinding((C6.v ?? G6()), [s_from_$2270, s_to_$2271]);
+              $t14 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_from_$2270 === 'number' && typeof s_to_$2271 === 'number') ? s_from_$2270 <= s_to_$2271 : $le(s_from_$2270, s_to_$2271)) : R.callBinding((C6.v ?? G6()), [s_from_$2270, s_to_$2271]);
               $t13 = $t14;
             } else {
               $t13 = false;
@@ -108959,18 +108959,18 @@ export const LIBRARIES = {
             $t16 = (C7.v ?? G7());
             if ($d > 0 && ($t17 = $t16?.[$RAW] ?? $t16)?.[$PRIM] === true) { $stack.room = $d; return $t17("string-replicate: expected from <= to", s_from_$2270, s_to_$2271); } return $tailCall($t16, ["string-replicate: expected from <= to", s_from_$2270, s_to_$2271]);
           } else {
-            $t18 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_from_$2270 === 'number' && typeof s_to_$2271 === 'number') ? (s_from_$2270 === s_to_$2271) : R.callBinding((C8.v ?? G8()), [s_from_$2270, s_to_$2271]);
+            $t18 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_from_$2270 === 'number' && typeof s_to_$2271 === 'number') ? s_from_$2270 === s_to_$2271 : $numEq(s_from_$2270, s_to_$2271)) : R.callBinding((C8.v ?? G8()), [s_from_$2270, s_to_$2271]);
             if ($t18 !== false) {
               return "";
             } else {
-              $t19 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_n_$2275 === 'number' && typeof 0 === 'number') ? (s_n_$2275 === 0) : R.callBinding((C8.v ?? G8()), [s_n_$2275, 0]);
+              $t19 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_n_$2275 === 'number' && typeof 0 === 'number') ? s_n_$2275 === 0 : $numEq(s_n_$2275, 0)) : R.callBinding((C8.v ?? G8()), [s_n_$2275, 0]);
               if ($t19 !== false) {
                 $t20 = (C7.v ?? G7());
                 if ($d > 0 && ($t21 = $t20?.[$RAW] ?? $t20)?.[$PRIM] === true) { $stack.room = $d; return $t21("string-replicate: cannot replicate an empty string"); } return $tailCall($t20, ["string-replicate: cannot replicate an empty string"]);
               } else {
                 $t22 = (C9.v ?? G9());
                 $t24 = $mk$fn23(s_s_$2269, s_start_$2274, s_from_$2270, s_n_$2275);
-                $t25 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_to_$2271 === 'number' && typeof s_from_$2270 === 'number') ? ($sub(s_to_$2271, s_from_$2270)) : R.callBinding((C2.v ?? G2()), [s_to_$2271, s_from_$2270]);
+                $t25 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_to_$2271 === 'number' && typeof s_from_$2270 === 'number' && (!Number.isInteger((s_to_$2271 - s_from_$2270)) || (Number.isSafeInteger((s_to_$2271 - s_from_$2270)) && Number.isInteger(s_to_$2271) && Number.isInteger(s_from_$2270)))) ? (s_to_$2271 - s_from_$2270) : $sub(s_to_$2271, s_from_$2270)) : R.callBinding((C2.v ?? G2()), [s_to_$2271, s_from_$2270]);
                 $t26 = $t22;
                 if ($d > 0 && ($t27 = $t26?.[$RAW] ?? $t26)?.[$PRIM] === true) { $stack.room = $d; return $t27($t24, $t25); } return $tailCall($t26, [$t24, $t25]);
               }
@@ -108998,7 +108998,7 @@ export const LIBRARIES = {
                 $t3 = (W1.intact || (C1.v ?? G1()) === P1) && (s_r_$2273 instanceof R.Cons) ? (s_r_$2273.car) : R.callBinding((C1.v ?? G1()), [s_r_$2273]);
                 s_start_$2274 = $t3;
                 $t4 = (W3.intact || (C3.v ?? G3()) === P3) && (s_r_$2273 instanceof R.Cons) ? (s_r_$2273.cdr) : R.callBinding((C3.v ?? G3()), [s_r_$2273]);
-                $t5 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof $t4 === 'number' && typeof s_start_$2274 === 'number') ? ($sub($t4, s_start_$2274)) : R.callBinding((C2.v ?? G2()), [$t4, s_start_$2274]);
+                $t5 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof $t4 === 'number' && typeof s_start_$2274 === 'number' && (!Number.isInteger(($t4 - s_start_$2274)) || (Number.isSafeInteger(($t4 - s_start_$2274)) && Number.isInteger($t4) && Number.isInteger(s_start_$2274)))) ? ($t4 - s_start_$2274) : $sub($t4, s_start_$2274)) : R.callBinding((C2.v ?? G2()), [$t4, s_start_$2274]);
                 s_n_$2275 = $t5;
                 $t6 = (C5.v ?? G5());
                 if (typeof $t6 !== 'function') $notProc($t6);
@@ -109032,7 +109032,7 @@ export const LIBRARIES = {
                 $t12 = $r;
                 if ($t12 !== false) { $pc = 7; continue; } $pc = 8; continue;
               case 7:
-                $t14 = (W6.intact || (C6.v ?? G6()) === P6) && (typeof s_from_$2270 === 'number' && typeof s_to_$2271 === 'number') ? (s_from_$2270 <= s_to_$2271) : R.callBinding((C6.v ?? G6()), [s_from_$2270, s_to_$2271]);
+                $t14 = (W6.intact || (C6.v ?? G6()) === P6) ? ((typeof s_from_$2270 === 'number' && typeof s_to_$2271 === 'number') ? s_from_$2270 <= s_to_$2271 : $le(s_from_$2270, s_to_$2271)) : R.callBinding((C6.v ?? G6()), [s_from_$2270, s_to_$2271]);
                 $t13 = $t14;
                 $pc = 9; continue;
               case 8:
@@ -109045,12 +109045,12 @@ export const LIBRARIES = {
                 $t16 = (C7.v ?? G7());
                 return $tailCall($t16, ["string-replicate: expected from <= to", s_from_$2270, s_to_$2271]);
               case 11:
-                $t18 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_from_$2270 === 'number' && typeof s_to_$2271 === 'number') ? (s_from_$2270 === s_to_$2271) : R.callBinding((C8.v ?? G8()), [s_from_$2270, s_to_$2271]);
+                $t18 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_from_$2270 === 'number' && typeof s_to_$2271 === 'number') ? s_from_$2270 === s_to_$2271 : $numEq(s_from_$2270, s_to_$2271)) : R.callBinding((C8.v ?? G8()), [s_from_$2270, s_to_$2271]);
                 if ($t18 !== false) { $pc = 12; continue; } $pc = 13; continue;
               case 12:
                 return "";
               case 13:
-                $t19 = (W8.intact || (C8.v ?? G8()) === P8) && (typeof s_n_$2275 === 'number' && typeof 0 === 'number') ? (s_n_$2275 === 0) : R.callBinding((C8.v ?? G8()), [s_n_$2275, 0]);
+                $t19 = (W8.intact || (C8.v ?? G8()) === P8) ? ((typeof s_n_$2275 === 'number' && typeof 0 === 'number') ? s_n_$2275 === 0 : $numEq(s_n_$2275, 0)) : R.callBinding((C8.v ?? G8()), [s_n_$2275, 0]);
                 if ($t19 !== false) { $pc = 14; continue; } $pc = 15; continue;
               case 14:
                 $t20 = (C7.v ?? G7());
@@ -109058,7 +109058,7 @@ export const LIBRARIES = {
               case 15:
                 $t22 = (C9.v ?? G9());
                 $t24 = $mk$fn23(s_s_$2269, s_start_$2274, s_from_$2270, s_n_$2275);
-                $t25 = (W2.intact || (C2.v ?? G2()) === P2) && (typeof s_to_$2271 === 'number' && typeof s_from_$2270 === 'number') ? ($sub(s_to_$2271, s_from_$2270)) : R.callBinding((C2.v ?? G2()), [s_to_$2271, s_from_$2270]);
+                $t25 = (W2.intact || (C2.v ?? G2()) === P2) ? ((typeof s_to_$2271 === 'number' && typeof s_from_$2270 === 'number' && (!Number.isInteger((s_to_$2271 - s_from_$2270)) || (Number.isSafeInteger((s_to_$2271 - s_from_$2270)) && Number.isInteger(s_to_$2271) && Number.isInteger(s_from_$2270)))) ? (s_to_$2271 - s_from_$2270) : $sub(s_to_$2271, s_from_$2270)) : R.callBinding((C2.v ?? G2()), [s_to_$2271, s_from_$2270]);
                 $t26 = $t22;
                 return $tailCall($t26, [$t24, $t25]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -109075,7 +109075,7 @@ export const LIBRARIES = {
         constants: [intern("infix"), new Cons(intern("infix"), new Cons(intern("strict-infix"), new Cons(intern("prefix"), new Cons(intern("suffix"), null)))), intern("strict-infix"), intern("prefix"), intern("suffix"), intern("infix"), new Cons(intern("infix"), new Cons(intern("strict-infix"), new Cons(intern("prefix"), new Cons(intern("suffix"), null)))), intern("strict-infix"), intern("prefix"), intern("suffix")],
         span: {"filename":"string_lib.scm","line":631,"column":1,"endLine":654,"endColumn":72},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.addNumbers, $sub = R.subNumbers, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $lt = R.lt, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
         const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
@@ -109164,7 +109164,7 @@ export const LIBRARIES = {
           while ($t21 instanceof $TailCall) { $stack.room = $d; $t21 = $step($t21); }
           if ($t21 === $UNWIND) { R.reify($proc$r, 14, { s_grammar_$2280, s_limit_$2282, s_start_$2284, s_end_$2285, s_s_$2277, s_delimiter_$2278 }); return $UNWIND; }
           s_d_$2286 = $t21;
-          $t22 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_d_$2286 === 'number' && typeof 0 === 'number') ? (s_d_$2286 === 0) : R.callBinding((C5.v ?? G5()), [s_d_$2286, 0]);
+          $t22 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_d_$2286 === 'number' && typeof 0 === 'number') ? s_d_$2286 === 0 : $numEq(s_d_$2286, 0)) : R.callBinding((C5.v ?? G5()), [s_d_$2286, 0]);
           if ($t22 !== false) {
             $t24 = (C6.v ?? G6());
             if (typeof $t24 !== 'function') $notProc($t24);
@@ -109199,7 +109199,7 @@ export const LIBRARIES = {
             $t31 = undefined;
           }
           $t31;
-          $t35 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_start_$2284 === 'number' && typeof s_end_$2285 === 'number') ? (s_start_$2284 === s_end_$2285) : R.callBinding((C5.v ?? G5()), [s_start_$2284, s_end_$2285]);
+          $t35 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_start_$2284 === 'number' && typeof s_end_$2285 === 'number') ? s_start_$2284 === s_end_$2285 : $numEq(s_start_$2284, s_end_$2285)) : R.callBinding((C5.v ?? G5()), [s_start_$2284, s_end_$2285]);
           if ($t35 !== false) {
             $t36 = (W9.intact || (C9.v ?? G9()) === P9) ? (s_grammar_$2280 === K[7]) : R.callBinding((C9.v ?? G9()), [s_grammar_$2280, K[7]]);
             if ($t36 !== false) {
@@ -109223,7 +109223,7 @@ export const LIBRARIES = {
               $t40 = false;
             }
             if ($t40 !== false) {
-              $t45 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_start_$2284 === 'number' && typeof s_d_$2286 === 'number') ? ($add(s_start_$2284, s_d_$2286)) : R.callBinding((C11.v ?? G11()), [s_start_$2284, s_d_$2286]);
+              $t45 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_start_$2284 === 'number' && typeof s_d_$2286 === 'number' && (!Number.isInteger((s_start_$2284 + s_d_$2286)) || (Number.isSafeInteger((s_start_$2284 + s_d_$2286)) && Number.isInteger(s_start_$2284) && Number.isInteger(s_d_$2286)))) ? (s_start_$2284 + s_d_$2286) : $add(s_start_$2284, s_d_$2286)) : R.callBinding((C11.v ?? G11()), [s_start_$2284, s_d_$2286]);
               $t44 = $t45;
             } else {
               $t44 = s_start_$2284;
@@ -109243,7 +109243,7 @@ export const LIBRARIES = {
               $t47 = false;
             }
             if ($t47 !== false) {
-              $t52 = (W13.intact || (C13.v ?? G13()) === P13) && (typeof s_end_$2285 === 'number' && typeof s_d_$2286 === 'number') ? ($sub(s_end_$2285, s_d_$2286)) : R.callBinding((C13.v ?? G13()), [s_end_$2285, s_d_$2286]);
+              $t52 = (W13.intact || (C13.v ?? G13()) === P13) ? ((typeof s_end_$2285 === 'number' && typeof s_d_$2286 === 'number' && (!Number.isInteger((s_end_$2285 - s_d_$2286)) || (Number.isSafeInteger((s_end_$2285 - s_d_$2286)) && Number.isInteger(s_end_$2285) && Number.isInteger(s_d_$2286)))) ? (s_end_$2285 - s_d_$2286) : $sub(s_end_$2285, s_d_$2286)) : R.callBinding((C13.v ?? G13()), [s_end_$2285, s_d_$2286]);
               $t51 = $t52;
             } else {
               $t51 = s_end_$2285;
@@ -109258,7 +109258,7 @@ export const LIBRARIES = {
             if (s_x_$2294 !== false) {
               $t54 = s_x_$2294;
             } else {
-              $t55 = (W14.intact || (C14.v ?? G14()) === P14) && (typeof s_splits_$2291 === 'number' && typeof s_limit_$2282 === 'number') ? (s_splits_$2291 < s_limit_$2282) : R.callBinding((C14.v ?? G14()), [s_splits_$2291, s_limit_$2282]);
+              $t55 = (W14.intact || (C14.v ?? G14()) === P14) ? ((typeof s_splits_$2291 === 'number' && typeof s_limit_$2282 === 'number') ? s_splits_$2291 < s_limit_$2282 : $lt(s_splits_$2291, s_limit_$2282)) : R.callBinding((C14.v ?? G14()), [s_splits_$2291, s_limit_$2282]);
               $t54 = $t55;
             }
             if ($t54 !== false) {
@@ -109275,8 +109275,8 @@ export const LIBRARIES = {
             }
             s_at_$2293 = $t56;
             if (s_at_$2293 !== false) {
-              $t60 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_at_$2293 === 'number' && typeof s_d_$2286 === 'number') ? ($add(s_at_$2293, s_d_$2286)) : R.callBinding((C11.v ?? G11()), [s_at_$2293, s_d_$2286]);
-              $t61 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_splits_$2291 === 'number' && typeof 1 === 'number') ? ($add(s_splits_$2291, 1)) : R.callBinding((C11.v ?? G11()), [s_splits_$2291, 1]);
+              $t60 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_at_$2293 === 'number' && typeof s_d_$2286 === 'number' && (!Number.isInteger((s_at_$2293 + s_d_$2286)) || (Number.isSafeInteger((s_at_$2293 + s_d_$2286)) && Number.isInteger(s_at_$2293) && Number.isInteger(s_d_$2286)))) ? (s_at_$2293 + s_d_$2286) : $add(s_at_$2293, s_d_$2286)) : R.callBinding((C11.v ?? G11()), [s_at_$2293, s_d_$2286]);
+              $t61 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_splits_$2291 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_splits_$2291 + 1)) || (Number.isSafeInteger((s_splits_$2291 + 1)) && Number.isInteger(s_splits_$2291) && Number.isInteger(1)))) ? (s_splits_$2291 + 1) : $add(s_splits_$2291, 1)) : R.callBinding((C11.v ?? G11()), [s_splits_$2291, 1]);
               $t62 = (C17.v ?? G17());
               if (typeof $t62 !== 'function') $notProc($t62);
               $t63 = $t62[$RAW];
@@ -109384,7 +109384,7 @@ export const LIBRARIES = {
               case 14:
                 $t21 = $r;
                 s_d_$2286 = $t21;
-                $t22 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_d_$2286 === 'number' && typeof 0 === 'number') ? (s_d_$2286 === 0) : R.callBinding((C5.v ?? G5()), [s_d_$2286, 0]);
+                $t22 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_d_$2286 === 'number' && typeof 0 === 'number') ? s_d_$2286 === 0 : $numEq(s_d_$2286, 0)) : R.callBinding((C5.v ?? G5()), [s_d_$2286, 0]);
                 if ($t22 !== false) { $pc = 15; continue; } $pc = 16; continue;
               case 15:
                 $t24 = (C6.v ?? G6());
@@ -109433,7 +109433,7 @@ export const LIBRARIES = {
                 $pc = 22; continue;
               case 22:
                 $t31;
-                $t35 = (W5.intact || (C5.v ?? G5()) === P5) && (typeof s_start_$2284 === 'number' && typeof s_end_$2285 === 'number') ? (s_start_$2284 === s_end_$2285) : R.callBinding((C5.v ?? G5()), [s_start_$2284, s_end_$2285]);
+                $t35 = (W5.intact || (C5.v ?? G5()) === P5) ? ((typeof s_start_$2284 === 'number' && typeof s_end_$2285 === 'number') ? s_start_$2284 === s_end_$2285 : $numEq(s_start_$2284, s_end_$2285)) : R.callBinding((C5.v ?? G5()), [s_start_$2284, s_end_$2285]);
                 if ($t35 !== false) { $pc = 24; continue; } $pc = 25; continue;
               case 23:
                 $t34 = $r;
@@ -109470,7 +109470,7 @@ export const LIBRARIES = {
                 $t40 = $t43;
                 $pc = 30; continue;
               case 32:
-                $t45 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_start_$2284 === 'number' && typeof s_d_$2286 === 'number') ? ($add(s_start_$2284, s_d_$2286)) : R.callBinding((C11.v ?? G11()), [s_start_$2284, s_d_$2286]);
+                $t45 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_start_$2284 === 'number' && typeof s_d_$2286 === 'number' && (!Number.isInteger((s_start_$2284 + s_d_$2286)) || (Number.isSafeInteger((s_start_$2284 + s_d_$2286)) && Number.isInteger(s_start_$2284) && Number.isInteger(s_d_$2286)))) ? (s_start_$2284 + s_d_$2286) : $add(s_start_$2284, s_d_$2286)) : R.callBinding((C11.v ?? G11()), [s_start_$2284, s_d_$2286]);
                 $t44 = $t45;
                 $pc = 34; continue;
               case 33:
@@ -109500,7 +109500,7 @@ export const LIBRARIES = {
                 $t47 = $t50;
                 $pc = 37; continue;
               case 39:
-                $t52 = (W13.intact || (C13.v ?? G13()) === P13) && (typeof s_end_$2285 === 'number' && typeof s_d_$2286 === 'number') ? ($sub(s_end_$2285, s_d_$2286)) : R.callBinding((C13.v ?? G13()), [s_end_$2285, s_d_$2286]);
+                $t52 = (W13.intact || (C13.v ?? G13()) === P13) ? ((typeof s_end_$2285 === 'number' && typeof s_d_$2286 === 'number' && (!Number.isInteger((s_end_$2285 - s_d_$2286)) || (Number.isSafeInteger((s_end_$2285 - s_d_$2286)) && Number.isInteger(s_end_$2285) && Number.isInteger(s_d_$2286)))) ? (s_end_$2285 - s_d_$2286) : $sub(s_end_$2285, s_d_$2286)) : R.callBinding((C13.v ?? G13()), [s_end_$2285, s_d_$2286]);
                 $t51 = $t52;
                 $pc = 41; continue;
               case 40:
@@ -109520,7 +109520,7 @@ export const LIBRARIES = {
                 $t54 = s_x_$2294;
                 $pc = 45; continue;
               case 44:
-                $t55 = (W14.intact || (C14.v ?? G14()) === P14) && (typeof s_splits_$2291 === 'number' && typeof s_limit_$2282 === 'number') ? (s_splits_$2291 < s_limit_$2282) : R.callBinding((C14.v ?? G14()), [s_splits_$2291, s_limit_$2282]);
+                $t55 = (W14.intact || (C14.v ?? G14()) === P14) ? ((typeof s_splits_$2291 === 'number' && typeof s_limit_$2282 === 'number') ? s_splits_$2291 < s_limit_$2282 : $lt(s_splits_$2291, s_limit_$2282)) : R.callBinding((C14.v ?? G14()), [s_splits_$2291, s_limit_$2282]);
                 $t54 = $t55;
                 $pc = 45; continue;
               case 45:
@@ -109546,8 +109546,8 @@ export const LIBRARIES = {
                 $t56 = $t59;
                 $pc = 48; continue;
               case 50:
-                $t60 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_at_$2293 === 'number' && typeof s_d_$2286 === 'number') ? ($add(s_at_$2293, s_d_$2286)) : R.callBinding((C11.v ?? G11()), [s_at_$2293, s_d_$2286]);
-                $t61 = (W11.intact || (C11.v ?? G11()) === P11) && (typeof s_splits_$2291 === 'number' && typeof 1 === 'number') ? ($add(s_splits_$2291, 1)) : R.callBinding((C11.v ?? G11()), [s_splits_$2291, 1]);
+                $t60 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_at_$2293 === 'number' && typeof s_d_$2286 === 'number' && (!Number.isInteger((s_at_$2293 + s_d_$2286)) || (Number.isSafeInteger((s_at_$2293 + s_d_$2286)) && Number.isInteger(s_at_$2293) && Number.isInteger(s_d_$2286)))) ? (s_at_$2293 + s_d_$2286) : $add(s_at_$2293, s_d_$2286)) : R.callBinding((C11.v ?? G11()), [s_at_$2293, s_d_$2286]);
+                $t61 = (W11.intact || (C11.v ?? G11()) === P11) ? ((typeof s_splits_$2291 === 'number' && typeof 1 === 'number' && (!Number.isInteger((s_splits_$2291 + 1)) || (Number.isSafeInteger((s_splits_$2291 + 1)) && Number.isInteger(s_splits_$2291) && Number.isInteger(1)))) ? (s_splits_$2291 + 1) : $add(s_splits_$2291, 1)) : R.callBinding((C11.v ?? G11()), [s_splits_$2291, 1]);
                 $t62 = (C17.v ?? G17());
                 if (typeof $t62 !== 'function') $notProc($t62);
                 $t63 = $t62[$RAW];

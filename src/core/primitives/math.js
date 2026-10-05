@@ -14,7 +14,7 @@ import { Values } from '../interpreter/values.js';
 import { Rational, isRational } from './rational.js';
 import { Complex, isComplex, makeRectangular, makePolar } from './complex.js';
 import {
-    toTower, fromTower, addNumbers, subNumbers, mulNumbers, Flonum
+    toTower, fromTower, addReals, subReals, mulReals, lessReals, lessEqualReals, equalReals, Flonum
 } from '../interpreter/number_representation.js';
 
 // =============================================================================
@@ -1361,9 +1361,9 @@ mathPrimitives['>='] = makeOrdering('>=', (c) => c >= 0);
 // Every primitive above computes in the numeric tower's representation, an
 // exact integer a BigInt and an inexact real a JavaScript number
 // (number_representation.js). Each is wrapped here to take its arguments into
-// that representation and give its result back in Scheme's; and the ones a
-// loop over small integers spends its time in take two JavaScript numbers
-// directly first, converting nothing.
+// that representation and give its result back in Scheme's; and the ones
+// arithmetic spends its time in take every real held as a number, a BigInt or
+// a Flonum directly first, converting nothing.
 
 /**
  * A primitive of the tower's representation, taking and giving Scheme's.
@@ -1381,40 +1381,43 @@ function towered(fn) {
 for (const [name, fn] of Object.entries(mathPrimitives)) mathPrimitives[name] = towered(fn);
 
 /**
- * A variadic arithmetic primitive that folds JavaScript numbers with
- * `combine` while every argument, and every partial result, is one, and
- * otherwise does what `general` does.
+ * A variadic arithmetic primitive that folds its arguments with `combine`
+ * while it applies to them (`addReals` and the rest), and otherwise does what
+ * `general` does. A lone argument is checked by `general`.
  * @param {Function} general - The primitive for any numbers.
- * @param {function(number, number): *} combine - Two numbers' result.
+ * @param {function(*, *): *} combine - Two reals' result, or `undefined`.
  * @param {number} empty - The result for no arguments.
  * @returns {Function}
  */
-function foldingNumbers(general, combine, empty) {
+function foldingReals(general, combine, empty) {
     return (...args) => {
         if (args.length === 0) return empty;
+        if (args.length === 1) return general(...args);
         let acc = args[0];
-        if (typeof acc !== 'number') return general(...args);
         for (let i = 1; i < args.length; i++) {
-            const x = args[i];
-            if (typeof x !== 'number') return general(...args);
-            acc = combine(acc, x);
-            if (typeof acc !== 'number') return general(...args);
+            acc = combine(acc, args[i]);
+            if (acc === undefined) return general(...args);
         }
         return acc;
     };
 }
 
 /**
- * A comparison that compares two JavaScript numbers directly, which is right
- * across exactness, and otherwise does what `general` does.
+ * A comparison of two reals by `compare` where it applies (`lessReals` and
+ * the rest), and otherwise, and for any other number of arguments, what
+ * `general` does.
  * @param {Function} general - The primitive for any numbers.
- * @param {function(number, number): boolean} compare - Two numbers' answer.
+ * @param {function(*, *): (boolean|undefined)} compare - Two reals' answer.
  * @returns {Function}
  */
-function comparingNumbers(general, compare) {
-    return (...args) => (args.length === 2 && typeof args[0] === 'number' && typeof args[1] === 'number'
-        ? compare(args[0], args[1])
-        : general(...args));
+function comparingReals(general, compare) {
+    return (...args) => {
+        if (args.length === 2) {
+            const answer = compare(args[0], args[1]);
+            if (answer !== undefined) return answer;
+        }
+        return general(...args);
+    };
 }
 
 /**
@@ -1437,9 +1440,9 @@ function dividingIntegers(general, divide) {
 
 {
     const general = { ...mathPrimitives };
-    mathPrimitives['+'] = foldingNumbers(general['+'], addNumbers, 0);
-    mathPrimitives['*'] = foldingNumbers(general['*'], mulNumbers, 1);
-    const subtract = foldingNumbers(general['-'], subNumbers, 0);
+    mathPrimitives['+'] = foldingReals(general['+'], addReals, 0);
+    mathPrimitives['*'] = foldingReals(general['*'], mulReals, 1);
+    const subtract = foldingReals(general['-'], subReals, 0);
     mathPrimitives['-'] = (...args) => {
         if (args.length === 1 && typeof args[0] === 'number') {
             const x = args[0];
@@ -1447,11 +1450,11 @@ function dividingIntegers(general, divide) {
         }
         return subtract(...args);
     };
-    mathPrimitives['='] = comparingNumbers(general['='], (a, b) => a === b);
-    mathPrimitives['<'] = comparingNumbers(general['<'], (a, b) => a < b);
-    mathPrimitives['>'] = comparingNumbers(general['>'], (a, b) => a > b);
-    mathPrimitives['<='] = comparingNumbers(general['<='], (a, b) => a <= b);
-    mathPrimitives['>='] = comparingNumbers(general['>='], (a, b) => a >= b);
+    mathPrimitives['='] = comparingReals(general['='], equalReals);
+    mathPrimitives['<'] = comparingReals(general['<'], lessReals);
+    mathPrimitives['>'] = comparingReals(general['>'], (a, b) => lessReals(b, a));
+    mathPrimitives['<='] = comparingReals(general['<='], lessEqualReals);
+    mathPrimitives['>='] = comparingReals(general['>='], (a, b) => lessEqualReals(b, a));
     mathPrimitives['quotient'] = dividingIntegers(general['quotient'], (a, b) => (a - a % b) / b);
     mathPrimitives['remainder'] = dividingIntegers(general['remainder'], (a, b) => a % b);
     mathPrimitives['modulo'] = dividingIntegers(general['modulo'], (a, b) => {

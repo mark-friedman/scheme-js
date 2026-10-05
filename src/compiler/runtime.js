@@ -27,7 +27,10 @@ import { Cons } from '../core/interpreter/cons.js';
 // Kept by the interpreter, which sees every binding write; generated code only
 // reads a cell, once per inlined primitive.
 import { primitiveCell } from '../core/interpreter/primitive_bindings.js';
-export { addNumbers, subNumbers, mulNumbers, Flonum } from '../core/interpreter/number_representation.js';
+import {
+  addNumbers, subNumbers, mulNumbers, addReals, subReals, mulReals, lessReals, lessEqualReals, equalReals
+} from '../core/interpreter/number_representation.js';
+export { Flonum } from '../core/interpreter/number_representation.js';
 // What compiled code makes `call-with-values` of (`lower-call-with-values` in
 // ir.scm): the primitives themselves, whatever the environment the code runs
 // in binds under their names.
@@ -127,6 +130,114 @@ export function vectorSet(vector, index, value) {
     return null;
   }
   return primitiveCell('vector-set!').primitive(vector, index, value);
+}
+
+// ============================================================================
+// Inline arithmetic and comparison
+// ============================================================================
+
+// Each is a binary arithmetic or comparison primitive for an inline
+// expansion, whose guard has established that the name is still bound to the
+// primitive: two JavaScript numbers first, then any real held as a number, a
+// BigInt or a Flonum (src/core/interpreter/number_representation.js), and the
+// primitive for anything else, so that every error is its own. Each is written
+// out, rather than made by one function from the operation, so that each call
+// of an operation is a call site of its own, which V8 can inline.
+
+/**
+ * `+` of two operands.
+ * @param {*} a - One.
+ * @param {*} b - The other.
+ * @returns {*}
+ */
+export function add(a, b) {
+  if (typeof a === 'number' && typeof b === 'number') return addNumbers(a, b);
+  const r = addReals(a, b);
+  return r !== undefined ? r : primitiveCell('+').primitive(a, b);
+}
+
+/**
+ * `-` of two operands.
+ * @param {*} a - The minuend.
+ * @param {*} b - The subtrahend.
+ * @returns {*}
+ */
+export function sub(a, b) {
+  if (typeof a === 'number' && typeof b === 'number') return subNumbers(a, b);
+  const r = subReals(a, b);
+  return r !== undefined ? r : primitiveCell('-').primitive(a, b);
+}
+
+/**
+ * `*` of two operands.
+ * @param {*} a - One.
+ * @param {*} b - The other.
+ * @returns {*}
+ */
+export function mul(a, b) {
+  if (typeof a === 'number' && typeof b === 'number') return mulNumbers(a, b);
+  const r = mulReals(a, b);
+  return r !== undefined ? r : primitiveCell('*').primitive(a, b);
+}
+
+/**
+ * `<` of two operands.
+ * @param {*} a - One.
+ * @param {*} b - The other.
+ * @returns {*}
+ */
+export function lt(a, b) {
+  if (typeof a === 'number' && typeof b === 'number') return a < b;
+  const r = lessReals(a, b);
+  return r !== undefined ? r : primitiveCell('<').primitive(a, b);
+}
+
+/**
+ * `>` of two operands.
+ * @param {*} a - One.
+ * @param {*} b - The other.
+ * @returns {*}
+ */
+export function gt(a, b) {
+  if (typeof a === 'number' && typeof b === 'number') return a > b;
+  const r = lessReals(b, a);
+  return r !== undefined ? r : primitiveCell('>').primitive(a, b);
+}
+
+/**
+ * `<=` of two operands.
+ * @param {*} a - One.
+ * @param {*} b - The other.
+ * @returns {*}
+ */
+export function le(a, b) {
+  if (typeof a === 'number' && typeof b === 'number') return a <= b;
+  const r = lessEqualReals(a, b);
+  return r !== undefined ? r : primitiveCell('<=').primitive(a, b);
+}
+
+/**
+ * `>=` of two operands.
+ * @param {*} a - One.
+ * @param {*} b - The other.
+ * @returns {*}
+ */
+export function ge(a, b) {
+  if (typeof a === 'number' && typeof b === 'number') return a >= b;
+  const r = lessEqualReals(b, a);
+  return r !== undefined ? r : primitiveCell('>=').primitive(a, b);
+}
+
+/**
+ * `=` of two operands.
+ * @param {*} a - One.
+ * @param {*} b - The other.
+ * @returns {*}
+ */
+export function numEq(a, b) {
+  if (typeof a === 'number' && typeof b === 'number') return a === b;
+  const r = equalReals(a, b);
+  return r !== undefined ? r : primitiveCell('=').primitive(a, b);
 }
 
 /**

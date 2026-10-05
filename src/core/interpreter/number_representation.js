@@ -190,3 +190,136 @@ export function mulNumbers(a, b) {
     }
     return new Flonum(r);
 }
+
+// =============================================================================
+// Arithmetic and comparison on any two reals held as numbers, BigInts or boxes
+// =============================================================================
+//
+// What `+`, `-`, `*` and the comparisons do for every operand held as a
+// JavaScript number, a BigInt or a Flonum -- every real but a non-integer
+// rational -- without the conversions the numeric tower needs: two exact
+// integers in BigInt arithmetic, the result held as Scheme holds it; any
+// inexact operand in double arithmetic, the result inexact. Each gives
+// `undefined` for anything else -- a rational, a complex, a wrong type -- which
+// the caller passes to the primitive. Compiled code calls them for its inline
+// arithmetic (`R.add` and the rest in src/compiler/runtime.js), and the
+// primitives take them first.
+
+/**
+ * A real's value as a double, for one known to be held as a number, a BigInt
+ * or a Flonum.
+ * @param {number|bigint|Flonum} x - The real.
+ * @returns {number}
+ */
+function doubleOf(x) {
+    return typeof x === 'number' ? x : (typeof x === 'bigint' ? Number(x) : x.value);
+}
+
+/**
+ * How a value is held, for arithmetic: 1 an exact integer, 2 an inexact real
+ * held as a number or a Flonum, 0 anything else.
+ * @param {*} x - The value.
+ * @returns {number}
+ */
+function realKind(x) {
+    if (typeof x === 'number') return Number.isInteger(x) ? 1 : 2;
+    if (typeof x === 'bigint') return 1;
+    return x instanceof Flonum ? 2 : 0;
+}
+
+/**
+ * The sum of two reals held as numbers, BigInts or Flonums, or `undefined`.
+ * @param {*} a - One.
+ * @param {*} b - The other.
+ * @returns {*}
+ */
+export function addReals(a, b) {
+    if (typeof a === 'number' && typeof b === 'number') return addNumbers(a, b);
+    const ka = realKind(a), kb = realKind(b);
+    if (ka === 0 || kb === 0) return undefined;
+    if (ka === 1 && kb === 1) return exactInteger(BigInt(a) + BigInt(b));
+    return inexactReal(doubleOf(a) + doubleOf(b));
+}
+
+/**
+ * The difference of two reals held as numbers, BigInts or Flonums, or
+ * `undefined`.
+ * @param {*} a - The minuend.
+ * @param {*} b - The subtrahend.
+ * @returns {*}
+ */
+export function subReals(a, b) {
+    if (typeof a === 'number' && typeof b === 'number') return subNumbers(a, b);
+    const ka = realKind(a), kb = realKind(b);
+    if (ka === 0 || kb === 0) return undefined;
+    if (ka === 1 && kb === 1) return exactInteger(BigInt(a) - BigInt(b));
+    return inexactReal(doubleOf(a) - doubleOf(b));
+}
+
+/**
+ * The product of two reals held as numbers, BigInts or Flonums, or
+ * `undefined`.
+ * @param {*} a - One.
+ * @param {*} b - The other.
+ * @returns {*}
+ */
+export function mulReals(a, b) {
+    if (typeof a === 'number' && typeof b === 'number') return mulNumbers(a, b);
+    const ka = realKind(a), kb = realKind(b);
+    if (ka === 0 || kb === 0) return undefined;
+    if (ka === 1 && kb === 1) return exactInteger(BigInt(a) * BigInt(b));
+    return inexactReal(doubleOf(a) * doubleOf(b));
+}
+
+/**
+ * Two reals' values for comparing, or null if either is held otherwise. A
+ * number and a BigInt compare exactly as they are, in JavaScript; a Flonum by
+ * its value.
+ * @param {*} x - A real.
+ * @returns {number|bigint|null}
+ */
+function comparable(x) {
+    if (typeof x === 'number' || typeof x === 'bigint') return x;
+    return x instanceof Flonum ? x.value : null;
+}
+
+/**
+ * Whether one real is less than another, for reals held as numbers, BigInts
+ * or Flonums; `undefined` for anything else.
+ * @param {*} a - One.
+ * @param {*} b - The other.
+ * @returns {boolean|undefined}
+ */
+export function lessReals(a, b) {
+    if (typeof a === 'number' && typeof b === 'number') return a < b;
+    const x = comparable(a), y = comparable(b);
+    return x === null || y === null ? undefined : x < y;
+}
+
+/**
+ * Whether two reals held as numbers, BigInts or Flonums are `=`, across
+ * exactness; `undefined` for anything else. JavaScript's `==` compares a
+ * number with a BigInt exactly, and NaN with nothing.
+ * @param {*} a - One.
+ * @param {*} b - The other.
+ * @returns {boolean|undefined}
+ */
+export function equalReals(a, b) {
+    if (typeof a === 'number' && typeof b === 'number') return a === b;
+    const x = comparable(a), y = comparable(b);
+    // eslint-disable-next-line eqeqeq
+    return x === null || y === null ? undefined : x == y;
+}
+
+/**
+ * Whether one real is less than or equal to another, for reals held as
+ * numbers, BigInts or Flonums; `undefined` for anything else.
+ * @param {*} a - One.
+ * @param {*} b - The other.
+ * @returns {boolean|undefined}
+ */
+export function lessEqualReals(a, b) {
+    if (typeof a === 'number' && typeof b === 'number') return a <= b;
+    const x = comparable(a), y = comparable(b);
+    return x === null || y === null ? undefined : x <= y;
+}

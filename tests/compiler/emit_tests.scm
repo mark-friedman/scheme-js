@@ -154,22 +154,33 @@
 (test-group "inline - arithmetic on two JavaScript numbers"
   ;; An exact integer in the safe range and a non-integral inexact real are
   ;; JavaScript numbers (src/core/interpreter/number_representation.js).
-  (define (test-of name)
-    (let ((entry (inline-expansion name '((local a #f #f) (local b #f #f)))))
-      (expr->string ((caddr entry) (list (js 's_a) (js 's_b))))))
-  (define (value-of name)
-    (let* ((entry (inline-expansion name '((local a #f #f) (local b #f #f))))
+  (define locals '((local a #f #f) (local b #f #f)))
+  (define (expansion name nodes)
+    (let* ((entry (inline-expansion name nodes))
            (value (cadddr entry)))
-      (if (symbol? value) value (expr->string (value (list (js 's_a) (js 's_b)))))))
-  (test "the test admits two numbers"
-        "typeof s_a === 'number' && typeof s_b === 'number'"
-        (test-of '+))
-  (test "every operator has the same test" #t
-        (every (lambda (name) (string=? (test-of name) (test-of '+))) '(- * < > <= >= =)))
-  (test "arithmetic is the runtime's on two numbers, which keeps exactness"
-        '($add $sub $mul) (map value-of '(+ - *)))
-  (test "a comparison is the operator" "s_a < s_b" (value-of '<))
-  (test "numeric equality is ===, which agrees on NaN" "s_a === s_b" (value-of '=)))
+      (list ((caddr entry) (list (js 's_a) (js 's_b)))
+            (car value)
+            (expr->string ((cdr value) (list (js 's_a) (js 's_b)) "$h" nodes)))))
+  (test "each is guarded only on its binding, and names the runtime's operation"
+        '((#f $add) (#f $sub) (#f $mul) (#f $lt) (#f $numEq))
+        (map (lambda (name) (list (car (expansion name locals)) (cadr (expansion name locals))))
+             '(+ - * < =)))
+  (test "a sum is inline for two numbers whose sum needs no deciding, the runtime's otherwise"
+        (string-append "(typeof s_a === 'number' && typeof s_b === 'number' && (!Number.isInteger((s_a + s_b))"
+                       " || (Number.isSafeInteger((s_a + s_b)) && Number.isInteger(s_a) && Number.isInteger(s_b))))"
+                       " ? (s_a + s_b) : $h(s_a, s_b)")
+        (caddr (expansion '+ locals)))
+  (test "a product of zero is the runtime's, which makes it exact zero" #t
+        (and (string-contains (caddr (expansion '* locals)) "(s_a * s_b) !== 0") #t))
+  (test "a comparison is the operator on two numbers"
+        "(typeof s_a === 'number' && typeof s_b === 'number') ? s_a < s_b : $h(s_a, s_b)"
+        (caddr (expansion '< locals)))
+  (test "numeric equality is ===, which agrees on NaN"
+        "(typeof s_a === 'number' && typeof s_b === 'number') ? s_a === s_b : $h(s_a, s_b)"
+        (caddr (expansion '= locals)))
+  (test "an inexact integral constant is its double, and only a result that is not an integer is inline"
+        "(typeof s_a === 'number' && (!Number.isInteger((s_a * (2))))) ? (s_a * (2)) : $h(s_a, s_b)"
+        (caddr (expansion '* '((local a #f #f) (const 2.))))))
 
 ;; Vectors are JavaScript arrays. An access calls a runtime helper, which reads or
 ;; writes the array when the vector is an array and the index an exact integer in
