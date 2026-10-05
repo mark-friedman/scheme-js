@@ -40,7 +40,7 @@ export const readerPrimitives = {
         const set = stringValue(chars);
         let i = Number(start);
         while (i < s.length && !set.includes(s[i])) i++;
-        return BigInt(i);
+        return i;
     },
 
     /**
@@ -55,7 +55,7 @@ export const readerPrimitives = {
         const set = stringValue(chars);
         let i = Number(start);
         while (i < s.length && set.includes(s[i])) i++;
-        return BigInt(i);
+        return i;
     },
 
     /**
@@ -66,11 +66,11 @@ export const readerPrimitives = {
      */
     '%line-starts': (text) => {
         const s = stringValue(text);
-        const starts = [0n];
+        const starts = [0];
         for (let i = 0; i < s.length; i++) {
             const c = s.charCodeAt(i);
-            if (c === 10) starts.push(BigInt(i + 1));
-            else if (c === 13 && s.charCodeAt(i + 1) !== 10) starts.push(BigInt(i + 1));
+            if (c === 10) starts.push(i + 1);
+            else if (c === 13 && s.charCodeAt(i + 1) !== 10) starts.push(i + 1);
         }
         return starts;
     },

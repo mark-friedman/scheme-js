@@ -12,6 +12,7 @@ import {
 import { takesSchemeValues, callSchemeMethod } from '../../core/interpreter/values.js';
 import { SchemeTypeError, SchemeError } from '../../core/interpreter/errors.js';
 import { SchemeString, stringValue } from '../../core/primitives/string_class.js';
+import { Flonum } from '../../core/interpreter/number_representation.js';
 
 /**
  * A Scheme value about to be stored in a JavaScript object as it is, with a
@@ -21,7 +22,11 @@ import { SchemeString, stringValue } from '../../core/primitives/string_class.js
  * @returns {*} What to store.
  */
 function storable(value) {
-    return value instanceof SchemeString ? value.toString() : value;
+    if (value instanceof SchemeString) return value.toString();
+    // An inexact integer is boxed in Scheme (number_representation.js), and
+    // stored as JavaScript's double, noted so that it reads back inexact.
+    if (value instanceof Flonum) return value.value;
+    return value;
 }
 
 /**
@@ -69,10 +74,9 @@ export const interopPrimitives = {
         if (obj === null || obj === undefined) {
             throw new SchemeError(`js-set!: cannot set property "${prop}" on ${obj}`, [obj, prop], 'js-set!');
         }
-        const stored = storable(value);
-        obj[prop] = stored;
+        obj[prop] = storable(value);
         // Noted so that an integer-valued flonum reads back as a flonum.
-        noteSchemeStore(obj, prop, stored);
+        noteSchemeStore(obj, prop, value);
         return undefined;
     },
 

@@ -12,6 +12,7 @@ import { Complex } from '../primitives/complex.js';
 import { Symbol } from './symbol.js';
 import { Closure, Continuation, isSchemeClosure, isSchemeContinuation } from './values.js';
 import { SchemeTypeError, SchemeArityError, SchemeRangeError } from './errors.js';
+import { Flonum } from './number_representation.js';
 
 // Re-export type checkers for convenience
 export { isSchemeClosure, isSchemeContinuation };
@@ -80,24 +81,28 @@ function isComplexLike(x) {
 }
 
 /**
- * Checks if value is a number (primitive or Scheme numeric object).
- * Includes BigInt (exact integers), Number (inexact), Rational, and Complex.
+ * Checks if value is a number (primitive or Scheme numeric object): a
+ * JavaScript number or a BigInt, a Flonum, a Rational or a Complex
+ * (number_representation.js).
  * @param {*} x - Value to check
  * @returns {boolean}
  */
 export function isNumber(x) {
-    return typeof x === 'number' || typeof x === 'bigint' || isRationalLike(x) || isComplexLike(x);
+    return typeof x === 'number' || typeof x === 'bigint' || x instanceof Flonum
+        || isRationalLike(x) || isComplexLike(x);
 }
 
 /**
- * Checks if value is an integer.
- * BigInt is always an integer. Number must pass Number.isInteger().
+ * Checks if value is an integer, exact or inexact: an integral JavaScript
+ * number or a BigInt, a Flonum, which holds an integral value, or a rational
+ * or complex number that is one.
  * @param {*} x - Value to check
  * @returns {boolean}
  */
 export function isInteger(x) {
     if (typeof x === 'bigint') return true;
     if (typeof x === 'number') return Number.isInteger(x);
+    if (x instanceof Flonum) return true;
     if (isRationalLike(x)) return x.denominator === 1n || x.denominator === 1;
     if (isComplexLike(x)) return x.imag === 0 && isInteger(x.real);
     return false;
@@ -345,10 +350,12 @@ export function assertRange(procName, argName, value, min, max) {
 export function assertIndex(procName, index, size) {
     // Convert BigInt to Number for JS array indexing
     let numIndex;
-    if (typeof index === 'bigint') {
-        numIndex = Number(index);
-    } else if (typeof index === 'number' && Number.isInteger(index)) {
+    if (typeof index === 'number' && Number.isInteger(index)) {
         numIndex = index;
+    } else if (typeof index === 'bigint') {
+        numIndex = Number(index);
+    } else if (index instanceof Flonum) {
+        numIndex = index.value;
     } else {
         throw new SchemeTypeError(procName, 2, 'exact integer', index);
     }

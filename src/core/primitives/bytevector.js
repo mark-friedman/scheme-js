@@ -146,7 +146,7 @@ export const bytevectorPrimitives = {
      */
     'bytevector-length': (bv) => {
         assertBytevector('bytevector-length', 1, bv);
-        return BigInt(bv.length);
+        return bv.length;
     },
 
     /**
@@ -163,7 +163,7 @@ export const bytevectorPrimitives = {
         if (idx < 0 || idx >= bv.length) {
             throw new SchemeRangeError('bytevector-u8-ref', 'index', 0, bv.length - 1, idx);
         }
-        return BigInt(bv[idx]);
+        return bv[idx];
     },
 
     /**

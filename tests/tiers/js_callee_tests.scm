@@ -64,7 +64,9 @@
   (test "as it does through js-invoke" #t (exact? (two-through-js-invoke)))
   (test "a number that is not integral arrives inexact" #f (exact? (half-directly)))
   (test "an exact integer passed to JavaScript and returned is exact again" #t (exact? (echoed 3)))
-  (test "an array arrives as it is, its elements unconverted" '(#f #f)
+  ;; An integral number is an exact integer wherever it is, inside an array as
+  ;; much as returned (src/core/interpreter/number_representation.js).
+  (test "an array arrives as it is, its integral elements exact" '(#t #t)
         (map exact? (vector->list (pair-from-js)))))
 
 ;; ---------------------------------------------------------------------------

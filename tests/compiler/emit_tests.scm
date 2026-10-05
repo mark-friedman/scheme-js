@@ -151,20 +151,25 @@
 ;; `number`: for either pair the JavaScript operator computes what the numeric
 ;; tower would. Any other pair -- mixed exactness, a rational, a complex, a
 ;; wrong type -- takes the primitive.
-(test-group "inline - arithmetic on two exact integers or two flonums"
+(test-group "inline - arithmetic on two JavaScript numbers"
+  ;; An exact integer in the safe range and a non-integral inexact real are
+  ;; JavaScript numbers (src/core/interpreter/number_representation.js).
   (define (test-of name)
     (let ((entry (inline-expansion name '((local a #f #f) (local b #f #f)))))
       (expr->string ((caddr entry) (list (js 's_a) (js 's_b))))))
   (define (value-of name)
-    (let ((entry (inline-expansion name '((local a #f #f) (local b #f #f)))))
-      (expr->string ((cadddr entry) (list (js 's_a) (js 's_b))))))
-  (test "the test admits two bigints or two numbers"
-        "(typeof s_a === 'bigint' && typeof s_b === 'bigint') || (typeof s_a === 'number' && typeof s_b === 'number')"
+    (let* ((entry (inline-expansion name '((local a #f #f) (local b #f #f))))
+           (value (cadddr entry)))
+      (if (symbol? value) value (expr->string (value (list (js 's_a) (js 's_b)))))))
+  (test "the test admits two numbers"
+        "typeof s_a === 'number' && typeof s_b === 'number'"
         (test-of '+))
   (test "every operator has the same test" #t
         (every (lambda (name) (string=? (test-of name) (test-of '+))) '(- * < > <= >= =)))
-  (test "and the fast path is the operator, for both" "s_a - s_b" (value-of '-))
-  (test "numeric equality is ===, which agrees on -0.0 and NaN" "s_a === s_b" (value-of '=)))
+  (test "arithmetic is the runtime's on two numbers, which keeps exactness"
+        '($add $sub $mul) (map value-of '(+ - *)))
+  (test "a comparison is the operator" "s_a < s_b" (value-of '<))
+  (test "numeric equality is ===, which agrees on NaN" "s_a === s_b" (value-of '=)))
 
 ;; Vectors are JavaScript arrays. An access calls a runtime helper, which reads or
 ;; writes the array when the vector is an array and the index an exact integer in
@@ -187,8 +192,8 @@
         #t
         (let ((source (car (generate-unit (lowered-ir (lower-lambda '(lambda (v) #f #f (app (var vector-ref) ((var v) (lit 0))))))
                                           '(vector-ref) '() "f" '(vector-ref)))))
-          (and (string-contains source "$vectorRef(s_v, 0n)") #t)))
-  (test "vector-length needs an array and is inline" '("Array.isArray(v)" "BigInt(v.length)")
+          (and (string-contains source "$vectorRef(s_v, 0)") #t)))
+  (test "vector-length needs an array and is inline" '("Array.isArray(v)" "v.length")
         (parts 'vector-length '(v)))
   (test "a procedure using the helper declares it"
         #t

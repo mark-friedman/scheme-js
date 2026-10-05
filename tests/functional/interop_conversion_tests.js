@@ -1,5 +1,6 @@
 
 import { assert, run, createTestEnv, createTestLogger } from '../harness/helpers.js';
+import { Flonum } from '../../src/core/interpreter/number_representation.js';
 
 /**
  * Functional tests for JS Interop Conversion and BigInt safety.
@@ -22,10 +23,10 @@ export function runInteropConversionTests(interpreter, logger) {
     interpreter.globalEnv.define('js-check-number', testGlobal.checkNumber);
 
     let result = run(interpreter, "(js-check-number 10)", { jsAutoConvert: 'raw' });
-    // Compared as a type and a value: the harness's `assert` counts 20n and 20
-    // as equal, so it cannot tell an exact result from an inexact one.
-    assert(logger, "Auto-conversion of BigInt -> Number for foreign JS function, and its integral result back to an exact integer",
-        [typeof result, String(result)], ['bigint', '20']);
+    // An exact integer is a JavaScript number, and an integral result from
+    // JavaScript is one (src/core/interpreter/number_representation.js).
+    assert(logger, "A foreign JS function is given a number, and its integral result is an exact integer",
+        [typeof result, String(result)], ['number', '20']);
 
     // Scenario 2: Return value from Scheme closure to JS
     const closure = run(interpreter, "(lambda (x) x)");
@@ -36,8 +37,10 @@ export function runInteropConversionTests(interpreter, logger) {
 
     // Scenario 3: Preserve BigInt for Scheme primitives (verified using 'raw' mode)
     result = run(interpreter, "(+ 10 20)", { jsAutoConvert: 'raw' });
-    assert(logger, "Scheme primitive (+) still receives and returns BigInt", typeof result, 'bigint');
-    assert(logger, "Scheme primitive (+) returns correct value", result, 30n);
+    assert(logger, "Scheme primitive (+) returns an exact integer, a number", typeof result, 'number');
+    assert(logger, "Scheme primitive (+) returns correct value", result, 30);
+    result = run(interpreter, "(+ 10. 20)", { jsAutoConvert: 'raw' });
+    assert(logger, "and an inexact integer boxed", result instanceof Flonum && result.value, 30);
 
     // Scenario 4: isNaN handles the converted value
     interpreter.globalEnv.define('isNaN', isNaN);

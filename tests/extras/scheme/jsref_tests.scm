@@ -67,7 +67,10 @@
 
 (test-group "js-typeof primitive"
   ;; Exact integers are BigInt in Scheme-JS
-  (test "js-typeof exact integer" "bigint" (js-typeof 42))
+  ;; A small exact integer is a JavaScript number, a large one a BigInt
+  ;; (src/core/interpreter/number_representation.js).
+  (test "js-typeof exact integer" "number" (js-typeof 42))
+  (test "js-typeof large exact integer" "bigint" (js-typeof (expt 2 60)))
   ;; Inexact numbers are JS Number
   (test "js-typeof inexact number" "number" (js-typeof 3.14))
   (test "js-typeof string" "string" (js-typeof "hello"))

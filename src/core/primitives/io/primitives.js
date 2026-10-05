@@ -234,7 +234,7 @@ export const ioPrimitives = {
         requireOpenInputPort(port, 'read-u8');
         if (port.readU8) {
             const b = port.readU8();
-            return b === EOF_OBJECT ? b : BigInt(b);
+            return b;
         }
         throw new Error('read-u8: expected binary input port');
     },
@@ -243,7 +243,7 @@ export const ioPrimitives = {
         requireOpenInputPort(port, 'peek-u8');
         if (port.peekU8) {
             const b = port.peekU8();
-            return b === EOF_OBJECT ? b : BigInt(b);
+            return b;
         }
         throw new Error('peek-u8: expected binary input port');
     },

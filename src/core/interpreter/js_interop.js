@@ -6,6 +6,7 @@ import { Rational } from '../primitives/rational.js';
 import { Char } from '../primitives/char_class.js';
 import { SchemeString } from '../primitives/string_class.js';
 import { Closure, Continuation, Values } from './values.js';
+import { Flonum, exactInteger } from './number_representation.js';
 
 // Registry for the JS Object Record constructor
 let JsObjectRecord = null;
@@ -47,6 +48,9 @@ function isPrimitive(val) {
  */
 export function schemeToJs(val) {
     if (val instanceof Values) val = val.first();
+    // An inexact integer is boxed in Scheme (number_representation.js);
+    // JavaScript has only the double.
+    if (val instanceof Flonum) return val.value;
     // Convert BigInt to Number for JS API calls
     // (JS APIs like Date, Math, etc. require Number, not BigInt)
     if (typeof val === 'bigint') {
@@ -84,6 +88,7 @@ export function schemeToJs(val) {
 export function schemeToJsDeep(val, options = {}) {
     const convertBigInt = options.convertBigInt !== false;
     if (val instanceof Values) val = val.first();
+    if (val instanceof Flonum) return val.value;
 
     // 1. Primitive Conversion (Shallow Check first)
     if (typeof val === 'bigint') {
@@ -129,13 +134,16 @@ export function schemeToJsDeep(val, options = {}) {
 // ============================================================================
 
 /**
- * Convert JS integer Number to BigInt for Scheme compatibility.
- * Scheme uses BigInt for exact integers; JS integers should become BigInt.
+ * A JavaScript number or BigInt as the Scheme number it is: an integral
+ * number is an exact integer, as it is held (number_representation.js), -0
+ * the exact zero; a BigInt is one too, held as a number in the safe range; any
+ * other number is an inexact real. Anything else is itself.
+ * @param {*} val - The value.
+ * @returns {*}
  */
-function maybeIntToBigInt(val) {
-    if (typeof val === 'number' && Number.isInteger(val) && Number.isFinite(val)) {
-        return BigInt(val);
-    }
+function schemeNumber(val) {
+    if (typeof val === 'number') return val === 0 ? 0 : val;
+    if (typeof val === 'bigint') return exactInteger(val);
     return val;
 }
 
@@ -143,15 +151,14 @@ function maybeIntToBigInt(val) {
  * Shallow conversion JS -> Scheme.
  */
 export function jsToScheme(val) {
-    return maybeIntToBigInt(val);
+    return schemeNumber(val);
 }
 
 /**
  * Deep recursive conversion JS -> Scheme.
  */
 export function jsToSchemeDeep(val) {
-    // Convert integers to BigInt
-    val = maybeIntToBigInt(val);
+    val = schemeNumber(val);
 
     if (isPrimitive(val)) return val;
 
@@ -182,21 +189,23 @@ export function jsToSchemeDeep(val) {
 // Numbers Stored in JavaScript Properties
 // ============================================================================
 
-// A JavaScript number carries no exactness. Scheme represents an exact integer
-// as a BigInt and an inexact real as a number, but an integer that JavaScript
-// code writes into a property is a number too, and the interop policy is that
-// it reads back in Scheme as exact. So an integer-valued number in a property
-// is ambiguous: it is a flonum if Scheme stored it and an exact integer if
-// JavaScript did. Neither the property nor the value can say which, so every
-// Scheme-side store -- record constructors and modifiers, `js-set!`, and
-// `define-class` construction -- notes each integer-valued flonum it stores,
-// by object and property, and every Scheme-side read consults the note.
+// A JavaScript number carries no exactness. Scheme holds an integral number as
+// an exact integer and boxes an inexact one (number_representation.js), and an
+// integer JavaScript writes into a property reads back as exact. But Scheme
+// stores an inexact integer into a JavaScript object's property as JavaScript's
+// double, the box unwrapped, so an integral number in a property is ambiguous:
+// inexact if Scheme stored it, exact if JavaScript did. Neither the property
+// nor the value can say which, so every Scheme-side store -- record
+// constructors and modifiers, `js-set!`, and `define-class` construction --
+// notes each inexact integer it stores, by object and property, and every
+// Scheme-side read consults the note.
 //
 // A note is consulted only while the property still holds the very number it
 // records, so a later JavaScript write of any other value is read as
-// JavaScript's. A note is not cleared when Scheme later stores a non-number,
-// which keeps stores free of a lookup; the only cost is that JavaScript
-// writing back that same integer afterwards reads as the flonum.
+// JavaScript's; a Scheme store of an exact integer clears it. A note is not
+// cleared when Scheme later stores a non-number, which keeps those stores free
+// of a lookup; the only cost is that JavaScript writing back that same integer
+// afterwards reads as inexact.
 //
 // A WeakMap keeps the notes off the objects themselves, so objects keep one
 // shape and JavaScript sees no extra property.
@@ -221,7 +230,10 @@ export function isIntegerNumber(value) {
  * @param {*} value - The Scheme value stored.
  */
 export function noteSchemeStore(object, key, value) {
-    if (!isIntegerNumber(value)) {
+    if (!(value instanceof Flonum)) {
+        // An exact integer is an integral number too, which a note left by
+        // an inexact one stored before would read back as inexact.
+        if (isIntegerNumber(value)) schemeFlonums.get(object)?.delete(key);
         return;
     }
     let keys = schemeFlonums.get(object);
@@ -229,7 +241,7 @@ export function noteSchemeStore(object, key, value) {
         keys = new Map();
         schemeFlonums.set(object, keys);
     }
-    keys.set(key, value);
+    keys.set(key, value.value);
 }
 
 /**
@@ -247,7 +259,7 @@ export function storedToScheme(object, key, value) {
     const keys = schemeFlonums.get(object);
     // Object.is, so that a JavaScript 0 over a Scheme -0.0 counts as a new value.
     if (keys !== undefined && Object.is(keys.get(key), value)) {
-        return value;
+        return new Flonum(value);
     }
-    return BigInt(value);
+    return value === 0 ? 0 : value;
 }

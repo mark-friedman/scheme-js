@@ -47,6 +47,7 @@ import { Symbol } from '../../core/interpreter/symbol.js';
 import { assertString } from '../../core/interpreter/type_check.js';
 import { stringValue } from '../../core/primitives/string_class.js';
 import { SchemeTypeError } from '../../core/interpreter/errors.js';
+import { Flonum } from '../../core/interpreter/number_representation.js';
 
 // =============================================================================
 // The store
@@ -63,8 +64,14 @@ const KINDS = new Set(['eq', 'eqv', 'string', 'string-ci']);
  *   `eqv?`, or null when the key can be used in a `Map` as it is.
  */
 function eqvCanonical(key) {
+  // An exact integer or a non-integral inexact real is a number, one for each
+  // value (number_representation.js), which a Map compares as it is; an
+  // inexact integer is boxed, and compared by its value, -0.0 apart.
   if (typeof key === 'number') {
-    return Object.is(key, -0) ? '-0' : null;
+    return null;
+  }
+  if (key instanceof Flonum) {
+    return Object.is(key.value, -0) ? 'f-0' : `f${key.value}`;
   }
   if (key instanceof Char) {
     return `c${key.codePoint}`;
@@ -191,6 +198,7 @@ const FLOAT_BITS = new DataView(new ArrayBuffer(8));
 function hashReal(x) {
   let d;
   if (typeof x === 'number') d = x;
+  else if (x instanceof Flonum) d = x.value;
   else if (typeof x === 'bigint') d = Number(x);
   else d = Number(x.numerator) / Number(x.denominator);
 
@@ -210,7 +218,7 @@ function hashReal(x) {
  * @returns {boolean}
  */
 function isNumber(x) {
-  return typeof x === 'number' || typeof x === 'bigint'
+  return typeof x === 'number' || typeof x === 'bigint' || x instanceof Flonum
     || x instanceof Rational || x instanceof Complex;
 }
 
@@ -303,9 +311,9 @@ export const hashTablePrimitives = {
   /**
    * The number of associations.
    * @param {HashStore} store - The store.
-   * @returns {bigint}
+   * @returns {number}
    */
-  '%hash-store-size': (store) => BigInt(assertStore('%hash-store-size', store).size),
+  '%hash-store-size': (store) => assertStore('%hash-store-size', store).size,
 
   /**
    * Removes every association.
@@ -374,38 +382,38 @@ export const hashTablePrimitives = {
   /**
    * SRFI 128 `string-hash`.
    * @param {string} str - The string.
-   * @returns {bigint}
+   * @returns {number}
    */
   'string-hash': (str, _bound) => {
     assertString('string-hash', 1, str);
-    return BigInt(hashString(stringValue(str)));
+    return hashString(stringValue(str));
   },
 
   /**
    * SRFI 128 `string-ci-hash`: equal for strings equal under `string-ci=?`.
    * @param {string} str - The string.
-   * @returns {bigint}
+   * @returns {number}
    */
   'string-ci-hash': (str, _bound) => {
     assertString('string-ci-hash', 1, str);
-    return BigInt(hashString(stringValue(str).toLowerCase()));
+    return hashString(stringValue(str).toLowerCase());
   },
 
   /**
    * SRFI 128 `number-hash`: equal for numbers equal under `=`.
    * @param {*} x - The number.
-   * @returns {bigint}
+   * @returns {number}
    */
   'number-hash': (x, _bound) => {
     if (!isNumber(x)) throw new SchemeTypeError('number-hash', 1, 'number', x);
     if (x instanceof Complex) {
       const imag = hashReal(x.imag);
       // A complex number with a zero imaginary part is = to its real part.
-      return BigInt(imag === 0
+      return imag === 0
         ? hashReal(x.real)
-        : ((Math.imul(hashReal(x.real), 31) + imag) >>> 0) % HASH_BOUND);
+        : ((Math.imul(hashReal(x.real), 31) + imag) >>> 0) % HASH_BOUND;
     }
-    return BigInt(hashReal(x));
+    return hashReal(x);
   },
 
   /**
@@ -414,15 +422,15 @@ export const hashTablePrimitives = {
    * Each object is numbered the first time it is asked about; the numbering is
    * weak, so it never keeps an object alive.
    * @param {*} x - The value.
-   * @returns {bigint}
+   * @returns {number}
    */
   '%identity-hash': (x) => {
     if ((typeof x !== 'object' && typeof x !== 'function') || x === null) {
-      return BigInt(hashString(typeof x));
+      return hashString(typeof x);
     }
     let id = IDENTITIES.get(x);
     if (id === undefined) {
-      id = BigInt(nextIdentity);
+      id = nextIdentity;
       nextIdentity = (nextIdentity + 1) % HASH_BOUND;
       IDENTITIES.set(x, id);
     }
@@ -431,13 +439,13 @@ export const hashTablePrimitives = {
 
   /**
    * The bound on the hashes of this library's hash functions.
-   * @returns {bigint}
+   * @returns {number}
    */
-  '%hash-bound': () => BigInt(HASH_BOUND),
+  '%hash-bound': () => HASH_BOUND,
 
   /**
    * A salt chosen afresh on each run, below the bound.
-   * @returns {bigint}
+   * @returns {number}
    */
   '%hash-salt': () => SALT
 };
@@ -447,4 +455,4 @@ const IDENTITIES = new WeakMap();
 let nextIdentity = 1;
 
 /** The salt for this run; see `%hash-salt`. */
-const SALT = BigInt(Math.floor(Math.random() * HASH_BOUND));
+const SALT = Math.floor(Math.random() * HASH_BOUND);

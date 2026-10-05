@@ -5,6 +5,7 @@
  */
 
 import { assertArity } from '../interpreter/type_check.js';
+import { inexactReal } from '../interpreter/number_representation.js';
 
 export const timePrimitives = {
     /**
@@ -14,14 +15,14 @@ export const timePrimitives = {
      */
     'current-second': (...args) => {
         assertArity('current-second', args, 0, 0);
-        return Date.now() / 1000;
+        return inexactReal(Date.now() / 1000);
     },
 
     /**
      * current-jiffy: Returns the current jiffy count.
      * A jiffy is the smallest measurable time unit - we use milliseconds.
      * R7RS requires no arguments and returns an EXACT integer.
-     * @returns {bigint} Current time in milliseconds.
+     * @returns {number} Current time in milliseconds.
      */
     'current-jiffy': (...args) => {
         assertArity('current-jiffy', args, 0, 0);
@@ -32,16 +33,16 @@ export const timePrimitives = {
         } else {
             ms = Date.now();
         }
-        return BigInt(ms);
+        return ms;
     },
 
     /**
      * jiffies-per-second: Returns the number of jiffies per second.
      * R7RS requires no arguments and returns an EXACT integer.
-     * @returns {bigint} 1000n (milliseconds per second).
+     * @returns {number} 1000 (milliseconds per second).
      */
     'jiffies-per-second': (...args) => {
         assertArity('jiffies-per-second', args, 0, 0);
-        return 1000n;
+        return 1000;
     }
 };

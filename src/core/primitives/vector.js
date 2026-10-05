@@ -102,7 +102,7 @@ export const vectorPrimitives = {
      */
     'vector-length': (vec) => {
         assertVector('vector-length', 1, vec);
-        return BigInt(vec.length);
+        return vec.length;
     },
 
     /**

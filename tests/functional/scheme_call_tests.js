@@ -21,6 +21,7 @@ import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { callSchemeProcedure, SCHEME_PRIMITIVE, SCHEME_RAW_CALL, TailCall } from '../../src/core/interpreter/values.js';
 import { compiledStack, openCompiledSegment, restoreFlush } from '../../src/core/interpreter/unwind.js';
 import { tryCompileDefinition } from '../../src/compiler/index.js';
+import { Flonum } from '../../src/core/interpreter/number_representation.js';
 
 /**
  * Runs Scheme source with the interpreter, with Scheme values.
@@ -64,16 +65,19 @@ export async function runSchemeCallTests(logger) {
   const add1 = env.lookup('add1');
   assert(logger, 'setup: called as a plain function, a closure converts its result for JavaScript',
     typeof add1(41), 'number');
+  // An inexact integer is boxed in Scheme and a double in JavaScript
+  // (src/core/interpreter/number_representation.js), so it shows which a call
+  // gives.
   assert(logger, 'an interpreted closure is given Scheme values and gives one back, unconverted',
-    typeof callSchemeProcedure(add1, [41n]), 'bigint');
+    callSchemeProcedure(add1, [new Flonum(41)]) instanceof Flonum, true);
 
   const compiled = tryCompileDefinition(analyze(parse('(define (call-with f x) (f x))')[0]), env);
   assert(logger, 'setup: the procedure compiled', compiled.compiled, true);
   const callWith = compiled.procedure;
   assert(logger, 'setup: through its raw entry, a compiled procedure ending in a call to an interpreted closure returns the call pending',
     callWith[SCHEME_RAW_CALL](add1, 1n) instanceof TailCall, true);
-  const result = callSchemeProcedure(callWith, [add1, 1n]);
-  assert(logger, 'a pending tail call is run to its value', [typeof result, String(result)].join(' '), 'bigint 2');
+  const result = callSchemeProcedure(callWith, [add1, new Flonum(1)]);
+  assert(logger, 'a pending tail call is run to its value', result instanceof Flonum && result.value, 2);
 
   const depth = tryCompileDefinition(analyze(parse('(define (depth n) (if (= n 0) 0 (+ 1 (depth (- n 1)))))')[0]), env);
   env.define('depth', depth.procedure);

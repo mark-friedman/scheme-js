@@ -32,34 +32,42 @@
 ;;; operands.
 
 ;; /**
-;;  * The condition that both operands are exact integers or both are inexact
-;;  * reals -- JavaScript `bigint`s or JavaScript `number`s -- for either of which
-;;  * a JavaScript operator computes what the numeric tower does. Every other
-;;  * pair -- mixed exactness, a rational, a complex, a wrong type -- takes the
-;;  * primitive. Exact integers are tested first, so the exact path costs what it
-;;  * did before flonums had one; without theirs, flonum arithmetic went through
-;;  * the variadic primitive and was most of `fibfp`'s run time.
+;;  * The condition that both operands are JavaScript numbers: exact integers in
+;;  * the safe range, or inexact reals that are not integers
+;;  * (src/core/interpreter/number_representation.js). Every other operand -- a
+;;  * BigInt, an inexact integer, which is boxed, a rational, a complex, a wrong
+;;  * type -- takes the primitive.
 ;;  * @param {list} a - An operand expression.
 ;;  * @param {list} b - An operand expression.
 ;;  * @returns {list} An expression.
 ;;  */
-(define (both-exact-or-both-inexact a b)
-  (js "(typeof " a " === 'bigint' && typeof " b " === 'bigint') || "
-      "(typeof " a " === 'number' && typeof " b " === 'number')"))
+(define (both-numbers a b)
+  (js "typeof " a " === 'number' && typeof " b " === 'number'"))
 
 ;; /**
-;;  * A binary arithmetic operator: the JavaScript operator applied when both
-;;  * operands are exact integers or both are flonums, the tower otherwise.
-;;  * For two flonums the JavaScript result is the tower's too: `=` as `===`
-;;  * agrees on `-0.0` and on NaN, and every ordering with a NaN is false.
+;;  * A numeric comparison: the JavaScript operator when both operands are
+;;  * numbers, which compares across exactness as the tower does: `=` as `===`
+;;  * agrees on NaN, and every ordering with a NaN is false.
 ;;  * @param {string} name - The Scheme name.
 ;;  * @param {string} op - The JavaScript operator.
 ;;  * @returns {list} A table entry.
 ;;  */
-(define (numeric-binary name op)
+(define (numeric-comparison name op)
   (list name 2
-        (lambda (ops) (both-exact-or-both-inexact (car ops) (cadr ops)))
+        (lambda (ops) (both-numbers (car ops) (cadr ops)))
         (lambda (ops) (js (car ops) " " op " " (cadr ops)))))
+
+;; /**
+;;  * A binary arithmetic operation: when both operands are numbers, the
+;;  * runtime's arithmetic on two numbers, which gives an exact result where both
+;;  * are exact and boxes an inexact integer (`addNumbers` in
+;;  * number_representation.js); the tower otherwise.
+;;  * @param {string} name - The Scheme name.
+;;  * @param {symbol} local - The runtime helper's local name.
+;;  * @returns {list} A table entry.
+;;  */
+(define (numeric-arithmetic name local)
+  (list name 2 (lambda (ops) (both-numbers (car ops) (cadr ops))) local))
 
 ;; /**
 ;;  * An expansion whose fast path is exactly what the primitive computes for
@@ -102,15 +110,15 @@
 ;;  */
 (define inline-expansions
   (list
-    ;; Arithmetic: exact-integer and flonum fast paths, tower fallback.
-    (numeric-binary '+ "+")
-    (numeric-binary '- "-")
-    (numeric-binary '* "*")
-    (numeric-binary '< "<")
-    (numeric-binary '> ">")
-    (numeric-binary '<= "<=")
-    (numeric-binary '>= ">=")
-    (numeric-binary '= "===")
+    ;; Arithmetic: fast paths for two numbers, tower fallback.
+    (numeric-arithmetic '+ '$add)
+    (numeric-arithmetic '- '$sub)
+    (numeric-arithmetic '* '$mul)
+    (numeric-comparison '< "<")
+    (numeric-comparison '> ">")
+    (numeric-comparison '<= "<=")
+    (numeric-comparison '>= ">=")
+    (numeric-comparison '= "===")
     ;; Pairs: the representation is a plain class, so these are direct.
     (list 'car 1
           (lambda (ops) (js (car ops) " instanceof R.Cons"))
@@ -126,14 +134,13 @@
     ;; Vectors are JavaScript arrays. An access calls a runtime helper rather
     ;; than the primitive through the generic call path, which cost
     ;; vector-heavy programs up to half their time; the helper checks the
-    ;; common case with the index converted once -- the same checks written
-    ;; inline, comparing the `bigint` index, were slower than the primitive --
-    ;; and passes everything else to the primitive, so every error is its own.
+    ;; common case and passes everything else to the primitive, so every error
+    ;; is its own.
     (helper 'vector-ref 2 '$vectorRef)
     (helper 'vector-set! 3 '$vectorSet)
     (list 'vector-length 1
           (lambda (ops) (js "Array.isArray(" (car ops) ")"))
-          (lambda (ops) (js "BigInt(" (car ops) ".length)")))
+          (lambda (ops) (js (car ops) ".length")))
     ;; Only against a constant `===` is exact for. That is what `case` tests
     ;; its key with, one datum at a time; anything else calls the primitive.
     (list 'eqv? 2

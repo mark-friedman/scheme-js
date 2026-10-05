@@ -225,7 +225,7 @@ export const charPrimitives = {
      */
     'char->integer': (char) => {
         assertChar('char->integer', 1, char);
-        return BigInt(char.valueOf());
+        return char.valueOf();
     },
 
     /**
@@ -291,7 +291,7 @@ export const charPrimitives = {
         assertChar('digit-value', 1, char);
         const code = char.valueOf();
         if (code >= 48 && code <= 57) { // '0' to '9'
-            return BigInt(code - 48);
+            return code - 48;
         }
         return false;
     }

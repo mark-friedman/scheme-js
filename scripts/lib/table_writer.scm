@@ -72,7 +72,14 @@
   (cond ((null? value) "null")
         ((eq? value #t) "true")
         ((eq? value #f) "false")
-        ((exact-integer? value) (string-append (number->string value) "n"))
+        ;; An exact integer is a JavaScript number in the safe range, a BigInt
+        ;; beyond it; an inexact real a number, boxed if its value is an
+        ;; integer (src/core/interpreter/number_representation.js).
+        ((exact-integer? value)
+         (if (<= (abs value) largest-safe-integer)
+             (number->string value)
+             (string-append (number->string value) "n")))
+        ((inexact-integer? value) (string-append "new Flonum(" (number->string value) ")"))
         ((and (real? value) (inexact? value))
          (cond ((finite? value) (number->string value))
                ((nan? value) "NaN")
@@ -378,7 +385,19 @@
       (let loop ((cs constants)) (and (pair? cs) (or (holds? kind? (car cs)) (loop (cdr cs))))))
     (append (if (used? symbol?) '("import { intern } from '../core/interpreter/symbol.js';") '())
             (if (used? pair?) '("import { Cons } from '../core/interpreter/cons.js';") '())
-            (if (used? char?) '("import { Char } from '../core/primitives/char_class.js';") '()))))
+            (if (used? char?) '("import { Char } from '../core/primitives/char_class.js';") '())
+            (if (used? inexact-integer?)
+                '("import { Flonum } from '../core/interpreter/number_representation.js';")
+                '()))))
+
+;; /**
+;;  * Whether a value is an inexact real whose value is an integer, which
+;;  * JavaScript holds boxed, as a `Flonum`.
+;;  * @param {*} value - The value.
+;;  * @returns {boolean}
+;;  */
+(define (inexact-integer? value)
+  (and (real? value) (inexact? value) (integer? value)))
 
 ;; /**
 ;;  * The prebuilt tables of a set of libraries, as a JavaScript module.

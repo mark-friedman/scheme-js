@@ -8,6 +8,7 @@ import { Cons, cons, list } from '../../../src/core/interpreter/cons.js';
 import { Symbol, intern } from '../../../src/core/interpreter/symbol.js';
 import { SchemeUnboundError, SchemeReadError } from '../../../src/core/interpreter/errors.js';
 import { runInterpreterTests } from './interpreter_tests.js';
+import { Flonum } from '../../../src/core/interpreter/number_representation.js';
 
 /**
  * Runs all unit tests.
@@ -62,7 +63,7 @@ export function runUnitTests(interpreter, logger) {
     logger.title('Running Parser Unit Tests...');
     try {
         let ast = parse("123")[0];
-        assert(logger, "Unit: parse number", ast === 123n, true);
+        assert(logger, "Unit: parse number", ast === 123, true);
         ast = parse("foo")[0];
         assert(logger, "Unit: parse symbol", ast instanceof Symbol && ast.name === "foo", true);
         ast = parse("#t")[0];
@@ -83,9 +84,9 @@ export function runUnitTests(interpreter, logger) {
 
         const list = parse("(+ 1 2)")[0];
         assert(logger, "Unit: parse simple list (tag)", list.car instanceof Symbol && list.car.name === "+", true);
-        assert(logger, "Unit: parse simple list (arg1)", list.cdr.car === 1n, true);
+        assert(logger, "Unit: parse simple list (arg1)", list.cdr.car === 1, true);
 
-        assert(logger, "Unit: parse multiple exprs", parse("1 2")[1] === 2n, true);
+        assert(logger, "Unit: parse multiple exprs", parse("1 2")[1] === 2, true);
     } catch (e) {
         logger.fail(`Parser unit tests failed: ${e.message}`);
     }
@@ -204,8 +205,9 @@ export function runUnitTests(interpreter, logger) {
     logger.title('Running REPL Unit Tests...');
     try {
         assert(logger, "Unit: prettyPrint symbol", prettyPrint(intern("x")), "x");
-        assert(logger, "Unit: prettyPrint number", prettyPrint(123), "123.0");
-        assert(logger, "Unit: prettyPrint list", prettyPrint(list(1, intern("a"))), "(1.0 a)");
+        assert(logger, "Unit: prettyPrint number", prettyPrint(123), "123");
+        assert(logger, "Unit: prettyPrint inexact integer", prettyPrint(new Flonum(123)), "123.0");
+        assert(logger, "Unit: prettyPrint list", prettyPrint(list(new Flonum(1), intern("a"))), "(1.0 a)");
 
         // Circular structure is shown with datum labels, as write shows it,
         // rather than followed until memory or the stack runs out

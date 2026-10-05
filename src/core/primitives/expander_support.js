@@ -21,6 +21,7 @@ import {
   flipScopeInExpression, globalScopeRegistry
 } from '../interpreter/syntax_object.js';
 import { cons, list, toArray } from '../interpreter/cons.js';
+import { Flonum } from '../interpreter/number_representation.js';
 import { intern } from '../interpreter/symbol.js';
 import { Executable } from '../interpreter/stepables_base.js';
 import { SchemeSyntaxError } from '../interpreter/errors.js';
@@ -170,7 +171,7 @@ export const expanderPrimitives = {
         globalScopeRegistry.resolve({ name: name.name, scopes: new Set(toArray(scopes).map(scopeOf)) }) !== null,
 
     /** A number no renamed variable has carried. */
-    '%fresh-unique-id': () => BigInt(globalContext.freshUniqueId()),
+    '%fresh-unique-id': () => globalContext.freshUniqueId(),
 
     /**
      * Whether the features of the registry libraries are loaded into now meet
@@ -219,7 +220,7 @@ export const expanderPrimitives = {
      * number, a string as a literal is, a boolean, a bytevector or a
      * character.
      */
-    '%self-evaluating?': (x) => typeof x === 'number' || typeof x === 'bigint' || typeof x === 'string'
+    '%self-evaluating?': (x) => typeof x === 'number' || typeof x === 'bigint' || x instanceof Flonum || typeof x === 'string'
         || typeof x === 'boolean' || x instanceof Uint8Array || x instanceof Rational
         || x instanceof Complex || x instanceof Char,
 

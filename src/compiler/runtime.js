@@ -27,6 +27,7 @@ import { Cons } from '../core/interpreter/cons.js';
 // Kept by the interpreter, which sees every binding write; generated code only
 // reads a cell, once per inlined primitive.
 import { primitiveCell } from '../core/interpreter/primitive_bindings.js';
+export { addNumbers, subNumbers, mulNumbers, Flonum } from '../core/interpreter/number_representation.js';
 // What compiled code makes `call-with-values` of (`lower-call-with-values` in
 // ir.scm): the primitives themselves, whatever the environment the code runs
 // in binds under their names.
@@ -95,22 +96,20 @@ export function callBinding(fn, args) {
  * `vector-ref` for an inline expansion, whose guard has established that the
  * name is still bound to the primitive.
  *
- * The common case -- an array and an exact index inside it -- converts the
- * index to a JavaScript number once and compares numbers. Doing the same
- * checks inline was slower than the primitive, because comparing a `bigint`
- * with a length costs more than converting it; and calling the primitive
- * through the generic call path cost vector-heavy programs up to half their
- * time, measured as a ceiling. Every other case, and so every error, is the
- * primitive's own.
+ * The common case -- an array and an index inside it, an exact integer, which
+ * is a JavaScript number (src/core/interpreter/number_representation.js) --
+ * indexes the array; calling the primitive through the generic call path cost
+ * vector-heavy programs up to half their time, measured as a ceiling. Every
+ * other case, and so every error, is the primitive's own: an index that is not
+ * an integer is not inside the array.
  *
  * @param {*} vector - The vector operand.
  * @param {*} index - The index operand.
  * @returns {*} The element.
  */
 export function vectorRef(vector, index) {
-  if (Array.isArray(vector) && typeof index === 'bigint') {
-    const i = Number(index);
-    if (i >= 0 && i < vector.length) return vector[i];
+  if (Array.isArray(vector) && Number.isInteger(index) && index >= 0 && index < vector.length) {
+    return vector[index];
   }
   return primitiveCell('vector-ref').primitive(vector, index);
 }
@@ -123,12 +122,9 @@ export function vectorRef(vector, index) {
  * @returns {*} What the primitive returns.
  */
 export function vectorSet(vector, index, value) {
-  if (Array.isArray(vector) && typeof index === 'bigint') {
-    const i = Number(index);
-    if (i >= 0 && i < vector.length) {
-      vector[i] = value;
-      return null;
-    }
+  if (Array.isArray(vector) && Number.isInteger(index) && index >= 0 && index < vector.length) {
+    vector[index] = value;
+    return null;
   }
   return primitiveCell('vector-set!').primitive(vector, index, value);
 }

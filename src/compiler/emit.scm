@@ -549,8 +549,15 @@
         ((js-undefined? v) "undefined")
         ((eq? v #t) "true")
         ((eq? v #f) "false")
-        ((exact-integer? v) (string-append (number->string v) "n"))
-        ((and (real? v) (inexact? v)) (js-number v))
+        ;; An exact integer is a JavaScript number in the safe range, a BigInt
+        ;; beyond it; an inexact real a number unless its value is an integer,
+        ;; when it is boxed, and goes into the pool
+        ;; (src/core/interpreter/number_representation.js).
+        ((exact-integer? v)
+         (if (<= (abs v) 9007199254740991)
+             (number->string v)
+             (string-append (number->string v) "n")))
+        ((and (real? v) (inexact? v) (not (integer? v))) (js-number v))
         ((string? v) (js-string v))
         (else
          (let ((index (length (unit-constants u))))
@@ -1796,6 +1803,7 @@
   '(($TailCall . "R.TailCall") ($step . "R.step")
     ($UNWIND . "R.UNWIND") ($RAW . "R.SCHEME_RAW_CALL")
     ($vectorRef . "R.vectorRef") ($vectorSet . "R.vectorSet")
+    ($add . "R.addNumbers") ($sub . "R.subNumbers") ($mul . "R.mulNumbers")
     ($stack . "R.stack") ($flush . "R.flush") ($tailCall . "R.tailCall") ($PRIM . "R.SCHEME_PRIMITIVE")
     ($notProc . "R.notAProcedure") ($foreign . "R.callForeign")))
 

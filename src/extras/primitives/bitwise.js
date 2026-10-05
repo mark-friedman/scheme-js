@@ -2,8 +2,8 @@
  * @fileoverview The JavaScript core under SRFI 151 bitwise operations.
  *
  * Everything SRFI 151 defines is Scheme, in `src/extras/scheme/bitwise.scm`,
- * except what needs JavaScript's `BigInt` operators: an exact integer is a
- * `BigInt`, whose `&`, `|`, `^` and shifts already treat it as an infinite
+ * except what needs JavaScript's `BigInt` operators: an exact integer, taken
+ * as a `BigInt`, has `&`, `|`, `^` and shifts that already treat it as an infinite
  * two's-complement bit string, which is exactly SRFI 151's model, and which
  * Scheme arithmetic could only imitate a bit at a time. Population count and
  * length are here for the same reason: both read the integer's binary digits.
@@ -17,6 +17,7 @@
 
 import { isRational } from '../../core/primitives/rational.js';
 import { SchemeTypeError } from '../../core/interpreter/errors.js';
+import { exactInteger as schemeInteger } from '../../core/interpreter/number_representation.js';
 
 /**
  * An argument as a `BigInt`, which it must be an exact integer to become.
@@ -26,6 +27,7 @@ import { SchemeTypeError } from '../../core/interpreter/errors.js';
  * @returns {bigint} Its value.
  */
 function exactInteger(who, position, value) {
+  if (typeof value === 'number' && Number.isInteger(value)) return BigInt(value);
   if (typeof value === 'bigint') return value;
   if (isRational(value) && value.exact !== false && value.denominator === 1n) return value.numerator;
   throw new SchemeTypeError(who, position, 'exact integer', value);
@@ -103,3 +105,9 @@ export const bitwisePrimitives = {
     return magnitude === 0n ? 0n : BigInt(magnitude.toString(2).length);
   }
 };
+
+// The operations compute on BigInts; each result is given back as Scheme holds
+// an exact integer, a number in the safe range (number_representation.js).
+for (const [name, fn] of Object.entries(bitwisePrimitives)) {
+  bitwisePrimitives[name] = (...args) => schemeInteger(fn(...args));
+}

@@ -6,6 +6,15 @@ import { parseNumber, parsePrefixedNumber } from '../../../../src/core/interpret
 import { Rational } from '../../../../src/core/primitives/rational.js';
 import { Complex } from '../../../../src/core/primitives/complex.js';
 import { assert } from '../../../harness/helpers.js';
+import { Flonum } from '../../../../src/core/interpreter/number_representation.js';
+
+/**
+ * An inexact integer's value, which is boxed
+ * (src/core/interpreter/number_representation.js), or what else it is.
+ * @param {*} x - A parsed number.
+ * @returns {*}
+ */
+const boxed = (x) => (x instanceof Flonum ? x.value : `not boxed: ${x}`);
 
 export function runNumberParserTests(logger) {
     logger.title('parseNumber - integers');
@@ -19,18 +28,18 @@ export function runNumberParserTests(logger) {
     assert(logger, 'decimal', parseNumber('3.14'), 3.14);
     assert(logger, 'negative decimal', parseNumber('-0.5'), -0.5);
     assert(logger, 'leading dot', parseNumber('.5'), 0.5);
-    assert(logger, 'trailing dot', parseNumber('2.'), 2);
+    assert(logger, 'trailing dot', boxed(parseNumber('2.')), 2);
 
     logger.title('parseNumber - scientific');
 
-    assert(logger, 'lowercase e', parseNumber('1e2'), 100);
-    assert(logger, 'uppercase E', parseNumber('1E2'), 100);
-    assert(logger, 'positive exponent', parseNumber('1e+2'), 100);
+    assert(logger, 'lowercase e', boxed(parseNumber('1e2')), 100);
+    assert(logger, 'uppercase E', boxed(parseNumber('1E2')), 100);
+    assert(logger, 'positive exponent', boxed(parseNumber('1e+2')), 100);
     assert(logger, 'negative exponent', parseNumber('1e-2'), 0.01);
-    assert(logger, 'short precision s', parseNumber('1s2'), 100);
-    assert(logger, 'single precision f', parseNumber('1f2'), 100);
-    assert(logger, 'double precision d', parseNumber('1d2'), 100);
-    assert(logger, 'long precision l', parseNumber('1l2'), 100);
+    assert(logger, 'short precision s', boxed(parseNumber('1s2')), 100);
+    assert(logger, 'single precision f', boxed(parseNumber('1f2')), 100);
+    assert(logger, 'double precision d', boxed(parseNumber('1d2')), 100);
+    assert(logger, 'long precision l', boxed(parseNumber('1l2')), 100);
 
     logger.title('parseNumber - special values');
 
@@ -102,7 +111,7 @@ export function runNumberParserTests(logger) {
     logger.title('parsePrefixedNumber - exactness');
 
     assert(logger, 'exact integer', parsePrefixedNumber('#e10'), 10);
-    assert(logger, 'inexact integer', parsePrefixedNumber('#i10'), 10);
+    assert(logger, 'inexact integer', boxed(parsePrefixedNumber('#i10')), 10);
 
     logger.title('parsePrefixedNumber - combined');
 
@@ -126,7 +135,7 @@ export function runNumberParserTests(logger) {
 
     {
         const r = parsePrefixedNumber('#e1.2e2');
-        assert(logger, '#e1.2e2 is BigInt', typeof r === 'bigint', true);
+        assert(logger, '#e1.2e2 is an exact integer, a number', typeof r === 'number', true);
         assert(logger, '#e1.2e2 value', r, 120n);
     }
 

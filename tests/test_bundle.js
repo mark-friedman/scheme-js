@@ -141,7 +141,7 @@ export async function runBundleTests(logger) {
         const describe = runSync('bundle-describe');
         const result = callSchemeProcedure(describe, [jsToScheme(41)]);
         assert(logger, "The call that converts nothing gives a Scheme value",
-            [result[0], typeof result[1]], [true, 'bigint']);
+            [result[0], typeof result[1], result[1]], [true, 'number', 42]);
         assert(logger, "The conversions convert in each direction, shallow and deep",
             [schemeToJs(42n), jsToScheme(1), schemeToJsDeep([1n, [2n]]), jsToSchemeDeep([1, [2]])],
             [42, 1n, [1, [2]], [1n, [2n]]]);

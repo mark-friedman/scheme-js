@@ -13,6 +13,9 @@ import { SchemeTypeError } from '../interpreter/errors.js';
 import { Values } from '../interpreter/values.js';
 import { Rational, isRational } from './rational.js';
 import { Complex, isComplex, makeRectangular, makePolar } from './complex.js';
+import {
+    toTower, fromTower, addNumbers, subNumbers, mulNumbers, Flonum
+} from '../interpreter/number_representation.js';
 
 // =============================================================================
 // Generic Arithmetic Helpers (handle BigInt, Number, Rational, Complex)
@@ -1350,3 +1353,109 @@ mathPrimitives['<'] = makeOrdering('<', (c) => c < 0);
 mathPrimitives['>'] = makeOrdering('>', (c) => c > 0);
 mathPrimitives['<='] = makeOrdering('<=', (c) => c <= 0);
 mathPrimitives['>='] = makeOrdering('>=', (c) => c >= 0);
+
+// =============================================================================
+// The primitives, in Scheme's representation of numbers
+// =============================================================================
+//
+// Every primitive above computes in the numeric tower's representation, an
+// exact integer a BigInt and an inexact real a JavaScript number
+// (number_representation.js). Each is wrapped here to take its arguments into
+// that representation and give its result back in Scheme's; and the ones a
+// loop over small integers spends its time in take two JavaScript numbers
+// directly first, converting nothing.
+
+/**
+ * A primitive of the tower's representation, taking and giving Scheme's.
+ * @param {Function} fn - The primitive.
+ * @returns {Function}
+ */
+function towered(fn) {
+    return (...args) => {
+        for (let i = 0; i < args.length; i++) args[i] = toTower(args[i]);
+        const result = fn(...args);
+        return result instanceof Values ? new Values(result.values.map(fromTower)) : fromTower(result);
+    };
+}
+
+for (const [name, fn] of Object.entries(mathPrimitives)) mathPrimitives[name] = towered(fn);
+
+/**
+ * A variadic arithmetic primitive that folds JavaScript numbers with
+ * `combine` while every argument, and every partial result, is one, and
+ * otherwise does what `general` does.
+ * @param {Function} general - The primitive for any numbers.
+ * @param {function(number, number): *} combine - Two numbers' result.
+ * @param {number} empty - The result for no arguments.
+ * @returns {Function}
+ */
+function foldingNumbers(general, combine, empty) {
+    return (...args) => {
+        if (args.length === 0) return empty;
+        let acc = args[0];
+        if (typeof acc !== 'number') return general(...args);
+        for (let i = 1; i < args.length; i++) {
+            const x = args[i];
+            if (typeof x !== 'number') return general(...args);
+            acc = combine(acc, x);
+            if (typeof acc !== 'number') return general(...args);
+        }
+        return acc;
+    };
+}
+
+/**
+ * A comparison that compares two JavaScript numbers directly, which is right
+ * across exactness, and otherwise does what `general` does.
+ * @param {Function} general - The primitive for any numbers.
+ * @param {function(number, number): boolean} compare - Two numbers' answer.
+ * @returns {Function}
+ */
+function comparingNumbers(general, compare) {
+    return (...args) => (args.length === 2 && typeof args[0] === 'number' && typeof args[1] === 'number'
+        ? compare(args[0], args[1])
+        : general(...args));
+}
+
+/**
+ * An integer division of two exact integers held as numbers -- `a % b` is
+ * exact for doubles, and so is the division of `a - a % b` by `b`, a
+ * multiple of it -- and otherwise what `general` does.
+ * @param {Function} general - The primitive for any numbers.
+ * @param {function(number, number): number} divide - Two integers' result.
+ * @returns {Function}
+ */
+function dividingIntegers(general, divide) {
+    return (...args) => {
+        const [a, b] = args;
+        return args.length === 2 && typeof a === 'number' && typeof b === 'number'
+            && Number.isInteger(a) && Number.isInteger(b) && b !== 0
+            ? divide(a, b) + 0
+            : general(...args);
+    };
+}
+
+{
+    const general = { ...mathPrimitives };
+    mathPrimitives['+'] = foldingNumbers(general['+'], addNumbers, 0);
+    mathPrimitives['*'] = foldingNumbers(general['*'], mulNumbers, 1);
+    const subtract = foldingNumbers(general['-'], subNumbers, 0);
+    mathPrimitives['-'] = (...args) => {
+        if (args.length === 1 && typeof args[0] === 'number') {
+            const x = args[0];
+            return Number.isInteger(x) ? 0 - x : -x;
+        }
+        return subtract(...args);
+    };
+    mathPrimitives['='] = comparingNumbers(general['='], (a, b) => a === b);
+    mathPrimitives['<'] = comparingNumbers(general['<'], (a, b) => a < b);
+    mathPrimitives['>'] = comparingNumbers(general['>'], (a, b) => a > b);
+    mathPrimitives['<='] = comparingNumbers(general['<='], (a, b) => a <= b);
+    mathPrimitives['>='] = comparingNumbers(general['>='], (a, b) => a >= b);
+    mathPrimitives['quotient'] = dividingIntegers(general['quotient'], (a, b) => (a - a % b) / b);
+    mathPrimitives['remainder'] = dividingIntegers(general['remainder'], (a, b) => a % b);
+    mathPrimitives['modulo'] = dividingIntegers(general['modulo'], (a, b) => {
+        const r = a % b;
+        return r !== 0 && (r < 0) !== (b < 0) ? r + b : r;
+    });
+}

@@ -49,6 +49,6 @@ export function delimiterParens(text) {
  *   matches it.
  */
 export function findMatchingDelimiter(text, position) {
-    const found = readerCall('matching-delimiter', text, BigInt(position));
+    const found = readerCall('matching-delimiter', text, position);
     return found === false ? null : Number(found);
 }

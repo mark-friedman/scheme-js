@@ -74,6 +74,7 @@ import { Char } from '../core/primitives/char_class.js';
 import { intern } from '../core/interpreter/symbol.js';
 import { RestoredForm } from '../core/interpreter/assembler.js';
 import { analyze } from '../core/interpreter/expand.js';
+import { exactInteger, inexactReal } from '../core/interpreter/number_representation.js';
 
 /**
  * Hashes the library sources into a short fingerprint.
@@ -329,8 +330,9 @@ function poolOf(entry, libraryEnvironment) {
 /**
  * The datum JSON text holds, as a table and the pinned seed write data
  * (`json-datum` in scripts/lib/table_writer.scm): a symbol as a JSON string,
- * `null` the empty list, an exact integer a JSON number, and anything else an
- * array whose first element says what it is.
+ * `null` the empty list, an exact integer in the safe range a JSON number, and
+ * anything else an array whose first element says what it is. Numbers are made
+ * as Scheme holds them (src/core/interpreter/number_representation.js).
  * @param {string} text - The JSON text.
  * @returns {*}
  */
@@ -345,12 +347,12 @@ export function decodeDatum(text) {
  */
 function datumOf(x) {
   if (typeof x === 'string') return intern(x);
-  if (typeof x === 'number') return BigInt(x);
+  if (typeof x === 'number') return x;
   if (x === null || typeof x === 'boolean') return x;
   switch (x[0]) {
     case 's': return x[1];
-    case 'n': return BigInt(x[1]);
-    case 'f': return Number(x[1]);
+    case 'n': return exactInteger(BigInt(x[1]));
+    case 'f': return inexactReal(Number(x[1]));
     case 'c': return new Char(x[1]);
     case 'u': return undefined;
     case 'l': return listOf(x, 1, null);

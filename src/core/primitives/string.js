@@ -28,6 +28,7 @@ import {
 import { SchemeRangeError, SchemeError } from '../interpreter/errors.js';
 import { Complex } from './complex.js';
 import { Rational } from './rational.js';
+import { Flonum } from '../interpreter/number_representation.js';
 
 // =============================================================================
 // Helper Functions
@@ -189,7 +190,7 @@ export const stringPrimitives = {
      */
     'string-length': (str) => {
         assertString('string-length', 1, str);
-        return BigInt(str.length);
+        return str.length;
     },
 
     /**
@@ -544,6 +545,10 @@ function numberToString(num, radix) {
     if (num instanceof Rational) {
         return num.toString(r);
     }
+
+    // An integral number is an exact integer (number_representation.js)
+    if (typeof num === 'number' && Number.isInteger(num)) return num.toString(r);
+    if (num instanceof Flonum) num = num.value;
 
     // R7RS special value formatting for inexact real numbers
     if (typeof num === 'number') {

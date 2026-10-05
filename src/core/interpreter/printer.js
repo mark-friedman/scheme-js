@@ -4,6 +4,7 @@ import { isSchemeClosure, isSchemeContinuation } from './values.js';
 import { SchemeString } from '../primitives/string_class.js';
 import { LiteralNode, VariableNode } from './ast.js'; // VariableNode used in web/repl, LiteralNode in both
 import { writeString, isCircular } from '../primitives/io/printer.js';
+import { Flonum } from './number_representation.js';
 
 /**
  * Pretty-prints a Scheme value for the REPL.
@@ -70,21 +71,24 @@ function prettyPrintValue(val) {
     if (Array.isArray(val)) {
         return `#(${val.map(prettyPrintValue).join(' ')})`;
     }
-    // Handle BigInt (exact integers)
+    // Exact integers: integral numbers and BigInts (number_representation.js)
     if (typeof val === 'bigint') {
         return `${val}`;
     }
-    // Handle Numbers (inexact)
-    if (typeof val === 'number') {
-        // Display inexact integers with decimal point to distinguish from exact
-        if (Number.isInteger(val) && Number.isFinite(val)) {
-            return `${val}.0`;
+    // Inexact reals: other numbers, and Flonums, whose integral values are
+    // written with a decimal point
+    if (typeof val === 'number' || val instanceof Flonum) {
+        const v = typeof val === 'number' ? val : val.value;
+        if (typeof val === 'number' && Number.isInteger(v)) return `${v}`;
+        if (Object.is(v, -0)) return '-0.0';
+        if (Number.isInteger(v) && Number.isFinite(v)) {
+            return `${v}.0`;
         }
         // Handle special values
-        if (val === Infinity) return '+inf.0';
-        if (val === -Infinity) return '-inf.0';
-        if (Number.isNaN(val)) return '+nan.0';
-        return `${val}`;
+        if (v === Infinity) return '+inf.0';
+        if (v === -Infinity) return '-inf.0';
+        if (Number.isNaN(v)) return '+nan.0';
+        return `${v}`;
     }
     // Other objects (Rational, Complex, etc.) use their toString method
     return `${val}`;

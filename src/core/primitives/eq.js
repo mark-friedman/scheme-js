@@ -7,6 +7,7 @@
 import { assertBoolean, assertArity } from '../interpreter/type_check.js';
 import { Complex } from './complex.js';
 import { Rational } from './rational.js';
+import { Flonum } from '../interpreter/number_representation.js';
 import { Char } from './char_class.js';
 import { Symbol } from '../interpreter/symbol.js';
 
@@ -30,17 +31,14 @@ export const eqPrimitives = {
      * @returns {boolean} True if a and b are equivalent.
      */
     'eqv?': (a, b) => {
+        // Each exact integer and each unboxed inexact real has one
+        // representation (number_representation.js), so Object.is compares
+        // them, NaN with NaN; an exact integer is never eqv? to an inexact
+        // one, which is boxed: (eqv? 5 5.0) => #f.
         if (Object.is(a, b)) return true;
 
-        // Exact (BigInt) is not eqv? to inexact (Number) even if values match
-        // e.g., (eqv? 5 5.0) => #f
-        if (typeof a === 'bigint' && typeof b === 'number') return false;
-        if (typeof a === 'number' && typeof b === 'bigint') return false;
-
-        // BigInt comparison
-        if (typeof a === 'bigint' && typeof b === 'bigint') {
-            return a === b;
-        }
+        // Inexact integers, boxed, by value, -0.0 apart from 0.0.
+        if (a instanceof Flonum && b instanceof Flonum) return Object.is(a.value, b.value);
 
         if (a instanceof Complex && b instanceof Complex) {
             return eqPrimitives['eqv?'](a.real, b.real) && eqPrimitives['eqv?'](a.imag, b.imag);

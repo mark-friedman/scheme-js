@@ -9,6 +9,30 @@
 import { Rational } from '../../primitives/rational.js';
 import { Complex } from '../../primitives/complex.js';
 import { SchemeReadError } from '../errors.js';
+import { fromTower } from '../number_representation.js';
+
+/**
+ * Parses a numeric literal, as Scheme holds numbers (number_representation.js):
+ * the parsers below compute in the numeric tower's representation, an exact
+ * integer a BigInt and an inexact real a JavaScript number.
+ * @param {string} token - The literal.
+ * @param {string} [exactness] - 'e' or 'i', from a prefix already read.
+ * @returns {*} The number, or null if the token is not one.
+ */
+export function parseNumber(token, exactness) {
+    const value = parseTowerNumber(token, exactness);
+    return value === null ? null : fromTower(value);
+}
+
+/**
+ * Parses a number with R7RS prefix notation, as Scheme holds numbers.
+ * @param {string} token - Token starting with #.
+ * @returns {*} The number, or null if the token is not one.
+ */
+export function parsePrefixedNumber(token) {
+    const value = parseTowerPrefixedNumber(token);
+    return value === null ? null : fromTower(value);
+}
 
 /**
  * Parses a numeric literal (integers, rationals, complex, with optional prefixes)
@@ -16,7 +40,7 @@ import { SchemeReadError } from '../errors.js';
  * @param {string} token 
  * @returns {number|bigint|Rational|Complex|null}
  */
-export function parseNumber(token, exactness) {
+function parseTowerNumber(token, exactness) {
     // Normalize R7RS exponent markers (s, f, d, l) to 'e' globally before parsing
     // This handles 1s2 -> 1e2, 1s2+3d4i -> 1e2+3e4i, etc.
     // Use lookahead to ensure we only replace exponent markers followed by a sign or digit,
@@ -27,7 +51,7 @@ export function parseNumber(token, exactness) {
 
     // Handle prefixed numbers (#x, #o, #b, #d, #e, #i)
     if (token.startsWith('#')) {
-        return parsePrefixedNumber(token);
+        return parseTowerPrefixedNumber(token);
     }
 
     // Helper to parse a real component string into a number, BigInt, or Rational
@@ -370,7 +394,7 @@ function parseRealWithRadix(str, radix, exactness) {
  * @param {string} token - Token starting with #
  * @returns {number|bigint|Rational|null}
  */
-export function parsePrefixedNumber(token) {
+function parseTowerPrefixedNumber(token) {
     const { exactness, radix, rest } = parsePrefixes(token);
 
     // If still starts with #, it's not a valid number (e.g. invalid prefix combo)

@@ -5,6 +5,7 @@ import { Rational } from '../rational.js';
 import { Complex } from '../complex.js';
 import { Char } from '../char_class.js';
 import { SchemeString } from '../string_class.js';
+import { Flonum } from '../../interpreter/number_representation.js';
 
 // ============================================================================
 // Printer Logic (Display/Write)
@@ -171,6 +172,22 @@ function isCompound(val) {
 }
 
 /**
+ * An inexact real's text: an infinity or NaN as R7RS writes them, -0.0 with
+ * its sign, and an integral value with a decimal point, which tells it from
+ * an exact integer.
+ * @param {number} v - The value.
+ * @returns {string}
+ */
+function inexactText(v) {
+    if (v === Infinity) return '+inf.0';
+    if (v === -Infinity) return '-inf.0';
+    if (Number.isNaN(v)) return '+nan.0';
+    if (Object.is(v, -0)) return '-0.0';
+    const s = String(v);
+    return Number.isInteger(v) && !s.includes('.') && !s.includes('e') ? s + '.0' : s;
+}
+
+/**
  * Converts a value that holds no other values to text.
  * @param {*} val - Value to convert
  * @param {'display'|'write'} mode - Printer mode
@@ -188,16 +205,10 @@ function atomToString(val, mode) {
     if (val instanceof Port) return val.toString();
 
     // 2. Numbers (Shared logic)
-    if (typeof val === 'number') {
-        if (val === Infinity) return '+inf.0';
-        if (val === -Infinity) return '-inf.0';
-        if (Number.isNaN(val)) return '+nan.0';
-        let s = String(val);
-        if (Number.isInteger(val) && !s.includes('.') && !s.includes('e')) {
-            s += '.0';
-        }
-        return s;
-    }
+    // An integral number is an exact integer; any other, and a Flonum, an
+    // inexact real (number_representation.js).
+    if (typeof val === 'number') return Number.isInteger(val) ? String(val) : inexactText(val);
+    if (val instanceof Flonum) return inexactText(val.value);
     if (typeof val === 'bigint') return String(val);
     if (val instanceof Rational) return val.toString();
     if (val instanceof Complex) return val.toString();
@@ -337,6 +348,7 @@ function isObjectLike(val) {
     if (val instanceof Char) return false;
     if (val instanceof Rational) return false;
     if (val instanceof Complex) return false;
+    if (val instanceof Flonum) return false;
     // It's an object-like value (plain object, record, or class instance)
     return true;
 }
