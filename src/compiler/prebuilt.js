@@ -71,6 +71,8 @@ import { libraryNameToKey, recordCompiledOver } from '../core/interpreter/librar
 import { runCompiled } from '../core/interpreter/values.js';
 import { list } from '../core/interpreter/cons.js';
 import { intern } from '../core/interpreter/symbol.js';
+import { assemble } from '../core/interpreter/assembler.js';
+import { analyze } from '../core/interpreter/analyzer.js';
 
 /**
  * Hashes the library sources into a short fingerprint.
@@ -257,8 +259,10 @@ export function installLibraryProcedures(tables, libraryName, env, sourceOf) {
  * Restoring is the library's top-level forms in the order loading runs them,
  * as the table's `restore` sequence gives them: each procedure the table holds
  * bound straight from its compiled code, with no closure made and nothing else
- * to change, since nothing holds a closure; each other form run as source is
- * (`evaluate-definition!` in src/core/scheme/library_system.scm). A procedure
+ * to change, since nothing holds a closure; each other form run in its place
+ * (`evaluate-definition!` in src/core/scheme/library_system.scm): as the
+ * evaluator's node of the core form it expanded into, made here, which needs
+ * no expander, or else as the form, expanded as it is run. A procedure
  * restored so has no closure for a debugger to run instead; it is debugged as
  * compiled code is.
  *
@@ -275,7 +279,7 @@ export function installLibraryProcedures(tables, libraryName, env, sourceOf) {
  *   The restorer: given no texts, the files, or null if no table restores the
  *   library; given texts, its `define-library` form or null, what binds a
  *   restored procedure, and the sequence as a list of `(procedure name)` and
- *   `(form form)`; or null.
+ *   `(form form)`, a form a node or a datum; or null.
  */
 export function libraryRestorer(tables) {
   return (libraryName, texts) => {
@@ -288,9 +292,10 @@ export function libraryRestorer(tables) {
     return {
       declaration: table.declaration ?? null,
       bind: (env, name) => restoreProcedure(table, env, name),
-      items: list(...table.restore.map((item) => item.procedure !== undefined
-        ? list(PROCEDURE, intern(item.procedure))
-        : list(FORM, item.form)))
+      items: list(...table.restore.map((item) => {
+        if (item.procedure !== undefined) return list(PROCEDURE, intern(item.procedure));
+        return list(FORM, item.core !== undefined ? assemble(item.core, analyze) : item.form);
+      }))
     };
   };
 }

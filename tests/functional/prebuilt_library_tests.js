@@ -102,7 +102,9 @@ export async function runPrebuiltLibraryTests(logger) {
     // A table restores its library from its `restore` sequence: every
     // top-level form loading the library runs -- its `begin` forms, then its
     // included files' -- in that order, each a procedure the table's code
-    // binds or the form itself. Read back against the files it was built from.
+    // binds, the core form the form expanded into -- a macro's definition as
+    // one that binds it pending -- or the form itself. Read back against the
+    // files it was built from.
     const sourceForms = (files, sourceOf) => {
       const definition = parseDefineLibrary(parse(sourceOf(files[0]))[0]);
       return [...definition.body,
@@ -111,6 +113,9 @@ export async function runPrebuiltLibraryTests(logger) {
     };
     const defines = (form, name) => form.car?.name === 'define'
       && (form.cdr.car.car?.name === name || form.cdr.car.name === name);
+    const definedName = (form) => form.cdr.car.car?.name ?? form.cdr.car.name;
+    const coreTags = new Set(['lit', 'var', 'library-var', 'scoped-var', 'if', 'seq', 'lambda', 'letrec', 'set',
+      'library-set', 'define', 'app', 'import', 'define-library', 'define-syntax']);
     const tables = [...Object.entries(LIBRARIES).map(([key, table]) => [key, table, (f) => BUNDLED_SOURCES[f]]),
       ...Object.entries(COMPILER).map(([key, table]) => [key, table, compilerSourceOf])];
     for (const [key, table, sourceOf] of tables) {
@@ -124,17 +129,27 @@ export async function runPrebuiltLibraryTests(logger) {
           if (table.procedures[item.procedure]?.span === undefined) return `item ${i}: ${item.procedure} has no span`;
           return null;
         }
+        if (item.core !== undefined) {
+          const tag = item.core.car?.name;
+          if (tag === 'define-syntax') {
+            return writeString(item.core.cdr.cdr.car) === writeString(forms[i]) ? null : `item ${i}: not the macro there`;
+          }
+          if (forms[i].car?.name === 'define' && !(tag === 'define' && item.core.cdr.car.name === definedName(forms[i]))) {
+            return `item ${i}: not the definition there`;
+          }
+          return coreTags.has(tag) ? null : `item ${i}: not a core form`;
+        }
         return writeString(item.form) === writeString(forms[i]) ? null : `item ${i}: not the form there`;
       }).filter((problem) => problem !== null);
       assert(logger, `${library} restores from a sequence of its forms, in order`,
         [table.restore !== undefined, restore.length, wrong], [true, forms.length, []]);
     }
     const core = LIBRARIES['scheme.core'].restore;
-    assert(logger, "(scheme core)'s macros run as forms", core.some((item) =>
-      item.form?.car?.name === 'define-syntax' && item.form.cdr.car.name === 'cond'), true);
+    assert(logger, "(scheme core)'s macros are defined pending", core.some((item) =>
+      item.core?.car?.name === 'define-syntax' && item.core.cdr.car.name === 'cond'), true);
     assert(logger, 'and its procedures are restored', core.some((item) => item.procedure === 'map'), true);
     assert(logger, 'a library of macros alone has a table that restores it',
-      LIBRARIES['scheme.control']?.restore?.every((item) => item.form !== undefined), true);
+      LIBRARIES['scheme.control']?.restore?.every((item) => item.core?.car?.name === 'define-syntax'), true);
   }
 
   logger.title('Prebuilt libraries - each procedure declares the runtime values it names');

@@ -207,6 +207,21 @@
 ;; ---------------------------------------------------------------------------
 
 ;; /**
+;;  * The scope of the library a pending macro was defined in, while the macro
+;;  * is realized (`realize!`), or #f.
+;;  * @type {parameter}
+;;  */
+(define realizing-in (make-parameter #f))
+
+;; /**
+;;  * The scope of the library or program being expanded -- a pending macro's
+;;  * library while it is realized -- or #f at a program's top level.
+;;  * @returns {number|boolean}
+;;  */
+(define (current-scope)
+  (or (realizing-in) (%defining-scope)))
+
+;; /**
 ;;  * The scope an identifier is used in: the library whose macro introduced
 ;;  * it, if one did; otherwise `scope`, if given; otherwise the library or
 ;;  * program being expanded; otherwise a program's top level, 0.
@@ -216,7 +231,7 @@
 ;;  * @returns {number}
 ;;  */
 (define (scope-of-use id scope)
-  (or (library-scope-of id) scope (%defining-scope) 0))
+  (or (library-scope-of id) scope (current-scope) 0))
 
 ;; /**
 ;;  * Whether a scope sees only what it imports and defines: a library's, or
@@ -277,7 +292,7 @@
   (let ((table (innermost-macros env)))
     (if table
         (table-define! table name transformer)
-        (let ((scope (%defining-scope)))
+        (let ((scope (current-scope)))
           (%define-process-macro! name transformer)
           (if scope
               (%bind-keyword! scope name name transformer)
@@ -291,7 +306,7 @@
 ;;  * @param {symbol} name - The name defined.
 ;;  */
 (define (bind-defined-variable! name)
-  (let* ((scope (or (%defining-scope) 0))
+  (let* ((scope (or (current-scope) 0))
          (entry (%keyword-entry scope name)))
     (if (if entry (cdr entry) (%process-macro name))
         (%bind-keyword! scope name #f #f))))
@@ -317,7 +332,7 @@
 (define (library-binding-env id scope assigning?)
   (let ((library-env (%library-environment scope))
         (name (identifier-name id))
-        (current (%defining-scope)))
+        (current (current-scope)))
     (cond ((not (%environment-binds? library-env name)) #f)
           ((eqv? current scope) #f)
           ((and (not assigning?) (shared-where-used? library-env name current)) #f)
@@ -506,19 +521,43 @@
 ;; /**
 ;;  * Calls a macro's transformer on a use, giving it where the use is as a
 ;;  * procedure of an identifier that says what local, if any, binds it there:
-;;  * the Scheme procedure of one an expander made, or one the JavaScript
-;;  * analyzer made, through the shape it has there.
-;;  * @param {procedure} transformer - The transformer.
+;;  * the Scheme procedure of one an expander made, a pending macro's once it
+;;  * is realized, or one the JavaScript analyzer made, through the shape it
+;;  * has there.
+;;  * @param {procedure|object} transformer - The transformer.
 ;;  * @param {pair} form - The use.
 ;;  * @param {syntactic-env} env - Where it is.
 ;;  * @returns {*}
 ;;  */
 (define (call-transformer transformer form env)
-  (let ((procedure (%transformer-procedure transformer))
+  (let ((procedure (or (%transformer-procedure transformer) (realize! transformer)))
         (bound (lambda (id) (env-lookup env id))))
     (if procedure
         (procedure form bound)
         (%call-javascript-transformer transformer form bound))))
+
+;; /**
+;;  * The Scheme procedure of a pending macro, made now, or #f for anything
+;;  * else. A library restored from its prebuilt table has run each of its
+;;  * macro definitions as a core form that binds the macro pending -- its
+;;  * definition, and the scope of the library -- and not made its transformer,
+;;  * which would take an expander, which a library the expander is written
+;;  * with is restored without. The definition is expanded the first time the
+;;  * macro is used, as it was where the library defined it, into a frame of
+;;  * its own, and the transformer it makes is kept on the pending macro, where
+;;  * every library that imported it finds it.
+;;  * @param {object} pending - The transformer.
+;;  * @returns {procedure|boolean}
+;;  */
+(define (realize! pending)
+  (let ((definition (%pending-macro pending)))
+    (and definition
+         (let ((table (make-macro-table '())))
+           (parameterize ((realizing-in (cdr definition)))
+             (expand-form (car definition) (env-with-macros (top-level-env) table)))
+           (let ((made (cdar (macro-table-entries table))))
+             (%realize-pending-macro! pending made)
+             (%transformer-procedure made))))))
 
 ;; /**
 ;;  * An application's core form. A property's method called -- `(o.m x)`, read
@@ -1016,7 +1055,7 @@
 ;;  * level's: where a macro defined now is defined.
 ;;  */
 (define (defining-scope)
-  (or (%defining-scope) 0))
+  (or (current-scope) 0))
 
 ;; /**
 ;;  * `(define-syntax name transformer)`. A transformer of `syntax-rules`, its

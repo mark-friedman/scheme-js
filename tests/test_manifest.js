@@ -98,7 +98,7 @@ export const functionalTests = [
 export const integrationTests = [
     { path: 'integration/library_loader_tests.js', fn: 'runLibraryLoaderTests', async: true, needsInterpreter: false },
     { path: 'integration/program_tests.js', fn: 'runProgramTests', async: true, needsInterpreter: false },
-    { path: 'integration/reader_bootstrap_tests.js', fn: 'runReaderBootstrapTests', needsInterpreter: false },
+    { path: 'integration/seed_bootstrap_tests.js', fn: 'runSeedBootstrapTests', needsInterpreter: false },
     { path: 'integration/expander_comparison_tests.js', fn: 'runExpanderComparisonTests', needsInterpreter: false },
     { path: 'integration/multi_interpreter_tests.js', fn: 'runMultiInterpreterTests', async: true, needsInterpreter: true },
     { path: 'test_bundle.js', fn: 'runBundleTests', async: true, needsInterpreter: false },

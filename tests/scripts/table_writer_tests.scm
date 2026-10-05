@@ -69,17 +69,33 @@
   (test "nor a macro's" #f (procedure-definition-name '(define-syntax m (syntax-rules () ((_ x) x)))))
   (test "nor a record type's" #f (procedure-definition-name '(define-record-type point (make-point x) point?)))
   (test "nor an expression" #f (procedure-definition-name '(display 1)))
-  (test "a library's forms, in order, a procedure by name where it made the final binding"
-        '((procedure f) (form (define x (f))) (form (define (g) 1)) (procedure g))
-        (restore-sequence '((define (f) 1) (define x (f)) (define (g) 1) (define (g) 2))
-                          (lambda (name form) (or (eq? name 'f) (equal? form '(define (g) 2)))))))
+  (test "a macro's definition names it" 'm (macro-definition-name '(define-syntax m (syntax-rules () ((_ x) x)))))
+  (test "a define-macro's" 'n (macro-definition-name '(define-macro (n x) x)))
+  (test "a procedure's does not" #f (macro-definition-name '(define (f x) x)))
+  (test "a library's forms, in order, a procedure by name where it made the final binding, else its core form"
+        '((procedure f) (core (define x (app (var f) ()))) (core (define g (lambda () #f "g" (lit 1) () #f)))
+          (procedure g))
+        (restore-sequence '(((define (f) 1) . (define f (lambda () #f "f" (lit 1) () #f)))
+                            ((define x (f)) . (define x (app (var f) ())))
+                            ((define (g) 1) . (define g (lambda () #f "g" (lit 1) () #f)))
+                            ((define (g) 2) . (define g (lambda () #f "g" (lit 2) () #f))))
+                          (lambda (name form) (or (eq? name 'f) (equal? form '(define (g) 2))))))
+  (test "a macro's definition, as one that binds it pending"
+        '((core (define-syntax m (define-syntax m (syntax-rules () ((_ x) x))))))
+        (restore-sequence '(((define-syntax m (syntax-rules () ((_ x) x))) . (lit ())))
+                          (lambda (name form) #f)))
+  (test "a form whose core form cannot be written down, as itself"
+        (list (list 'form '(f)))
+        (restore-sequence (list (cons '(f) (list 'app (list 'lit (lambda () 1)) '())))
+                          (lambda (name form) #f))))
 
 (test-group "table writer - a module that restores its libraries"
   (define text
     (render-tables "scripts/test.js" "Some tables." "abcd1234"
                    (list (list "test.lib" "f00dfeed" '("lib.sld")
                                (list (list "f" '() #f '() "body" "{\"line\":1}"))
-                               '((procedure f) (form (define-syntax m (syntax-rules () ((_ x) x)))))
+                               '((procedure f) (core (define-syntax m (define-syntax m (syntax-rules () ((_ x) x)))))
+                                 (form (g)))
                                '(define-library (test lib) (export f)))
                          (list "test.other" "0ddba11" '("other.sld")
                                (list (list "g" '() #f '() "body" #f))
@@ -87,7 +103,8 @@
   (define (has? fragment) (and (string-contains text fragment) #t))
   (test "a restorable procedure's span" #t (has? "        span: {\"line\":1},\n        make: (R, E, K) => {\n"))
   (test "the forms loading runs, in order" #t
-        (has? "    restore: [\n      {procedure: \"f\"},\n      {form: new Cons(intern(\"define-syntax\"), new Cons(intern(\"m\"), "))
+        (has? "    restore: [\n      {procedure: \"f\"},\n      {core: new Cons(intern(\"define-syntax\"), new Cons(intern(\"m\"), "))
+  (test "and a form to expand" #t (has? "      {form: new Cons(intern(\"g\"), null)}\n"))
   (test "the procedures, then the forms" #t (has? "        }\n      }\n    },\n    restore: [\n"))
   (test "a library's define-library form, which the library system's seed reads instead of its .sld" #t
         (has? "    files: [\"lib.sld\"],\n    declaration: new Cons(intern(\"define-library\"), "))

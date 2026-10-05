@@ -12,6 +12,7 @@
  *     (set name value)               (library-set name env value)
  *     (define name value)            (app operator operands)
  *     (import import-sets)           (define-library form)
+ *     (define-syntax name definition)
  *     (node executable)
  *
  * and this builds the node the evaluator steps through for each. The
@@ -23,7 +24,8 @@
 
 import {
   LiteralNode, VariableNode, ScopedVariable, LibraryVariableNode, LibrarySetNode, LambdaNode,
-  LetRecNode, IfNode, SetNode, DefineNode, TailAppNode, BeginNode, ImportNode, DefineLibraryNode
+  LetRecNode, IfNode, SetNode, DefineNode, TailAppNode, BeginNode, ImportNode, DefineLibraryNode,
+  DefineSyntaxNode
 } from './ast_nodes.js';
 import { globalScopeRegistry } from './syntax_object.js';
 import { importLibraries, defineLibrary } from './library_loader.js';
@@ -114,6 +116,8 @@ function build(form, analyze) {
       return new ImportNode(elements(parts[0]), importLibraries, analyze);
     case 'define-library':
       return new DefineLibraryNode(parts[0], defineLibrary, analyze);
+    case 'define-syntax':
+      return new DefineSyntaxNode(nameOf(parts[0]), parts[1]);
     case 'node':
       return parts[0];
     default:

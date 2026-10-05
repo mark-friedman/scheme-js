@@ -53,7 +53,7 @@ import { generateEnvironment } from '../src/compiler/index.js';
 import { installPrebuilt, installLibraryTable, fingerprintSources } from '../src/compiler/prebuilt.js';
 import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
 import { compilerStartFailure } from '../src/compiler/lowering.js';
-import { tableWriter, notingAnalyzer } from './lib/table_writer.js';
+import { tableWriter, notingExpander } from './lib/table_writer.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = path.join(ROOT, 'src/packaging/compiled_libraries.js');
@@ -165,7 +165,7 @@ function main() {
     return tableWriter(scratch.interpreter, scratch.env);
   });
   const libraries = [];
-  const noting = notingAnalyzer(analyze);
+  const noting = notingExpander();
   setLibraryLoadHook((name, libraryEnv) => libraries.push(compileLibrary(name, libraryEnv, writer, noting.take())));
 
   // Loading a library loads what it imports first, so the hook sees every

@@ -78,6 +78,7 @@
                ((nan? value) "NaN")
                ((positive? value) "Infinity")
                (else "-Infinity")))
+        ((js-undefined? value) "undefined")
         ((string? value) (json-string value))
         ((symbol? value) (string-append "intern(" (json-string (symbol->string value)) ")"))
         ((char? value) (string-append "new Char(" (number->string (char->integer value)) ")"))
@@ -110,9 +111,17 @@
 ;;
 ;; A library's table restores it when every top-level form loading it runs is
 ;; either a procedure its code can bind at once, with no source run, or a form
-;; the table holds to run as source is. Nearly every form is a procedure's
+;; the table holds to run in its place. Nearly every form is a procedure's
 ;; definition; the rest -- macros, record types, values -- are run in their
-;; places, so that the library ends as its source would leave it.
+;; places, so that the library ends as its source would leave it. Each is
+;; held as the core form it expanded into, which the evaluator runs with no
+;; expander, so that the libraries the expander is written with can be
+;; restored before it; or, where that holds something that cannot be written
+;; down -- another library's environment, from its macro -- as the form,
+;; expanded as it is run. A macro's definition, whose core form is nothing,
+;; is held as one that binds the macro pending (`DefineSyntaxNode` in
+;; src/core/interpreter/ast_nodes.js), its transformer made from the
+;; definition the first time it is used.
 
 ;; /**
 ;;  * The name a form defines a procedure under, if it is a plain top-level
@@ -132,23 +141,48 @@
                (else #f)))))
 
 ;; /**
+;;  * The name a form defines a macro under, if it is a `define-syntax` or a
+;;  * `define-macro`; else #f.
+;;  * @param {*} form - The form.
+;;  * @returns {symbol|boolean}
+;;  */
+(define (macro-definition-name form)
+  (and (pair? form) (pair? (cdr form))
+       (case (car form)
+         ((define-syntax) (and (symbol? (cadr form)) (cadr form)))
+         ((define-macro)
+          (let ((target (cadr form)))
+            (cond ((pair? target) (and (symbol? (car target)) (car target)))
+                  ((symbol? target) target)
+                  (else #f))))
+         (else #f))))
+
+;; /**
 ;;  * A library's restore sequence: the top-level forms its loading ran, in
 ;;  * order, each `(procedure name)` where it is a procedure's definition that
-;;  * made the name's final binding, which the table's code restores, or else
-;;  * `(form form)`. A definition whose binding a later form replaced runs as
-;;  * source, so that what the forms between them see is what they saw.
-;;  * @param {list} forms - The forms, in the order loading ran them.
+;;  * made the name's final binding, which the table's code restores; else
+;;  * `(core core-form)`, a macro's definition as one that binds it pending, or
+;;  * the form's core form where that can be written down; else `(form
+;;  * form)`. A definition whose binding a later form replaced runs in its
+;;  * place, so that what the forms between them see is what they saw.
+;;  * @param {list} forms - The forms, in the order loading ran them, each
+;;  *   `(form . core-form)`.
 ;;  * @param {procedure} made-final? - From a name and the form defining it to
 ;;  *   whether that form made the name's final binding and the table holds its
 ;;  *   procedure.
 ;;  * @returns {list}
 ;;  */
 (define (restore-sequence forms made-final?)
-  (map (lambda (form)
-         (let ((name (procedure-definition-name form)))
-           (if (and name (made-final? name form))
-               (list 'procedure name)
-               (list 'form form))))
+  (map (lambda (noted)
+         (let* ((form (car noted))
+                (core (cdr noted))
+                (name (procedure-definition-name form))
+                (macro (macro-definition-name form)))
+           (cond ((and name (made-final? name form)) (list 'procedure name))
+                 ((and macro (equal? core '(lit ())))
+                  (list 'core (list 'define-syntax macro form)))
+                 ((constant-expression core) (list 'core core))
+                 (else (list 'form form)))))
        forms))
 
 ;; /**
@@ -200,7 +234,8 @@
 ;; /**
 ;;  * A library's restore sequence, as the text of an array: each top-level
 ;;  * form loading runs, in order, as `{procedure: name}` for one the table's
-;;  * code restores, or `{form: ...}`, the form itself, to be run as source is.
+;;  * code restores, `{core: ...}`, a core form the evaluator runs, or `{form:
+;;  * ...}`, the form itself, to be expanded and run as source is.
 ;;  * @param {list} restore - The sequence (`restore-sequence`), every form in
 ;;  *   it one that can be written down (`restore-writable?`).
 ;;  * @returns {string}
@@ -210,9 +245,10 @@
     "    restore: [\n"
     (string-join
       (map (lambda (item)
-             (if (eq? (car item) 'procedure)
-                 (string-append "      {procedure: " (json-string (symbol->string (cadr item))) "}")
-                 (string-append "      {form: " (constant-expression (cadr item)) "}")))
+             (case (car item)
+               ((procedure) (string-append "      {procedure: " (json-string (symbol->string (cadr item))) "}"))
+               ((core) (string-append "      {core: " (constant-expression (cadr item)) "}"))
+               (else (string-append "      {form: " (constant-expression (cadr item)) "}"))))
            restore)
       ",\n")
     "\n    ]\n"))
@@ -252,7 +288,11 @@
 ;;  */
 (define (holds? kind? value)
   (or (kind? value)
-      (and (pair? value) (or (holds? kind? (car value)) (holds? kind? (cdr value))))))
+      (and (pair? value) (or (holds? kind? (car value)) (holds? kind? (cdr value))))
+      (and (vector? value)
+           (let loop ((i 0))
+             (and (< i (vector-length value))
+                  (or (holds? kind? (vector-ref value i)) (loop (+ i 1))))))))
 
 ;; /**
 ;;  * The import lines the constant pools need: each constructor only when
@@ -297,7 +337,8 @@
       "//\n"
       "// A table that can restore its library has a `restore` sequence: every\n"
       "// top-level form loading the library runs, in order, each a procedure its code\n"
-      "// restores, which needs no source run, or the form itself, run as source is.\n"
+      "// restores, which needs no source run, the core form it expanded into, which\n"
+      "// the evaluator runs, or the form itself, expanded and run as source is.\n"
       "//\n"
       "// Each table's `fingerprint` is of the sources it was generated from, and\n"
       "// `runtime` of the runtime interface its code calls.\n"
@@ -306,7 +347,7 @@
       "// rather than running code for source that has since changed.\n"
       (if (null? imports) "" (string-append "\n" (string-join imports "\n") "\n"))
       "\n"
-      "/** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, span?: Object, make: Function}>, restore?: Array<{procedure: string}|{form: *}>}>} */\n"
+      "/** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, span?: Object, make: Function}>, restore?: Array<{procedure: string}|{core: *}|{form: *}>}>} */\n"
       "export const LIBRARIES = {\n"
       (string-join (map (lambda (library) (table-text runtime library)) libraries) ",\n")
       "\n};\n"

@@ -30,7 +30,17 @@ import { intern } from './symbol.js';
  */
 export function expand(form) {
   if (form instanceof Executable) return form;
-  return assemble(callSchemeProcedure(expander('expand'), [form]), analyze);
+  return assemble(expandToCore(form), analyze);
+}
+
+/**
+ * A form expanded by the Scheme expander where a program's top level is, as
+ * its core form.
+ * @param {*} form - The form.
+ * @returns {*}
+ */
+export function expandToCore(form) {
+  return callSchemeProcedure(expander('expand'), [form]);
 }
 
 /**

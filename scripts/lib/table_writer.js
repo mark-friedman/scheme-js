@@ -11,8 +11,10 @@ import { setFileResolver, loadLibrarySync } from '../../src/core/interpreter/lib
 import { getFileResolver, getLibraryEnv } from '../../src/core/interpreter/library_registry.js';
 import { compileEnvironment } from '../../src/compiler/index.js';
 import { analyze } from '../../src/core/interpreter/analyzer.js';
+import { expandToCore } from '../../src/core/interpreter/expand.js';
+import { assemble } from '../../src/core/interpreter/assembler.js';
 import { callSchemeProcedure, SCHEME_PRIMITIVE } from '../../src/core/interpreter/values.js';
-import { list, toArray } from '../../src/core/interpreter/cons.js';
+import { Cons, list, toArray } from '../../src/core/interpreter/cons.js';
 import { RUNTIME_INTERFACE } from '../../src/compiler/prebuilt.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -60,13 +62,14 @@ export function tableWriter(interpreter, env) {
 
   /**
    * What restores a library from its table (`restore-sequence`): the forms
-   * its loading ran, each a procedure the table restores or the form itself,
-   * and which procedures those are, each given the span of its source. A
-   * procedure is restored when its definition made its final binding: the
-   * closure bound now, made in the library's own environment from source
-   * inside the form, and compiled in an entry.
-   * @param {Array<*>} forms - The library's top-level forms, in the order
-   *   loading ran them.
+   * its loading ran, each a procedure the table restores, the core form the
+   * form expanded into, or the form itself, and which procedures those are,
+   * each given the span of its source. A procedure is restored when its
+   * definition made its final binding: the closure bound now, made in the
+   * library's own environment from source inside the form, and compiled in an
+   * entry.
+   * @param {Array<Cons>} forms - The library's top-level forms, in the order
+   *   loading ran them, each `(form . core)` (`notingExpander`).
    * @param {Object} env - The library's environment, before its table is
    *   installed.
    * @param {Array<Object>} entries - The entries its table will hold.
@@ -77,7 +80,8 @@ export function tableWriter(interpreter, env) {
     const byName = new Map(entries.map((e) => [e.name, e]));
     const madeFinal = (name, form) => {
       const closure = env.bindings.get(name.name);
-      return byName.get(name.name)?.closure === closure && closure.env === env
+      const entry = byName.get(name.name);
+      return entry !== undefined && entry.closure === closure && closure.env === env
         && within(closure.source, form.source);
     };
     madeFinal[SCHEME_PRIMITIVE] = true;
@@ -118,18 +122,22 @@ function within(inner, outer) {
 }
 
 /**
- * An `analyze` that notes each form it is given, for the libraries' loading:
- * the evaluator analyzes each top-level form of a library's body with it, all
- * of one library's after the libraries it imports have loaded, and before its
- * load hook runs.
- * @param {Function} analyze - The analyzer.
- * @returns {{analyze: Function, take: () => Array<*>}} The noting analyzer,
- *   and the forms noted since last asked, which it forgets.
+ * An `analyze` that expands each form it is given and notes it with its core
+ * form, for the libraries' loading: the evaluator analyzes each top-level form
+ * of a library's body with it, all of one library's after the libraries it
+ * imports have loaded, and before its load hook runs.
+ * @returns {{analyze: Function, take: () => Array<Cons>}} The noting
+ *   analyzer, and the forms noted since last asked, each `(form . core)`,
+ *   which it forgets.
  */
-export function notingAnalyzer(analyze) {
+export function notingExpander() {
   let noted = [];
   return {
-    analyze: (form) => { noted.push(form); return analyze(form); },
+    analyze: (form) => {
+      const core = expandToCore(form);
+      noted.push(new Cons(form, core));
+      return assemble(core, analyze);
+    },
     take: () => { const forms = noted; noted = []; return forms; }
   };
 }

@@ -260,6 +260,25 @@ export const expanderPrimitives = {
         }
     }),
 
+    /**
+     * A pending macro's definition and the scope of the library that defined
+     * it, as `(form . scope)` (`DefineSyntaxNode` in ast_nodes.js); #f for
+     * anything else.
+     */
+    '%pending-macro': (x) => (x !== null && typeof x === 'object' && x.pendingMacro !== undefined
+        ? cons(x.pendingMacro, x.scope) : false),
+
+    /**
+     * Keeps on a pending macro the transformer made of its definition: its
+     * Scheme procedure, and the procedure a debugger finds a `define-macro`
+     * by.
+     */
+    '%realize-pending-macro!': (pending, made) => {
+        pending.scheme = made.scheme;
+        if (made.transformerProcedure !== undefined) pending.transformerProcedure = made.transformerProcedure;
+        return undefined;
+    },
+
     /** What the JavaScript analyzer's environment binds an identifier to, or #f. */
     '%javascript-environment-lookup': (env, id) => env.lookup(id) ?? false,
 

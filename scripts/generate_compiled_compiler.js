@@ -49,7 +49,7 @@ import { installLibraryTable, fingerprintSources } from '../src/compiler/prebuil
 import { COMPILER_LIBRARY, compilerStartFailure } from '../src/compiler/lowering.js';
 import { registerCompilerHost } from '../src/compiler/host.js';
 import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
-import { tableWriter, notingAnalyzer } from './lib/table_writer.js';
+import { tableWriter, notingExpander } from './lib/table_writer.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = path.join(ROOT, 'src/packaging/compiled_compiler.js');
@@ -111,7 +111,7 @@ function bootstrap() {
   registerCompilerHost(env);
   setFileResolver(resolve);
   const stale = [];
-  const noting = notingAnalyzer(analyze);
+  const noting = notingExpander();
   let forms = [];
   setLibraryLoadHook((name, libraryEnv) => {
     const mine = noting.take();

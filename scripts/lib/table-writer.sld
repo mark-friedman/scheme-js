@@ -8,8 +8,9 @@
 
 (define-library (scheme-js table-writer)
   (import (scheme base)
-          (only (srfi 152) string-split string-join))
+          (only (srfi 152) string-split string-join)
+          (only (scheme-js interop) js-undefined?))
   (export render-tables constants-expression constant-expression
           json-string json-strings
-          procedure-definition-name restore-sequence restore-writable?)
+          procedure-definition-name macro-definition-name restore-sequence restore-writable?)
   (include "table_writer.scm"))

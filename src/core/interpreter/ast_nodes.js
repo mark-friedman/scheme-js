@@ -12,7 +12,7 @@ import {
 } from './values.js';
 import * as FrameRegistry from './frame_registry.js';
 import { GlobalRef } from './syntax_object.js';
-import { globalContext } from './context.js';
+import { globalContext, GLOBAL_SCOPE_ID } from './context.js';
 import { SchemeError } from './errors.js';
 import { CaptureUnwind, beginCapture, CAPTURE_UNDER_PRIMITIVE } from './unwind.js';
 
@@ -628,6 +628,38 @@ export class DefineLibraryNode extends Executable {
     step(registers, interpreter) {
         this.defineLibrary(this.form, this.analyze, interpreter, registers[ENV]);
         registers[ANS] = true; // Returns true/unspecified
+        return false;
+    }
+}
+
+/**
+ * A macro definition, restored from a library's prebuilt table: binds the
+ * macro, pending, where `define-syntax` or `define-macro` would have bound
+ * it -- in the library being loaded and, by name, for the process -- as the
+ * definition and the scope of the library. The expander makes its transformer
+ * from the definition the first time the macro is used (`realize!` in
+ * expander.scm): a library the expander is written with is restored before
+ * there is an expander to make one.
+ */
+export class DefineSyntaxNode extends Executable {
+    /**
+     * @param {string} name - The macro's name.
+     * @param {*} definition - Its `define-syntax` or `define-macro` form.
+     */
+    constructor(name, definition) {
+        super();
+        this.name = name;
+        this.definition = definition;
+    }
+
+    step(registers, interpreter) {
+        const defining = globalContext.definingScopes;
+        const scope = defining.length > 0 ? defining[defining.length - 1] : null;
+        const pending = { pendingMacro: this.definition, scope: scope ?? GLOBAL_SCOPE_ID };
+        globalContext.macroRegistry.define(this.name, pending);
+        if (scope !== null) globalContext.defineKeyword(scope, this.name, this.name, pending);
+        else globalContext.forgetKeyword(GLOBAL_SCOPE_ID, this.name);
+        registers[ANS] = null;
         return false;
     }
 }
