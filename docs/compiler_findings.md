@@ -3455,3 +3455,19 @@ cost `four1` more than the calls it saved.
 *Consequence:* the generic expansions keep one inline case, two numbers, and take a box inline only
 against an inexact constant, where the result is known inexact and the expansion is short. What
 `fft` and `fibfp` pay is boxes crossing calls and sitting in data, which an expansion cannot remove.
+
+**R122. "994 of 994 applicable Chibi tests" did not mean Chibi's tests passed as Chibi wrote them.**
+
+The revised copy of Chibi's R7RS tests was taken to be Chibi's tests, run on this implementation's
+harness, with the few that could not apply skipped and counted out. Its number section said otherwise
+in its header -- "a subset", since "full numeric tower tests require complex/rational support" -- and
+held 99 of Chibi's 211 tests. Run as Chibi wrote them, compared as Chibi's harness compares an
+inexact value, within an epsilon, 207 of the 211 passed already; the four that failed were real:
+`(real? -2.5+0.0i)` was #t, and `numerator` and `denominator` of an inexact number raised an error.
+The copy left out, too, exact integers past 2^53, which the conformance runner's reporter, converting
+every value for JavaScript, could not have reported. Across the suite 156 of Chibi's 1,198 tests are
+not in the copy, some reworded and some left out; the character and string sections, run as written,
+fail 7.
+
+*Consequence:* the number section is Chibi's again, compared as Chibi compares (89); the count is
+1,108 of 1,108. The other sections are 90.

@@ -925,11 +925,11 @@
   (test "a zero imaginary part: exp" 1.0 (exp (make-rectangular 0 0)))
   (test "a zero imaginary part: sqrt of a negative" +2i (sqrt (make-rectangular -4 0)))
   (test "a zero imaginary part: expt" 1/4 (expt (make-rectangular 1/2 0) 2))
-  (test "a non-real argument is an error that says so"
-    "exp: complex not fully supported"
-    (guard (e ((error-object? e) (error-object-message e))) (exp +i)))
-  (test "asin of a non-real argument is an error, not a NaN"
-    'error (guard (e (#t 'error)) (asin +i)))
+  ;; Their values are tested in complex_functions_tests.scm.
+  (test "a non-real argument has a complex value" #f (real? (exp +i)))
+  (test "asin of a non-real argument is its complex value, not a NaN" #t
+    (let ((v (asin +i)))
+      (and (zero? (real-part v)) (< (abs (- (imag-part v) 0.881373587019543)) 1e-12))))
   (test "a zero imaginary part: atan of two arguments"
     (atan 1.0 1.0) (atan (make-rectangular 1 0) 1))
   (test "atan of two arguments requires reals"

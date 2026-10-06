@@ -13195,3 +13195,71 @@ result.
 
 8,450 tests pass in Node with none failing (34 skipped), and the same with the standard library
 compiled (`SCHEME_AOT_STDLIB=1`); 8,232 in the browser with none failing (56 skipped).
+
+
+# Complex arguments to the elementary functions; Chibi's number section as Chibi wrote it (task 89, 2026-10-06)
+
+`exp`, `log`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan` and `expt` raised "complex not fully
+supported" on a complex argument. R7RS 6.2.6 defines each on every complex number, and they now take
+one (`math.js`, "Functions of complex numbers"):
+
+- **By R7RS's formulas, on the parts as doubles:** e^z = e^x (cos y + i sin y), log z = log|z| + i angle
+  z, and from those `asin`, `acos` and `atan`; the tangent is (sin 2x + i sinh 2y) / (cos 2x + cosh 2y),
+  and i or -i far from the real axis, where cosh overflows. A complex argument's value is an inexact
+  complex number, however near its imaginary part is to zero; a real argument keeps the functions of
+  real numbers, which give a real value where there is one.
+- **The branch cuts as R7RS fixes them:** log's imaginary part is in (-pi, pi], -pi below the negative
+  reals, where the imaginary part is -0.0; `sqrt` has a positive real part, or a zero one and an
+  imaginary part that is not negative, so `(sqrt -1.0-0.0i)` is 0.0+1.0i, as Chibi's test has it.
+- **`expt`:** an exact-integer power of a complex base is a product, by squaring, so an exact base's
+  is exact -- `(expt +i 2)` is -1, `(expt 1+i 3)` -2+2i -- and an inexact one's has no rounding from
+  exp and log; zero to a power is 1 if the power is zero, 0 if its real part is positive, inexact if
+  either is, and otherwise an error; any other power is e^(z2 log z1).
+
+Kept in JavaScript, as the numeric primitives are (*Decided* in `docs/compiler_plan.md`): each is a
+primitive doing its work with JavaScript's operations on the parts. The plan's row had put the exact
+power by squaring in Scheme; it is the same kind of algorithm in a primitive as 42's integer square
+root, and stays with the others.
+
+Found by Chibi's tests, and fixed:
+
+- **A complex number is real only with an exact zero imaginary part**, as R7RS's examples have it:
+  `(real? -2.5+0.0i)`, `(rational? 2.0+0.0i)` and `(integer? 2.0+0.0i)` are #f, and `<`, `max` and the
+  other procedures on real numbers refuse such a number, where `(< 1 2.0+0.0i)` answered #f.
+- **`numerator` and `denominator` of an inexact number** are those of the exact number it is,
+  inexact: `(denominator 5.5)` is 2.0. They raised an error, and `(numerator 5.0)` was exact.
+- **`finite?` and `infinite?` of an exact complex number:** `(finite? 1+2i)` was #f, its parts being
+  `BigInt`s, which `Number.isFinite` refuses.
+- **An exact zero real part is not written:** `+i`, `-2i`, `+1/2i`, as R7RS writes `(sqrt -1)` =>
+  `+i`; `0.0+1.0i` keeps its inexact zero.
+
+## Chibi's number section
+
+Our copy of Chibi's R7RS tests held 99 of its 211 number tests, "a subset", since "full numeric tower
+tests require complex/rational support". The section is now Chibi's, every test as Chibi wrote it,
+and Chibi's tests are compared as Chibi compares them: `equal?`, or an inexact value within an epsilon
+of the one expected, as its expected values are written to 15 digits
+(`chibi_revised/test-equal.scm`, which the conformance runner loads after the harness for that suite
+only; the project's own tests still compare exactly). The runner's reporter takes Scheme values as
+they are and writes them as Scheme does, since one past 2^53, which Chibi's tests compute, has no
+JavaScript number to convert to. 207 of the 211 passed already; the four that did not are fixed above
+(R122). Across the suite 156 of Chibi's tests are not in the copy, and run as written its character
+and string sections fail seven -- Unicode digits and letters, and full case folding -- which is task
+90.
+
+JavaScript under `src/`: 238 lines added and 26 removed, all in the numeric primitives (`math.js`,
+`complex.js`).
+
+## Tests
+
+`complex_functions_tests.scm`, 47 tests: each function of a complex argument, on both sides of its
+branch cut, against C99's values within a few units in the last place; `expt` with complex bases and
+powers, and zero's powers; the predicates and orderings on complex numbers; how an exact zero real
+part is written and read back; and `numerator` and `denominator` of inexact numbers. Four tests that
+had pinned the errors -- a complex argument to `exp` and `asin`, `numerator` and `denominator` of
+3.14 -- now say what R7RS has. Chibi's number section: 211 tests, in both library configurations.
+
+## Verification
+
+8,726 tests pass in Node with none failing (31 skipped), and 8,502 in the browser with none failing
+(54 skipped); Chibi's suite, 1,108 of 1,108 applicable, in both configurations, and on its browser page.

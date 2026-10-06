@@ -271,9 +271,38 @@ function numericEquals(a, b) {
  */
 function assertReal(name, position, value) {
     assertNumber(name, position, value);
-    if (isComplex(value) && toJsNumber(value.imag) !== 0) {
+    if (isComplex(value) && !isExactZero(value.imag)) {
         throw new SchemeTypeError(name, position, 'real number', value);
     }
+}
+
+/**
+ * Whether a number is an exact zero. A complex number is real only when its
+ * imaginary part is one: R7RS 6.2.6 has `(real? -2.5+0i)` true but
+ * `(real? -2.5+0.0i)` false.
+ * @param {*} x - A real number, a complex number's part.
+ * @returns {boolean}
+ */
+function isExactZero(x) {
+    return x === 0n || (isRational(x) && x.exact !== false && x.numerator === 0n);
+}
+
+/**
+ * Whether a complex number's part is an infinity.
+ * @param {*} x - The part: a double, or exact.
+ * @returns {boolean}
+ */
+function isInfinite(x) {
+    return x === Infinity || x === -Infinity;
+}
+
+/**
+ * Whether a complex number's part is an infinity or a NaN.
+ * @param {*} x - The part: a double, or exact.
+ * @returns {boolean}
+ */
+function isInfiniteOrNaN(x) {
+    return typeof x === 'number' && !Number.isFinite(x);
 }
 
 /**
@@ -442,19 +471,17 @@ function divisionResult(result, n1, n2) {
 // complex numbers.
 
 /**
- * The real number a function of real numbers is given. Complex arguments are
- * not supported yet, beyond a complex number with a zero imaginary part, which
- * is the real number it equals.
+ * The real number a function of real numbers is given: a complex argument
+ * takes the functions of complex numbers below, so one that reaches here is
+ * real only with an exact zero imaginary part, and is otherwise an error.
  * @param {string} name - The procedure's name, for the error message.
  * @param {number} position - The argument's position, from 1.
  * @param {*} z - The argument.
  * @returns {number|bigint|Rational} The real number.
  */
 function realArgument(name, position, z) {
-    assertNumber(name, position, z);
-    if (!isComplex(z)) return z;
-    if (z.isReal()) return z.real;
-    throw new SchemeError(`${name}: complex not fully supported`, [z], name);
+    assertReal(name, position, z);
+    return isComplex(z) ? z.real : z;
 }
 
 /**
@@ -605,6 +632,170 @@ function exactReal(x, z) {
 function genericNegate(x) {
     if (typeof x === 'bigint' || typeof x === 'number') return -x;
     return x.negate();
+}
+
+/**
+ * A rational number's numerator and denominator in lowest terms, as exact
+ * integers: an inexact number's are those of the exact number it is, which
+ * `numerator` and `denominator` give back inexact -- R7RS 6.2.6 has
+ * `(denominator (inexact (/ 6 4)))` => 2.0.
+ * @param {string} name - The procedure's name, for the error.
+ * @param {*} q - The number.
+ * @returns {Array<bigint>} `[numerator, denominator]`.
+ * @throws {SchemeTypeError} If q is not a rational number.
+ */
+function fractionOf(name, q) {
+    if (typeof q === 'bigint') return [q, 1n];
+    if (isRational(q)) return [q.numerator, q.denominator];
+    if (typeof q === 'number' && Number.isFinite(q)) {
+        const exact = exactReal(q, q);
+        return typeof exact === 'bigint' ? [exact, 1n] : [exact.numerator, exact.denominator];
+    }
+    throw new SchemeTypeError(name, 1, 'rational number', q);
+}
+
+// =============================================================================
+// Functions of Complex Numbers
+// =============================================================================
+// R7RS 6.2.6 defines the elementary functions on every complex number: e^z
+// as e^x (cos y + i sin y) for z = x + iy; log z as log|z| + i angle z, whose
+// imaginary part is in (-pi, pi] -- -pi itself below the negative reals,
+// where the imaginary part is -0.0; sqrt z as the root with a positive real
+// part, or a zero one and an imaginary part that is not negative; and from
+// those asin z = -i log(iz + sqrt(1 - z^2)), acos z = pi/2 - asin z,
+// atan z = (log(1 + iz) - log(1 - iz)) / 2i, and z1^z2 = e^(z2 log z1). A
+// complex argument's value is computed on its parts as doubles, as Math
+// computes a real one's, and is an inexact complex number however near its
+// imaginary part is to zero; a real argument keeps the functions of real
+// numbers above, which give a real value where there is one. Each function
+// here takes and gives a complex number as the pair [x, y] of its parts.
+
+/**
+ * A number's parts as doubles.
+ * @param {number|bigint|Rational|Complex} z - The number.
+ * @returns {Array<number>} `[x, y]`.
+ */
+function partsOf(z) {
+    return isComplex(z) ? [toNumber(z.real), toNumber(z.imag)] : [toNumber(z), 0];
+}
+
+/**
+ * The inexact complex number with the given parts.
+ * @param {Array<number>} parts - `[x, y]`.
+ * @returns {Complex}
+ */
+function complexOf([x, y]) {
+    return new Complex(x, y, false);
+}
+
+/** @param {Array<number>} a @param {Array<number>} b @returns {Array<number>} a b */
+function cMul([a, b], [c, d]) {
+    return [a * c - b * d, a * d + b * c];
+}
+
+/** @param {Array<number>} z @returns {Array<number>} e^z */
+function cExp([x, y]) {
+    const m = Math.exp(x);
+    return [m * Math.cos(y), m * Math.sin(y)];
+}
+
+/** @param {Array<number>} z @returns {Array<number>} log z, its imaginary part in (-pi, pi] */
+function cLog([x, y]) {
+    return [Math.log(Math.hypot(x, y)), Math.atan2(y, x)];
+}
+
+/**
+ * The principal square root, computed so that neither part is the
+ * difference of two near numbers. Where its real part is zero -- a negative
+ * real, whether its imaginary part is 0.0 or -0.0 -- the imaginary part is
+ * not negative, as R7RS requires of sqrt.
+ * @param {Array<number>} z
+ * @returns {Array<number>} sqrt z
+ */
+function cSqrt([x, y]) {
+    if (x === 0 && y === 0) return [0, 0];
+    const r = Math.hypot(x, y);
+    if (x >= 0) {
+        const t = Math.sqrt((r + x) / 2);
+        return [t, y / (2 * t)];
+    }
+    const t = Math.sqrt((r - x) / 2);
+    return [Math.abs(y) / (2 * t), y < 0 ? -t : t];
+}
+
+/** @param {Array<number>} z @returns {Array<number>} sin z */
+function cSin([x, y]) {
+    return [Math.sin(x) * Math.cosh(y), Math.cos(x) * Math.sinh(y)];
+}
+
+/** @param {Array<number>} z @returns {Array<number>} cos z */
+function cCos([x, y]) {
+    return [Math.cos(x) * Math.cosh(y), -Math.sin(x) * Math.sinh(y)];
+}
+
+/**
+ * The tangent, as (sin 2x + i sinh 2y) / (cos 2x + cosh 2y). Far from the
+ * real axis, where cosh 2y overflows, it is i or -i, its real part
+ * 2 sin 2x e^(-2|y|).
+ * @param {Array<number>} z
+ * @returns {Array<number>} tan z
+ */
+function cTan([x, y]) {
+    if (Math.abs(y) > 20) return [2 * Math.sin(2 * x) * Math.exp(-2 * Math.abs(y)), Math.sign(y)];
+    const d = Math.cos(2 * x) + Math.cosh(2 * y);
+    return [Math.sin(2 * x) / d, Math.sinh(2 * y) / d];
+}
+
+/** @param {Array<number>} z @returns {Array<number>} asin z = -i log(iz + sqrt(1 - z^2)) */
+function cAsin([x, y]) {
+    const [u, v] = cSqrt([1 - (x * x - y * y), -(2 * x * y)]);
+    const [lx, ly] = cLog([u - y, v + x]);
+    return [ly, -lx];
+}
+
+/** @param {Array<number>} z @returns {Array<number>} acos z = pi/2 - asin z */
+function cAcos(z) {
+    const [ax, ay] = cAsin(z);
+    return [Math.PI / 2 - ax, -ay];
+}
+
+/** @param {Array<number>} z @returns {Array<number>} atan z = (log(1 + iz) - log(1 - iz)) / 2i */
+function cAtan([x, y]) {
+    const [ax, ay] = cLog([1 - y, x]);
+    const [bx, by] = cLog([1 + y, -x]);
+    return [(ay - by) / 2, -(ax - bx) / 2];
+}
+
+/**
+ * z1^z2 where either is complex. An exact integer power is a product, by
+ * squaring, so an exact base's is exact and an inexact one's has none of
+ * the rounding of exp and log; zero to a power is 1 if the power is zero and
+ * 0 if its real part is positive, inexact if either is, and otherwise an
+ * error (R7RS 6.2.6); any other power is e^(z2 log z1).
+ * @param {number|bigint|Rational|Complex} base - z1.
+ * @param {number|bigint|Rational|Complex} exponent - z2.
+ * @returns {number|bigint|Rational|Complex}
+ */
+function complexExpt(base, exponent) {
+    const exact = isExact(base) && isExact(exponent);
+    if (typeof exponent === 'bigint') {
+        const one = isExact(base) ? 1n : 1;
+        let result = one;
+        let square = base;
+        for (let k = exponent < 0n ? -exponent : exponent; k > 0n; k >>= 1n) {
+            if (k & 1n) result = genericMul(result, square);
+            if (k > 1n) square = genericMul(square, square);
+        }
+        return exponent < 0n ? genericDiv(one, result) : result;
+    }
+    const [bx, by] = partsOf(base);
+    if (bx === 0 && by === 0) {
+        const [ex, ey] = partsOf(exponent);
+        if (ex === 0 && ey === 0) return exact ? 1n : 1;
+        if (ex > 0) return exact ? 0n : 0;
+        throw new SchemeError('expt: zero to a power whose real part is not positive', [base, exponent], 'expt');
+    }
+    return complexOf(cExp(cMul(partsOf(exponent), cLog([bx, by]))));
 }
 
 // =============================================================================
@@ -890,7 +1081,7 @@ export const mathPrimitives = {
         if (typeof obj === 'number') return true;
         if (typeof obj === 'bigint') return true;
         if (isRational(obj)) return true;
-        if (isComplex(obj)) return obj.imag === 0 || obj.imag === 0n;
+        if (isComplex(obj)) return isExactZero(obj.imag);
         return false;
     },
 
@@ -904,7 +1095,9 @@ export const mathPrimitives = {
         if (isRational(obj)) return true;
         if (typeof obj === 'bigint') return true;  // All integers are rational
         if (typeof obj === 'number') return Number.isFinite(obj);
-        if (isComplex(obj)) return (obj.imag === 0 || obj.imag === 0n) && Number.isFinite(obj.real);
+        if (isComplex(obj)) {
+            return isExactZero(obj.imag) && (typeof obj.real !== 'number' || Number.isFinite(obj.real));
+        }
         return false;
     },
 
@@ -919,8 +1112,9 @@ export const mathPrimitives = {
         if (typeof obj === 'bigint') return true;
         if (typeof obj === 'number') return Number.isInteger(obj);
         if (isRational(obj)) return obj.denominator === 1n || obj.denominator === 1;
-        if (isComplex(obj)) return (obj.imag === 0 || obj.imag === 0n) &&
-            (typeof obj.real === 'bigint' || Number.isInteger(obj.real));
+        if (isComplex(obj)) {
+            return isExactZero(obj.imag) && (typeof obj.real === 'bigint' || Number.isInteger(obj.real));
+        }
         return false;
     },
 
@@ -971,7 +1165,8 @@ export const mathPrimitives = {
         if (typeof x === 'bigint') return true;  // BigInt is always finite
         if (typeof x === 'number') return Number.isFinite(x);
         if (isRational(x)) return true;
-        if (isComplex(x)) return Number.isFinite(x.real) && Number.isFinite(x.imag);
+        // A part may be exact, and is then finite.
+        if (isComplex(x)) return !isInfiniteOrNaN(x.real) && !isInfiniteOrNaN(x.imag);
         throw new Error('finite?: expected number');
     },
 
@@ -985,7 +1180,7 @@ export const mathPrimitives = {
         if (typeof x === 'bigint') return false;  // BigInt is never infinite
         if (typeof x === 'number') return !Number.isFinite(x) && !Number.isNaN(x);
         if (isRational(x)) return false;
-        if (isComplex(x)) return !Number.isFinite(x.real) || !Number.isFinite(x.imag);
+        if (isComplex(x)) return isInfinite(x.real) || isInfinite(x.imag);
         throw new Error('infinite?: expected number');
     },
 
@@ -1014,10 +1209,8 @@ export const mathPrimitives = {
      */
     'numerator': function (q) {
         if (arguments.length !== 1) assertArity('numerator', arguments, 1);
-        if (isRational(q)) return q.numerator;
-        if (typeof q === 'bigint') return q;
-        if (typeof q === 'number' && Number.isInteger(q)) return BigInt(q);
-        throw new Error('numerator: expected rational number');
+        const numerator = fractionOf('numerator', q)[0];
+        return isExact(q) ? numerator : Number(numerator);
     },
 
     /**
@@ -1027,10 +1220,8 @@ export const mathPrimitives = {
      */
     'denominator': function (q) {
         if (arguments.length !== 1) assertArity('denominator', arguments, 1);
-        if (isRational(q)) return q.denominator;
-        if (typeof q === 'bigint') return 1n;
-        if (typeof q === 'number' && Number.isInteger(q)) return 1n;
-        throw new Error('denominator: expected rational number');
+        const denominator = fractionOf('denominator', q)[1];
+        return isExact(q) ? denominator : Number(denominator);
     },
 
     // =========================================================================
@@ -1224,6 +1415,11 @@ export const mathPrimitives = {
         if (typeof base === 'bigint' && typeof exponent === 'bigint') {
             return exponent >= 0n ? base ** exponent : genericDiv(1n, base ** -exponent);
         }
+        if (isComplex(base) || isComplex(exponent)) {
+            assertNumber('expt', 1, base);
+            assertNumber('expt', 2, exponent);
+            return complexExpt(base, exponent);
+        }
         const x = realArgument('expt', 1, base);
         const y = realArgument('expt', 2, exponent);
         if (typeof y === 'bigint' && isRational(x) && x.exact !== false) {
@@ -1254,6 +1450,7 @@ export const mathPrimitives = {
     'sqrt': function (z) {
         if (arguments.length !== 1) assertArity('sqrt', arguments, 1);
         if (typeof z === 'number' && z >= 0) return Math.sqrt(z);
+        if (isComplex(z)) return complexOf(cSqrt(partsOf(z)));
         const x = realArgument('sqrt', 1, z);
         // Compared exactly, as in `expt`; -0.0 is not below zero, and is its
         // own root.
@@ -1268,6 +1465,7 @@ export const mathPrimitives = {
      */
     'sin': function (z) {
         if (arguments.length !== 1) assertArity('sin', arguments, 1);
+        if (isComplex(z)) return complexOf(cSin(partsOf(z)));
         return Math.sin(toNumber(realArgument('sin', 1, z)));
     },
 
@@ -1278,6 +1476,7 @@ export const mathPrimitives = {
      */
     'cos': function (z) {
         if (arguments.length !== 1) assertArity('cos', arguments, 1);
+        if (isComplex(z)) return complexOf(cCos(partsOf(z)));
         return Math.cos(toNumber(realArgument('cos', 1, z)));
     },
 
@@ -1288,6 +1487,7 @@ export const mathPrimitives = {
      */
     'tan': function (z) {
         if (arguments.length !== 1) assertArity('tan', arguments, 1);
+        if (isComplex(z)) return complexOf(cTan(partsOf(z)));
         return Math.tan(toNumber(realArgument('tan', 1, z)));
     },
 
@@ -1300,6 +1500,7 @@ export const mathPrimitives = {
      */
     'asin': function (z) {
         if (arguments.length !== 1) assertArity('asin', arguments, 1);
+        if (isComplex(z)) return complexOf(cAsin(partsOf(z)));
         const x = toNumber(realArgument('asin', 1, z));
         if (x > 1) return makeRectangular(Math.PI / 2, -Math.acosh(x));
         if (x < -1) return makeRectangular(-Math.PI / 2, Math.acosh(-x));
@@ -1314,6 +1515,7 @@ export const mathPrimitives = {
      */
     'acos': function (z) {
         if (arguments.length !== 1) assertArity('acos', arguments, 1);
+        if (isComplex(z)) return complexOf(cAcos(partsOf(z)));
         const x = toNumber(realArgument('acos', 1, z));
         if (x > 1) return makeRectangular(0, Math.acosh(x));
         if (x < -1) return makeRectangular(Math.PI, -Math.acosh(-x));
@@ -1330,7 +1532,10 @@ export const mathPrimitives = {
     'atan': function (y, x) {
         const count = arguments.length;
         if (count !== 1 && count !== 2) assertArity('atan', arguments, 1, 2);
-        if (count === 1) return Math.atan(toNumber(realArgument('atan', 1, y)));
+        if (count === 1) {
+            if (isComplex(y)) return complexOf(cAtan(partsOf(y)));
+            return Math.atan(toNumber(realArgument('atan', 1, y)));
+        }
         assertReal('atan', 1, y);
         assertReal('atan', 2, x);
         return Math.atan2(toNumber(y), toNumber(x));
@@ -1347,9 +1552,11 @@ export const mathPrimitives = {
     'log': function (z1, z2) {
         const count = arguments.length;
         if (count !== 1 && count !== 2) assertArity('log', arguments, 1, 2);
-        const z = logReal(realArgument('log', 1, z1));
+        const logOf = (z, position) =>
+            isComplex(z) ? complexOf(cLog(partsOf(z))) : logReal(realArgument('log', position, z));
+        const z = logOf(z1, 1);
         if (count === 1) return z;
-        return genericDiv(z, logReal(realArgument('log', 2, z2)));
+        return genericDiv(z, logOf(z2, 2));
     },
 
     /**
@@ -1359,6 +1566,7 @@ export const mathPrimitives = {
      */
     'exp': function (z) {
         if (arguments.length !== 1) assertArity('exp', arguments, 1);
+        if (isComplex(z)) return complexOf(cExp(partsOf(z)));
         return Math.exp(toNumber(realArgument('exp', 1, z)));
     },
 

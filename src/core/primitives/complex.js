@@ -180,7 +180,11 @@ export class Complex {
             return s;
         };
 
-        const realStr = formatComp(this.real, false, false);
+        // An exact zero real part is left out, as R7RS writes `(sqrt -1)`
+        // => +i; an inexact one is written, 0.0+1.0i.
+        const exactZeroReal = this.real === 0n ||
+            (this.real instanceof Rational && this.real.exact !== false && this.real.numerator === 0n);
+        const realStr = exactZeroReal ? '' : formatComp(this.real, false, false);
 
         let imagVal = this.imag;
         let signStr = '';

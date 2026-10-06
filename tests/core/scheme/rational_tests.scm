@@ -149,15 +149,17 @@
   
   (test-group "error handling"
     
+    ;; An inexact number other than an infinity or a NaN is rational, and has
+    ;; the numerator and denominator of the exact number it is (R7RS 6.2.6).
     (test "numerator on non-rational"
       'error
       (guard (e (#t 'error))
-        (numerator 3.14)))
+        (numerator +inf.0)))
     
     (test "denominator on non-rational"
       'error
       (guard (e (#t 'error))
-        (denominator 3.14)))
+        (denominator +nan.0)))
   )
   
   ;; ===== Mixed Exactness =====

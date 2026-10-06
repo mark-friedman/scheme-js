@@ -19,7 +19,9 @@
  */
 
 import { createInterpreter } from '../../../../src/core/interpreter/index.js';
-import { run, safeStringify } from '../../../harness/helpers.js';
+import { run } from '../../../harness/helpers.js';
+import { writeString } from '../../../../src/core/primitives/io/printer.js';
+import { SCHEME_PRIMITIVE } from '../../../../src/core/interpreter/values.js';
 import { loadLibrarySync, applyImports } from '../../../../src/core/interpreter/library_loader.js';
 import { withPrivateLibraries } from '../../../../src/core/interpreter/library_registry.js';
 import { analyze } from '../../../../src/core/interpreter/expand.js';
@@ -44,11 +46,14 @@ const LIBRARIES = [
  * The two suites.
  *
  * `isolateMacros` starts from an empty macro registry, as the Chibi runner
- * always has. A test passes when the Scheme harness says it does: the Chibi
+ * always has. `prelude`, where there is one, runs after the harness: Chibi's
+ * tests are compared as Chibi compares them, an inexact value within an
+ * epsilon of the one expected (`chibi_revised/test-equal.scm`). A test passes when the Scheme harness says it does: the Chibi
  * runner also counted a failure as a pass when the two values agreed once
  * converted to JavaScript, which hid an exact integer against an inexact one.
  *
- * @type {Object<string, {title: string, dir: string, files: Array<string>, isolateMacros: boolean}>}
+ * @type {Object<string, {title: string, dir: string, files: Array<string>, isolateMacros: boolean,
+ *   prelude?: string}>}
  */
 export const SUITES = {
     chapters: {
@@ -67,7 +72,8 @@ export const SUITES = {
             '6.9-bytevectors.scm', '6.10-control.scm', '6.11-exceptions.scm', '6.12-environments.scm',
             '6.13-io.scm', '6.14-system.scm', '7.1-read-syntax.scm', '7.1-numeric-syntax.scm'
         ],
-        isolateMacros: true
+        isolateMacros: true,
+        prelude: 'tests/core/scheme/compliance/chibi_revised/test-equal.scm'
     }
 };
 
@@ -76,10 +82,12 @@ export const SUITES = {
  * @param {Object} suite - One of `SUITES`.
  * @param {Function} fileLoader - Reads a file by its path from the project
  *   root, returning a promise of its text.
- * @returns {Promise<{harness: string, files: Map<string, string>}>} The sources.
+ * @returns {Promise<{harness: string, files: Map<string, string>}>} The sources,
+ *   the harness followed by the suite's prelude, if it has one.
  */
 export async function loadSuiteSources(suite, fileLoader) {
-    const harness = await fileLoader('tests/core/scheme/test.scm');
+    let harness = await fileLoader('tests/core/scheme/test.scm');
+    if (suite.prelude) harness += '\n' + await fileLoader(suite.prelude);
     const files = new Map();
     for (const file of suite.files) files.set(file, await fileLoader(suite.dir + file));
     return { harness, files };
@@ -158,13 +166,19 @@ function runInPrivate(suite, sources, files, logger) {
         applyImports(env, loadLibrarySync(name, analyze, interpreter, env), { libraryName: name });
     }
 
-    env.bindings.set('native-report-test-result', (name, passed, expected, actual) => {
+    // The reporter takes Scheme values as they are, and writes them as Scheme
+    // does: an exact integer past 2^53, which Chibi's tests compute, has no
+    // JavaScript number, and converting one to report it would throw.
+    const nameOf = (name) => (typeof name === 'string' ? name : writeString(name));
+    const reportTestResult = (name, passed, expected, actual) => {
         if (passed) {
-            logger.pass(`${name}`);
+            logger.pass(`${nameOf(name)}`);
         } else {
-            logger.fail(`${name} (Expected: ${safeStringify(expected)}, Got: ${safeStringify(actual)})`);
+            logger.fail(`${nameOf(name)} (Expected: ${writeString(expected)}, Got: ${writeString(actual)})`);
         }
-    });
+    };
+    reportTestResult[SCHEME_PRIMITIVE] = true;
+    env.bindings.set('native-report-test-result', reportTestResult);
     env.bindings.set('native-report-test-skip', (name, reason) => {
         if (logger.skip) logger.skip(`${name} (Reason: ${reason})`);
         else console.log(`⏭️ SKIP: ${name} - ${reason}`);
