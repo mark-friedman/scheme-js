@@ -13086,3 +13086,51 @@ product.
 
 8,341 tests pass in Node with none failing (33 skipped), and 8,117 in the browser with none failing
 (56 skipped).
+
+
+# The numeric primitives check how many arguments they are given (2026-10-06)
+
+R7RS gives every numeric procedure its number of arguments, and the primitives in `math.js` did not
+check it. A call with one argument too many returned normally, the extra one ignored: `(abs 1 2)`
+was 1, `(sqrt 4 2)` 2, `(exact 1 2)` 1, in both tiers. A call with too few raised a type error about
+the missing argument, which JavaScript had made `undefined` -- or, from `number?`, `complex?`,
+`real?`, `rational?`, `integer?` and `exact-integer?`, returned #f. The two-argument primitives
+did call `assertArity`, on an array of their two parameters, which always has two elements: so
+`(modulo 7 2 3)`, `(expt 2 3 4)` and `(floor/ 7 2 3)` returned normally too. And `(-)` returned 0,
+since small exact integers became numbers: the wrapper `-` shares with `+` and `*`, `foldingReals`,
+returned its value for no arguments.
+
+Every primitive of `mathPrimitives` with a fixed number of arguments now takes them as named
+parameters and tests `arguments.length`, raising `assertArity`'s error, `SchemeArityError`, for any
+other number. A call with the right number pays nothing for the test, which matters because compiled
+code calls these primitives directly: a rest parameter, or an array built to pass to `assertArity`,
+would allocate on every call. `atan` and `log`, which take one or two, checked their count already,
+but through a rest parameter; they take named parameters now too. `-` and `/` test for no arguments
+at all. The direct versions of the hottest primitives ("Numbers and boxes taken directly") already
+gave any other argument count to the wrapped primitive, so they raise its error now; `foldingReals`
+takes no value for no arguments for `-`, and gives that call to the wrapped primitive too.
+
+Timed against an export of the previous commit, with loops of 20 kinds of call of 16 primitives in
+each tier, interleaved: every compiled figure, 4 to 168 ns a call, is within 0.4 ns of before; the
+interpreted ones differ by up to 12% either way, where runs of the same code differ by up to 17%.
+Called directly from JavaScript, each version alone in its own process, three times, the figures for
+every primitive overlap the previous commit's but those for `abs` of a BigInt, which reaches the
+wrapped primitive: 30.8 to 31.0 ns a call against 30.4 to 30.5.
+
+JavaScript under `src/`, fixed in place: 134 lines added and 74 removed, all in `math.js`'s
+primitives -- a primitive that checks its arguments stays JavaScript.
+
+## Tests
+
+`number_tests.scm`, 103 tests: a `test-error` for each primitive called with one argument too many
+(47) and one too few (54, every fixed-arity primitive, `atan` and `log`, `-`, `/` and the
+comparisons), and in each group a test that every error is the procedure's arity error, by its
+message: `test-error` passes on any error, and a missing argument also raises a type error. The calls
+with too many give a first argument the direct version takes, so its own test of the count is what
+is tested: with that test removed from `sqrt`'s and `log`'s, `(sqrt 2.25 2)` and `(log 2.5 2 3)`
+returned values, and with `foldingReals`' 0 for `-` put back, `(-)` returned 0.
+
+## Verification
+
+8,438 tests pass in Node with none failing (34 skipped), and the same with the standard library
+compiled (`SCHEME_AOT_STDLIB=1`); 8,220 in the browser with none failing (56 skipped).

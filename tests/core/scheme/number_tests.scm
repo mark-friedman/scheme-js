@@ -1042,3 +1042,165 @@
   (test "exact-integer?" '(#t #t #f #f) (map exact-integer? (list 3 big 3. 2.5)))
   (test "number? of something that is not a number" #f (number? 'a))
   (test-error "abs of something that is not a number is the primitive's error" "number" (abs 'a)))
+
+;; ===== Argument Counts =====
+;;
+;; R7RS gives each numeric procedure its number of arguments -- one, or two,
+;; or for atan and log one or two, for - and / at least one, and for the
+;; comparisons at least two -- and a call with any other number is an error.
+;; A call with too many returned normally, its extra argument ignored, and one
+;; with too few raised a type error about the missing argument or, from the
+;; predicates, returned #f.
+;;
+;; The calls with too many give a first argument that a primitive's direct path
+;; takes ("Numbers and boxes taken directly" in src/core/primitives/math.js) --
+;; an exact integer, or for sqrt and log an inexact real -- so that the direct
+;; path's own test of the count is what is tested.
+
+;; /**
+;;  * Whether an error's message is the arity error of the procedure a call
+;;  * names: the procedure's name, then "wrong number of arguments".
+;;  * @param {list} call - The call, as a datum.
+;;  * @param {string|boolean} message - The message, or #f for no error.
+;;  * @returns {boolean}
+;;  */
+(define (arity-error-message? call message)
+  (let ((prefix (string-append (symbol->string (car call)) ": wrong number of arguments")))
+    (and (string? message)
+         (>= (string-length message) (string-length prefix))
+         (string=? (substring message 0 (string-length prefix)) prefix))))
+
+;; /**
+;;  * The calls whose errors are not their procedures' arity errors.
+;;  * @param {list} results - Pairs of a call, as a datum, and the message of
+;;  *   its error, or #f for none.
+;;  * @returns {list} The pairs whose message is not an arity error's.
+;;  */
+(define (calls-without-arity-errors results)
+  (cond ((null? results) '())
+        ((arity-error-message? (caar results) (cdar results))
+         (calls-without-arity-errors (cdr results)))
+        (else (cons (car results) (calls-without-arity-errors (cdr results))))))
+
+;; /**
+;;  * A test group of calls that must each raise an arity error: a `test-error`
+;;  * for each call, and a test that every error is the procedure's arity error
+;;  * -- `test-error` passes on any error, and a missing argument also raises a
+;;  * type error.
+;;  * @param {string} name - The group's name.
+;;  * @param {...*} call - The calls.
+;;  */
+(define-syntax test-arity-errors
+  (syntax-rules ()
+    ((_ name call ...)
+     (test-group name
+       (test-error 'call "wrong number of arguments" call) ...
+       (test "each error is the procedure's arity error"
+         '()
+         (calls-without-arity-errors
+          (list (cons 'call (error-message (lambda () call))) ...)))))))
+
+(test-arity-errors "one argument too many"
+  (number? 1 2)
+  (complex? 1 2)
+  (real? 1 2)
+  (rational? 1 2)
+  (integer? 1 2)
+  (exact-integer? 1 2)
+  (exact? 1 2)
+  (inexact? 1.0 2)
+  (finite? 1 2)
+  (infinite? 1 2)
+  (nan? 1 2)
+  (numerator 1 2)
+  (denominator 1 2)
+  (real-part 1 2)
+  (imag-part 1 2)
+  (magnitude 1 2)
+  (angle 1 2)
+  (make-rectangular 1 2 3)
+  (make-polar 1 2 3)
+  (abs 1 2)
+  (floor 1 2)
+  (ceiling 1 2)
+  (truncate 1 2)
+  (round 1 2)
+  (sqrt 2.25 2)
+  (exact-integer-sqrt 4 2)
+  (expt 2 3 4)
+  (exp 0 2)
+  (log 2.5 2 3)
+  (sin 0 2)
+  (cos 0 2)
+  (tan 0 2)
+  (asin 0 2)
+  (acos 0 2)
+  (atan 0 1 2)
+  (square 1 2)
+  (inexact 1 2)
+  (exact 1 2)
+  (quotient 7 2 3)
+  (remainder 7 2 3)
+  (modulo 7 2 3)
+  (floor/ 7 2 3)
+  (floor-quotient 7 2 3)
+  (floor-remainder 7 2 3)
+  (truncate/ 7 2 3)
+  (truncate-quotient 7 2 3)
+  (truncate-remainder 7 2 3))
+
+(test-arity-errors "one argument too few"
+  (number?)
+  (complex?)
+  (real?)
+  (rational?)
+  (integer?)
+  (exact-integer?)
+  (exact?)
+  (inexact?)
+  (finite?)
+  (infinite?)
+  (nan?)
+  (numerator)
+  (denominator)
+  (real-part)
+  (imag-part)
+  (magnitude)
+  (angle)
+  (make-rectangular 1)
+  (make-polar 1)
+  (abs)
+  (floor)
+  (ceiling)
+  (truncate)
+  (round)
+  (sqrt)
+  (exact-integer-sqrt)
+  (expt 2)
+  (exp)
+  (log)
+  (sin)
+  (cos)
+  (tan)
+  (asin)
+  (acos)
+  (atan)
+  (square)
+  (inexact)
+  (exact)
+  (quotient 7)
+  (remainder 7)
+  (modulo 7)
+  (floor/ 7)
+  (floor-quotient 7)
+  (floor-remainder 7)
+  (truncate/ 7)
+  (truncate-quotient 7)
+  (truncate-remainder 7)
+  (-)
+  (/)
+  (= 1)
+  (< 1)
+  (> 1)
+  (<= 1)
+  (>= 1))

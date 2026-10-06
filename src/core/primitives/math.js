@@ -685,6 +685,13 @@ function complexDiv(a, b) {
 
 /**
  * Math primitives exported to Scheme.
+ *
+ * Each takes the number of arguments R7RS gives it, and raises an arity error
+ * for any other number. One of a fixed number of arguments takes them as named
+ * parameters and tests `arguments.length`, which costs a call with the right
+ * count nothing -- compiled code calls these directly -- where a rest
+ * parameter, or an array built to pass to `assertArity`, would allocate on
+ * every call.
  */
 export const mathPrimitives = {
     // =========================================================================
@@ -709,8 +716,8 @@ export const mathPrimitives = {
      * @param {...number} rest - Numbers to subtract.
      * @returns {number} Difference.
      */
-    '-': (first, ...rest) => {
-        assertArity('-', [first, ...rest], 1, Infinity);
+    '-': function (first, ...rest) {
+        if (arguments.length === 0) assertArity('-', arguments, 1, Infinity);
         assertNumber('-', 1, first);
         rest.forEach((arg, i) => assertNumber('-', i + 2, arg));
         if (rest.length === 0) return genericNegate(first);
@@ -735,8 +742,8 @@ export const mathPrimitives = {
      * @param {...number} rest - Divisors.
      * @returns {number} Quotient.
      */
-    '/': (first, ...rest) => {
-        assertArity('/', [first, ...rest], 1, Infinity);
+    '/': function (first, ...rest) {
+        if (arguments.length === 0) assertArity('/', arguments, 1, Infinity);
         assertNumber('/', 1, first);
         rest.forEach((arg, i) => assertNumber('/', i + 2, arg));
         let res;
@@ -805,8 +812,8 @@ export const mathPrimitives = {
      * @param {bigint|number} b - Divisor.
      * @returns {bigint|number} Modulo.
      */
-    'modulo': (a, b) => {
-        assertArity('modulo', [a, b], 2, 2);
+    'modulo': function (a, b) {
+        if (arguments.length !== 2) assertArity('modulo', arguments, 2);
         if (typeof a === 'bigint' && typeof b === 'bigint' && b !== 0n) {
             const rem = a % b;
             return rem === 0n || (rem > 0n) === (b > 0n) ? rem : rem + b;
@@ -827,8 +834,8 @@ export const mathPrimitives = {
      * @param {bigint|number} b - Divisor.
      * @returns {bigint|number} Integer quotient.
      */
-    'quotient': (a, b) => {
-        assertArity('quotient', [a, b], 2, 2);
+    'quotient': function (a, b) {
+        if (arguments.length !== 2) assertArity('quotient', arguments, 2);
         if (typeof a === 'bigint' && typeof b === 'bigint' && b !== 0n) return a / b;
         assertDivision('quotient', a, b);
         return divisionResult(truncDivBigInt(toBigInt(a), toBigInt(b)), a, b);
@@ -840,8 +847,8 @@ export const mathPrimitives = {
      * @param {bigint|number} b - Divisor.
      * @returns {bigint|number} Remainder.
      */
-    'remainder': (a, b) => {
-        assertArity('remainder', [a, b], 2, 2);
+    'remainder': function (a, b) {
+        if (arguments.length !== 2) assertArity('remainder', arguments, 2);
         if (typeof a === 'bigint' && typeof b === 'bigint' && b !== 0n) return a % b;
         assertDivision('remainder', a, b);
         return divisionResult(toBigInt(a) % toBigInt(b), a, b);
@@ -857,7 +864,10 @@ export const mathPrimitives = {
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is a number.
      */
-    'number?': (obj) => typeof obj === 'number' || typeof obj === 'bigint' || isRational(obj) || isComplex(obj),
+    'number?': function (obj) {
+        if (arguments.length !== 1) assertArity('number?', arguments, 1);
+        return typeof obj === 'number' || typeof obj === 'bigint' || isRational(obj) || isComplex(obj);
+    },
 
     /**
      * Complex number type predicate.
@@ -865,14 +875,18 @@ export const mathPrimitives = {
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is a complex number.
      */
-    'complex?': (obj) => typeof obj === 'number' || typeof obj === 'bigint' || isRational(obj) || isComplex(obj),
+    'complex?': function (obj) {
+        if (arguments.length !== 1) assertArity('complex?', arguments, 1);
+        return typeof obj === 'number' || typeof obj === 'bigint' || isRational(obj) || isComplex(obj);
+    },
 
     /**
      * Real number type predicate.
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is a real number.
      */
-    'real?': (obj) => {
+    'real?': function (obj) {
+        if (arguments.length !== 1) assertArity('real?', arguments, 1);
         if (typeof obj === 'number') return true;
         if (typeof obj === 'bigint') return true;
         if (isRational(obj)) return true;
@@ -885,7 +899,8 @@ export const mathPrimitives = {
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is a rational number.
      */
-    'rational?': (obj) => {
+    'rational?': function (obj) {
+        if (arguments.length !== 1) assertArity('rational?', arguments, 1);
         if (isRational(obj)) return true;
         if (typeof obj === 'bigint') return true;  // All integers are rational
         if (typeof obj === 'number') return Number.isFinite(obj);
@@ -899,7 +914,8 @@ export const mathPrimitives = {
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is an integer.
      */
-    'integer?': (obj) => {
+    'integer?': function (obj) {
+        if (arguments.length !== 1) assertArity('integer?', arguments, 1);
         if (typeof obj === 'bigint') return true;
         if (typeof obj === 'number') return Number.isInteger(obj);
         if (isRational(obj)) return obj.denominator === 1n || obj.denominator === 1;
@@ -914,7 +930,8 @@ export const mathPrimitives = {
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is an exact integer.
      */
-    'exact-integer?': (obj) => {
+    'exact-integer?': function (obj) {
+        if (arguments.length !== 1) assertArity('exact-integer?', arguments, 1);
         if (typeof obj === 'bigint') return true;
         if (isRational(obj)) return (obj.denominator === 1n || obj.denominator === 1) && obj.exact;
         return false;
@@ -926,7 +943,8 @@ export const mathPrimitives = {
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is exact.
      */
-    'exact?': (obj) => {
+    'exact?': function (obj) {
+        if (arguments.length !== 1) assertArity('exact?', arguments, 1);
         assertNumber('exact?', 1, obj);
         return isExact(obj);
     },
@@ -937,7 +955,8 @@ export const mathPrimitives = {
      * @param {*} obj - Value to check.
      * @returns {boolean} True if obj is inexact.
      */
-    'inexact?': (obj) => {
+    'inexact?': function (obj) {
+        if (arguments.length !== 1) assertArity('inexact?', arguments, 1);
         assertNumber('inexact?', 1, obj);
         return !isExact(obj);
     },
@@ -947,7 +966,8 @@ export const mathPrimitives = {
      * @param {number|bigint|Rational|Complex} x - Number to check.
      * @returns {boolean} True if x is finite.
      */
-    'finite?': (x) => {
+    'finite?': function (x) {
+        if (arguments.length !== 1) assertArity('finite?', arguments, 1);
         if (typeof x === 'bigint') return true;  // BigInt is always finite
         if (typeof x === 'number') return Number.isFinite(x);
         if (isRational(x)) return true;
@@ -960,7 +980,8 @@ export const mathPrimitives = {
      * @param {number|bigint|Rational|Complex} x - Number to check.
      * @returns {boolean} True if x is infinite.
      */
-    'infinite?': (x) => {
+    'infinite?': function (x) {
+        if (arguments.length !== 1) assertArity('infinite?', arguments, 1);
         if (typeof x === 'bigint') return false;  // BigInt is never infinite
         if (typeof x === 'number') return !Number.isFinite(x) && !Number.isNaN(x);
         if (isRational(x)) return false;
@@ -973,7 +994,8 @@ export const mathPrimitives = {
      * @param {number|bigint|Rational|Complex} x - Number to check.
      * @returns {boolean} True if x is NaN.
      */
-    'nan?': (x) => {
+    'nan?': function (x) {
+        if (arguments.length !== 1) assertArity('nan?', arguments, 1);
         if (typeof x === 'bigint') return false;  // BigInt is never NaN
         if (typeof x === 'number') return Number.isNaN(x);
         if (isRational(x)) return false;
@@ -990,7 +1012,8 @@ export const mathPrimitives = {
      * @param {Rational|number|bigint} q - Rational number.
      * @returns {number|bigint} Numerator.
      */
-    'numerator': (q) => {
+    'numerator': function (q) {
+        if (arguments.length !== 1) assertArity('numerator', arguments, 1);
         if (isRational(q)) return q.numerator;
         if (typeof q === 'bigint') return q;
         if (typeof q === 'number' && Number.isInteger(q)) return BigInt(q);
@@ -1002,7 +1025,8 @@ export const mathPrimitives = {
      * @param {Rational|number|bigint} q - Rational number.
      * @returns {number|bigint} Denominator.
      */
-    'denominator': (q) => {
+    'denominator': function (q) {
+        if (arguments.length !== 1) assertArity('denominator', arguments, 1);
         if (isRational(q)) return q.denominator;
         if (typeof q === 'bigint') return 1n;
         if (typeof q === 'number' && Number.isInteger(q)) return 1n;
@@ -1020,7 +1044,8 @@ export const mathPrimitives = {
      * @param {number|bigint|Rational} y - Imaginary part.
      * @returns {number|bigint|Rational|Complex}
      */
-    'make-rectangular': (x, y) => {
+    'make-rectangular': function (x, y) {
+        if (arguments.length !== 2) assertArity('make-rectangular', arguments, 2);
         assertNumber('make-rectangular', 1, x);
         assertNumber('make-rectangular', 2, y);
         return makeRectangular(x, y);
@@ -1032,7 +1057,8 @@ export const mathPrimitives = {
      * @param {number|bigint|Rational} theta - Angle in radians.
      * @returns {Complex}
      */
-    'make-polar': (r, theta) => {
+    'make-polar': function (r, theta) {
+        if (arguments.length !== 2) assertArity('make-polar', arguments, 2);
         assertNumber('make-polar', 1, r);
         assertNumber('make-polar', 2, theta);
         // Convert to Number for trigonometric operations
@@ -1050,7 +1076,8 @@ export const mathPrimitives = {
      * @param {Complex|number|bigint|Rational} z - Complex number.
      * @returns {number|bigint}
      */
-    'real-part': (z) => {
+    'real-part': function (z) {
+        if (arguments.length !== 1) assertArity('real-part', arguments, 1);
         if (isComplex(z)) return z.real;
         if (typeof z === 'number') return z;
         if (typeof z === 'bigint') return z;
@@ -1063,7 +1090,8 @@ export const mathPrimitives = {
      * @param {Complex|number|bigint|Rational} z - Complex number.
      * @returns {number|bigint}
      */
-    'imag-part': (z) => {
+    'imag-part': function (z) {
+        if (arguments.length !== 1) assertArity('imag-part', arguments, 1);
         if (isComplex(z)) return z.imag;
         // All real numbers have 0 imaginary part
         if (typeof z === 'number') return 0;
@@ -1077,7 +1105,8 @@ export const mathPrimitives = {
      * @param {Complex|number|bigint|Rational} z - Complex number.
      * @returns {number}
      */
-    'magnitude': (z) => {
+    'magnitude': function (z) {
+        if (arguments.length !== 1) assertArity('magnitude', arguments, 1);
         if (isComplex(z)) return z.magnitude();
         if (typeof z === 'number') return Math.abs(z);
         if (typeof z === 'bigint') return z < 0n ? -z : z;
@@ -1090,7 +1119,8 @@ export const mathPrimitives = {
      * @param {Complex|number|bigint|Rational} z - Complex number.
      * @returns {number}
      */
-    'angle': (z) => {
+    'angle': function (z) {
+        if (arguments.length !== 1) assertArity('angle', arguments, 1);
         if (isComplex(z)) return z.angle();
         if (typeof z === 'number') return z >= 0 ? 0 : Math.PI;
         if (typeof z === 'bigint') return z >= 0n ? 0n : Math.PI; // Exact 0 for positive real
@@ -1107,7 +1137,8 @@ export const mathPrimitives = {
      * @param {number} x - Number.
      * @returns {number} Absolute value.
      */
-    'abs': (x) => {
+    'abs': function (x) {
+        if (arguments.length !== 1) assertArity('abs', arguments, 1);
         assertNumber('abs', 1, x);
         if (typeof x === 'bigint') return x < 0n ? -x : x;
         if (isComplex(x)) return x.magnitude();
@@ -1120,7 +1151,8 @@ export const mathPrimitives = {
      * @param {number} x - Number.
      * @returns {number} Floor of x.
      */
-    'floor': (x) => {
+    'floor': function (x) {
+        if (arguments.length !== 1) assertArity('floor', arguments, 1);
         if (typeof x === 'bigint') return x;  // BigInt is already integer
         if (isRational(x)) {
             return floorDivBigInt(x.numerator, x.denominator);
@@ -1134,7 +1166,8 @@ export const mathPrimitives = {
      * @param {number} x - Number.
      * @returns {number} Ceiling of x.
      */
-    'ceiling': (x) => {
+    'ceiling': function (x) {
+        if (arguments.length !== 1) assertArity('ceiling', arguments, 1);
         if (typeof x === 'bigint') return x;
         if (isRational(x)) {
             return ceilDivBigInt(x.numerator, x.denominator);
@@ -1148,7 +1181,8 @@ export const mathPrimitives = {
      * @param {number} x - Number.
      * @returns {number} Truncated value.
      */
-    'truncate': (x) => {
+    'truncate': function (x) {
+        if (arguments.length !== 1) assertArity('truncate', arguments, 1);
         if (typeof x === 'bigint') return x;
         if (isRational(x)) {
             return truncDivBigInt(x.numerator, x.denominator);
@@ -1162,7 +1196,8 @@ export const mathPrimitives = {
      * @param {number} x - Number.
      * @returns {number} Rounded value.
      */
-    'round': (x) => {
+    'round': function (x) {
+        if (arguments.length !== 1) assertArity('round', arguments, 1);
         if (typeof x === 'bigint') return x;
         if (isRational(x)) {
             return roundDivBigInt(x.numerator, x.denominator);
@@ -1184,8 +1219,8 @@ export const mathPrimitives = {
      * @param {number|bigint|Rational} exponent - Exponent.
      * @returns {number|bigint|Rational|Complex} base^exponent.
      */
-    'expt': (base, exponent) => {
-        assertArity('expt', [base, exponent], 2, 2);
+    'expt': function (base, exponent) {
+        if (arguments.length !== 2) assertArity('expt', arguments, 2);
         if (typeof base === 'bigint' && typeof exponent === 'bigint') {
             return exponent >= 0n ? base ** exponent : genericDiv(1n, base ** -exponent);
         }
@@ -1216,7 +1251,8 @@ export const mathPrimitives = {
      * @param {number|bigint|Rational} z - Number.
      * @returns {number|bigint|Rational|Complex} Square root.
      */
-    'sqrt': (z) => {
+    'sqrt': function (z) {
+        if (arguments.length !== 1) assertArity('sqrt', arguments, 1);
         if (typeof z === 'number' && z >= 0) return Math.sqrt(z);
         const x = realArgument('sqrt', 1, z);
         // Compared exactly, as in `expt`; -0.0 is not below zero, and is its
@@ -1230,21 +1266,30 @@ export const mathPrimitives = {
      * @param {number|bigint|Rational} z - Angle in radians.
      * @returns {number} Sine of z.
      */
-    'sin': (z) => Math.sin(toNumber(realArgument('sin', 1, z))),
+    'sin': function (z) {
+        if (arguments.length !== 1) assertArity('sin', arguments, 1);
+        return Math.sin(toNumber(realArgument('sin', 1, z)));
+    },
 
     /**
      * Cosine.
      * @param {number|bigint|Rational} z - Angle in radians.
      * @returns {number} Cosine of z.
      */
-    'cos': (z) => Math.cos(toNumber(realArgument('cos', 1, z))),
+    'cos': function (z) {
+        if (arguments.length !== 1) assertArity('cos', arguments, 1);
+        return Math.cos(toNumber(realArgument('cos', 1, z)));
+    },
 
     /**
      * Tangent.
      * @param {number|bigint|Rational} z - Angle in radians.
      * @returns {number} Tangent of z.
      */
-    'tan': (z) => Math.tan(toNumber(realArgument('tan', 1, z))),
+    'tan': function (z) {
+        if (arguments.length !== 1) assertArity('tan', arguments, 1);
+        return Math.tan(toNumber(realArgument('tan', 1, z)));
+    },
 
     /**
      * Arcsine. Beyond [-1, 1] it is complex: R7RS 6.2.6 defines asin z as
@@ -1253,7 +1298,8 @@ export const mathPrimitives = {
      * @param {number|bigint|Rational} z - Value.
      * @returns {number|Complex} Arcsine in radians.
      */
-    'asin': (z) => {
+    'asin': function (z) {
+        if (arguments.length !== 1) assertArity('asin', arguments, 1);
         const x = toNumber(realArgument('asin', 1, z));
         if (x > 1) return makeRectangular(Math.PI / 2, -Math.acosh(x));
         if (x < -1) return makeRectangular(-Math.PI / 2, Math.acosh(-x));
@@ -1266,7 +1312,8 @@ export const mathPrimitives = {
      * @param {number|bigint|Rational} z - Value.
      * @returns {number|Complex} Arccosine in radians.
      */
-    'acos': (z) => {
+    'acos': function (z) {
+        if (arguments.length !== 1) assertArity('acos', arguments, 1);
         const x = toNumber(realArgument('acos', 1, z));
         if (x > 1) return makeRectangular(0, Math.acosh(x));
         if (x < -1) return makeRectangular(Math.PI, -Math.acosh(-x));
@@ -1276,29 +1323,33 @@ export const mathPrimitives = {
     /**
      * Arctangent. With two arguments, the angle of the point (x, y), which
      * R7RS 6.2.6 requires to be real.
-     * @param {...(number|bigint|Rational)} args - z, or y and x.
+     * @param {number|bigint|Rational} y - z, or the point's y.
+     * @param {number|bigint|Rational} [x] - The point's x.
      * @returns {number} Arctangent in radians.
      */
-    'atan': (...args) => {
-        assertArity('atan', args, 1, 2);
-        if (args.length === 1) return Math.atan(toNumber(realArgument('atan', 1, args[0])));
-        assertReal('atan', 1, args[0]);
-        assertReal('atan', 2, args[1]);
-        return Math.atan2(toNumber(args[0]), toNumber(args[1]));
+    'atan': function (y, x) {
+        const count = arguments.length;
+        if (count !== 1 && count !== 2) assertArity('atan', arguments, 1, 2);
+        if (count === 1) return Math.atan(toNumber(realArgument('atan', 1, y)));
+        assertReal('atan', 1, y);
+        assertReal('atan', 2, x);
+        return Math.atan2(toNumber(y), toNumber(x));
     },
 
     /**
      * Logarithm: natural with one argument, and with two the logarithm of the
      * first in the base of the second, log z1 / log z2. A negative number's is
      * complex; see `logReal`.
-     * @param {...(number|bigint|Rational)} args - z, or z1 and z2.
+     * @param {number|bigint|Rational} z1 - The number.
+     * @param {number|bigint|Rational} [z2] - The base.
      * @returns {number|Complex} The logarithm.
      */
-    'log': (...args) => {
-        assertArity('log', args, 1, 2);
-        const z = logReal(realArgument('log', 1, args[0]));
-        if (args.length === 1) return z;
-        return genericDiv(z, logReal(realArgument('log', 2, args[1])));
+    'log': function (z1, z2) {
+        const count = arguments.length;
+        if (count !== 1 && count !== 2) assertArity('log', arguments, 1, 2);
+        const z = logReal(realArgument('log', 1, z1));
+        if (count === 1) return z;
+        return genericDiv(z, logReal(realArgument('log', 2, z2)));
     },
 
     /**
@@ -1306,7 +1357,10 @@ export const mathPrimitives = {
      * @param {number|bigint|Rational} z - Exponent.
      * @returns {number} e^z.
      */
-    'exp': (z) => Math.exp(toNumber(realArgument('exp', 1, z))),
+    'exp': function (z) {
+        if (arguments.length !== 1) assertArity('exp', arguments, 1);
+        return Math.exp(toNumber(realArgument('exp', 1, z)));
+    },
 
     // =========================================================================
     // Multiple-Value Returning Procedures (R7RS §6.2.6)
@@ -1318,7 +1372,8 @@ export const mathPrimitives = {
      * @param {number} k - Non-negative exact integer
      * @returns {Values} Two values: root and remainder
      */
-    'exact-integer-sqrt': (k) => {
+    'exact-integer-sqrt': function (k) {
+        if (arguments.length !== 1) assertArity('exact-integer-sqrt', arguments, 1);
         // R7RS 6.2.6 takes an exact integer only: an inexact one's root
         // would have to be inexact, and this procedure's are exact.
         if (typeof k !== 'bigint' || k < 0n) {
@@ -1336,8 +1391,8 @@ export const mathPrimitives = {
      * @param {bigint|number} n2 - Divisor
      * @returns {Values} Two values: quotient and remainder
      */
-    'floor/': (n1, n2) => {
-        assertArity('floor/', [n1, n2], 2, 2);
+    'floor/': function (n1, n2) {
+        if (arguments.length !== 2) assertArity('floor/', arguments, 2);
         assertDivision('floor/', n1, n2);
         const a = toBigInt(n1);
         const b = toBigInt(n2);
@@ -1353,8 +1408,8 @@ export const mathPrimitives = {
      * @param {bigint|number} n2 - Divisor
      * @returns {Values} Two values: quotient and remainder
      */
-    'truncate/': (n1, n2) => {
-        assertArity('truncate/', [n1, n2], 2, 2);
+    'truncate/': function (n1, n2) {
+        if (arguments.length !== 2) assertArity('truncate/', arguments, 2);
         assertDivision('truncate/', n1, n2);
         const a = toBigInt(n1);
         const b = toBigInt(n2);
@@ -1368,8 +1423,8 @@ export const mathPrimitives = {
      * @param {bigint|number} n2 - Divisor
      * @returns {bigint|number} Floor quotient
      */
-    'floor-quotient': (n1, n2) => {
-        assertArity('floor-quotient', [n1, n2], 2, 2);
+    'floor-quotient': function (n1, n2) {
+        if (arguments.length !== 2) assertArity('floor-quotient', arguments, 2);
         assertDivision('floor-quotient', n1, n2);
         return divisionResult(floorDivBigInt(toBigInt(n1), toBigInt(n2)), n1, n2);
     },
@@ -1380,8 +1435,8 @@ export const mathPrimitives = {
      * @param {bigint|number} n2 - Divisor
      * @returns {bigint|number} Floor remainder
      */
-    'floor-remainder': (n1, n2) => {
-        assertArity('floor-remainder', [n1, n2], 2, 2);
+    'floor-remainder': function (n1, n2) {
+        if (arguments.length !== 2) assertArity('floor-remainder', arguments, 2);
         assertDivision('floor-remainder', n1, n2);
         const a = toBigInt(n1);
         const b = toBigInt(n2);
@@ -1394,8 +1449,8 @@ export const mathPrimitives = {
      * @param {bigint|number} n2 - Divisor
      * @returns {bigint|number} Truncate quotient
      */
-    'truncate-quotient': (n1, n2) => {
-        assertArity('truncate-quotient', [n1, n2], 2, 2);
+    'truncate-quotient': function (n1, n2) {
+        if (arguments.length !== 2) assertArity('truncate-quotient', arguments, 2);
         assertDivision('truncate-quotient', n1, n2);
         return divisionResult(truncDivBigInt(toBigInt(n1), toBigInt(n2)), n1, n2);
     },
@@ -1406,8 +1461,8 @@ export const mathPrimitives = {
      * @param {bigint|number} n2 - Divisor
      * @returns {bigint|number} Truncate remainder
      */
-    'truncate-remainder': (n1, n2) => {
-        assertArity('truncate-remainder', [n1, n2], 2, 2);
+    'truncate-remainder': function (n1, n2) {
+        if (arguments.length !== 2) assertArity('truncate-remainder', arguments, 2);
         assertDivision('truncate-remainder', n1, n2);
         return divisionResult(toBigInt(n1) % toBigInt(n2), n1, n2);
     },
@@ -1419,7 +1474,8 @@ export const mathPrimitives = {
      * @param {number|bigint|Rational|Complex} z - Number to square.
      * @returns {number|bigint|Rational|Complex} z * z
      */
-    'square': (z) => {
+    'square': function (z) {
+        if (arguments.length !== 1) assertArity('square', arguments, 1);
         assertNumber('square', 1, z);
         if (typeof z === 'bigint' || typeof z === 'number') return z * z;
         return genericMul(z, z);
@@ -1431,7 +1487,8 @@ export const mathPrimitives = {
      * @param {number|bigint|Rational|Complex} z - Number to convert.
      * @returns {number|Rational|Complex} Inexact equivalent.
      */
-    'inexact': (z) => {
+    'inexact': function (z) {
+        if (arguments.length !== 1) assertArity('inexact', arguments, 1);
         assertNumber('inexact', 1, z);
         if (typeof z === 'bigint') {
             return Number(z);  // BigInt -> Number (inexact)
@@ -1458,6 +1515,7 @@ export const mathPrimitives = {
      * @returns {bigint|Rational|Complex} Exact equivalent.
      */
     'exact': function exact(z) {
+        if (arguments.length !== 1) assertArity('exact', arguments, 1);
         assertNumber('exact', 1, z);
         if (!isComplex(z)) return exactReal(z, z);
         // Each part converted; an exact zero imaginary part leaves the real
@@ -1596,14 +1654,16 @@ for (const [name, fn] of Object.entries(mathPrimitives)) mathPrimitives[name] = 
  * again its time.
  * @param {Function} general - The primitive for any numbers.
  * @param {function(*, *): *} combine - Two reals' result, or `undefined`.
- * @param {number} empty - The result for no arguments.
+ * @param {number|undefined} empty - The result for no arguments, or
+ *   `undefined` for a primitive that needs at least one, whose call with none
+ *   is then `general`'s arity error.
  * @param {function(*, *): *} tower - The tower's operation on two numbers,
  *   in its representation.
  * @returns {Function}
  */
 function foldingReals(general, combine, empty, tower) {
     return (...args) => {
-        if (args.length === 0) return empty;
+        if (args.length === 0) return empty === undefined ? general() : empty;
         if (args.length === 1) return general(...args);
         if (args.length === 2) {
             const a = args[0], b = args[1];
@@ -1663,7 +1723,7 @@ const general = { ...mathPrimitives };
 {
     mathPrimitives['+'] = foldingReals(general['+'], addReals, 0, genericAdd);
     mathPrimitives['*'] = foldingReals(general['*'], mulReals, 1, genericMul);
-    const subtract = foldingReals(general['-'], subReals, 0, genericSub);
+    const subtract = foldingReals(general['-'], subReals, undefined, genericSub);
     mathPrimitives['-'] = (...args) => {
         if (args.length === 1 && typeof args[0] === 'number') {
             const x = args[0];
