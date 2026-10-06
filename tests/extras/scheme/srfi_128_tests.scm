@@ -37,7 +37,7 @@
   (test "comparator-test-type accepts" #t (comparator-test-type cmp "a"))
   (test "comparator-test-type rejects" #f (comparator-test-type cmp 'a))
   (test "comparator-check-type accepts" #t (comparator-check-type cmp "a"))
-  (test-error "comparator-check-type signals on the wrong type" ""
+  (test-error "comparator-check-type signals on the wrong type" "value has the wrong type"
     (comparator-check-type cmp 'a))
   (test "comparator-hash applies the hash function" (string-hash "abc")
     (comparator-hash cmp "abc")))
@@ -48,9 +48,9 @@
   (test "not hashable" #f (comparator-hashable? cmp))
   (test "the ordering is still a procedure" #t
     (procedure? (comparator-ordering-predicate cmp)))
-  (test-error "calling the missing ordering signals" ""
+  (test-error "calling the missing ordering signals" "comparator has no ordering"
     ((comparator-ordering-predicate cmp) 1 2))
-  (test-error "calling the missing hash signals" ""
+  (test-error "calling the missing hash signals" "comparator has no hash function"
     (comparator-hash cmp 1)))
 
 (test-group "standard hash functions"

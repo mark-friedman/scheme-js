@@ -1058,35 +1058,19 @@
 ;; path's own test of the count is what is tested.
 
 ;; /**
-;;  * Whether an error's message is the arity error of the procedure a call
-;;  * names: the procedure's name, then "wrong number of arguments".
+;;  * The start of the arity error of the procedure a call names: its name,
+;;  * then "wrong number of arguments".
 ;;  * @param {list} call - The call, as a datum.
-;;  * @param {string|boolean} message - The message, or #f for no error.
-;;  * @returns {boolean}
+;;  * @returns {string}
 ;;  */
-(define (arity-error-message? call message)
-  (let ((prefix (string-append (symbol->string (car call)) ": wrong number of arguments")))
-    (and (string? message)
-         (>= (string-length message) (string-length prefix))
-         (string=? (substring message 0 (string-length prefix)) prefix))))
+(define (arity-error-text call)
+  (string-append (symbol->string (car call)) ": wrong number of arguments"))
 
 ;; /**
-;;  * The calls whose errors are not their procedures' arity errors.
-;;  * @param {list} results - Pairs of a call, as a datum, and the message of
-;;  *   its error, or #f for none.
-;;  * @returns {list} The pairs whose message is not an arity error's.
-;;  */
-(define (calls-without-arity-errors results)
-  (cond ((null? results) '())
-        ((arity-error-message? (caar results) (cdar results))
-         (calls-without-arity-errors (cdr results)))
-        (else (cons (car results) (calls-without-arity-errors (cdr results))))))
-
-;; /**
-;;  * A test group of calls that must each raise an arity error: a `test-error`
-;;  * for each call, and a test that every error is the procedure's arity error
-;;  * -- `test-error` passes on any error, and a missing argument also raises a
-;;  * type error.
+;;  * A test group of calls that must each raise their procedure's arity error.
+;;  * The procedure's name is part of the text the message must contain, so
+;;  * that an arity error raised by another procedure, one the call's goes
+;;  * through, does not pass for it.
 ;;  * @param {string} name - The group's name.
 ;;  * @param {...*} call - The calls.
 ;;  */
@@ -1094,11 +1078,7 @@
   (syntax-rules ()
     ((_ name call ...)
      (test-group name
-       (test-error 'call "wrong number of arguments" call) ...
-       (test "each error is the procedure's arity error"
-         '()
-         (calls-without-arity-errors
-          (list (cons 'call (error-message (lambda () call))) ...)))))))
+       (test-error 'call (arity-error-text 'call) call) ...))))
 
 (test-arity-errors "one argument too many"
   (number? 1 2)

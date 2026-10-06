@@ -13134,3 +13134,64 @@ returned values, and with `foldingReals`' 0 for `-` put back, `(-)` returned 0.
 
 8,438 tests pass in Node with none failing (34 skipped), and the same with the standard library
 compiled (`SCHEME_AOT_STDLIB=1`); 8,220 in the browser with none failing (56 skipped).
+
+
+# `test-error` checks the message it is given (2026-10-06)
+
+The Scheme test harness's `test-error`, `(test-error name expected-msg expr)`, said that
+`expected-msg` was a "Substring expected in error message", but it never looked: any error passed,
+and so did a raised object that was not an error. A test could not tell which error a call raised --
+the arity tests in `number_tests.scm` had needed a check of their own, since a missing argument
+also raises a type error -- and an expectation could go stale without failing.
+
+`test-error` (`tests/core/scheme/test.scm`) now passes only when the expression raises an error
+object whose message contains the text, case counting; the irritants are not looked in. It fails if
+the expression returns, if the message does not contain the text, or if what is raised is not an
+error object, which has no message, and it reports the message, or what was raised, written, as
+what the test got. The search is the harness's own `message-contains?`, not SRFI 152's
+`string-contains`: the harness is loaded into the environment every test file runs in, and the
+import would bind the SRFI's names there too.
+
+It also refuses an expected text that cannot test a message, failing the test, without evaluating
+the expression, and saying why: the empty string, which every message contains, so that a test
+expecting it would pass on any error, as thirteen did (below); and a text that is not a string, with
+which the search raised an error of its own from inside `test-error`'s handler, out of the test.
+
+Of the 90 other `test-error` calls the suite makes, 73 already named text in their message. The
+others:
+
+- **Four expectations were stale.** `promise_tests.scm` and `promise_interop_tests.scm` expected
+  `js-promise-then` and `js-promise-catch` to say "must be a Promise" of an argument that is not
+  one; since "Use Scheme errors. uniformly." (4b2ee54) they raise the standard type error, "expected
+  Promise at argument 1", which the tests now expect. The errors were right; the tests had stopped
+  checking them.
+- **Thirteen expected the empty string**, which every message contains, so they passed on any
+  error still: the immutable-table, missing-key, empty-table, non-table, string-key and
+  missing-hash-function errors of `srfi_125_tests.scm`, and the wrong-type, missing-ordering and
+  missing-hash errors of `srfi_128_tests.scm`. Each now expects its message. `hash-table-update!` on
+  a missing key reports the error as `hash-table-ref`'s, "hash-table-ref: key not found", since it
+  is implemented by it; its test expects "key not found".
+
+No error was of the wrong kind. `number_tests.scm`'s arity tests now give `test-error` the text
+"<procedure>: wrong number of arguments", the procedure's name included, so that an arity error of
+another procedure the call goes through does not pass; their own check of the message, and the two
+tests it made, are gone. With `abs`'s count tests removed, `(abs)` fails, reporting the type error
+it raises, which the old `test-error` passed.
+
+No JavaScript under `src/` changed.
+
+## Tests
+
+`test_harness_tests.scm`, 14 tests of `test-error`: an error whose message contains the text, or is
+it, passes, and so does a primitive's; one whose message does not contain it fails and reports the
+message; the irritants are not looked in; case counts; no error fails and says so; a raised object
+that is not an error fails and is reported written; an empty text, and one that is not a string,
+are refused, and say why. Seven of them failed before the change, and the one with a text that is
+not a string went unreported: its error left `reports-of` before it gave the runner its reporter
+back. `reports-of`, which keeps what tests report from the runner, takes what to record of each
+result.
+
+## Verification
+
+8,450 tests pass in Node with none failing (34 skipped), and the same with the standard library
+compiled (`SCHEME_AOT_STDLIB=1`); 8,232 in the browser with none failing (56 skipped).

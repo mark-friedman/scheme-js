@@ -221,25 +221,76 @@
          body ...)))))
 
 ;; /**
-;;  * Test that an expression raises an error containing the given message.
-;;  * Uses guard to catch exceptions.
+;;  * Whether an error message contains a text, case counting. SRFI 152's
+;;  * `string-contains` is not imported for it: the harness is loaded into the
+;;  * environment every test file runs in, and the import would bind the SRFI's
+;;  * names there too.
+;;  * @param {string} message - The message.
+;;  * @param {string} text - The text.
+;;  * @returns {boolean}
+;;  */
+(define (message-contains? message text)
+  (let ((end (- (string-length message) (string-length text))))
+    (let loop ((start 0))
+      (and (<= start end)
+           (or (string=? (substring message start (+ start (string-length text))) text)
+               (loop (+ start 1)))))))
+
+;; /**
+;;  * Reports a `test-error` test, given what its expression raised: passed if
+;;  * it is an error object whose message contains the expected text, and
+;;  * otherwise failed, with the message, or what was raised written, as what
+;;  * the test got.
+;;  * @param {*} name - The test's name.
+;;  * @param {string} expected-msg - The text expected in the message.
+;;  * @param {*} raised - What the expression raised.
+;;  */
+(define (report-error-test-result name expected-msg raised)
+  (if (error-object? raised)
+      (let ((msg (error-object-message raised)))
+        (report-test-result name
+                            (and (string? msg) (message-contains? msg expected-msg))
+                            expected-msg
+                            msg))
+      (let ((port (open-output-string)))
+        (write raised port)
+        (report-test-result name #f expected-msg
+                            (string-append "non-error object raised: " (get-output-string port))))))
+
+;; /**
+;;  * Why a `test-error` test's expected text cannot test a message, or #f if
+;;  * it can. The empty string is refused because every message contains it,
+;;  * so a test expecting it would pass on any error.
+;;  * @param {*} text - The expected text.
+;;  * @returns {string|boolean} The reason, or #f.
+;;  */
+(define (error-text-refusal text)
+  (cond ((not (string? text)) "refused: the expected text is not a string")
+        ((string=? text "") "refused: every message contains the empty text")
+        (else #f)))
+
+;; /**
+;;  * Test that an expression raises an error whose message contains a text.
+;;  * It fails if the expression returns, if its error's message does not
+;;  * contain the text -- the irritants are not looked in -- or if what it
+;;  * raises is not an error object, which has no message. A text that cannot
+;;  * test a message, the empty string or one that is not a string, fails the
+;;  * test without evaluating the expression.
 ;;  *
 ;;  * @param {string} name - Test description.
-;;  * @param {string} expected-msg - Substring expected in error message.
+;;  * @param {string} expected-msg - Text expected in the error's message.
 ;;  * @param {*} expr - Expression that should raise an error.
 ;;  */
 (define-syntax test-error
   (syntax-rules ()
     ((test-error name expected-msg expr)
-     (guard (e (#t
-                (let ((msg (if (error-object? e)
-                               (error-object-message e)
-                               "non-error-object raised")))
-                  (if (string? msg)
-                      (report-test-result name #t expected-msg msg)
-                       (report-test-result name #f expected-msg msg)))))
-       expr
-       (report-test-result name #f expected-msg "no error raised")))))
+     (let* ((text expected-msg)
+            (refusal (error-text-refusal text)))
+       (if refusal
+           (report-test-result name #f text refusal)
+           (guard (e (#t (report-error-test-result name text e)))
+             expr
+             (report-test-result name #f text "no error raised")))))))
 
 
 ;; Compatibility definitions for Chibi tests

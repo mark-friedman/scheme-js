@@ -77,7 +77,7 @@
   (test "make-hash-table with string-ci=?" #t (hash-table? (make-hash-table string-ci=?)))
   (test "make-hash-table with a predicate and a hash function" #t
     (hash-table? (make-hash-table (lambda (a b) (= a b)) number-hash)))
-  (test-error "an unknown predicate without a hash function is an error" ""
+  (test-error "an unknown predicate without a hash function is an error" "no hash function was given"
     (make-hash-table (lambda (a b) (= a b))))
   (test "a capacity and implementation flags are accepted" #t
     (hash-table? (make-hash-table eq? 100 'weak-keys 'thread-safe)))
@@ -122,7 +122,7 @@
   (test "hash-table-exists? is a synonym" #t (hash-table-exists? ht "a"))
   (test "hash-table-empty? on a non-empty table" #f (hash-table-empty? ht))
   (test "hash-table-empty? on an empty table" #t (hash-table-empty? (make-hash-table eq?)))
-  (test-error "hash-table-contains? checks its argument" ""
+  (test-error "hash-table-contains? checks its argument" "not a hash table"
     (hash-table-contains? '((a . 1)) 'a)))
 
 (test-group "hash-table=?"
@@ -151,7 +151,7 @@
     (hash-table-ref ht 'b (lambda () 'none) (lambda (v) (* v 10))))
   (test "hash-table-ref calls failure, not success, when absent" 'none
     (hash-table-ref ht 'z (lambda () 'none) (lambda (v) 'found)))
-  (test-error "hash-table-ref without failure on a missing key is an error" ""
+  (test-error "hash-table-ref without failure on a missing key is an error" "key not found"
     (hash-table-ref ht 'z))
   (test "hash-table-ref/default present" 1 (hash-table-ref/default ht 'a 0))
   (test "hash-table-ref/default absent" 0 (hash-table-ref/default ht 'z 0))
@@ -187,14 +187,14 @@
   (test "hash-table-update! uses failure when absent" '(x) (hash-table-ref ht 'new))
   (hash-table-update! ht 'n (lambda (v) v) (lambda () 0) (lambda (v) (* v 2)))
   (test "hash-table-update! applies success before the updater" 200 (hash-table-ref ht 'n))
-  (test-error "hash-table-update! on a missing key without failure is an error" ""
+  (test-error "hash-table-update! on a missing key without failure is an error" "key not found"
     (hash-table-update! ht 'missing (lambda (v) v)))
 
   (hash-table-update!/default ht 'count (lambda (v) (+ v 1)) 0)
   (hash-table-update!/default ht 'count (lambda (v) (+ v 1)) 0)
   (test "hash-table-update!/default" 2 (hash-table-ref ht 'count))
 
-  (test-error "hash-table-pop! on an empty table is an error" ""
+  (test-error "hash-table-pop! on an empty table is an error" "hash table is empty"
     (hash-table-pop! (make-hash-table eqv?)))
   (let ((one (make-hash-table eqv?)))
     (hash-table-set! one 7 'seven)
@@ -214,13 +214,13 @@
 
 (test-group "immutable tables"
   (define ht (hash-table (make-eqv-comparator) 1 'one))
-  (test-error "hash-table-set! on an immutable table is an error" ""
+  (test-error "hash-table-set! on an immutable table is an error" "hash table is immutable"
     (hash-table-set! ht 2 'two))
-  (test-error "hash-table-delete! on an immutable table is an error" ""
+  (test-error "hash-table-delete! on an immutable table is an error" "hash table is immutable"
     (hash-table-delete! ht 1))
-  (test-error "hash-table-clear! on an immutable table is an error" ""
+  (test-error "hash-table-clear! on an immutable table is an error" "hash table is immutable"
     (hash-table-clear! ht))
-  (test-error "hash-table-update! on an immutable table is an error" ""
+  (test-error "hash-table-update! on an immutable table is an error" "hash table is immutable"
     (hash-table-update!/default ht 1 (lambda (v) v) 0))
   (test "an immutable table is still readable" 'one (hash-table-ref ht 1))
   (test "hash-table-copy with #t makes it mutable" 'two
@@ -396,7 +396,7 @@
     (list (hash-table-size ci) (hash-table-ref ci "key")))
   (test "string-ci=? keeps a stored key" #t
     (string-ci=? "key" (car (hash-table-keys ci))))
-  (test-error "a string table rejects a non-string key" ""
+  (test-error "a string table rejects a non-string key" "expected string at argument 2"
     (hash-table-set! cs 'key 1)))
 
 (test-group "equivalence: a comparator the library does not recognise"

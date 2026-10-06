@@ -105,7 +105,7 @@
 ;; ============================================================================
 
 (test-group "type errors"
-  (test-error "js-promise-then rejects non-promise first arg" "must be a Promise"
+  (test-error "js-promise-then rejects non-promise first arg" "expected Promise at argument 1"
     (js-promise-then 42 (lambda (x) x)))
-  (test-error "js-promise-catch rejects non-promise first arg" "must be a Promise"
+  (test-error "js-promise-catch rejects non-promise first arg" "expected Promise at argument 1"
     (js-promise-catch 42 (lambda (x) x))))

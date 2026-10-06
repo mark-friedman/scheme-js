@@ -121,11 +121,11 @@
 
 (test-group "Type checking - interop"
   (test-error "js-promise-then rejects non-promise first arg"
-    "must be a Promise"
+    "expected Promise at argument 1"
     (js-promise-then 'not-a-promise (lambda (x) x)))
   
   (test-error "js-promise-catch rejects non-promise first arg"
-    "must be a Promise"
+    "expected Promise at argument 1"
     (js-promise-catch 'not-a-promise (lambda (x) x))))
 
 ;; ============================================================================
