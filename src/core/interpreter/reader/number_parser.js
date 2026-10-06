@@ -7,7 +7,7 @@
  */
 
 import { Rational } from '../../primitives/rational.js';
-import { Complex } from '../../primitives/complex.js';
+import { Complex, makeRectangular } from '../../primitives/complex.js';
 import { SchemeReadError } from '../errors.js';
 import { fromTower } from '../number_representation.js';
 
@@ -119,12 +119,9 @@ function parseTowerNumber(token, exactness) {
             else imagVal = -imagVal;
         }
 
-        // Determine overall exactness: exact only if both parts are exact
-        const isExact = (typeof real !== 'number') && (typeof imagVal !== 'number') &&
-            (!(real instanceof Rational) || real.exact !== false) &&
-            (!(imagVal instanceof Rational) || imagVal.exact !== false);
-
-        return new Complex(real, imagVal, isExact);
+        // Exact only if both parts are, which the Complex constructor
+        // decides; an exact zero imaginary part leaves the real part alone.
+        return makeRectangular(real, imagVal);
     }
 
     // Pure imaginary: +i, -i, 3i, +inf.0i
@@ -137,7 +134,7 @@ function parseTowerNumber(token, exactness) {
         if (part === '+' || part === '') return new Complex(0n, 1n);
         if (part === '-') return new Complex(0n, -1n);
 
-        return new Complex(0n, parseRealStr(part));
+        return makeRectangular(0n, parseRealStr(part));
     }
 
     // Check for rational: 1/2, -3/4, etc.
@@ -282,34 +279,29 @@ function parseRationalWithRadix(str, radix, exactness) {
  * @param {string} str
  * @param {number} radix
  * @param {string|null} exactness
- * @returns {Complex|null}
+ * @returns {number|bigint|Rational|Complex|null} A real number if the
+ *   imaginary part is an exact zero, or null if the string is not a number.
  */
 function parseComplexWithRadix(str, radix, exactness) {
     const complexMatch = str.match(/^([+-]?[0-9a-fA-F.]+)([+-])([0-9a-fA-F.]+)?i$/);
     if (!complexMatch) return null;
 
+    // Each part is read as a real number in the radix, with the prefix's
+    // exactness, so that `#e1.5+2i` is 3/2+2i and `#e5.0+0.0i` is 5.
     const parsePart = (s) => {
-        if (!s) return 0n;
-        if (radix === 10 && (s.includes('.') || s.toLowerCase().includes('e'))) return parseFloat(s);
-        return BigInt(parseInt(s, radix));
+        const part = parseRealWithRadix(s, radix, exactness);
+        return exactness === 'inexact' && typeof part === 'bigint' ? Number(part) : part;
     };
 
     const realPart = parsePart(complexMatch[1]);
-    const sign = complexMatch[2] === '-' ? -1 : 1;
-    const imagStr = complexMatch[3] || '1';
-    let imagPart = parsePart(imagStr);
+    let imagPart = parsePart(complexMatch[3] || '1');
+    if (realPart === null || imagPart === null) return null;
 
-    // Apply sign
-    if (sign === -1) {
-        if (typeof imagPart === 'bigint') imagPart = -imagPart;
-        else imagPart = -imagPart;
+    if (complexMatch[2] === '-') {
+        imagPart = imagPart instanceof Rational ? imagPart.negate() : -imagPart;
     }
 
-    const isResultExact = exactness === 'exact' ? true :
-        (exactness === 'inexact' ? false :
-            (typeof realPart !== 'number' && typeof imagPart !== 'number'));
-
-    return new Complex(realPart, imagPart, isResultExact);
+    return makeRectangular(realPart, imagPart);
 }
 
 /**
