@@ -6,7 +6,8 @@ import { LiteralNode, VariableNode, IfNode, LetNode, LetRecNode, LambdaNode, Tai
 import { assert, createTestLogger, createTestEnv } from '../../harness/helpers.js';
 import { Cons, cons, list } from '../../../src/core/interpreter/cons.js';
 import { Symbol, intern } from '../../../src/core/interpreter/symbol.js';
-import { SchemeUnboundError, SchemeReadError } from '../../../src/core/interpreter/errors.js';
+import { SchemeUnboundError, SchemeReadError, SchemeError } from '../../../src/core/interpreter/errors.js';
+import { Values } from '../../../src/core/interpreter/values.js';
 import { runInterpreterTests } from './interpreter_tests.js';
 import { Flonum } from '../../../src/core/interpreter/number_representation.js';
 
@@ -229,6 +230,17 @@ export function runUnitTests(interpreter, logger) {
         // Shared structure without a cycle is shown as before
         const shared = list(1n);
         assert(logger, "Unit: prettyPrint shared list", prettyPrint(list(shared, shared)), "((1) (1))");
+
+        // The REPLs show a value as write writes it, by the Scheme printer:
+        // a string in quotes, the empty list as itself, several values one
+        // to a line, and an error object, which a REPL is handed when an
+        // evaluation raises one, by its message
+        assert(logger, "Unit: prettyPrint a string", prettyPrint('a"b'), '"a\\"b"');
+        assert(logger, "Unit: prettyPrint the empty list", prettyPrint(null), "()");
+        assert(logger, "Unit: prettyPrint several values",
+            prettyPrint(new Values([1, 'a', intern('b')])), '1\n"a"\nb');
+        assert(logger, "Unit: prettyPrint an error object",
+            prettyPrint(new SchemeError('boom', [1])), "SchemeError: boom");
     } catch (e) {
         logger.fail(`REPL unit tests failed: ${e.message}`);
     }

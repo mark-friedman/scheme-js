@@ -33,6 +33,7 @@ const BOOTSTRAP_FILES = [
   'src/core/scheme/list.scm',
   'src/core/scheme/parameter.scm',
   'src/core/scheme/ports.scm',
+  'src/core/scheme/printer.scm',
   'src/core/scheme/control.scm'
 ];
 

@@ -289,3 +289,69 @@
   (test "as write writes it" "1.0e+21" (written write 1e21))
   (test "and in a complex number's parts" "1.0e+21+5.0e-324i" (number->string (make-rectangular 1e21 5e-324)))
   (test "which reads back" #t (= 1e21 (string->number (number->string 1e21)))))
+
+;; A procedure is written by its name, where it has one; a continuation as
+;; one. Each is written so, not as JavaScript names its function.
+(test-group "procedures"
+  (define (named x) x)
+  (test "a primitive, by its name" "#<procedure car>" (written write car))
+  (test "a procedure defined with a name" "#<procedure named>" (written write named))
+  (test "a lambda, which has none" "#<procedure>" (written write (lambda (x) x)))
+  (test "a continuation" "#<continuation>" (written write (call/cc (lambda (k) k))))
+  (test "displayed the same" "#<procedure car>" (written display car)))
+
+;; R7RS 6.6 names the control characters write writes, and R7RS 6.7 gives
+;; strings escapes for them; any other control character is written by its
+;; code. Either way what is written reads back as the same datum.
+(test-group "control characters, written to be read back"
+  (test "the named characters" '("#\\alarm" "#\\backspace" "#\\delete" "#\\escape" "#\\null" "#\\tab")
+        (map (lambda (c) (written write c))
+             (list #\alarm #\backspace #\delete #\escape #\null #\tab)))
+  (test "another control character, by its code" "#\\x1" (written write (integer->char 1)))
+  (test "a string's escapes" "\"\\a\\b\\t\\n\\r\\\"\\\\\""
+        (written write (string #\alarm #\backspace #\tab #\newline #\return #\" #\\)))
+  (test "another control character in a string, by its code" "\"a\\x1;b\""
+        (written write (string #\a (integer->char 1) #\b)))
+  (test "and each reads back" #t
+        (let ((data (list (string #\alarm (integer->char 1) #\x7F #\newline #\\ #\")
+                          #\null #\delete (integer->char 2) #\escape)))
+          (equal? data (read (open-input-string (written write data)))))))
+
+;; A symbol is written between bars where its name would read as something
+;; else: a number, the start of one, or a datum it has a delimiter of.
+(test-group "symbols written between bars"
+  (test "names that read as numbers, or begin as one does"
+        "(|1+| |+5| |.5a| |-i| |+I| |+inf.0x| |nan.0| |-NaN.0|)"
+        (written write '(|1+| |+5| |.5a| |-i| |+I| |+inf.0x| |nan.0| |-NaN.0|)))
+  (test "names that begin with # or hold a delimiter"
+        "(|#foo| |a b| |a(b| |a;b| |a\"b|)"
+        (written write '(|#foo| |a b| |a(b| |a;b| |a"b|)))
+  (test "white space outside ASCII" "|a\xA0;b|" (written write (string->symbol "a\xA0;b")))
+  (test "a bar or backslash in the name is escaped" "|a\\|b\\\\c|" (written write '|a\|b\\c|))
+  (test "names that need none"
+        "(abc ... + - ->x a.b? lambda inferno nano |.| ||)"
+        (written write (list 'abc '... '+ '- '->x (string->symbol "a.b?") 'lambda 'inferno 'nano
+                             (string->symbol ".") (string->symbol ""))))
+  (test "display writes none" "a b" (written display '|a b|))
+  (test "and each reads back" #t
+        (let ((symbols '(|1+| |-i| |+inf.0x| |#foo| |a b| |a\|b| abc ...)))
+          (equal? symbols (read (open-input-string (written write symbols)))))))
+
+;; `write` and `display` first walk a datum as a tree, looking for nothing,
+;; and look for cycles only in a datum too large to walk so: a walk into a
+;; cycle never ends. Past that walk's budget, what is written is the same.
+(test-group "labels, past the walk as a tree"
+  (test "a long list with no cycle has no labels" #t
+        (let ((long (make-list 5000 'a)))
+          (string=? (written write long) (written write-simple long))))
+  (test "nor a structure shared too often to walk as a tree" #t
+        (let ((doubled (let loop ((n 14) (x '()))
+                         (if (= n 0) x (loop (- n 1) (list x x))))))
+          (string=? (written write doubled) (written write-simple doubled))))
+  (test "a long cycle is labelled" '("#0=(1 1" ". #0#)")
+        (let ((text (written write (apply circular (make-list 5000 1)))))
+          (list (substring text 0 7) (substring text (- (string-length text) 6) (string-length text)))))
+  (test "a cycle deep in a long list is labelled" ". #0=(z . #0#))"
+        (let* ((tail (circular 'z))
+               (text (written write (append (make-list 5000 'a) tail))))
+          (substring text (- (string-length text) 15) (string-length text)))))

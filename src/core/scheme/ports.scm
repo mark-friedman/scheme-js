@@ -103,6 +103,22 @@
 (define (the-current-output-port) (cdr (param-dynamic-lookup current-output-port-cell)))
 
 ;; /**
+;;  * The open textual output port a writer's optional port argument gives, or
+;;  * the current output port: checked here, once, for a writer that writes it
+;;  * piece by piece.
+;;  * @param {string} who - The writer, for the error.
+;;  * @param {list} rest - Its optional arguments.
+;;  * @returns {port} The port.
+;;  */
+(define (textual-output-port who rest)
+  (let ((port (if (null? rest) (the-current-output-port) (port-given who rest))))
+    (cond ((not (and (output-port? port) (textual-port? port)))
+           (error (string-append who ": expected textual output port") port))
+          ((not (output-port-open? port))
+           (error (string-append who ": port is closed") port))
+          (else port))))
+
+;; /**
 ;;  * The port an optional port argument gives, when it was given.
 ;;  * @param {string} who - The procedure, for the error.
 ;;  * @param {pair} rest - Its optional arguments, not empty.
@@ -176,14 +192,18 @@
   (%write-u8 byte (if (null? port) (the-current-output-port) (port-given "write-u8" port))))
 (define (newline . port)
   (%newline (if (null? port) (the-current-output-port) (port-given "newline" port))))
+
+;; `display` and the `write`s write a datum as the printer does (printer.scm),
+;; which differs between them only in whether strings and characters are
+;; written as themselves and which objects take datum labels.
 (define (display obj . port)
-  (%display obj (if (null? port) (the-current-output-port) (port-given "display" port))))
+  (print-datum obj (textual-output-port "display" port) #t 'cycles))
 (define (write obj . port)
-  (%write obj (if (null? port) (the-current-output-port) (port-given "write" port))))
+  (print-datum obj (textual-output-port "write" port) #f 'cycles))
 (define (write-simple obj . port)
-  (%write-simple obj (if (null? port) (the-current-output-port) (port-given "write-simple" port))))
+  (print-datum obj (textual-output-port "write-simple" port) #f 'none))
 (define (write-shared obj . port)
-  (%write-shared obj (if (null? port) (the-current-output-port) (port-given "write-shared" port))))
+  (print-datum obj (textual-output-port "write-shared" port) #f 'shared))
 (define (flush-output-port . port)
   (%flush-output-port (if (null? port) (the-current-output-port) (port-given "flush-output-port" port))))
 

@@ -208,6 +208,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── symbol.js           # Symbol interning
 │       │   ├── reader.js           # Re-exports reader/: parse, the number parser
 │       │   ├── expression_utils.js # The REPLs' doors into the reader: complete or not, the delimiting parentheses, their match
+│       │   ├── printer.js          # prettyPrint: the REPLs' door into the printer (printer.scm), a value as they show it
 │       │   ├── reader/             # The reader's door, and the number parser; the reader is (scheme-js reader)
 │       │   │   ├── index.js        # parse(): the door into (scheme-js reader), on the library system's interpreter
 │       │   │   └── number_parser.js # Number syntax with R7RS prefixes: string->number's core
@@ -247,7 +248,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   │   ├── stdout_port.js  # The ports over standard output and error (Node.js), written synchronously
 │       │   │   ├── console_port.js # Console ports
 │       │   │   ├── bytevector_port.js # Bytevector ports
-│       │   │   └── printer.js      # write/display logic
+│       │   │   └── printer.js      # The printer's door: its text for JavaScript (writeString, the REPLs'), and what only JavaScript can say of a value
 │       │   ├── eq.js               # Equality predicates (eq?, eqv?, boolean=?)
 │       │   ├── record.js           # define-record-type support, and a record's type and fields for Scheme that looks inside any record
 │       │   ├── exception.js        # Exception handling primitives
@@ -292,7 +293,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │           ├── special-forms.sld   # (scheme-js special-forms): the special forms, as keywords a library imports
 │           ├── control.scm         # when, unless, or, let*, do, case, guard
 │           ├── parameter.scm       # make-parameter, parameterize
-│           ├── ports.scm           # call-with-port
+│           ├── ports.scm           # The current ports, reading and writing them, call-with-port, the file procedures
+│           ├── printer.scm         # write, display, write-shared, write-simple: a datum's text, datum labels; the REPLs' text
 │           └── repl.scm            # REPL utilities
 │
 │   └── compiler/              # Scheme -> JavaScript compiler tier (Stage 2b)

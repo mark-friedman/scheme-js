@@ -80,9 +80,11 @@ costs a page nothing to load; a debugging mode will let it be stepped into and a
 like a program's own code, for working on the interpreter and compiler themselves.
 
 **Where it stands:** the compiler is Scheme -- its passes, the driver that decides what to compile,
-and the tier that compiles a program's own code as it runs -- over a small JavaScript host library;
-the interpreter is JavaScript. The evaluator's own loop moves last, once compiled Scheme is fast enough
-for it. Ranked in [docs/compiler_plan.md](docs/compiler_plan.md).
+and the tier that compiles a program's own code as it runs -- over a small JavaScript host library; so
+are the interpreter's reader, macro expander, library system and printer, and the debugger's logic.
+The evaluator, the numeric tower and most primitive libraries are JavaScript; the evaluator's own loop
+moves last, once compiled Scheme is fast enough for it. Ranked in
+[docs/compiler_plan.md](docs/compiler_plan.md).
 
 ### Close the known R7RS-small deviations
 

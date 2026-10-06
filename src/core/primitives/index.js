@@ -6,6 +6,7 @@ import { registerPrimitive } from '../interpreter/primitive_bindings.js';
 
 import { mathPrimitives } from './math.js';
 import { ioPrimitives } from './io/index.js';
+import { printerPrimitives } from './io/printer.js';
 import { listPrimitives } from './list.js';
 import { vectorPrimitives } from './vector.js';
 import { recordPrimitives } from './record.js';
@@ -51,6 +52,9 @@ export function createGlobalEnvironment(interpreter) {
                 // compiled code, which looks for that entry first, calls it
                 // with no second look at what it is.
                 fn[SCHEME_RAW_CALL] = fn;
+                // Its Scheme name, which the printer writes it by: the name
+                // it is first bound to, not the JavaScript function's.
+                if (!('schemeName' in fn)) fn.schemeName = name;
                 registerPrimitive(name, fn);
             }
             bindings.set(name, fn); // No wrapper needed!
@@ -62,6 +66,7 @@ export function createGlobalEnvironment(interpreter) {
 
     addPrimitives(mathPrimitives);
     addPrimitives(ioPrimitives);
+    addPrimitives(printerPrimitives);
     addPrimitives(listPrimitives);
     addPrimitives(vectorPrimitives);
     addPrimitives(recordPrimitives);

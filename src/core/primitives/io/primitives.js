@@ -11,7 +11,6 @@ import {
 import { ConsoleOutputPort } from './console_port.js';
 import { standardInputPort } from './stdin_port.js';
 import { standardOutputPort, standardErrorPort } from './stdout_port.js';
-import { displayString, writeString, writeStringShared, writeStringSimple } from './printer.js';
 import { systemLibrary } from '../../interpreter/library_seed.js';
 import { callSchemeProcedure } from '../../interpreter/values.js';
 import { callLibrarySystem, currentLibraryRegistry } from '../../interpreter/library_registry.js';
@@ -323,34 +322,6 @@ export const ioPrimitives = {
     '%newline': (port) => {
         requireOpenOutputPort(port, 'newline');
         port.writeChar('\n');
-        return undefined;
-    },
-
-    '%display': (val, port) => {
-        requireOpenOutputPort(port, 'display');
-        const str = displayString(val);
-        port.writeString(str);
-        return undefined;
-    },
-
-    '%write': (val, port) => {
-        requireOpenOutputPort(port, 'write');
-        const str = writeString(val);
-        port.writeString(str);
-        return undefined;
-    },
-
-    '%write-simple': (val, port) => {
-        requireOpenOutputPort(port, 'write-simple');
-        const str = writeStringSimple(val);
-        port.writeString(str);
-        return undefined;
-    },
-
-    '%write-shared': (val, port) => {
-        requireOpenOutputPort(port, 'write-shared');
-        const str = writeStringShared(val);
-        port.writeString(str);
         return undefined;
     },
 

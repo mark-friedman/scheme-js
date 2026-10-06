@@ -251,11 +251,15 @@ function main() {
   }
 
   console.log(`\n=== Speed, over ${items.length} lambdas ===\n`);
+  // The lowering alone is timed. Its rendering, which the agreement above
+  // compares, is the printer's work: timed with it, writing the answers was
+  // most of the last row.
   const nodes = items.map((i) => i.node);
+  const lower = (proc) => (n) => callSchemeProcedure(proc, [n.core]);
   const measured = [
-    ['interpreted', time(nodes, (n) => lowerAndRender(interpreted.proc, n), REPS)],
-    ['compiled', time(nodes, (n) => lowerAndRender(compiled.proc, n), REPS)],
-    ['compiled, + compiled stdlib', time(nodes, (n) => lowerAndRender(withStdlib.proc, n), REPS)]
+    ['interpreted', time(nodes, lower(interpreted.proc), REPS)],
+    ['compiled', time(nodes, lower(compiled.proc), REPS)],
+    ['compiled, + compiled stdlib', time(nodes, lower(withStdlib.proc), REPS)]
   ];
   const slowest = measured[0][1];
 

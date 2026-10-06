@@ -9,6 +9,7 @@
   (include "list.scm")       ; map, for-each, memq, assq, etc.
   (include "parameter.scm")  ; make-parameter, parameterize
   (include "ports.scm")      ; the current ports, reading and writing them, call-with-port, the file procedures
+  (include "printer.scm")    ; the text write and display write a datum as
   
   (export
     ;; The special forms, passed on, so that what imports this library has them
@@ -35,6 +36,7 @@
     read-u8 peek-u8 u8-ready? read-bytevector read-bytevector! read
     write-char write-string write-u8 write-bytevector
     newline display write write-simple write-shared flush-output-port
+    datum->string repl-text
     memq memv member
     assq assv assoc
     length list-ref list-tail reverse list-copy

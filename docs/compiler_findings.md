@@ -3486,3 +3486,35 @@ can be, and Chibi accepts `5.0e-324`. That was the printer's, and is fixed (90).
 *Consequence:* a test is skipped for a reason that has been checked, and "JavaScript" is a reason
 only with the JavaScript behaviour named. Our copy of Chibi's tests now skips two, in a browser,
 which has no environment variables or file system.
+
+**R124. `run_tier.js` did not set an interpreter up as a page does.**
+
+`benchmarks/run_tier.js` says it runs each program "on an interpreter set up as a page sets one up:
+every shipped library installed from its prebuilt table". It installs the tables through the library
+system's load hook, which runs after a library has loaded -- read, expanded and run from its source --
+and replaces its procedures with the compiled ones. A page, the CLI and `web/main.js` give the library
+system a restorer as well (`libraryRestorer` in `src/compiler/prebuilt.js`), which binds a shipped
+library's procedures from its table and reads none of its source. Importing `(scheme base)` and
+`(scheme write)` into a fresh interpreter takes 22.5 ms through the hook and 1.8 ms through the
+restorer. Found when adding the printer's 14 KB of Scheme to `(scheme core)` made every corpus program
+about 7 ms slower under `run_tier.js` and the CLI start 3 ms slower: through the hook the printer's
+source was read on every run, and with the restorer the corpus set took the same time with the
+printer as without it. Every `run_tier.js` figure so far includes that reading: the corpus set takes
+3.64 s with the hook and 2.83 s with the restorer, a run's share spent compiling is 24% against 30%,
+and 20 of 23 corpus programs, not 22, are faster without the tier.
+
+*Consequence:* a harness that claims to run code as a page runs it is checked against the page's own
+set-up, not only against the same tables. The tier's policy was decided on these figures, with a
+run's other costs overstated and its compiling not.
+
+**R125. The self-host benchmark's last row timed the printer, not the lowering.**
+
+`run_self_host.js` times `lower-lambda` over 1,022 lambdas in three configurations, and gave compiled
+with the standard library compiled as 26-27x the interpreted lowering. Each timed call also rendered
+the lowering's answer with `writeString`, to compare the configurations -- 1.7 MB of text a pass --
+and that rendering was about 50 ms of the row's 68: the lowering alone takes 19.5 ms, 90x the
+interpreted one. Found when the printer became Scheme, which renders the same text in nearly twice
+as long there, and the row went from 68 ms to 111 with the lowering unchanged.
+
+*Consequence:* only the lowering is timed; the rendering stays in the agreement check. A row that
+moves when code it does not name changes is timing that code.

@@ -13328,3 +13328,96 @@ REPL's printer had pinned `1e+21`. Chibi's suite: 1,225 tests.
 (30 skipped); Chibi's suite 1,225 of 1,225 in both configurations, and 1,223 with two skipped on its
 browser page. The string benchmarks are unchanged: `parsing` 26.4 ms against 28.5, `read1` 16.2 against
 16.0.
+
+# The printer, in Scheme (task 66, 2026-10-06)
+
+`write`, `display`, `write-shared` and `write-simple`, and the text the REPLs show for a value, are
+Scheme: `src/core/scheme/printer.scm`, in `(scheme core)` beside the ports it writes to. The 400 lines
+of `io/printer.js` and the REPLs' own 100-line printer in `interpreter/printer.js` are doors into it.
+
+## What is Scheme, and what JavaScript keeps
+
+- **One printer**, `print-datum`, writes a datum to a port piece by piece: an atom by its text, and a
+  pair, vector or object by the values it holds, with datum labels on the objects a labelling picks --
+  'cycles for `write` and `display`, 'shared for `write-shared`, 'none for `write-simple` -- as the
+  JavaScript one did since 2026-10-02. `datum->string` gives its text, and `repl-text` the REPLs'.
+- **`display` and the `write`s** check their port once (`textual-output-port` in `ports.scm`) and
+  call the printer; the JavaScript `%display`, `%write`, `%write-simple` and `%write-shared` are gone,
+  once the pinned seed had been re-pinned without them.
+- **The doors**: `displayString`, `writeString`, `writeStringShared` and `writeStringSimple`, which
+  tests, benchmarks and the conformance reporter call, call `datum->string`; `prettyPrint`, the REPLs',
+  calls `repl-text`. Both reach `(scheme core)` through `systemLibrary`, as the reader's door does.
+- **What only JavaScript can say** of a value, as primitives the printer asks: whether it is an object
+  written by its fields (`%host-object?`) and what they are (`%host-object-fields`), a procedure's name
+  (`%procedure-name`), whether it is a continuation (`%continuation?`), the values of several
+  (`%values-list`), and a host value's own text (`%host-text`). A primitive's name is the one it is
+  first bound to, set as it is registered.
+
+## What is written differently
+
+- **A procedure by its name**: `#<procedure car>`, `#<procedure named>`, `#<procedure>` for a lambda,
+  `#<continuation>`. Every procedure had been `#<procedure Function>`, its JavaScript constructor's name.
+- **Control characters so that they read back**: R7RS 6.6's names -- `#\alarm`, `#\backspace`,
+  `#\delete`, `#\escape`, `#\null` -- and `#\x1` for another; in a string, R7RS 6.7's `\a` and `\b` and
+  `\x7f;` for the rest. They had been written raw.
+- **An error object as its message**, `SchemeError: boom`, as the REPL had shown one, rather than as an
+  object's fields, among which its message is not.
+- **The REPLs show a value as `write` writes it**, several values one to a line and none as nothing, as
+  for the unspecified value; the REPL's printer had shown a string with only its quotes escaped, `()`
+  as `'()`, and several values as `#<values: 2 values>`.
+- **Nothing else**: over the 12,601 data read from the repository's Scheme files, the old printer and
+  the new write the same text with each of the four procedures, but for the 21 that hold control
+  characters.
+
+## What it costs, and what made it cheaper
+
+Written first as the JavaScript was, the Scheme printer wrote symbols 15 times as slowly and strings 5
+times, and writing the self-host benchmark's 1,022 lowered lambdas took 3.7 times as long. Three
+changes, each from a profile:
+
+- **A symbol's name and a string are scanned in one call** for the characters that matter, with the
+  reader's `%string-find-any`, where they had been walked a character at a time in Scheme: every
+  `string-ref` a call making a character, every `char=?` and `char-ci=?` a call taking a rest list.
+  The rest of the test of a name, whether it reads as a number, compares character codes, which
+  compiled code does inline.
+- **A datum is walked as a tree within a budget**, a thousand pairs, vectors and objects, before its
+  cycles are looked for: one walked within the budget has none. `equal?` does the same (Adams and
+  Dybvig). The walk as a graph keeps an `eq?` store of every object reached, three operations on it a
+  pair, and is needed now only past the budget and for `write-shared`.
+- **A port's direction is worked out once**: every write checked it by searching the direction's name.
+
+Against the JavaScript printer, now: 1.2-2.8x on lists, vectors and trees of 50,000 to 100,000
+numbers, symbols and strings, and 1.5x on the lowered lambdas. Past the budget, finding the cycles costs
+`write` 1.2-3.4x what `write-simple` takes, as it did in JavaScript. `run_tier.js`'s test-file set is
+2-3.5% slower, from the harness's own output; its corpus set is level once run as a page runs it.
+`(scheme core)`'s table grows from 753 KB to 1,030 KB, and a CLI start is 3 ms slower.
+
+## What it found
+
+- **`run_tier.js` loads every shipped library from source** (R124), where a page, the CLI and
+  `web/main.js` restore it from its table without reading it: the printer's source made each corpus
+  program 7 ms slower there, and nowhere else. Every figure it has given includes the reading, about 35
+  ms a corpus program; restoring as a page does is task 91.
+- **The self-host benchmark's last row was mostly the printer** (R125): rendering each lowering's
+  answer, to compare the configurations, was about 50 of its 68 ms. `run_self_host.js` times the
+  lowering alone now: 19.5 ms, 90 times the interpreted lowering, the same before and after this task.
+- `benchmarks/lib/harness.js` lists `(scheme core)`'s files by hand, and now `printer.scm` too.
+
+JavaScript under `src/`: 134 lines added and 480 removed. Added: the doors, which call Scheme and
+nothing else (`io/printer.js`, `interpreter/printer.js`); the reflection the printer asks for, a host
+object's fields and text, and the value representations' own -- a procedure's name, a continuation,
+several values (`io/printer.js`, the name set in `primitives/index.js`); and a port's direction worked
+out once, a fix in place (`io/ports.js`).
+
+## Tests
+
+`write_tests.scm`, 21 tests: procedures by name, control characters written and read back, symbols
+written between bars where they would read as numbers or hold a delimiter -- white space beyond ASCII
+included -- and not otherwise, and labels past the walk as a tree: a long list and a structure shared
+too often to walk as a tree have none, and a long cycle and one deep in a long list have theirs. Four
+unit tests of `prettyPrint`: a string, the empty list, several values, an error object.
+
+## Verification
+
+9,012 tests pass in Node with none failing (7 skipped), and 8,788 in the browser with none failing
+(30 skipped); Chibi's suite passes as before.

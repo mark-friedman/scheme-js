@@ -28,16 +28,20 @@ export class Port {
     constructor(direction) {
         this.direction = direction;
         this._open = true;
+        // Asked of every read and write, which checks the port it is given,
+        // so worked out once.
+        this._input = direction.includes('input');
+        this._output = direction.includes('output');
     }
 
     /** @returns {boolean} Whether this port is open. */
     get isOpen() { return this._open; }
 
     /** @returns {boolean} Whether this is an input port. */
-    get isInput() { return this.direction.includes('input'); }
+    get isInput() { return this._input; }
 
     /** @returns {boolean} Whether this is an output port. */
-    get isOutput() { return this.direction.includes('output'); }
+    get isOutput() { return this._output; }
 
     /** @returns {boolean} Whether this is a textual port. */
     get isTextual() { return true; }
