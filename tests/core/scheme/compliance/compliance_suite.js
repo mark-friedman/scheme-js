@@ -29,8 +29,7 @@ import {
     globalMacroRegistry, resetGlobalMacroRegistry, snapshotMacroRegistry
 } from '../../../../src/core/interpreter/macro_registry.js';
 import { BUNDLED_SOURCES } from '../../../../src/packaging/bundled_libraries.js';
-import { installLibraryTable } from '../../../../src/compiler/prebuilt.js';
-import prebuiltLibraries from '../../../../src/packaging/compiled_libraries.js';
+import { pageLibraries } from '../../../harness/page_libraries.js';
 
 /**
  * The libraries a suite runs with, all imported into its global environment.
@@ -115,34 +114,34 @@ function bundledSource(libraryName) {
  * @param {Object} logger - Receives `pass`, `fail`, and where it has them
  *   `skip` and `title`, for each test.
  * @param {Object} [options] - Options.
- * @param {boolean} [options.compiledLibraries=false] - Install each shipped
- *   library's prebuilt table as it loads, exactly as the browser bundle does
- *   (`src/packaging/scheme_entry.js`), rather than leave the library interpreted.
+ * @param {boolean} [options.compiledLibraries=false] - Restore each shipped
+ *   library from its prebuilt table, its source never read, as the browser
+ *   bundle does (`src/packaging/scheme_entry.js`, `harness/page_libraries.js`),
+ *   rather than read it and run it interpreted.
  * @param {Array<string>} [options.files] - The files to run, in order; all of
  *   the suite's by default.
- * @returns {{results: Array<Object>, installation: Map<string, Object>}} For
- *   each file, its name and counts, and `error` if it crashed; and what
- *   installing each library's table did, by library name.
+ * @returns {{results: Array<Object>, installation: Map<string, Object>,
+ *   fromSource: Set<string>}} For each file, its name and counts, and `error`
+ *   if it crashed; and, with the libraries compiled, what installing each
+ *   library's table did and the shipped libraries read from their source all
+ *   the same, their tables stale, each by key, `scheme.core`.
  */
 export function runSuite(suite, sources, logger, { compiledLibraries = false, files = suite.files } = {}) {
-    const installation = new Map();
-    const hook = compiledLibraries
-        ? (libraryName, libraryEnv) => {
-            const fileName = libraryName[libraryName.length - 1];
-            if (BUNDLED_SOURCES[`${fileName}.sld`] === undefined || !libraryEnv) return;
-            const outcome = installLibraryTable(
-                prebuiltLibraries, libraryName, libraryEnv, (file) => BUNDLED_SOURCES[file]);
-            if (outcome !== null) installation.set(libraryName.join(' '), outcome);
-        }
-        : null;
+    const libraries = compiledLibraries
+        ? pageLibraries({
+            resolve: bundledSource,
+            isShipped: (name) => BUNDLED_SOURCES[`${name[name.length - 1]}.sld`] !== undefined
+        })
+        : { resolve: bundledSource, hook: null, restorer: null, installation: new Map(), fromSource: new Set() };
 
     // Macros defined by the suite go into the registry the whole process
     // shares, so it is given back as it was.
     const savedMacros = new Map(globalMacroRegistry.macros);
     try {
-        const results = withPrivateLibraries({ resolver: bundledSource, hook },
+        const results = withPrivateLibraries(
+            { resolver: libraries.resolve, hook: libraries.hook, restorer: libraries.restorer },
             () => runInPrivate(suite, sources, files, logger));
-        return { results, installation };
+        return { results, installation: libraries.installation, fromSource: libraries.fromSource };
     } finally {
         globalMacroRegistry.macros.clear();
         for (const [name, macro] of savedMacros) globalMacroRegistry.macros.set(name, macro);

@@ -36,6 +36,7 @@ export const unitTests = [
     { path: 'unit/repl_parens_tests.js', fn: 'runReplParensTests', needsInterpreter: false },
     // Benchmark harness arithmetic
     { path: 'unit/r7rs_compare_tests.js', fn: 'runR7rsCompareTests', needsInterpreter: false },
+    { path: 'unit/page_libraries_tests.js', fn: 'runPageLibrariesTests', needsInterpreter: false },
 ];
 
 // Functional Tests (all need interpreter)

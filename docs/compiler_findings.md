@@ -3518,3 +3518,18 @@ as long there, and the row went from 68 ms to 111 with the lowering unchanged.
 
 *Consequence:* only the lowering is timed; the rendering stays in the agreement check. A row that
 moves when code it does not name changes is timing that code.
+
+**R126. The tests that ran "as a page does" did not load libraries as a page does either.**
+
+The tiered Scheme test runner and the conformance suites' compiled configuration each said it set
+libraries up as the browser bundle does, `src/packaging/scheme_entry.js`, and each, like
+`run_tier.js` (R124), gave the library system only the load hook: every shipped library was read,
+expanded and run from its source, and its table installed over it, so that a value a library made as
+it loaded held the closure until the table's procedures were substituted for it. A page restores the
+library from its table -- its procedures bound from their code, its other forms run as the core forms
+they expanded into -- and no test ran that path but `prebuilt_library_tests.js`. Run so, every
+tiered test and all 1,445 conformance tests pass, with `(scheme core)`'s 130 procedures restored.
+
+*Consequence:* the tiered tests, the conformance suites and `run_tier.js` load libraries through one
+helper, `tests/harness/page_libraries.js`, made as a page makes its loader, and each fails a run in
+which a shipped library was read from its source.

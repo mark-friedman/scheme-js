@@ -349,6 +349,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── runner.js               # Test runner logic
 │   │   ├── standard_library.js     # The standard library interpreted at top level
 │   │   ├── cli_process.js          # Runs `repl.js` in a child process, for the CLI's tests
+│   │   ├── page_libraries.js       # Libraries loaded as a page loads them, shipped ones restored from their tables: for run_tier.js, the tiered tests, the compiled conformance run
 │   │   └── scheme_test.scm         # Scheme test harness
 │   │
 │   ├── test_manifest.js            # Central registry of all test files
@@ -356,7 +357,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── run_scheme_tests.js         # Node.js Scheme test runner CLI
 │   ├── run_scheme_tests_lib.js     # Shared Scheme test runner logic
 │   ├── run_compiler_scheme_tests_lib.js # Runs compiler/ tests in the compiler library's environment
-│   ├── run_tiered_scheme_tests_lib.js # Runs tiers/ tests twice, set up as a page is: program interpreted, then compiled by the tier
+│   ├── run_tiered_scheme_tests_lib.js # Runs tiers/ tests twice, set up as a page is, libraries restored: program interpreted, then compiled by the tier
 │   ├── compiler/                   # Scheme tests of the compiler's own Scheme
 │   ├── tiers/                      # Scheme tests whose code runs in both tiers: JavaScript calling Scheme, when the tier compiles, arity errors
 │   ├── test_bundle.js              # Integration tests for bundled artifact
@@ -454,7 +455,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   └── unit/                       # Unit tests of tools around the interpreter
 │       ├── repl_debug_commands_tests.js # The REPLs' debug commands
 │       ├── repl_parens_tests.js    # The browser REPL colouring and indenting by delimiter parentheses
-│       └── r7rs_compare_tests.js   # The benchmark harness's arithmetic
+│       ├── r7rs_compare_tests.js   # The benchmark harness's arithmetic
+│       └── page_libraries_tests.js # Loading libraries as a page does: restored, stale, not shipped
 │
 ├── docs/
 │   ├── core-interpreter-implementation.md               # Execution model details

@@ -2,9 +2,10 @@
  * @fileoverview Runs Scheme test files twice: with the program's own code
  * interpreted, and with it compiled by the tier as a page's is.
  *
- * Both runs start as a page does: every library the bundle ships is installed
- * from its prebuilt table as it loads (`src/packaging/scheme_entry.js`), in a
- * library registry of the run's own, and each file is run form by form through
+ * Both runs start as a page does: every library the bundle ships is restored
+ * from its prebuilt table, its source never read, as `src/packaging/scheme_entry.js`
+ * loads it (`harness/page_libraries.js`), in a library registry of the run's
+ * own, and each file is run form by form through
  * `runTopLevel`, so that the tier sees each top-level form as it would a
  * script's. The second run attaches the tier; the first does not, as a page
  * that has turned compiling its own code off. So a test file says once what
@@ -23,11 +24,10 @@ import { parse } from '../src/core/interpreter/reader.js';
 import { analyze } from '../src/core/interpreter/expand.js';
 import { withPrivateLibraries } from '../src/core/interpreter/library_registry.js';
 import { writeString } from '../src/core/primitives/io/printer.js';
-import { installLibraryTable } from '../src/compiler/prebuilt.js';
 import { attachTier } from '../src/compiler/tiering.js';
 import { SCHEME_PRIMITIVE } from '../src/core/interpreter/values.js';
-import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
 import { BUNDLED_SOURCES } from '../src/packaging/bundled_libraries.js';
+import { pageLibraries } from './harness/page_libraries.js';
 
 /**
  * The two runs.
@@ -69,16 +69,6 @@ function bundledSource(name) {
  */
 function isPrebuilt(libraryName) {
   return BUNDLED_SOURCES[`${libraryName[libraryName.length - 1]}.sld`] !== undefined;
-}
-
-/**
- * Installs a shipped library's prebuilt table as the library loads.
- * @param {string[]} libraryName - The library's name.
- * @param {Object} libraryEnv - Its environment.
- */
-function installTable(libraryName, libraryEnv) {
-  if (!isPrebuilt(libraryName) || !libraryEnv) return;
-  installLibraryTable(prebuiltLibraries, libraryName, libraryEnv, (file) => BUNDLED_SOURCES[file]);
 }
 
 /**
@@ -140,7 +130,8 @@ export function compiledSince(tier, earlier) {
  * @param {Array<{file: string, source: string}>} files - The test files.
  */
 function runConfiguration(logger, withTier, harness, files) {
-  withPrivateLibraries({ resolver: bundledSource, hook: installTable }, () => {
+  const libraries = pageLibraries({ resolve: bundledSource, isShipped: isPrebuilt });
+  withPrivateLibraries({ resolver: libraries.resolve, hook: libraries.hook, restorer: libraries.restorer }, () => {
     const { interpreter, env } = createInterpreter();
     const evaluate = (source) => {
       let value;
@@ -179,6 +170,10 @@ function runConfiguration(logger, withTier, harness, files) {
       evaluate('(set! *test-failures* 0) (set! *test-passes* 0) (set! *test-skips* 0)');
     }
   });
+  if (libraries.fromSource.size > 0) {
+    logger.fail(`${[...libraries.fromSource].join(', ')} read from source, where a page restores it `
+      + 'from its table: the table is stale, so this run tested what no page runs');
+  }
 }
 
 /**

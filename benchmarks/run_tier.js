@@ -33,9 +33,12 @@
  * ## What is measured
  *
  * Each program is run once from start to end on an interpreter set up as a
- * page sets one up: every shipped library installed from its prebuilt table,
- * the tier attached, and each top-level form run through `runTopLevel`, so the
- * tier sees it as it sees a page's. Reported: the whole run, the part of it
+ * page sets one up: every shipped library restored from its prebuilt table,
+ * its source never read (`tests/harness/page_libraries.js`), the tier
+ * attached, and each top-level form run through `runTopLevel`, so the tier
+ * sees it as it sees a page's. A run that reads a shipped library's source,
+ * its table stale, stops the measurement: no page would make it. Reported:
+ * the whole run, the part of it
  * spent in the tier's three procedures -- `bound`, `due` and `form`, which is
  * where every compile happens -- how many of the program's names the tier
  * compiled, and the same run with the tier not attached. Each figure is the
@@ -77,13 +80,12 @@ import { globalMacroRegistry } from '../src/core/interpreter/macro_registry.js';
 import { globalContext } from '../src/core/interpreter/context.js';
 import { GLOBAL_SCOPE_ID } from '../src/core/interpreter/syntax_object.js';
 import { callSchemeProcedure, SCHEME_PRIMITIVE } from '../src/core/interpreter/values.js';
-import { installLibraryTable } from '../src/compiler/prebuilt.js';
 import { attachTier } from '../src/compiler/tiering.js';
 import { compilerEnvironment } from '../src/compiler/lowering.js';
-import prebuiltLibraries from '../src/packaging/compiled_libraries.js';
 import { BUNDLED_SOURCES } from '../src/packaging/bundled_libraries.js';
 import { assembleParts, R7RS_DIR } from './lib/r7rs_harness.js';
 import { corpusIndex, corpusResolver, isBundled } from './lib/corpus_libraries.js';
+import { pageLibraries } from '../tests/harness/page_libraries.js';
 import { R7RS_BENCHMARKS } from './r7rs/manifest.js';
 import { schemeTestFiles, tieredSchemeTestFiles } from '../tests/test_manifest.js';
 
@@ -163,15 +165,12 @@ function bundledSource(name) {
 const isPrebuilt = (name) => BUNDLED_SOURCES[`${name[name.length - 1]}.sld`] !== undefined;
 
 /**
- * The shipped libraries, as a page has them: each installed from its prebuilt
- * table as it loads.
- * @returns {{resolve: Function, hook: Function, isPrebuilt: Function}}
+ * The shipped libraries, as a page has them: each restored from its prebuilt
+ * table.
+ * @returns {Object} As `pageLibraries` gives them.
  */
 function shippedLibraries() {
-  const hook = (name, env) => {
-    if (isPrebuilt(name) && env) installLibraryTable(prebuiltLibraries, name, env, (f) => BUNDLED_SOURCES[f]);
-  };
-  return { resolve: bundledSource, hook, isPrebuilt };
+  return pageLibraries({ resolve: bundledSource, isShipped: isPrebuilt });
 }
 
 // =============================================================================
@@ -270,7 +269,7 @@ function corpusPrograms() {
     name: test.name,
     kind: test.library,
     cwd: path.dirname(test.file),
-    libraries: () => ({ ...corpusResolver(index), isPrebuilt: (name) => isBundled(index, name) }),
+    libraries: () => pageLibraries({ resolve: corpusResolver(index).resolve, isShipped: (name) => isBundled(index, name) }),
     setup: () => fs.readFileSync(test.file, 'utf8'),
     right: () => true
   }));
@@ -356,7 +355,7 @@ function runOnce(program, withTier) {
   };
   process.chdir(program.cwd);
   try {
-    withPrivateLibraries({ resolver: libraries.resolve, hook: libraries.hook }, () => {
+    withPrivateLibraries({ resolver: libraries.resolve, hook: libraries.hook, restorer: libraries.restorer }, () => {
       const { interpreter, env } = createInterpreter();
       const evaluate = (source) => {
         let value;
@@ -406,6 +405,11 @@ function runOnce(program, withTier) {
     process.chdir(cwd);
     globalMacroRegistry.macros = macros;
     globalContext.keywordBindings.set(GLOBAL_SCOPE_ID, topLevel);
+  }
+  // A shipped library read from its source makes a run no page makes.
+  if (libraries.fromSource.size > 0) {
+    throw new Error(`${[...libraries.fromSource].join(', ')} read from source, where a page restores `
+      + 'it from its table: the table is stale, and `npm run prebuild` rebuilds it');
   }
   return { ...result, output: comparable(output) };
 }

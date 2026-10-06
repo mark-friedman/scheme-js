@@ -13421,3 +13421,52 @@ unit tests of `prettyPrint`: a string, the empty list, several values, an error 
 
 9,012 tests pass in Node with none failing (7 skipped), and 8,788 in the browser with none failing
 (30 skipped); Chibi's suite passes as before.
+
+# Libraries loaded as a page loads them, in the harnesses that say so (task 91, 2026-10-06)
+
+`benchmarks/run_tier.js` said it ran each program on an interpreter set up as a page sets one up, and
+gave the library system only a load hook: every shipped library a program imported was read,
+expanded and run from its source, and its prebuilt table installed over it. A page
+(`src/packaging/scheme_entry.js`), the CLI and `web/main.js` give it a restorer as well, which binds
+a shipped library's procedures from its table and reads none of its source (R124). The tiered Scheme
+test runner and the conformance suites' compiled configuration said the same and did the same
+(R126).
+
+## One loader, as a page makes it
+
+`tests/harness/page_libraries.js` makes what the three hand the library system: the restorer, for a
+shipped library; the hook, which installs the table as a page's does, recording the library's
+procedures as compiled for the tier; and a note of what each library did -- restored, read from its
+source all the same, and what installing its table did. A shipped library read from its source means
+its table is stale, a run no page would make: `run_tier.js` stops, the tiered runner and the
+conformance suites fail. The conformance suites' check that the standard library's table took effect
+now counts the procedures restored, 130 for `(scheme core)`. Its tests (`tests/unit/
+page_libraries_tests.js`) load libraries each way: restored, read because the table is stale, read
+because the library does not ship.
+
+## The comparison behind the tier's policy, again
+
+`run_tier.js --policies`, best of three, one process a set, today's policy twice as a control:
+
+| set | today | today again | program waits 10 | 100 | only loops at definition, 2 | the same, 10 | no tier |
+|---|---|---|---|---|---|---|---|
+| canonical (44) | 3,412 | 3,389 | 3,370 | 3,368 | 3,343 | 3,257 | 55,580 |
+| test files (74) | 1,481 | 1,481 | 1,459 | 1,408 | 1,354 | 1,285 | 2,254 |
+| page (3) | 209 | 199 | 201 | 205 | 259 | 248 | 2,205 |
+
+| corpus (23) | today, a library's procedures at call 10 | again | at call 1 | at call 2 | at call 100 | no tier |
+|---|---|---|---|---|---|---|
+| ms | 2,881 | 2,905 | 4,540 | 3,471 | 2,556 | 2,589 |
+
+As task 80 found: waiting longer for a program's procedures moves little; compiling at definition
+only what loops makes the test files faster and the page programs, `cpstak`, `quicksort` and
+`graphs` slower; a library's procedures compiled at their first or second call cost the corpus 20-57%,
+and at their hundredth save 11% but cost `edn` 19% (31% before). So the policy stands. Read from
+source, the corpus set had taken 3.64 s under today's policy; restored, 2.88-2.91 s, compiling 29% of
+a run where the reading had made it 24%.
+
+## Verification
+
+9,019 tests pass in Node with none failing (7 skipped), and 8,795 in the browser with none failing
+(30 skipped). Chibi's suite 1,225 of 1,225 and the chapter tests 220 of 220 with the standard library
+restored. JavaScript under `src/`: none; the loader is the tests' harness, which `run_tier.js` uses.

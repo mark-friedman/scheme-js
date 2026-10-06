@@ -51,7 +51,7 @@ export async function runFromCommandLine(suiteName) {
     console.log(`=== ${suite.title}, standard library ${compiledLibraries ? 'compiled' : 'interpreted'}: `
         + `${files.length} of ${suite.files.length} files ===`);
     const sources = await loadSuiteSources(suite, fileLoader);
-    const { results, installation } = runSuite(suite, sources, logger, { compiledLibraries, files });
+    const { results, installation, fromSource } = runSuite(suite, sources, logger, { compiledLibraries, files });
 
     let passes = 0, failures = 0, skips = 0;
     const failed = [];
@@ -62,9 +62,11 @@ export async function runFromCommandLine(suiteName) {
     }
     if (compiledLibraries) {
         for (const [name, outcome] of installation) {
-            console.log(`${name}: ${outcome.installed.length} procedures installed${outcome.stale ? ', STALE' : ''}`);
+            console.log(`${name}: ${outcome.restored.length} procedures restored, ${outcome.installed.length} installed`
+                + `${outcome.stale ? ', STALE' : ''}`);
             if (outcome.stale) failed.push(`${name}: stale table, left interpreted`);
         }
+        for (const name of fromSource) failed.push(`${name}: read from its source, where a page restores it`);
     }
     console.log('\n========================================');
     console.log(`FILES: ${results.length - failed.length} passed, ${failed.length} failed`);
