@@ -22,7 +22,7 @@
           (scheme-js compiler)
           (scheme-js compiler build)
           (scheme-js table-writer))
-  (export source-reader library-resolver library-files library-declaration library-key
+  (export file-text source-reader library-resolver library-files library-declaration library-key
           declared-library-name say
           note! take-noted!
           library-table library-table? library-table-key library-table-fingerprint library-table-files

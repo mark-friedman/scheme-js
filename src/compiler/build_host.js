@@ -12,10 +12,11 @@
  * The deciding and the writing are Scheme. What is here is what only the
  * host can do, each procedure one of two kinds:
  *
- *  - **Doors into the library system**, whose registries and loader are held
- *    by JavaScript (`library_registry.js`, `library_loader.js`): a registry of
- *    the program's own, with a resolver and a load hook that are Scheme
- *    procedures, and loading a library in it.
+ *  - **Doors into the library system and the expander**, whose registries,
+ *    loader and instance are held by JavaScript (`library_registry.js`,
+ *    `library_loader.js`, `expand.js`): a registry of the program's own, with
+ *    a resolver and a load hook that are Scheme procedures, loading a library
+ *    in it, and expanding a form.
  *  - **Generating code**: installing generated code into a library as its
  *    table would be (`installPrebuilt`, which calls `new Function`), and the
  *    fingerprint the runtime checks a table's sources by, which there is one
@@ -109,6 +110,16 @@ const buildProcedures = {
     const exports = loadLibrarySync(toArray(name), noting, interpreter, env);
     return list(...[...exports.keys()].map(intern));
   },
+
+  /**
+   * A form expanded into its core form by the system's expander, at the top
+   * level of the process, as the evaluator expands one before running it:
+   * the input the compiler's lowering takes, for a harness that lowers code
+   * it has read.
+   * @param {*} form - The form.
+   * @returns {*} Its core form.
+   */
+  'expand': (form) => expandToCore(form),
 
   /**
    * Installs a shipped library's prebuilt table, as the build found it, into
