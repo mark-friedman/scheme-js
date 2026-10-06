@@ -327,6 +327,22 @@ its free variables by value, or by box: a closure made in one iteration holds th
 Each iteration re-runs what a fresh call would — boxing the boxed parameters and making the boxes for
 internal definitions — so no two iterations share a binding.
 
+**Loops on raw doubles.** An inexact integer is a box, so a loop whose variables are inexact reals
+allocated whenever one landed on an integer, and V8, finding a variable sometimes a double and
+sometimes a box, stopped holding it in a register. So the fast form runs a second copy of such a loop
+first, on raw doubles (`emit-double-loop!` in `emit.scm`): one whose body calls nothing but inlined
+primitives and itself -- so no continuation can be captured in it, and no frame of it is ever
+reified -- holds an inexact constant, and whose variables provably stay inexact, found as a fixed
+point over its looping calls, with the `let`s in its body and the locals bound outside it that those
+need. It is entered when those variables arrive inexact and its operators are intact, and unboxes
+them; the ordinary loop follows it. Nothing inside it boxes or calls: a way out breaks out and its
+return, boxing what it returns, is made after the loop (`deferred-exits`); an operator rebound
+mid-loop breaks out of a block whose end boxes the variables, and the ordinary loop goes on from
+there; and the test that the operators are intact is JavaScript's boolean, not a Scheme value. A box
+made in a branch inside the loop, even one that never ran, made `sumfp`'s loop seven times slower,
+since V8 compiles such a loop as it runs and then stopped holding its variables raw (R120). The cost
+is the compiler's size: the analysis and the emitter are about 600 KB of its prebuilt image.
+
 ## Tail calls between procedures
 
 Any other tail call used to return a `TailCall`, which allocated the pending call and an argument
@@ -432,8 +448,8 @@ level, so a tree walk 400 deep through compiled `map` went from 1.9 to 1.25 ms.
 
 ## Inlined primitives, and knowing they are still primitives
 
-`(car x)` compiles to `x.car` behind a type test, and `(+ a b)` to a BigInt addition, with the real
-primitive as the fallback for every other operand shape (`src/compiler/inline.scm`). Scheme lets a
+`(car x)` compiles to `x.car` behind a type test, and `(+ a b)` to a JavaScript addition, with the
+real primitive as the fallback for every other operand shape (`src/compiler/inline.scm`). Scheme lets a
 program redefine `car`, so the expansion is correct only while the name still denotes the
 primitive — and that has to hold every time it runs, not just when it was compiled.
 
@@ -462,14 +478,33 @@ Two properties make that sound:
   it is what lets the check ignore which environment a piece of compiled code resolves its globals
   in.
 
-**Two numeric fast paths, not one.** An arithmetic or comparison expansion is taken when both
-operands are exact integers or both are flonums -- JavaScript `bigint`s or JavaScript `number`s --
-since for either pair the JavaScript operator computes what the tower does; `=` as `===` agrees with
-the tower on `-0.0` and on NaN, and every ordering with a NaN is false. Exact integers are tested
-first. Until the flonum path existed every flonum operation went through the variadic primitive,
-which was most of what flonum programs did: adding it made the class 7.5x faster compiled. Mixed
-exactness stays with the tower: JavaScript can compare a `number` with a `bigint`, but exactly,
-where the tower converts to a double, and the two differ on large integers.
+**Numbers, as they are held, and arithmetic on them.** An exact integer is a JavaScript number in
+the safe range and a `BigInt` beyond it; an inexact real is a number unless its value is an integer
+-- 3.0, -0.0 -- when it is a `Flonum`, a box holding the double
+(`src/core/interpreter/number_representation.js`). So an integral number is exact, which is what
+JavaScript hands Scheme too. Chosen (43) over `BigInt` for every exact integer, which held fixnum
+loops at `BigInt`'s floor, 12x a loop on numbers, and over boxing every inexact, which would make
+every float operation allocate; the price is that an inexact integer allocates, unless it is one of
+those from -1024 to 1024, whose boxes are shared.
+
+An arithmetic expansion is the JavaScript operator on two numbers whose result needs no deciding:
+one that is not an integer is inexact, and an integer in the safe range of two integers is exact.
+Anything else -- an inexact result that lands on an integer, an exact one past 2^53, a box, a
+`BigInt` -- calls the runtime's operation (`add` and the rest in `src/compiler/runtime.js`), small
+enough for V8 to inline, which decides exactness, boxes an inexact integer, and hands rationals,
+complex numbers and errors to the primitive. A comparison is the operator on two numbers; `=` as
+`===` agrees with the tower on NaN, and every ordering with a NaN is false. Against an inexact
+constant the result is inexact whatever the other operand is, so a box is taken inline on its
+double too -- `fibfp`'s `(- n 1.)` on every call -- and an inexact integral constant is its double
+there. Taking a box inline in every generic operation was tried, for `fft`, whose data are all
+`0.0`, and made it slower: the larger expansion, everywhere, cost more than the calls it saved
+(R121). Before 43 the two fast paths were two `bigint`s and two `number`s, and adding the second
+had made the flonum class 7.5x faster compiled.
+
+The primitives keep the tower's own representation, `BigInt` exact and number inexact: `math.js`
+wraps each to convert its arguments in and its result out, and gives the commonest a direct path on
+numbers, boxes and `BigInt`s, each in a function of its own, since the wrapper, shared by every
+primitive, is a call V8 cannot inline: it cost `(inexact x)` 33 ns a call against 4.6.
 
 **An expansion can be a call.** `vector-ref` and `vector-set!` expand to a runtime helper,
 `R.vectorRef`/`R.vectorSet`, rather than to inline checks. The checks written inline were slower

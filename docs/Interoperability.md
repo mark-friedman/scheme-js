@@ -12,8 +12,8 @@ We use a "shared representation" model:
 
 | Scheme Type | Internal Representation | JS typeof / instanceof | Notes |
 | :---------- | :---------------------- | :--------------------- | :---- |
-| **Exact integer** | JS `BigInt` | `'bigint'` | Converted at the boundary; see *Numbers at the boundary*. |
-| **Inexact real** | Raw JS Number | `'number'` | Passed as is. |
+| **Exact integer** | JS `number` in the safe range, `BigInt` past ±2^53 | `'number'`, or `'bigint'` | An integral number is exact. Converted at the boundary; see *Numbers at the boundary*. |
+| **Inexact real** | Raw JS Number, or a `Flonum` where its value is an integer | `'number'`, or `instanceof Flonum` | `3.0` is a `Flonum` whose `value` is `3`, so that it stays distinct from the exact `3`; JavaScript is given the double. |
 | **Rational, complex** | Scheme objects | `'object'` | A rational becomes a JS number when passed to JavaScript. |
 | **String** | Raw JS String, or a `SchemeString` | `'string'`, or `instanceof SchemeString` | A literal, a symbol's name or a string from JavaScript is a JS string, immutable; a newly made string is a `SchemeString`, which may be changed. JavaScript always receives a JS string; see *Strings at the boundary*. |
 | **Boolean** | Raw JS Boolean | `'boolean'` | `#t` is `true`, `#f` is `false`. |
@@ -37,9 +37,9 @@ interpreter does (`callForeign` in `src/core/interpreter/values.js`):
 |---|---|
 | exact `1`, inexact `1.0` or `1/2` passed to a JavaScript function | a JS `number`: `1`, `1`, `0.5` |
 | exact integer beyond ±2^53 passed to a JavaScript function | throws: outside the safe integer range |
-| a list passed to a JavaScript function | the pairs are passed as they are, so their cars are still `BigInt`s |
-| integral JS number read by `js-ref`, dot notation or `js-eval`, or returned by a JavaScript function, called directly, `(f 1)`, or through `js-invoke` | **exact** |
-| an array or object a JavaScript function returns | JavaScript's own, its contents as they are: an integral number inside it is still a JS `number`, inexact in Scheme |
+| a list passed to a JavaScript function | the pairs are passed as they are, so their cars are Scheme's own numbers: an exact integer a `number`, or a `BigInt` past ±2^53, an inexact integer a `Flonum` |
+| integral JS number read by `js-ref`, dot notation or `js-eval`, or returned by a JavaScript function, called directly, `(f 1)`, or through `js-invoke` | **exact**: past ±2^53, the `BigInt` of its value |
+| an array or object a JavaScript function returns | JavaScript's own, its contents as they are: an integral number inside it is a JS `number`, so exact in Scheme -- but past ±2^53 not the `BigInt` Scheme holds that integer as, so not `eqv?` to it, until converted with `js->scheme-deep` |
 | JS `BigInt` returned by JavaScript | exact |
 | a flonum Scheme stored in a property with `js-set!`, read back with `js-ref` | still inexact |
 
@@ -189,7 +189,8 @@ procedure runs on its interpreter, so tail calls, deep recursion and continuatio
 in Scheme. Anything else -- a primitive, a function of JavaScript's own -- is called directly.
 
 What JavaScript then holds are Scheme's own representations (*Data Mapping Strategy*, above): an
-exact integer is a `BigInt`, a list a chain of `Cons` pairs ending in `null`, a newly made string a
+exact integer is a JavaScript number, or a `BigInt` past ±2^53, an inexact integer a `Flonum` holding its double as
+`value`, a list a chain of `Cons` pairs ending in `null`, a newly made string a
 `SchemeString`, a character a `Char`, a symbol a `Symbol`, and several values a `Values`, whose
 `first()` is the first.
 
@@ -197,9 +198,9 @@ exact integer is a `BigInt`, a list a chain of `Cons` pairs ending in `null`, a 
 
 | function | direction | converts |
 |---|---|---|
-| `jsToScheme` | into Scheme, one level | an integral number to an exact integer |
+| `jsToScheme` | into Scheme, one level | an integral number to an exact integer: itself in the safe range, the `BigInt` of its value past it; a `BigInt` in the safe range to a number |
 | `jsToSchemeDeep` | into Scheme, throughout | the same, and an array to a vector and a plain object to a `js-object` record, recursively |
-| `schemeToJs` | out of Scheme, one level | several values to the first; an exact integer to a number, throwing beyond ±2^53; a rational to a number; a character or a Scheme string to a JavaScript string |
+| `schemeToJs` | out of Scheme, one level | several values to the first; an exact integer to a number, throwing beyond ±2^53; an inexact integer to its double; a rational to a number; a character or a Scheme string to a JavaScript string |
 | `schemeToJsDeep` | out of Scheme, throughout | the same, and a vector to an array and a `js-object` record to a plain object, recursively; a list stays a list of pairs |
 
 The plain call converts its arguments with `jsToScheme`, and its result with `schemeToJsDeep`,

@@ -12840,3 +12840,113 @@ rational and a negative one, with the error's message and irritants.
 
 8,106 tests pass in Node with none failing (33 skipped), and 7,882 in the browser with none failing
 (56 skipped).
+
+
+# Small exact integers as JavaScript numbers, integral inexacts boxed (task 43, 2026-10-06)
+
+An exact integer is now a JavaScript number in the safe range and a `BigInt` beyond it; an inexact
+real is a number unless its value is an integer -- 3.0, -0.0 -- when it is a `Flonum`, a box holding
+the double (`src/core/interpreter/number_representation.js`). An integral number is exact, which is
+also what JavaScript hands Scheme. Decided with the user after 43's profile, which found the
+compiled `sum` loop at `BigInt`'s floor, 12x the loop on numbers; prototyped on `fixnums-as-numbers`,
+measured, improved where float code paid for it, and merged.
+
+## The representation
+
+- **The numeric tower keeps its own representation**, `BigInt` exact and number inexact: `math.js`'s
+  primitives are wrapped to convert their arguments in and their results out, and an error raised
+  inside one names its arguments as the caller gave them.
+- **The commonest primitives take numbers directly**: `+`, `-`, `*`, the comparisons, `quotient`,
+  `remainder` and `modulo` on two numbers; `inexact`, `exact`, `abs`, `magnitude`, `real-part`,
+  `imag-part`, the roundings, `square`, `sqrt`, `log`, `exp`, the trigonometric functions, `/` with an
+  inexact operand and the predicates on numbers, each in a function of its own, a number, a `Flonum`
+  or a `BigInt` as it is. The wrapper, one function every primitive shares, cost `(inexact x)` 33 ns
+  a call against 4.6. Two numbers that are not both reals -- a complex number, a rational -- go to
+  the tower's two-number operation directly, not through the variadic primitive.
+- **Everything that makes or reads a number follows it**: the reader and `string->number`,
+  constants in generated code and in the prebuilt tables, the printers, `eqv?` and the hash tables,
+  SRFI 151, `current-second`, the vector, string and bytevector indexes, and the JavaScript
+  boundary, where an integral number arriving is exact wherever it arrives and an inexact integer
+  leaving is its double. An integral number past ±2^53 arriving, from a call's result or a
+  property, is made the `BigInt` of its value, which is how Scheme holds an integer that large: kept
+  as a number it was `=` to the same integer made in Scheme but not `eqv?` to it, found while
+  documenting the merge. An array JavaScript returns is its own, its elements unconverted, so one
+  there still is, until `js->scheme-deep` converts it (`docs/Interoperability.md`). The boxes of the inexact integers from -1024 to 1024 are made once and
+  shared; R7RS leaves `eq?` on numbers unspecified.
+
+## Compiled arithmetic
+
+- `+`, `-` and `*` are the JavaScript operator on two numbers whose result needs no deciding -- not an
+  integer, so inexact, or an integer in the safe range of two integers, so exact -- and otherwise the
+  runtime's operation (`add` and the rest in `runtime.js`), which decides exactness, boxes an inexact
+  integer, takes `BigInt`s and boxes, and hands rationals, complex numbers and errors to the
+  primitive. A comparison is the operator on two numbers.
+- Against an inexact constant the result is inexact whatever the other operand is, so a box is
+  taken inline on its double too (`against-inexact-constant` in `inline.scm`); an inexact integral
+  constant is its double there.
+- A `let`-bound constant never assigned is read as the constant, so `(let ((k 2.)) (* x k))` is
+  arithmetic on a double rather than on a box read from a variable (`constant-binding` in
+  `ir.scm`). The names a procedure assigns are collected once before it is lowered, and each
+  variable reference looks its name up once: three lookups a reference made the self-host
+  benchmark's interpreted lowering 1.6x slower in the first measurement.
+
+## Loops on raw doubles
+
+A loop whose variables stay inexact allocated a box whenever one landed on an integer, and V8,
+finding a variable sometimes a double and sometimes a box, stopped holding it in a register: the
+flonum class was 2.05x slower at first. So the fast form runs a loop on raw doubles before the
+ordinary one where it can (`emit.scm`, "Loops on raw doubles"): a loop whose body calls nothing but
+inlined primitives and itself, holds an inexact constant, and has variables that provably stay
+inexact -- with the `let`s in its body, and the locals bound outside it that those need -- entered
+when they arrive inexact and its operators are intact. Nothing inside it boxes or calls: a way out
+breaks out and returns after the loop, and an operator rebound mid-loop breaks to a block that boxes
+the variables and goes on in the ordinary loop. A box made in a branch of the loop that never ran
+still made `sumfp` seven times slower (R120).
+
+## Measured
+
+Against `compiler-investigation` before the merge, best of two runs of the canonical suite, compiled:
+
+| class | new / old | class | new / old |
+|---|---|---|---|
+| fixnum | 0.59x | list | 0.82x |
+| vector | 0.61x | continuation | 0.99x |
+| flonum | 0.79x | string | 1.00x |
+| call | 0.81x | bignum | 1.22x |
+
+All 44 programs 0.81x compiled and 0.96x interpreted. In the flonum class `sumfp` 0.22x, `simplex`
+0.57x, `pnpoly` 0.66x and `mbrotZ` 0.97x, but `mbrot` 1.08x, `fft` 1.18x and `fibfp` 1.81x: their
+integral inexacts cross calls or sit in vectors as boxes, and taking a box inline in every generic
+operation made `fft` slower (R121). `chudnovsky` is 1.41x, unprofiled. `run_tier.js --set all` is
+1-5% slower in total, mostly compiling -- canonical 3,286 ms against 3,194, tests 1,195 against 1,150,
+corpus 3,858 against 3,814, page 275 against 261 -- and a CLI start 10-13 ms slower, 288-292 ms
+against 274-279: the compiler's prebuilt image grew from 3.41 MB to 4.07, all of it the loops on raw
+doubles' emitter. The self-host benchmark's lowering is 1,869 ms against 1,811 interpreted, 945
+against 1,128 compiled and 69.9 against 69.1 with the library compiled. In `run_codegen.js` most
+workloads are faster -- exact integer and flonum arithmetic 3.1 ns against 107 for the mixed pair,
+vector access 2-4x -- but `*`, `-` and `<` on two fractions 6.7 ns against 4.7, the test that a result
+is not an integer, and ten mutual tail calls 105 ns against 92, with identical generated code.
+
+## JavaScript
+
+Under `src/`, against `compiler-investigation` before the merge: 1,089 lines of JavaScript added and
+130 removed, 758 of Scheme added and 72 removed. The JavaScript is the value representation
+(`number_representation.js`, 353 lines), the primitives that operate on it (`math.js`, 364, and the
+printers, reader, `eq.js`, `type_check.js`, the hash tables, SRFI 151, interop and the other
+primitives that read or make numbers, fixed in place), and the compiler's runtime (`runtime.js`,
+175, the arithmetic generated code calls); the compiler's changes are Scheme.
+
+## Tests
+
+`tests/tiers/double_loop_tests.scm` and `tests/tiers/inexact_constant_tests.scm`, run in both tiers:
+loops over inexact reals and arithmetic against an inexact constant, with every kind of operand and
+the exactness of each answer. `number_tests.scm`, "the primitives on every way a real is held": each
+primitive with a direct path on exact integers, BigInts, fractions, boxes, -0.0, infinities and NaN.
+`emit_tests.scm`: the arithmetic expansions, the constant propagation, and the loops on raw doubles
+-- that nothing in them boxes, and that a way out is made after the loop. Tests that pinned the old
+representation say the new one.
+
+## Verification
+
+8,242 tests pass in Node with none failing (33 skipped), and 8,018 in the browser with none failing
+(56 skipped).

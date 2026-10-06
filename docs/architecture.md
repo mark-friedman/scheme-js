@@ -69,6 +69,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 | `library_seed.js` | Loads the library system (Scheme) at first use, apart from programs, and installs its prebuilt tables |
 | `source_texts.js` | The text of code read under a name nothing could fetch it by -- a page's inline script -- for source maps |
 | `library_loader.js` | Loading, defining and importing libraries from JavaScript, through the Scheme; fetching an asynchronous resolver's files first |
+| `number_representation.js` | How a number is held: an exact integer a JavaScript number in the safe range and a `BigInt` beyond it, an inexact real a number unless its value is an integer, when it is a `Flonum` box; the arithmetic the primitives and compiled code share on numbers held so, and the conversions to the numeric tower's own representation, `BigInt` exact and number inexact, which `math.js` computes in |
 | `primitives/` | Native procedures |
 | `primitives/io/` | Port system, Reader execution, Printer |
 
@@ -215,6 +216,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── syntax_object.js    # SyntaxObject, the identifier; scopes; datum walks marking scopes; ScopeBindingRegistry
 │       │   ├── macro_registry.js   # The macros defined by name for the process
 │       │   ├── type_check.js       # Type checking utilities for primitives
+│       │   ├── number_representation.js # How a number is held -- exact integers as numbers or BigInts, inexact integers boxed (Flonum) -- and the arithmetic on numbers held so
 │       │   ├── library_loader.js   # Loading, defining and importing libraries, through the Scheme + barrel (re-exports)
 │       │   ├── library_registry.js # The library system's door from JavaScript: the current registry, the API
 │       │   ├── source_texts.js     # The text of an inline script, kept for the source maps of what is compiled from it

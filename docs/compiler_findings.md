@@ -3421,3 +3421,37 @@ remains is the programs' own arithmetic, which compiled code does inline.
 explained. What the bignum programs spend now is BigInt division and multiplication themselves; the
 tower's dispatch is at most about 15% of `chudnovsky` and less of `pi`, so 65 is not a bignum
 optimization, and is decided on other grounds.
+
+**R120. A branch of a hot loop that never runs was not free.**
+
+The loops 43 runs on raw doubles were written as if code that never runs costs nothing: at the head
+of each iteration a test that the operators are still intact, whose branch boxes the variables and
+leaves, and in the body the loop's ways out, each returning a value boxed where it is returned.
+Neither runs while the loop does. Yet `sumfp`'s loop took 6.5 ns an iteration -- slower than the
+same loop on boxed values before the change -- where the same loop with no call in any branch took
+0.93. V8 compiles such a loop on the stack, as it runs (on-stack replacement), and once it has
+inlined the boxing -- as it has in any program that made boxes before -- a box made, or any call
+made, with the loop's variables in a branch inside the loop kept those variables from being held as
+raw doubles; so did testing the guard as a Scheme value (`!== false`) rather than as JavaScript's
+boolean, 2.2 ns against 0.93. The same function optimized from its start, not on the stack, ran at
+1.3 ns.
+
+*Consequence:* nothing inside a loop on raw doubles boxes or calls. A way out breaks out of the loop
+and its return is made after it, a guard that fails breaks to a block whose end boxes the variables,
+and the guard is a JavaScript test (`deferred-exits` and `emit-double-loop!` in `emit.scm`):
+`sumfp` 0.94 ms, from 6.5, against 4.3 before 43. A code-generation change to a hot loop is measured
+inside a program that has run other code first, as the canonical runner does: the same loop alone,
+in a fresh process, was fast either way.
+
+**R121. Taking a box inline in every generic operation did not help the program made of boxes.**
+
+`fft`'s data are a vector of `0.0`, an inexact integer and so a box under 43's representation, and
+every operation on them called the runtime's arithmetic out of line: 43% of its time, in `add`, `sub`
+and `mul`. The obvious remedy was to take two boxes, or a box and a number, inline in every `+`,
+`-` and `*`, after the test for two numbers. It made `fft` slower, 13.0 ms against 11.1 (9.3 before
+43), and moved nothing else: the larger expansion, in every arithmetic operation of every program,
+cost `four1` more than the calls it saved.
+
+*Consequence:* the generic expansions keep one inline case, two numbers, and take a box inline only
+against an inexact constant, where the result is known inexact and the expansion is short. What
+`fft` and `fibfp` pay is boxes crossing calls and sitting in data, which an expansion cannot remove.
