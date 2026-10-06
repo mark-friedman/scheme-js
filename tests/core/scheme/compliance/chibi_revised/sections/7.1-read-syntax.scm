@@ -1,3 +1,8 @@
+;; R7RS Compliance Tests - Section Read syntax
+;; Adapted from Chibi Scheme's R7RS test suite by Alex Shinn: the section as
+;; chibi_original/r7rs-tests.scm has it, every test as Chibi wrote it, run with
+;; Chibi's test forms and compared as Chibi compares (../test-equal.scm).
+
 (test-group "Read syntax"
 
 ;; check reading boolean followed by eof

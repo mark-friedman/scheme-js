@@ -11,6 +11,7 @@
  */
 
 import { Rational } from './rational.js';
+import { inexactText } from '../interpreter/number_representation.js';
 
 /**
  * Converts a real part to a JavaScript number, for an inexact complex number
@@ -158,18 +159,8 @@ export class Complex {
             } else if (val instanceof Rational) {
                 s = val.toString(radix);
             } else if (typeof val === 'number') {
-                // Always include + for positive infinity in R7RS format
-                if (val === Infinity) return '+inf.0';
-                if (val === -Infinity) return '-inf.0';
-                if (Number.isNaN(val)) return '+nan.0';
-                // Handle negative zero - JS toString() loses the sign
-                if (Object.is(val, -0)) return '-0.0';
-
-                s = val.toString(radix);
-                // Ensure inexactness is visible
-                if (Number.isInteger(val) && !s.includes('.') && !s.includes('e')) {
-                    s += '.0';
-                }
+                // An inexact part, as an inexact real is written.
+                s = inexactText(val, radix);
             } else {
                 s = String(val);
             }

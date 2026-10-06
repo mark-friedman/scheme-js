@@ -3471,3 +3471,18 @@ fail 7.
 
 *Consequence:* the number section is Chibi's again, compared as Chibi compares (89); the count is
 1,108 of 1,108. The other sections are 90.
+
+**R123. The skips our copy of Chibi's tests put down to JavaScript were not JavaScript's.**
+
+Two kinds of test were skipped as JavaScript's limitations. A test of the geometric mean of four
+numbers, "JS limitation: floating-point precision", expected a value Chibi writes to four digits,
+which Chibi's harness compares within an epsilon and ours compared exactly: run with Chibi's
+comparison it passes. And the eleven `test-precision` tests of how a double is written, "JS
+limitation: number->string format differs": eight passed as they stood, JavaScript's shortest
+round-trip digits being among those Chibi accepts, and three failed because our printer wrote the
+smallest subnormal as `5e-324`, with no decimal point, where R7RS 6.2.7 asks for one wherever one
+can be, and Chibi accepts `5.0e-324`. That was the printer's, and is fixed (90).
+
+*Consequence:* a test is skipped for a reason that has been checked, and "JavaScript" is a reason
+only with the JavaScript behaviour named. Our copy of Chibi's tests now skips two, in a browser,
+which has no environment variables or file system.

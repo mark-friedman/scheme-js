@@ -1,61 +1,64 @@
-;; R7RS Compliance Tests - Section 6.1: Equivalence Predicates
-;; Adapted from Chibi Scheme's R7RS test suite by Alex Shinn
+;; R7RS Compliance Tests - Section 6.1 Equivalence Predicates
+;; Adapted from Chibi Scheme's R7RS test suite by Alex Shinn: the section as
+;; chibi_original/r7rs-tests.scm has it, every test as Chibi wrote it, run with
+;; Chibi's test forms and compared as Chibi compares (../test-equal.scm).
 
 (test-group "6.1 Equivalence Predicates"
 
-  (test #t (eqv? 'a 'a))
-  (test #f (eqv? 'a 'b))
-  (test #t (eqv? 2 2))
-  (test #t (eqv? '() '()))
-  (test #t (eqv? 100000000 100000000))
-  (test #f (eqv? (cons 1 2) (cons 1 2)))
-  (test #f (eqv? (lambda () 1)
-                 (lambda () 2)))
-  (test #f (eqv? #f 'nil))
+(test #t (eqv? 'a 'a))
+(test #f (eqv? 'a 'b))
+(test #t (eqv? 2 2))
+(test #t (eqv? '() '()))
+(test #t (eqv? 100000000 100000000))
+(test #f (eqv? (cons 1 2) (cons 1 2)))
+(test #f (eqv? (lambda () 1)
+               (lambda () 2)))
+(test #f (eqv? #f 'nil))
 
-  (define gen-counter
-    (lambda ()
-      (let ((n 0))
-        (lambda () (set! n (+ n 1)) n))))
-  (test #t
-      (let ((g (gen-counter)))
-        (eqv? g g)))
-  (test #f (eqv? (gen-counter) (gen-counter)))
-  (define gen-loser
-    (lambda ()
-      (let ((n 0))
-        (lambda () (set! n (+ n 1)) 27))))
-  (test #t (let ((g (gen-loser)))
-    (eqv? g g)))
+(define gen-counter
+  (lambda ()
+    (let ((n 0))
+      (lambda () (set! n (+ n 1)) n))))
+(test #t
+    (let ((g (gen-counter)))
+      (eqv? g g)))
+(test #f (eqv? (gen-counter) (gen-counter)))
+(define gen-loser
+  (lambda ()
+    (let ((n 0))
+      (lambda () (set! n (+ n 1)) 27))))
+(test #t (let ((g (gen-loser)))
+  (eqv? g g)))
 
-  (test #f
-  (letrec ((f (lambda () (if (eqv? f g) 'f 'both)))
-           (g (lambda () (if (eqv? f g) 'g 'both))))
-     (eqv? f g)))
+(test #f
+(letrec ((f (lambda () (if (eqv? f g) 'f 'both)))
+         (g (lambda () (if (eqv? f g) 'g 'both))))
+   (eqv? f g)))
 
-  (test #t
-      (let ((x '(a)))
-        (eqv? x x)))
+(test #t
+    (let ((x '(a)))
+      (eqv? x x)))
 
-  (test #t (eq? 'a 'a))
-  (test #f (eq? (list 'a) (list 'a)))
-  (test #t (eq? '() '()))
-  (test #t
-      (let ((x '(a)))
-        (eq? x x)))
-  (test #t
-      (let ((x '#()))
-        (eq? x x)))
-  (test #t
-      (let ((p (lambda (x) x)))
-        (eq? p p)))
+(test #t (eq? 'a 'a))
+(test #f (eq? (list 'a) (list 'a)))
+(test #t (eq? '() '()))
+(test #t
+    (let ((x '(a)))
+      (eq? x x)))
+(test #t
+    (let ((x '#()))
+      (eq? x x)))
+(test #t
+    (let ((p (lambda (x) x)))
+      (eq? p p)))
 
-  (test #t (equal? 'a 'a))
-  (test #t (equal? '(a) '(a)))
-  (test #t (equal? '(a (b) c)
-                   '(a (b) c)))
-  (test #t (equal? "abc" "abc"))
-  (test #t (equal? 2 2))
-  (test #t (equal? (make-vector 5 'a)
-                   (make-vector 5 'a)))
+(test #t (equal? 'a 'a))
+(test #t (equal? '(a) '(a)))
+(test #t (equal? '(a (b) c)
+                 '(a (b) c)))
+(test #t (equal? "abc" "abc"))
+(test #t (equal? 2 2))
+(test #t (equal? (make-vector 5 'a)
+                 (make-vector 5 'a)))
+
 )

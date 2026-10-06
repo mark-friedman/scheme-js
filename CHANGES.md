@@ -13263,3 +13263,68 @@ had pinned the errors -- a complex argument to `exp` and `asin`, `numerator` and
 
 8,726 tests pass in Node with none failing (31 skipped), and 8,502 in the browser with none failing
 (54 skipped); Chibi's suite, 1,108 of 1,108 applicable, in both configurations, and on its browser page.
+
+
+# Chibi's R7RS tests as Chibi wrote them; Unicode characters and case; a decimal point in every inexact number (task 90, 2026-10-06)
+
+Our copy of Chibi's R7RS tests had rewritten or left out 156 of its 1,198 tests, and its number
+section, restored in 89, had hidden four failures (R122). Every section is now Chibi's: the text of
+`chibi_original/r7rs-tests.scm` between its `test-begin` and `test-end`, each in its own file as
+before, run with Chibi's own test forms -- `test-assert`, `test-not` and `test-error`, with Chibi's
+arguments, joining 89's comparison and `test-values` in `chibi_revised/test-equal.scm`, which only this
+suite loads. Two tests stay Node's: a browser has no environment variables or file system, and they
+are skipped there, as they were. 1,225 tests pass, none skipped, in both library configurations,
+where the copy ran 1,108; ten failed, and are fixed.
+
+## Characters and case, by Unicode
+
+R7RS 6.6 defines the character predicates by Unicode's properties, and they tested ASCII:
+`(char-alphabetic? #\Λ)` was #f, and `char-numeric?` and `digit-value` knew only 0 to 9 (`char.js`,
+"Unicode"):
+
+- **The predicates are the properties**, as JavaScript's regular expressions have them:
+  `char-alphabetic?` Alphabetic, `char-numeric?` a decimal digit in any script, `char-whitespace?`
+  White_Space -- the next-line character is one, the byte order mark is not -- and the case
+  predicates Uppercase and Lowercase, so ª is lowercase and the titlecase ǅ neither.
+- **`digit-value`** of a decimal digit in any script, by its distance from the start of its run of
+  digits: Unicode encodes each script's digits as one run from zero to nine. Every run of decimal
+  digits, checked over all of Unicode, is a whole number of tens.
+- **A character's case is mapped one to one**, Unicode's simple mappings: `(char-upcase #\ß)` is ß,
+  where JavaScript's full mapping gave the S of SS. `char-foldcase` is the simple folding, every
+  sigma to σ and the long s to s, and `char-ci=?` and the other comparisons compare characters so
+  folded.
+- **A string is folded fully**, character by character, so `string-foldcase` takes "Maß" to "mass",
+  "ΜΈΛΟΣ" to "μέλοσ" and "ﬃ" to "ffi"; `string-ci=?` and the others compare strings so folded,
+  `(string-ci=? "Straße" "STRASSE")` #t. `string-upcase` and `string-downcase` keep JavaScript's full,
+  context-sensitive mappings, a final sigma included.
+
+The simple mappings and folding are made from JavaScript's full ones, and the characters on which
+they differ are named: the Greek letters with ypogegrammeni, the dotted and dotless Turkish i, and
+Cherokee, whose lowercase letters fold to its uppercase.
+
+## A decimal point in every inexact number
+
+`5e-324` and `1e+21` are how JavaScript writes those doubles, and how we wrote them; R7RS 6.2.7 asks
+for a decimal point wherever one can be, so they are `5.0e-324` and `1.0e+21`. One function writes an
+inexact real's text now, `inexactText` in `number_representation.js`, which `write`, `number->string`
+and a complex number's parts use, where three copies of the rules had been. Chibi's test of the
+smallest subnormal's text had been skipped as "JS limitation: number->string format differs"; neither
+it nor the geometric-mean test skipped for "floating-point precision" was JavaScript's (R123).
+
+JavaScript under `src/`: 162 lines added and 71 removed -- the Unicode tables and the primitives on
+them, and the value representation's text -- most of it the case mappings in `char.js`.
+
+## Tests
+
+`unicode_tests.scm`, 20 tests: the predicates on letters, digits and spaces of several scripts,
+`digit-value` of digits in five scripts and beyond the basic plane, simple case mappings and folding,
+and full folding and the -ci comparisons. `write_tests.scm`, 6 tests: an inexact number's decimal
+point beside an exponent, written, in a complex number's parts, and read back. One unit test of the
+REPL's printer had pinned `1e+21`. Chibi's suite: 1,225 tests.
+
+## Verification
+
+8,987 tests pass in Node with none failing (7 skipped), and 8,763 in the browser with none failing
+(30 skipped); Chibi's suite 1,225 of 1,225 in both configurations, and 1,223 with two skipped on its
+browser page. The string benchmarks are unchanged: `parsing` 26.4 ms against 28.5, `read1` 16.2 against
+16.0.

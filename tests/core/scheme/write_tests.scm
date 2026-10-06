@@ -279,3 +279,13 @@
   (test "a negative zero imaginary part written reads back"
     #t (negative-zero?
         (imag-part (read (open-input-string (written write (make-rectangular 1.0 -0.0))))))))
+
+;; R7RS 6.2.7: an inexact number is written with a decimal point wherever one
+;; could be, so with an exponent too: JavaScript writes 5e-324 and 1e+21.
+(test-group "an inexact number's text has a decimal point"
+  (test "the smallest subnormal" "5.0e-324" (number->string 5e-324))
+  (test "a large integer" "1.0e+21" (number->string 1e21))
+  (test "a fraction with an exponent keeps its own" "1.5e-7" (number->string 1.5e-7))
+  (test "as write writes it" "1.0e+21" (written write 1e21))
+  (test "and in a complex number's parts" "1.0e+21+5.0e-324i" (number->string (make-rectangular 1e21 5e-324)))
+  (test "which reads back" #t (= 1e21 (string->number (number->string 1e21)))))

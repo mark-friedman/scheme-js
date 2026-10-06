@@ -15,6 +15,116 @@ import { Char } from './char_class.js';
 import { SchemeRangeError } from '../interpreter/errors.js';
 
 // =============================================================================
+// Unicode
+// =============================================================================
+// R7RS 6.6 defines the character predicates by Unicode's properties, and the
+// case procedures by its mappings: a character's simple ones, one character
+// to one, and a string's full ones (6.7). JavaScript has the properties, as
+// regular expression classes, and the full mappings, `toUpperCase` and
+// `toLowerCase`; the simple mappings and folding are made from those, and the
+// few characters on which they differ are named below.
+
+const ALPHABETIC = /^\p{Alphabetic}$/u;
+const DECIMAL_DIGIT = /^\p{Nd}$/u;
+const WHITE_SPACE = /^\p{White_Space}$/u;
+const UPPERCASE = /^\p{Uppercase}$/u;
+const LOWERCASE = /^\p{Lowercase}$/u;
+
+/**
+ * A decimal digit's value. Unicode encodes each script's decimal digits as
+ * one run of code points from zero to nine, and runs of several -- the
+ * mathematical digits -- one after another, so a digit's value is its
+ * distance from the start of its run, modulo ten.
+ * @param {number} code - The code point of a decimal digit.
+ * @returns {number}
+ */
+function decimalDigitValue(code) {
+    let start = code;
+    while (start > 0 && DECIMAL_DIGIT.test(String.fromCodePoint(start - 1))) start--;
+    return (code - start) % 10;
+}
+
+/**
+ * The code point a full case mapping takes a character to, if it takes it
+ * to one, else -1.
+ * @param {string} mapped - The mapping's result.
+ * @returns {number}
+ */
+function singleCodePoint(mapped) {
+    const code = mapped.codePointAt(0);
+    return mapped.length === (code > 0xFFFF ? 2 : 1) ? code : -1;
+}
+
+/**
+ * A character's simple uppercase mapping. Where the full mapping is several
+ * characters, the simple one is the character itself -- `(char-upcase #\ß)`
+ * is #\ß, not the S of SS -- but for the Greek letters with ypogegrammeni,
+ * which map to their forms with prosgegrammeni.
+ * @param {number} code - The code point.
+ * @returns {number}
+ */
+function simpleUpcase(code) {
+    const mapped = singleCodePoint(String.fromCodePoint(code).toUpperCase());
+    if (mapped >= 0) return mapped;
+    if ((code >= 0x1F80 && code <= 0x1F87) || (code >= 0x1F90 && code <= 0x1F97) ||
+        (code >= 0x1FA0 && code <= 0x1FA7)) return code + 8;
+    if (code === 0x1FB3 || code === 0x1FC3 || code === 0x1FF3) return code + 9;
+    return code;
+}
+
+/**
+ * A character's simple lowercase mapping. The only character whose full
+ * mapping is several characters, İ, maps to the first of them, i.
+ * @param {number} code - The code point.
+ * @returns {number}
+ */
+function simpleDowncase(code) {
+    return String.fromCodePoint(code).toLowerCase().codePointAt(0);
+}
+
+/**
+ * Whether a character folds to an uppercase letter: Cherokee's lowercase
+ * letters, which Unicode added after its uppercase ones and folds to them.
+ * @param {number} code - The code point.
+ * @returns {boolean}
+ */
+function isCherokeeLowercase(code) {
+    return (code >= 0xAB70 && code <= 0xABBF) || (code >= 0x13F8 && code <= 0x13FD);
+}
+
+/**
+ * A character's simple case folding: its uppercase mapping's lowercase one,
+ * which takes every sigma to σ and the long s to s. The dotted and dotless
+ * Turkish i fold only to themselves, and Cherokee folds to its uppercase.
+ * @param {number} code - The code point.
+ * @returns {number}
+ */
+export function foldCodePoint(code) {
+    if (code === 0x130 || code === 0x131) return code;
+    if (isCherokeeLowercase(code)) return simpleUpcase(code);
+    return simpleDowncase(simpleUpcase(code));
+}
+
+/**
+ * A string's full case folding (R7RS 6.7 `string-foldcase`), character by
+ * character so that no sigma is taken for a word's last: ß folds to ss,
+ * ΜΈΛΟΣ to μέλοσ, ﬃ to ffi. As `foldCodePoint` for the Turkish i's and
+ * Cherokee.
+ * @param {string} text - The string.
+ * @returns {string}
+ */
+export function foldString(text) {
+    let folded = '';
+    for (const c of text) {
+        const code = c.codePointAt(0);
+        if (code === 0x131) folded += c;
+        else if (isCherokeeLowercase(code)) folded += String.fromCodePoint(simpleUpcase(code));
+        else folded += c.toUpperCase().toLowerCase();
+    }
+    return folded;
+}
+
+// =============================================================================
 // Helper Functions
 // =============================================================================
 
@@ -54,8 +164,8 @@ function compareCiChars(procName, compare, args) {
     assertArity(procName, args, 2, Infinity);
     assertAllChars(procName, args);
     for (let i = 0; i < args.length - 1; i++) {
-        const a = args[i].toString().toLowerCase();
-        const b = args[i + 1].toString().toLowerCase();
+        const a = String.fromCodePoint(foldCodePoint(args[i].valueOf()));
+        const b = String.fromCodePoint(foldCodePoint(args[i + 1].valueOf()));
         if (!compare(a, b)) return false;
     }
     return true;
@@ -169,17 +279,17 @@ export const charPrimitives = {
      */
     'char-alphabetic?': (char) => {
         assertChar('char-alphabetic?', 1, char);
-        return /^[a-zA-Z]$/.test(char.toString());
+        return ALPHABETIC.test(char.toString());
     },
 
     /**
-     * Returns #t if char is numeric (0-9).
+     * Returns #t if char is a decimal digit, in any script.
      * @param {string} char - Character to test.
      * @returns {boolean}
      */
     'char-numeric?': (char) => {
         assertChar('char-numeric?', 1, char);
-        return /^[0-9]$/.test(char.toString());
+        return DECIMAL_DIGIT.test(char.toString());
     },
 
     /**
@@ -189,7 +299,7 @@ export const charPrimitives = {
      */
     'char-whitespace?': (char) => {
         assertChar('char-whitespace?', 1, char);
-        return /^\s$/.test(char.toString());
+        return WHITE_SPACE.test(char.toString());
     },
 
     /**
@@ -199,8 +309,7 @@ export const charPrimitives = {
      */
     'char-upper-case?': (char) => {
         assertChar('char-upper-case?', 1, char);
-        const s = char.toString();
-        return s === s.toUpperCase() && s !== s.toLowerCase();
+        return UPPERCASE.test(char.toString());
     },
 
     /**
@@ -210,8 +319,7 @@ export const charPrimitives = {
      */
     'char-lower-case?': (char) => {
         assertChar('char-lower-case?', 1, char);
-        const s = char.toString();
-        return s === s.toLowerCase() && s !== s.toUpperCase();
+        return LOWERCASE.test(char.toString());
     },
 
     // -------------------------------------------------------------------------
@@ -253,7 +361,7 @@ export const charPrimitives = {
      */
     'char-upcase': (char) => {
         assertChar('char-upcase', 1, char);
-        return new Char(char.toString().toUpperCase().codePointAt(0));
+        return new Char(simpleUpcase(char.valueOf()));
     },
 
     /**
@@ -263,18 +371,18 @@ export const charPrimitives = {
      */
     'char-downcase': (char) => {
         assertChar('char-downcase', 1, char);
-        return new Char(char.toString().toLowerCase().codePointAt(0));
+        return new Char(simpleDowncase(char.valueOf()));
     },
 
     /**
-     * Returns the case-folded version of a character.
-     * For simple cases, this is the same as downcase.
+     * Returns the case-folded version of a character: Unicode's simple
+     * folding (`foldCodePoint`).
      * @param {string} char - Character.
      * @returns {string} Folded character.
      */
     'char-foldcase': (char) => {
         assertChar('char-foldcase', 1, char);
-        return new Char(char.toString().toLowerCase().codePointAt(0));
+        return new Char(foldCodePoint(char.valueOf()));
     },
 
     // -------------------------------------------------------------------------
@@ -282,17 +390,15 @@ export const charPrimitives = {
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the digit value (0-9) if char is a digit, else #f.
-     * R7RS: For radix 10, only characters 0-9 have digit values.
+     * Returns the digit value if char is a decimal digit, in any script
+     * (R7RS 6.6: `(digit-value #\x0664)` is 4), else #f.
      * @param {string} char - Character.
      * @returns {number|boolean} Digit value or #f.
      */
     'digit-value': (char) => {
         assertChar('digit-value', 1, char);
         const code = char.valueOf();
-        if (code >= 48 && code <= 57) { // '0' to '9'
-            return code - 48;
-        }
-        return false;
+        if (code >= 48 && code <= 57) return code - 48;
+        return DECIMAL_DIGIT.test(char.toString()) ? decimalDigitValue(code) : false;
     }
 };

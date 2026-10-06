@@ -1,8 +1,12 @@
+;; R7RS Compliance Tests - Section 6.12 Environments and evaluation
+;; Adapted from Chibi Scheme's R7RS test suite by Alex Shinn: the section as
+;; chibi_original/r7rs-tests.scm has it, every test as Chibi wrote it, run with
+;; Chibi's test forms and compared as Chibi compares (../test-equal.scm).
+
 (test-group "6.12 Environments and evaluation"
 
 ;; (test 21 (eval '(* 7 3) (scheme-report-environment 5)))
 
-;; null-environment 5 now works with BigInt version
 (test 20
     (let ((f (eval '(lambda (f x) (f x x)) (null-environment 5))))
       (f + 10)))

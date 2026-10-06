@@ -14,6 +14,7 @@ import { Cons, toArray } from '../interpreter/cons.js';
 import { Values } from '../interpreter/values.js';
 import { parseNumber } from '../interpreter/reader.js';
 import { Char } from './char_class.js';
+import { foldString } from './char.js';
 import { SchemeString, stringValue, freshString } from './string_class.js';
 import {
     assertType,
@@ -28,7 +29,7 @@ import {
 import { SchemeRangeError, SchemeError } from '../interpreter/errors.js';
 import { Complex } from './complex.js';
 import { Rational } from './rational.js';
-import { Flonum } from '../interpreter/number_representation.js';
+import { Flonum, inexactText } from '../interpreter/number_representation.js';
 
 // =============================================================================
 // Helper Functions
@@ -79,8 +80,8 @@ function compareCiStrings(procName, compare, args) {
     assertArity(procName, args, 2, Infinity);
     assertAllStrings(procName, args);
     for (let i = 0; i < args.length - 1; i++) {
-        const a = stringValue(args[i]).toLowerCase();
-        const b = stringValue(args[i + 1]).toLowerCase();
+        const a = foldString(stringValue(args[i]));
+        const b = foldString(stringValue(args[i + 1]));
         if (!compare(a, b)) return false;
     }
     return true;
@@ -504,14 +505,14 @@ export const stringPrimitives = {
     },
 
     /**
-     * Returns case-folded version of string.
-     * For simple cases, this is the same as downcase.
+     * Returns the string case-folded, by Unicode's full folding
+     * (`foldString` in char.js): "Maß" folds to "mass".
      * @param {string} str - String
      * @returns {SchemeString} Folded string
      */
     'string-foldcase': (str) => {
         assertString('string-foldcase', 1, str);
-        return freshString(stringValue(str).toLowerCase());
+        return freshString(foldString(stringValue(str)));
     }
 };
 
@@ -550,22 +551,8 @@ function numberToString(num, radix) {
     if (typeof num === 'number' && Number.isInteger(num)) return num.toString(r);
     if (num instanceof Flonum) num = num.value;
 
-    // R7RS special value formatting for inexact real numbers
-    if (typeof num === 'number') {
-        if (num === Infinity) return '+inf.0';
-        if (num === -Infinity) return '-inf.0';
-        if (Number.isNaN(num)) return '+nan.0';
-        // Handle negative zero specially - JS toString() loses the sign
-        if (Object.is(num, -0)) return '-0.0';
-
-        // For inexact integer-valued numbers, show decimal point
-        // to indicate inexactness per R7RS
-        let s = num.toString(r);
-        if (Number.isInteger(num) && !s.includes('.') && !s.includes('e')) {
-            s += '.0';
-        }
-        return s;
-    }
+    // Any other number is an inexact real.
+    if (typeof num === 'number') return inexactText(num, r);
 
     // BigInt (exact integers) - no decimal point
     if (typeof num === 'bigint') {

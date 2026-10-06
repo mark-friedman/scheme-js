@@ -5,7 +5,7 @@ import { Rational } from '../rational.js';
 import { Complex } from '../complex.js';
 import { Char } from '../char_class.js';
 import { SchemeString } from '../string_class.js';
-import { Flonum } from '../../interpreter/number_representation.js';
+import { Flonum, inexactText } from '../../interpreter/number_representation.js';
 
 // ============================================================================
 // Printer Logic (Display/Write)
@@ -171,21 +171,6 @@ function isCompound(val) {
     return val instanceof Cons || Array.isArray(val) || isObjectLike(val);
 }
 
-/**
- * An inexact real's text: an infinity or NaN as R7RS writes them, -0.0 with
- * its sign, and an integral value with a decimal point, which tells it from
- * an exact integer.
- * @param {number} v - The value.
- * @returns {string}
- */
-function inexactText(v) {
-    if (v === Infinity) return '+inf.0';
-    if (v === -Infinity) return '-inf.0';
-    if (Number.isNaN(v)) return '+nan.0';
-    if (Object.is(v, -0)) return '-0.0';
-    const s = String(v);
-    return Number.isInteger(v) && !s.includes('.') && !s.includes('e') ? s + '.0' : s;
-}
 
 /**
  * Converts a value that holds no other values to text.

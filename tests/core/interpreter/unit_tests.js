@@ -209,11 +209,12 @@ export function runUnitTests(interpreter, logger) {
         assert(logger, "Unit: prettyPrint inexact integer", prettyPrint(new Flonum(123)), "123.0");
         assert(logger, "Unit: prettyPrint list", prettyPrint(list(new Flonum(1), intern("a"))), "(1.0 a)");
         // An inexact real is shown as write writes it, which read gives back:
-        // the sign of -0.0 kept, and no ".0" after an exponent
+        // the sign of -0.0 kept, and a decimal point in the mantissa where
+        // there is an exponent (R7RS 6.2.7)
         assert(logger, "Unit: prettyPrint negative zero", prettyPrint(new Flonum(-0)), "-0.0");
         assert(logger, "Unit: prettyPrint negative zero in a list",
             prettyPrint(list(new Flonum(-0), new Flonum(0))), "(-0.0 0.0)");
-        assert(logger, "Unit: prettyPrint a large integral double", prettyPrint(new Flonum(1e21)), "1e+21");
+        assert(logger, "Unit: prettyPrint a large integral double", prettyPrint(new Flonum(1e21)), "1.0e+21");
         assert(logger, "Unit: prettyPrint a fraction", prettyPrint(1.5), "1.5");
         assert(logger, "Unit: prettyPrint infinity", prettyPrint(-Infinity), "-inf.0");
 

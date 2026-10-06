@@ -127,6 +127,28 @@ export function fromTower(v) {
 }
 
 /**
+ * An inexact real's text, as `write` and `number->string` write it: an
+ * infinity or NaN as R7RS writes them, -0.0 with its sign, and every other
+ * value with a decimal point -- an integral one so that it reads back
+ * inexact, and one written with an exponent too, in its mantissa, as R7RS
+ * 6.2.7 asks wherever a decimal point can be: 5.0e-324 and 1.0e+21, where
+ * JavaScript writes 5e-324 and 1e+21.
+ * @param {number} v - The double.
+ * @param {number} [radix=10] - The radix.
+ * @returns {string}
+ */
+export function inexactText(v, radix = 10) {
+    if (v === Infinity) return '+inf.0';
+    if (v === -Infinity) return '-inf.0';
+    if (Number.isNaN(v)) return '+nan.0';
+    if (Object.is(v, -0)) return '-0.0';
+    const s = v.toString(radix);
+    if (s.includes('.')) return s;
+    const e = radix === 10 ? s.indexOf('e') : -1;
+    return e < 0 ? s + '.0' : s.slice(0, e) + '.0' + s.slice(e);
+}
+
+/**
  * The double a value holds if it is held as a JavaScript number or a Flonum
  * -- an exact integer's value, or an inexact real's -- else `undefined`.
  * @param {*} x - The value.

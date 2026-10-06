@@ -418,7 +418,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │           ├── chapter_4.scm           # Expressions tests
 │   │           ├── chapter_5.scm           # Program structure tests
 │   │           ├── chapter_6.scm           # Standard procedures tests
-│   │           └── chibi_revised/          # Chibi-based section tests
+│   │           └── chibi_revised/          # Chibi's tests by section, as Chibi wrote them; test-equal.scm gives Chibi's test forms
 │   │               └── sections/           # Individual section files
 │   │
 │   ├── fuzz/                       # Differential fuzzer: generated programs, both tiers
