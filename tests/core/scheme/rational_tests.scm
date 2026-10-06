@@ -207,6 +207,29 @@
     (test "an inexact number stays inexact" '(-1.5 #t) (let ((n (- 1.5))) (list n (inexact? n))))
     (test "zero's sign flips" "-0.0" (number->string (- 0.0))))
 
+  ;; `square` of a fraction was computed with JavaScript's `*` on the
+  ;; Rational objects, which is NaN.
+  (test-group "square"
+    (test "of a fraction" 1/4 (square 1/2))
+    (test "of a negative fraction" 9/4 (square -3/2))
+    (test "is exact" #t (exact? (square 1/2))))
+
+  ;; An exact fraction to an exact integer power is exact (R7RS 6.2.2); it was
+  ;; computed with Math.pow, so `(expt 1/2 2)` was 0.25.
+  (test-group "expt of a fraction"
+    (test "squared" 1/4 (expt 1/2 2))
+    (test "is exact" #t (exact? (expt 1/2 2)))
+    (test "cubed" 8/27 (expt 2/3 3))
+    (test "a negative fraction cubed" -1/8 (expt -1/2 3))
+    (test "to the zeroth power" 1 (expt 1/2 0))
+    (test "the zeroth power is an exact integer" #t (exact-integer? (expt 1/2 0)))
+    (test "to a negative power" 4 (expt 1/2 -2))
+    (test "a negative power is an exact integer" #t (exact-integer? (expt 1/2 -2)))
+    (test "to a negative power, a fraction" 27/8 (expt 2/3 -3))
+    (test "a negative fraction to a negative power" -27/8 (expt -2/3 -3))
+    (test "to an inexact power" 0.25 (expt 1/2 2.0))
+    (test "an inexact base" 0.25 (expt 0.5 2)))
+
   ;; `exact` of a flonum that is not an integer is the rational it is: a
   ;; flonum is a fraction over a power of two (R7RS 6.2.6).
   (test-group "exact of a flonum"

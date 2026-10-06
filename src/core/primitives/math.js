@@ -166,13 +166,15 @@ function toNumber(x) {
 }
 
 /**
- * Converts to Complex for complex arithmetic.
+ * Views a number as a complex number, keeping its exactness: a real number's
+ * imaginary part is a zero as exact as it is. Converting an exact real to a
+ * flonum here would make `(= 1/3+0i x)` compare 1/3 rounded.
+ * @param {*} n - A number.
+ * @returns {Complex}
  */
 function toComplex(n) {
     if (isComplex(n)) return n;
-    if (isRational(n)) return makeRectangular(n.toNumber(), 0);
-    if (typeof n === 'bigint') return makeRectangular(Number(n), 0);
-    return makeRectangular(n, 0);
+    return new Complex(n, isExact(n) ? 0n : 0);
 }
 
 /**
@@ -286,7 +288,7 @@ function assertReal(name, position, value) {
 function genericAdd(a, b) {
     // Complex takes precedence
     if (isComplex(a) || isComplex(b)) {
-        return toComplex(a).add(toComplex(b));
+        return complexAdd(a, b);
     }
 
     // Pure BigInt case - exact result
@@ -323,7 +325,7 @@ function genericAdd(a, b) {
  */
 function genericSub(a, b) {
     if (isComplex(a) || isComplex(b)) {
-        return toComplex(a).subtract(toComplex(b));
+        return complexAdd(a, genericNegate(b));
     }
 
     if (typeof a === 'bigint' && typeof b === 'bigint') {
@@ -353,7 +355,7 @@ function genericSub(a, b) {
  */
 function genericMul(a, b) {
     if (isComplex(a) || isComplex(b)) {
-        return toComplex(a).multiply(toComplex(b));
+        return complexMul(a, b);
     }
 
     if (typeof a === 'bigint' && typeof b === 'bigint') {
@@ -383,7 +385,7 @@ function genericMul(a, b) {
  */
 function genericDiv(a, b) {
     if (isComplex(a) || isComplex(b)) {
-        return toComplex(a).divide(toComplex(b));
+        return complexDiv(a, b);
     }
 
     // R7RS: If an inexact number is involved, result is usually inexact
@@ -397,6 +399,70 @@ function genericDiv(a, b) {
         return res.numerator; // denominators are 1n, so it's an integer
     }
     return res;
+}
+
+/**
+ * Generic negation, by representation: zero minus the number would make an
+ * exact rational or complex number inexact, by way of an inexact zero, and
+ * lose the sign of a flonum zero.
+ * @param {*} x - A number.
+ * @returns {*} Its negation, as exact as it is.
+ */
+function genericNegate(x) {
+    if (typeof x === 'bigint' || typeof x === 'number') return -x;
+    return x.negate();
+}
+
+// =============================================================================
+// Complex Arithmetic
+// =============================================================================
+// The parts are combined with the real arithmetic above, so exact parts stay
+// exact and an inexact part makes the result inexact (R7RS 6.2.2): (* +i 2)
+// is 0+2i, (* +i 2.0) is 0.0+2.0i. An operand that is real is combined with
+// each part rather than taken as a complex number with a zero imaginary part,
+// which would add terms like 0.0 * +inf.0, a NaN, and 0.0 + -0.0, which
+// loses the sign of a zero. A result is made by `makeRectangular`, so one
+// whose imaginary part is an exact zero is a real number: `(* +i +i)` is -1.
+
+/**
+ * Adds two numbers at least one of which is complex.
+ * @param {*} a - A number.
+ * @param {*} b - A number.
+ * @returns {*} The sum.
+ */
+function complexAdd(a, b) {
+    if (!isComplex(a)) return makeRectangular(genericAdd(a, b.real), b.imag);
+    if (!isComplex(b)) return makeRectangular(genericAdd(a.real, b), a.imag);
+    return makeRectangular(genericAdd(a.real, b.real), genericAdd(a.imag, b.imag));
+}
+
+/**
+ * Multiplies two numbers at least one of which is complex:
+ * (a+bi)(c+di) = (ac-bd) + (ad+bc)i.
+ * @param {*} a - A number.
+ * @param {*} b - A number.
+ * @returns {*} The product.
+ */
+function complexMul(a, b) {
+    if (!isComplex(a)) return makeRectangular(genericMul(a, b.real), genericMul(a, b.imag));
+    if (!isComplex(b)) return makeRectangular(genericMul(a.real, b), genericMul(a.imag, b));
+    return makeRectangular(
+        genericSub(genericMul(a.real, b.real), genericMul(a.imag, b.imag)),
+        genericAdd(genericMul(a.real, b.imag), genericMul(a.imag, b.real)));
+}
+
+/**
+ * Divides two numbers at least one of which is complex. A complex divisor is
+ * made real by multiplying both by its conjugate: a/(c+di) is
+ * a(c-di) / (c^2+d^2).
+ * @param {*} a - A number.
+ * @param {*} b - A number, not zero.
+ * @returns {*} The quotient.
+ */
+function complexDiv(a, b) {
+    if (!isComplex(b)) return makeRectangular(genericDiv(a.real, b), genericDiv(a.imag, b));
+    const norm = genericAdd(genericMul(b.real, b.real), genericMul(b.imag, b.imag));
+    return genericDiv(genericMul(a, b.conjugate()), norm);
 }
 
 
@@ -430,14 +496,7 @@ export const mathPrimitives = {
         assertArity('-', [first, ...rest], 1, Infinity);
         assertNumber('-', 1, first);
         rest.forEach((arg, i) => assertNumber('-', i + 2, arg));
-        if (rest.length === 0) {
-            // Negation, by representation: zero minus the number would make
-            // an exact rational inexact, with an inexact zero, and lose the
-            // sign of a flonum zero.
-            if (typeof first === 'bigint' || typeof first === 'number') return -first;
-            if (isRational(first)) return first.negate();
-            return genericSub(0n, first);
-        }
+        if (rest.length === 0) return genericNegate(first);
         return rest.reduce((a, b) => genericSub(a, b), first);
     },
 
@@ -733,10 +792,11 @@ export const mathPrimitives = {
     // =========================================================================
 
     /**
-     * Creates a complex from rectangular coordinates.
-     * @param {number} x - Real part.
-     * @param {number} y - Imaginary part.
-     * @returns {Complex}
+     * Creates a complex from rectangular coordinates; with an exact zero
+     * imaginary part, that is the real part itself.
+     * @param {number|bigint|Rational} x - Real part.
+     * @param {number|bigint|Rational} y - Imaginary part.
+     * @returns {number|bigint|Rational|Complex}
      */
     'make-rectangular': (x, y) => {
         assertNumber('make-rectangular', 1, x);
@@ -906,18 +966,22 @@ export const mathPrimitives = {
             if (exponent >= 0n) {
                 return base ** exponent;
             } else {
-                // Negative exponent with integer base -> Rational or float
-                // For now, fall back to Rational if possible, or float
-                // R7RS: (expt 2 -2) => 1/4 (exact) or 0.25 (inexact)
-                // If we have rational support, we could return 1 / (base^abs(exponent))
-                // But let's check if Rational is fully integrated yet.
-                // Assuming mixed arithmetic handles BigInt/Rational:
+                // A negative power is the reciprocal, exact: (expt 2 -2) is 1/4.
                 return genericDiv(1n, base ** (-exponent));
             }
         }
 
-        // Handle mixed BigInt/Rational cases or Complex
-        // ... (complex/rational logic could go here)
+        // An exact fraction to an exact integer power is exact (R7RS 6.2.2):
+        // its numerator and denominator raised separately, a negative power
+        // the two swapped. `genericDiv` makes a denominator of 1 an integer.
+        if (isRational(base) && base.exact !== false && typeof exponent === 'bigint') {
+            const n = exponent < 0n ? -exponent : exponent;
+            const numerator = base.numerator ** n;
+            const denominator = base.denominator ** n;
+            return exponent < 0n
+                ? genericDiv(denominator, numerator)
+                : genericDiv(numerator, denominator);
+        }
 
         // Default to float
         const toNumVal = (v) => {
@@ -1184,18 +1248,14 @@ export const mathPrimitives = {
     },
 
     /**
-     * Returns the square of a number.
-     * @param {number} z - Number to square.
-     * @returns {number} z * z
+     * Returns the square of a number, as exact as the number is.
+     * @param {*} z - Number to square.
+     * @returns {*} z * z
      */
     'square': (z) => {
         assertNumber('square', 1, z);
-        if (isComplex(z)) {
-            // (a+bi)^2 = a^2 - b^2 + 2abi
-            const a = z.real, b = z.imag;
-            return makeRectangular(a * a - b * b, 2 * a * b);
-        }
-        return z * z;
+        if (typeof z === 'bigint' || typeof z === 'number') return z * z;
+        return genericMul(z, z);
     },
 
     /**
@@ -1217,8 +1277,9 @@ export const mathPrimitives = {
             return z.toNumber();
         }
         if (isComplex(z)) {
-            // Complex with inexact parts
-            return z;
+            // The constructor makes both parts flonums when told the number
+            // is inexact.
+            return z.exact ? new Complex(z.real, z.imag, false) : z;
         }
         return z;
     },
@@ -1228,11 +1289,11 @@ export const mathPrimitives = {
      * flonum to an exact integer, any other finite flonum to the exact
      * rational it is, `(exact 0.5)` 1/2 and `(exact 0.1)`
      * 3602879701896397/36028797018963968, an inexact rational to the same
-     * value exact.
+     * value exact, and a complex number part by part.
      * @param {number|bigint|Rational|Complex} z - Number to convert.
      * @returns {bigint|Rational|Complex} Exact equivalent.
      */
-    'exact': (z) => {
+    'exact': function exact(z) {
         assertNumber('exact', 1, z);
         if (typeof z === 'bigint') {
             return z;  // Already exact
@@ -1262,7 +1323,11 @@ export const mathPrimitives = {
             return new Rational(z.numerator, z.denominator, true);
         }
         if (isComplex(z)) {
-            throw new Error('exact: cannot convert complex to exact');
+            // Each part made exact as a real number is; an infinite or NaN
+            // part is the same error. The recursion is by this function's
+            // own name, not through `mathPrimitives`, whose entry a wrapper
+            // can replace.
+            return makeRectangular(exact(z.real), exact(z.imag));
         }
         return z;
     },

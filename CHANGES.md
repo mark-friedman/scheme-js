@@ -12707,3 +12707,107 @@ the iteration it replaced.
 
 7,927 tests pass in Node with none failing (33 skipped), and 7,703 in the browser with none failing
 (56 skipped).
+
+# Complex arithmetic keeps exactness (2026-10-05)
+
+`(* (make-rectangular 0 1) 2)` was 0.0+2.0i, and doubling an exact complex number gave 0.0+8.0i,
+where R7RS gives the exact 0+2i and 0+8i: an operation on exact operands is exact (6.2.2). `math.js`
+made each real operand complex with `toComplex`, which turned an exact integer or fraction into a
+flonum part, and `complex.js` combined the parts with arithmetic of its own, which made a mixed pair
+inexact and could not combine a fraction with a flonum at all: `(+ 1/2+i 1/2)` and `(* 1/2+i 2.5)`
+raised "Cannot convert inexact number to exact rational".
+
+- **The parts are combined with the real tower's own arithmetic.** Complex `+ - * /` moved from
+  methods of the `Complex` class to `math.js`, as `complexAdd`, `complexMul` and `complexDiv`
+  over `genericAdd` and the rest, so exact parts stay exact and an inexact part makes the result
+  inexact. A real operand is combined with each part rather than taken as a complex number with a
+  zero imaginary part, which would add terms like 0.0 * +inf.0 and lose a zero's sign; a complex
+  divisor is made real by its conjugate. `complex.js` keeps the representation, and loses its four
+  component helpers, which duplicated the real arithmetic.
+- **An exact zero imaginary part leaves a real number.** `(- +i +i)` is 0, `(* +i +i)` and
+  `(square +i)` are -1, `(+ 1+i 1-i)` is 2 -- not 0+0i, -1+0i and 2+0i -- so `exact-integer?` and
+  `eqv?` see the integers they are (R7RS 6.2.6: `(real? -2.5+0i)` is true). An inexact zero part
+  stays, as R7RS's `(real? -2.5+0.0i)` being false requires.
+- **Negation** is by representation for every number, so `(- 3+4i)` stays exact and `(- 1.0+0.0i)`
+  is -1.0-0.0i; `Complex.toString` wrote that -0.0 imaginary part as `+-0.0i`, and now writes `-0.0i`.
+- **`square`** of anything but an exact integer or a flonum is the generic product: it squared a
+  complex number with JavaScript's operators, which threw mixing a `BigInt` with a number for
+  `(square +i)`, and a fraction with JavaScript's `*` on the objects, so `(square 1/2)` was +nan.0.
+- **`exact` and `inexact` of a complex number** work part by part: `(inexact 1+2i)` returned it
+  exact, and `(exact 1.0+2.0i)` raised an error. `exact` calls itself by its own name, not through
+  `mathPrimitives`: the `fixnums-as-numbers` prototype replaces that table's entries with wrappers
+  that convert between representations, and a call through the table there gave 1.0+2.0i.
+- **`=` between a complex and a real** compares exactly: `toComplex` now gives a real an imaginary
+  part as exact as it is, so `(= 1/3+0i x)` no longer compares 1/3 rounded to a double.
+
+Compiled code does `+`, `-` and `*` inline only on two exact integers or two flonums and calls these
+primitives otherwise, so both tiers had the bugs and both have the fix.
+
+Still open: `expt` of a complex base raises an error (`(expt +i 2)`), and `make-rectangular` and the
+reader still make 5+0i rather than 5 from an exact zero imaginary part. *(Annotated the same day: the second is
+done, in the entry below; the first is task 88.)*
+
+JavaScript under `src/`: 122 lines added and 129 removed, in `math.js` and `complex.js` -- the
+numeric primitives on the complex representation, which stay JavaScript; the complex arithmetic
+moved from `complex.js` into `math.js` rather than grew.
+
+## Tests
+
+`complex_tests.scm`: exact operands give exact sums, differences, products, quotients, squares,
+negations and reciprocals, with integer and fractional parts; an exact zero imaginary part leaves a
+real that `exact-integer?` and `eqv?` accept; an inexact operand gives an inexact result, and
+negation keeps a zero part's sign; `exact` and `inexact` of a complex number; `=` between a complex
+and a real compares exactly. `rational_tests.scm`: `square` of a fraction. The new
+`tests/tiers/complex_arithmetic_tests.scm` runs the same operations inside procedures in both
+tiers, checking that the tier compiled them. On the code before the fix, 32 of the new tests in
+`complex_tests.scm` and `rational_tests.scm` fail, and 8 of the tiers file's 13 in each tier.
+
+## Verification
+
+7,992 tests pass in Node with none failing (33 skipped), and 7,768 in the browser with none failing
+(56 skipped). Applied onto `fixnums-as-numbers` (41dce99), the change merges with one conflict, the
+two branches each adding a file to `tieredSchemeTestFiles`, and the three test files above pass
+there in both tiers.
+
+# An exact zero imaginary part, made or read; exact powers of fractions (2026-10-05)
+
+Arithmetic gave a real number for an exact zero imaginary part, but `(make-rectangular 5 0)` and the
+literal `5+0i` were still the complex 5+0i, so `(eqv? 5+0i 5)` and `(exact-integer? 5+0i)` were false;
+and `(expt 1/2 2)` was 0.25, an operation on exact operands with an inexact result.
+
+- **`makeRectangular` makes the real number** when the imaginary part is an exact zero -- `0n`, or an
+  exact `Rational` zero, which the reader makes of `0/1` -- and the reader and complex arithmetic both
+  build their results with it: `5+0i`, `5-0i`, `#e5+0i` and `#x5+0i` read as 5, `+0i` as 0, and
+  `-2.5+0i` as -2.5 (R7RS 6.2.6: `(real? -2.5+0i)` is true). An inexact zero part stays: `5+0.0i` and
+  `#i5+0i` read as 5.0+0.0i. `math.js`'s own copy of the rule, `complexResult`, is gone.
+- **A prefixed complex literal reads each part with the prefix.** `parseComplexWithRadix` parsed the
+  parts with `parseFloat` and `parseInt` and then set the exactness flag, so `#e1.5+2i` was a number
+  flagged exact with a flonum part, written 1.5+2i; each part is now read by `parseRealWithRadix`, as
+  a prefixed real is, so `#e1.5+2i` is 3/2+2i and `#e5.0+0.0i` is 5. A part that is not a number in
+  the radix makes the token not a number, where `parseInt` read a prefix of it.
+- **`expt` of an exact fraction to an exact integer power** raises the numerator and denominator
+  separately, swapped for a negative power: `(expt 2/3 -3)` is 27/8, `(expt 1/2 0)` the integer 1.
+  The base an exact integer was already exact; anything else still goes through `Math.pow`.
+
+`real?`, `rational?` and `integer?` still call a number with an inexact zero imaginary part real,
+where R7RS has `(real? -2.5+0.0i)` false; that goes with the complex elementary functions in task 88.
+
+JavaScript under `src/`: about 34 lines added and 44 removed, in `complex.js`, `math.js` and the
+reader's `number_parser.js` -- the numeric primitives and the reader's number syntax, which stay
+JavaScript; `expt`, `make-rectangular` and the complex literals fixed in place.
+
+## Tests
+
+`complex_tests.scm`: `make-rectangular` with an exact zero imaginary part gives the real part, an
+exact integer `eqv?` to the integer, and with an inexact zero part stays complex; the same for
+literals, plain and with `#e`, `#x` and `#i`, and `#e` making decimal parts exact.
+`rational_tests.scm`: `expt` of a fraction to positive, zero and negative powers, exact, and to an
+inexact power inexact. With only the previous entry's change, 24 of them fail.
+
+## Verification
+
+8,023 tests pass in Node with none failing (33 skipped), and 7,799 in the browser with none failing
+(56 skipped). Applied onto `fixnums-as-numbers` (41dce99) with the previous entry's change, the reader
+applies cleanly, the one conflict is still the two branches' additions to `tieredSchemeTestFiles`, and
+`complex_tests.scm`, `rational_tests.scm`, `complex_arithmetic_tests.scm` and that branch's
+`number_parser_tests.js` pass there.

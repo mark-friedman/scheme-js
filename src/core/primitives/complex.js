@@ -1,66 +1,23 @@
 /**
  * Complex Number Support for Scheme.
- * 
+ *
  * Implements complex numbers per R7RS §6.2 and (scheme complex) library.
  * Complex numbers have real and imaginary parts.
+ *
+ * This module is the representation. The arithmetic on it is in `math.js`,
+ * where the real arithmetic its parts are combined with is: a part is any
+ * real number, exact or not, and combining two exactly takes the whole real
+ * tower.
  */
 
 import { Rational } from './rational.js';
 
-// Helper for component arithmetic (Number/Rational/BigInt)
-function add(a, b) {
-    // Basic types (BigInt/Number)
-    if (typeof a === 'bigint' && typeof b === 'bigint') return a + b;
-    if (typeof a === 'number' && typeof b === 'number') return a + b;
-
-    // Rational handling
-    if (a instanceof Rational) return a.add(b instanceof Rational ? b : Rational.fromNumber(b));
-    if (b instanceof Rational) return b.add(a instanceof Rational ? a : Rational.fromNumber(a));
-
-    // Mixed BigInt/Number -> Inexact
-    if (typeof a === 'bigint') return Number(a) + b;
-    if (typeof b === 'bigint') return a + Number(b);
-
-    return a + b;
-}
-
-function sub(a, b) {
-    if (typeof a === 'bigint' && typeof b === 'bigint') return a - b;
-    if (typeof a === 'number' && typeof b === 'number') return a - b;
-
-    if (a instanceof Rational) return a.subtract(b instanceof Rational ? b : Rational.fromNumber(b));
-    if (b instanceof Rational) return Rational.fromNumber(a).subtract(b);
-
-    if (typeof a === 'bigint') return Number(a) - b;
-    if (typeof b === 'bigint') return a - Number(b);
-    return a - b;
-}
-
-function mul(a, b) {
-    if (typeof a === 'bigint' && typeof b === 'bigint') return a * b;
-    if (typeof a === 'number' && typeof b === 'number') return a * b;
-
-    if (a instanceof Rational) return a.multiply(b instanceof Rational ? b : Rational.fromNumber(b));
-    if (b instanceof Rational) return b.multiply(a instanceof Rational ? a : Rational.fromNumber(a));
-
-    if (typeof a === 'bigint') return Number(a) * b;
-    if (typeof b === 'bigint') return a * Number(b);
-    return a * b;
-}
-
-function div(a, b) {
-    if (a instanceof Rational) return a.divide(b instanceof Rational ? b : Rational.fromNumber(b));
-    if (b instanceof Rational) return Rational.fromNumber(a).divide(b);
-
-    if (typeof a === 'bigint' && typeof b === 'bigint') {
-        return new Rational(a, b);
-    }
-
-    if (typeof a === 'bigint') a = Number(a);
-    if (typeof b === 'bigint') b = Number(b);
-    return a / b;
-}
-
+/**
+ * Converts a real part to a JavaScript number, for an inexact complex number
+ * or for trigonometry.
+ * @param {number|bigint|Rational} n - A real number.
+ * @returns {number}
+ */
 function toNum(n) {
     if (n instanceof Rational) return n.toNumber();
     if (typeof n === 'bigint') return Number(n);
@@ -240,8 +197,9 @@ export class Complex {
             return `${realStr}${imagStr}i`;
         }
 
-        // Regular handling for non-special values
-        if (typeof imagVal === 'number' && imagVal < 0) {
+        // Regular handling for non-special values. A negative zero is
+        // written -0.0i, as `(- 1.0+0.0i)` gives.
+        if (typeof imagVal === 'number' && (imagVal < 0 || Object.is(imagVal, -0))) {
             imagVal = -imagVal;
             signStr = '-';
         } else if (imagVal instanceof Rational && imagVal.numerator < 0n) {
@@ -278,48 +236,11 @@ export class Complex {
         return new Complex(this.real, negImag);
     }
 
-    add(other) {
-        if (other instanceof Complex) {
-            return new Complex(add(this.real, other.real), add(this.imag, other.imag));
-        }
-        return new Complex(add(this.real, other), this.imag);
-    }
-
-    subtract(other) {
-        if (other instanceof Complex) {
-            return new Complex(sub(this.real, other.real), sub(this.imag, other.imag));
-        }
-        return new Complex(sub(this.real, other), this.imag);
-    }
-
-    multiply(other) {
-        if (other instanceof Complex) {
-            // (a+bi)(c+di) = (ac-bd) + (ad+bc)i
-            const ac = mul(this.real, other.real);
-            const bd = mul(this.imag, other.imag);
-            const ad = mul(this.real, other.imag);
-            const bc = mul(this.imag, other.real);
-            return new Complex(sub(ac, bd), add(ad, bc));
-        }
-        return new Complex(mul(this.real, other), mul(this.imag, other));
-    }
-
-    divide(other) {
-        if (other instanceof Complex) {
-            // (a+bi)/(c+di) = [(ac+bd) + (bc-ad)i] / (c^2+d^2)
-            const ac = mul(this.real, other.real);
-            const bd = mul(this.imag, other.imag);
-            const bc = mul(this.imag, other.real);
-            const ad = mul(this.real, other.imag);
-            const den = add(mul(other.real, other.real), mul(other.imag, other.imag));
-            return new Complex(
-                div(add(ac, bd), den),
-                div(sub(bc, ad), den)
-            );
-        }
-        return new Complex(div(this.real, other), div(this.imag, other));
-    }
-
+    /**
+     * Returns the negation, each part negated, so that an exact part stays
+     * exact and an inexact zero part changes sign.
+     * @returns {Complex}
+     */
     negate() {
         let nr, ni;
         if (this.real instanceof Rational) nr = this.real.negate(); else nr = -this.real;
@@ -358,15 +279,20 @@ export function isComplex(val) {
 }
 
 /**
- * Creates a Complex from rectangular coordinates (make-rectangular).
- * @param {number} x - Real part
- * @param {number} y - Imaginary part
- * @returns {Complex}
+ * The number with the given real and imaginary parts (make-rectangular, the
+ * reader, and complex arithmetic): a real number when the imaginary part is
+ * an exact zero. Such a number is that real number (R7RS 6.2.6: `(real?
+ * -2.5+0i)` is true), so `(make-rectangular 5 0)`, `5+0i` and `(* +i +i)`
+ * must be integers that `exact-integer?` and `eqv?` see as such. An inexact
+ * zero part keeps the number complex: `(real? -2.5+0.0i)` is false.
+ * @param {number|bigint|Rational} x - Real part
+ * @param {number|bigint|Rational} y - Imaginary part
+ * @returns {number|bigint|Rational|Complex}
  */
 export function makeRectangular(x, y) {
-    // If imaginary part is 0, could return just the real number
-    // but R7RS says make-rectangular always returns a complex
-    return new Complex(x, y);
+    const exactZero = y === 0n ||
+        (y instanceof Rational && y.exact !== false && y.numerator === 0n);
+    return exactZero ? x : new Complex(x, y);
 }
 
 /**
