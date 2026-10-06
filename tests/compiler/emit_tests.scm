@@ -178,9 +178,28 @@
   (test "numeric equality is ===, which agrees on NaN"
         "(typeof s_a === 'number' && typeof s_b === 'number') ? s_a === s_b : $h(s_a, s_b)"
         (caddr (expansion '= locals)))
-  (test "an inexact integral constant is its double, and only a result that is not an integer is inline"
-        "(typeof s_a === 'number' && (!Number.isInteger((s_a * (2))))) ? (s_a * (2)) : $h(s_a, s_b)"
-        (caddr (expansion '* '((local a #f #f) (const 2.))))))
+  (test "against an inexact constant, its double and the other's, a number's or a box's, the result boxed if integral"
+        (string-append "(typeof s_a === 'number' ? R.inexactReal(s_a * (2))"
+                       " : s_a instanceof R.Flonum ? R.inexactReal(s_a.value * (2)) : $h(s_a, s_b))")
+        (caddr (expansion '* '((local a #f #f) (const 2.)))))
+  (test "the constant on the left"
+        (string-append "(typeof s_b === 'number' ? R.inexactReal((1) - s_b)"
+                       " : s_b instanceof R.Flonum ? R.inexactReal((1) - s_b.value) : $h(s_a, s_b))")
+        (caddr (expansion '- '((const 1.) (local b #f #f)))))
+  (test "a constant that is not an integer"
+        (string-append "(typeof s_a === 'number' ? R.inexactReal(s_a + (" (js-number .5) "))"
+                       " : s_a instanceof R.Flonum ? R.inexactReal(s_a.value + (" (js-number .5) ")) : $h(s_a, s_b))")
+        (caddr (expansion '+ '((local a #f #f) (const .5)))))
+  (test "two inexact constants" "R.inexactReal((1) + (2))"
+        (caddr (expansion '+ '((const 1.) (const 2.)))))
+  (test "a comparison against an inexact constant"
+        "(typeof s_a === 'number' ? s_a < (2) : s_a instanceof R.Flonum ? s_a.value < (2) : $h(s_a, s_b))"
+        (caddr (expansion '< '((local a #f #f) (const 2.)))))
+  (test "a comparison of two inexact constants" "(1) === (2)"
+        (caddr (expansion '= '((const 1.) (const 2.)))))
+  (test "an exact constant is an operand like any other"
+        (string-append "(typeof s_a === 'number' && typeof s_b === 'number') ? s_a < s_b : $h(s_a, s_b)")
+        (caddr (expansion '< '((local a #f #f) (const 2))))))
 
 ;; Vectors are JavaScript arrays. An access calls a runtime helper, which reads or
 ;; writes the array when the vector is an array and the index an exact integer in
@@ -362,8 +381,22 @@
         (contains? summing " + s_acc_$"))
   (test "and a value leaving it is boxed" #t
         (contains? summing "return R.inexactReal(s_acc_$"))
-  (test "it boxes its variables and goes on as the ordinary loop if an operator is rebound" #t
-        (contains? summing "break $doubles"))
+  (test "it leaves at the head of an iteration if an operator is rebound, on a test that is JavaScript's" #t
+        (contains? summing ".intact)) { break $rebound"))
+  ;; A box made, or any call made, in a branch of the loop keeps V8 from
+  ;; holding the loop's variables raw: such a loop took 6.6 ns an iteration
+  ;; against 0.9.
+  (test "and boxes its variables after the loop, not in it" #t
+        (< (string-contains summing "return R.inexactReal(s_acc_$")
+           (string-contains summing "= R.inexactReal(s_i_$")))
+  (test "it leaves by a break, and makes what it returns after the loop" #t
+        (< (string-contains summing "continue $doubles")
+           (string-contains summing "return R.inexactReal(s_acc_$")))
+  (test "several ways out are told apart after the loop" #t
+        (contains? (source-of '(define (f x)
+                                 (let loop ((x x) (k 0))
+                                   (cond ((> x 100.) x) ((= k 10) (* x -1.)) (else (loop (* x 2.) (+ k 1)))))))
+                   " === 0) { return R.inexactReal(s_x_$"))
   (test "a loop counting exactly is not" #f
         (contains? (source-of '(define (f n) (let loop ((i n) (acc 0)) (if (< i 0) acc (loop (- i 1) (+ i acc))))))
                    "$doubles"))
@@ -391,4 +424,13 @@
   (test "is read as the constant" #t
         (and (string-contains (code-of '(define (f x) (let ((k 2.)) (* x k)))) " * (2))") #t))
   (test "but not when it is assigned" #f
-        (and (string-contains (code-of '(define (f x) (let ((k 2.)) (set! k 3.) (* x k)))) " * (2))") #t)))
+        (and (string-contains (code-of '(define (f x) (let ((k 2.)) (set! k 3.) (* x k)))) " * (2))") #t))
+  (test "nor when a procedure inside its body assigns it" #f
+        (and (string-contains
+              (code-of '(define (f x) (let ((k 2.)) (let ((g (lambda () (set! k 3.)))) (g) (* x k)))))
+              " * (2))")
+             #t))
+  (test "and another name's assignment leaves it a constant" #t
+        (and (string-contains (code-of '(define (f x) (let ((k 2.) (j 1)) (set! j 5) (+ (* x k) j))))
+                              " * (2))")
+             #t)))

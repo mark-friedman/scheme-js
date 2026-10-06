@@ -133,6 +133,7 @@ export const tieredSchemeTestFiles = [
     'tests/tiers/arity_tests.scm',
     'tests/tiers/library_values_tests.scm',
     'tests/tiers/double_loop_tests.scm',
+    'tests/tiers/inexact_constant_tests.scm',
 ];
 
 // Scheme tests of the compiler's own Scheme, run in the environment the

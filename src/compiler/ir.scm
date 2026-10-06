@@ -174,47 +174,51 @@
     (and hit (eq? (cdr hit) #t))))
 
 ;; /**
-;;  * The constant a name is bound to, where it is bound to one and never
-;;  * assigned, as an IR node; else #f.
-;;  * @param {list} scope - The scope to search.
-;;  * @param {symbol} name - The renamed variable.
-;;  * @returns {list|boolean}
-;;  */
-(define (scope-constant scope name)
-  (let ((hit (scope-lookup scope name)))
-    (and hit (pair? (cdr hit)) (cdr hit))))
-
-;; /**
-;;  * Whether a core form assigns a name anywhere in it, with `set`. A local's
-;;  * name is unique to its binding, so any such form assigns that binding. A
-;;  * quoted datum is not code, and is not searched.
-;;  * @param {symbol} name - The renamed variable.
+;;  * The names a core form assigns anywhere in it, with `set`, added to those
+;;  * found already. A local's name is unique to its binding, so a name found
+;;  * is a binding assigned somewhere. A quoted datum is not code, and is not
+;;  * searched.
 ;;  * @param {*} form - A core form, or a list of them.
-;;  * @returns {boolean}
+;;  * @param {list} found - The names found so far.
+;;  * @returns {list}
 ;;  */
-(define (assigns? name form)
-  (and (pair? form)
-       (if (symbol? (car form))
-           (case (car form)
-             ((lit) #f)
-             ((set) (or (eq? (cadr form) name) (assigns? name (cddr form))))
-             (else (any (lambda (part) (assigns? name part)) (cdr form))))
-           (any (lambda (part) (assigns? name part)) form))))
+(define (assigned-names form found)
+  (cond ((not (pair? form)) found)
+        ((symbol? (car form))
+         (case (car form)
+           ((lit) found)
+           ((set) (assigned-names-in (cddr form) (cons (cadr form) found)))
+           (else (assigned-names-in (cdr form) found))))
+        (else (assigned-names-in form found))))
 
 ;; /**
-;;  * What a `let`'s name is declared as: the constant its initializer is, if
-;;  * it is one and the body never assigns the name -- so that a reference to
-;;  * the name is the constant, as a literal would be: an inexact integer is
-;;  * then a double in arithmetic rather than a box read from a variable
+;;  * The names a list of core forms, or data around them, assigns
+;;  * (`assigned-names`).
+;;  * @param {*} parts - The forms.
+;;  * @param {list} found - The names found so far.
+;;  * @returns {list}
+;;  */
+(define (assigned-names-in parts found)
+  (if (pair? parts)
+      (assigned-names-in (cdr parts) (assigned-names (car parts) found))
+      found))
+
+;; /**
+;;  * What a binding's name is declared as: the constant its initializer is, if
+;;  * it is one and the name is never assigned -- so that a reference to the
+;;  * name is the constant, as a literal would be: an inexact integer is then a
+;;  * double in arithmetic rather than a box read from a variable
 ;;  * (`fast-operands` in inline.scm) -- or else whether it is a lambda.
 ;;  * @param {symbol} name - The renamed variable.
 ;;  * @param {list} init - The initializer's IR node.
-;;  * @param {*} body - The body's core form.
+;;  * @param {vector} st - The lowering state, which holds the names the
+;;  *   procedure assigns.
 ;;  * @returns {boolean|list}
 ;;  */
-(define (constant-binding name init body)
+(define (constant-binding name init st)
   (cond ((eq? (car init) 'lambda) #t)
-        ((and (eq? (car init) 'const) (not (assigns? name body))) (list 'const (cadr init)))
+        ((and (eq? (car init) 'const) (not (memq name (vector-ref st 13))))
+         (list 'const (cadr init)))
         (else #f)))
 
 ;; ---------------------------------------------------------------------------
@@ -237,12 +241,15 @@
 ;;  11  defined           names bound by internal definitions, in order
 ;;  12  library-globals   each library's binding referred to, as
 ;;                        (key name . env): see `library-global-key`
+;;  13  assigned          the names the procedure assigns anywhere, found
+;;                        before it is lowered, so that a binding is known
+;;                        constant where it is declared (`constant-binding`)
 
 ;; /**
 ;;  * Creates an empty lowering state.
 ;;  * @returns {vector} The state.
 ;;  */
-(define (make-state) (vector '() #f '() '() #f 0 #f #f #f #f '() '() '()))
+(define (make-state) (vector '() #f '() '() #f 0 #f #f #f #f '() '() '() '()))
 
 (define (state-globals st) (vector-ref st 0))
 (define (state-calls-unknown? st) (vector-ref st 1))
@@ -621,16 +628,18 @@
 
       ((eq? tag 'var)
        (let ((name (ast-1 node)))
-         (cond
-           ((scope-constant scope name) => (lambda (constant) (list 'const (cadr constant) tail)))
-           ((scope-has? scope name)
-            (list 'local name tail (scope-callable? scope name)))
-           (else
-               (state-add-global! st name)
-               ;; A global callee is nameable in the sense this flag means: the
-               ;; safety analysis can look it up and follow it. Not that it is
-               ;; safe.
-               (list 'global name tail #t)))))
+         ;; One lookup decides all three: a local bound to a constant, a
+         ;; local, or a global.
+         (let ((hit (scope-lookup scope name)))
+           (cond
+             ((not hit)
+              (state-add-global! st name)
+              ;; A global callee is nameable in the sense this flag means: the
+              ;; safety analysis can look it up and follow it. Not that it is
+              ;; safe.
+              (list 'global name tail #t))
+             ((pair? (cdr hit)) (list 'const (cadr (cdr hit)) tail))
+             (else (list 'local name tail (eq? (cdr hit) #t)))))))
 
       ((eq? tag 'if)
        (let ((test (lower-node (ast-1 node) scope #f st)))
@@ -671,7 +680,7 @@
          (if (not init)
              #f
              (let ((inner (make-scope scope)))
-               (scope-declare! inner (ast-1 node) (constant-binding (ast-1 node) init (ast-3 node)))
+               (scope-declare! inner (ast-1 node) (constant-binding (ast-1 node) init st))
                (let ((body (lower-node (ast-3 node) inner tail st)))
                  (if (not body)
                      #f
@@ -910,7 +919,7 @@
                     (if (not inits)
                         #f
                         (let ((inner (make-scope scope)))
-                          (declare-bindings! inner params inits (ast-4 fn))
+                          (declare-bindings! inner params inits st)
                           (let ((body (lower-body-in (ast-4 fn) inner st tail)))
                             (if (not body)
                                 #f
@@ -922,15 +931,15 @@
 ;;  * @param {list} scope - The scope to extend.
 ;;  * @param {list} params - Renamed parameter names.
 ;;  * @param {list} inits - Their lowered initializers, in the same order.
-;;  * @param {*} body - The body's core form.
+;;  * @param {vector} st - The lowering state.
 ;;  * @returns {unspecified}
 ;;  */
-(define (declare-bindings! scope params inits body)
+(define (declare-bindings! scope params inits st)
   (if (null? params)
       #f
       (begin
-        (scope-declare! scope (car params) (constant-binding (car params) (car inits) body))
-        (declare-bindings! scope (cdr params) (cdr inits) body))))
+        (scope-declare! scope (car params) (constant-binding (car params) (car inits) st))
+        (declare-bindings! scope (cdr params) (cdr inits) st))))
 
 ;; /**
 ;;  * Wraps a body in one binding per parameter, the first outermost.
@@ -1206,6 +1215,7 @@
 ;;  */
 (define (lower-lambda node)
   (let ((st (make-state)))
+    (vector-set! st 13 (assigned-names node '()))
     ;; A top-level procedure is bound to the global its definition names, for
     ;; as long as nobody redefines it -- which the emitter checks at run time.
     (if (string? (ast-3 node))

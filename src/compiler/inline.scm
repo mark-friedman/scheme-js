@@ -35,34 +35,16 @@
 ;;; operands.
 
 ;; /**
-;;  * The JavaScript literal of an operand that is an inexact constant with an
-;;  * integral value, which is boxed where it is a value (`constant` in
-;;  * emit.scm) but is a double in arithmetic; #f for any other operand.
+;;  * The JavaScript literal of an operand that is an inexact real constant,
+;;  * which is a double in arithmetic, though an integral one is boxed where it
+;;  * is a value (`constant` in emit.scm); #f for any other operand.
 ;;  * @param {list} node - The operand's IR node.
-;;  * @returns {string|boolean}
+;;  * @returns {list|boolean} An expression, or #f.
 ;;  */
-(define (inexact-integer-literal node)
+(define (inexact-literal node)
   (and (eq? (car node) 'const)
        (let ((v (cadr node)))
-         (and (real? v) (inexact? v) (integer? v) (js-number v)))))
-
-;; /**
-;;  * Two operands as a fast path reads them: each a JavaScript number, its
-;;  * expression and the test that it is one, or an inexact integral constant,
-;;  * its double literal and no test.
-;;  * @param {list} ops - The operand expressions.
-;;  * @param {list} nodes - Their IR nodes.
-;;  * @returns {list} `(a b tests inexact?)`: the operands as doubles, the
-;;  *   tests, as expressions, and whether either is an inexact constant.
-;;  */
-(define (fast-operands ops nodes)
-  (let ((ka (inexact-integer-literal (car nodes)))
-        (kb (inexact-integer-literal (cadr nodes))))
-    (list (if ka (js "(" ka ")") (car ops))
-          (if kb (js "(" kb ")") (cadr ops))
-          (append (if ka '() (list (js "typeof " (car ops) " === 'number'")))
-                  (if kb '() (list (js "typeof " (cadr ops) " === 'number'"))))
-          (or ka kb))))
+         (and (real? v) (inexact? v) (js "(" (js-number v) ")")))))
 
 ;; /**
 ;;  * Expressions joined by `&&`, or `true` for none.
@@ -75,6 +57,41 @@
       (fold (lambda (e acc) (js acc " && " e)) (car exprs) (cdr exprs))))
 
 ;; /**
+;;  * A binary operation one of whose operands is an inexact constant: inline
+;;  * on the other's double, whether that operand is a number or a box, since
+;;  * the result is inexact whatever it is -- `fibfp` in benchmarks/r7rs/src
+;;  * passes boxes to `(- n 1.)` and `(< n 2.)` on every call -- and otherwise,
+;;  * for a BigInt, a rational, a complex number or a wrong type, the runtime's.
+;;  * Two constants are computed on their doubles alone.
+;;  * @param {list} ops - The operand expressions.
+;;  * @param {list} nodes - Their IR nodes, at least one an inexact constant.
+;;  * @param {string} op - The JavaScript operator.
+;;  * @param {symbol} helper - The runtime operation's local name.
+;;  * @param {procedure} finish - The result made of the operator's expression
+;;  *   on the two doubles.
+;;  * @returns {list} An expression.
+;;  */
+(define (against-inexact-constant ops nodes op helper finish)
+  (let* ((ka (inexact-literal (car nodes)))
+         (kb (inexact-literal (cadr nodes)))
+         (on (lambda (a b) (finish (js (or ka a) " " op " " (or kb b))))))
+    (if (and ka kb)
+        (on ka kb)
+        (let ((x (if ka (cadr ops) (car ops)))
+              (on-x (lambda (v) (if ka (on ka v) (on v kb)))))
+          (js "(typeof " x " === 'number' ? " (on-x x)
+              " : " x " instanceof R.Flonum ? " (on-x (js x ".value"))
+              " : " helper "(" (car ops) ", " (cadr ops) "))")))))
+
+;; /**
+;;  * Whether either of two operands is an inexact constant.
+;;  * @param {list} nodes - The operands' IR nodes.
+;;  * @returns {boolean}
+;;  */
+(define (inexact-constant-operand? nodes)
+  (or (inexact-literal (car nodes)) (inexact-literal (cadr nodes))))
+
+;; /**
 ;;  * A binary arithmetic operation: inline, the JavaScript operator on two
 ;;  * numbers whose result needs no deciding -- one that is not an integer, an
 ;;  * inexact real, or an integer in the safe range of two integers, an exact
@@ -82,9 +99,9 @@
 ;;  * decides exactness, boxes an inexact integer, takes BigInts and boxes, and
 ;;  * hands anything else to the primitive (`add` and the rest in
 ;;  * src/compiler/runtime.js). A product of zero is decided by the runtime,
-;;  * which gives exact zero rather than JavaScript's -0. An inexact integral
-;;  * constant operand is its double, and makes the result inexact, so only a
-;;  * result that is not an integer is taken inline.
+;;  * which gives exact zero rather than JavaScript's -0. Against an inexact
+;;  * constant the result is inexact, and is boxed where it is an integer
+;;  * (`against-inexact-constant`).
 ;;  * @param {string} name - The Scheme name.
 ;;  * @param {string} op - The JavaScript operator.
 ;;  * @param {symbol} local - The runtime operation's local name.
@@ -94,23 +111,24 @@
   (list name 2 (lambda (ops) #f)
         (cons local
               (lambda (ops helper nodes)
-                (let* ((fast (fast-operands ops nodes))
-                       (a (car fast)) (b (cadr fast))
-                       (r (js "(" a " " op " " b ")")))
-                  (js "(" (all-of (caddr fast)) " && (!Number.isInteger(" r ")"
-                      (if (cadddr fast)
-                          (js "")
-                          (js " || (Number.isSafeInteger(" r ")"
-                              (if (string=? op "*") (js " && " r " !== 0") (js ""))
-                              " && Number.isInteger(" a ") && Number.isInteger(" b "))"))
-                      ")) ? " r " : " helper "(" (car ops) ", " (cadr ops) ")"))))))
+                (if (inexact-constant-operand? nodes)
+                    (against-inexact-constant ops nodes op helper
+                                              (lambda (e) (js "R.inexactReal(" e ")")))
+                    (let* ((a (car ops)) (b (cadr ops))
+                           (r (js "(" a " " op " " b ")")))
+                      (js "(typeof " a " === 'number' && typeof " b " === 'number'"
+                          " && (!Number.isInteger(" r ")"
+                          " || (Number.isSafeInteger(" r ")"
+                          (if (string=? op "*") (js " && " r " !== 0") (js ""))
+                          " && Number.isInteger(" a ") && Number.isInteger(" b "))"
+                          ")) ? " r " : " helper "(" a ", " b ")")))))))
 
 ;; /**
 ;;  * A numeric comparison: inline, the JavaScript operator on two numbers,
 ;;  * which compares across exactness as the tower does -- `=` as `===` agrees
-;;  * on NaN, and every ordering with a NaN is false -- an inexact integral
-;;  * constant operand as its double; otherwise the runtime's (`lt` and the
-;;  * rest in src/compiler/runtime.js).
+;;  * on NaN, and every ordering with a NaN is false -- and against an inexact
+;;  * constant on a box's double too (`against-inexact-constant`); otherwise
+;;  * the runtime's (`lt` and the rest in src/compiler/runtime.js).
 ;;  * @param {string} name - The Scheme name.
 ;;  * @param {string} op - The JavaScript operator.
 ;;  * @param {symbol} local - The runtime operation's local name.
@@ -120,9 +138,11 @@
   (list name 2 (lambda (ops) #f)
         (cons local
               (lambda (ops helper nodes)
-                (let ((fast (fast-operands ops nodes)))
-                  (js "(" (all-of (caddr fast)) ") ? " (car fast) " " op " " (cadr fast)
-                      " : " helper "(" (car ops) ", " (cadr ops) ")"))))))
+                (if (inexact-constant-operand? nodes)
+                    (against-inexact-constant ops nodes op helper (lambda (e) e))
+                    (let ((a (car ops)) (b (cadr ops)))
+                      (js "(typeof " a " === 'number' && typeof " b " === 'number') ? "
+                          a " " op " " b " : " helper "(" a ", " b ")")))))))
 
 ;; /**
 ;;  * An expansion whose fast path is exactly what the primitive computes for
