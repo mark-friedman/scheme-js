@@ -26,6 +26,7 @@
 
 (define js-two (js-eval "() => 2"))
 (define js-half (js-eval "() => 0.5"))
+(define js-big (js-eval "() => 1e21"))
 (define js-echo (js-eval "(x) => x"))
 (define js-pair (js-eval "() => [1, 2]"))
 (define holder (js-eval "({ two: () => 2 })"))
@@ -40,6 +41,7 @@
 
 (define (two-directly) (js-two))
 (define (half-directly) (js-half))
+(define (big-directly) (js-big))
 (define (two-through-js-invoke) (js-invoke holder "two"))
 (define (echoed n) (js-echo n))
 (define (pair-from-js) (js-pair))
@@ -50,6 +52,7 @@
 (define (twice thunk) (thunk) (thunk))
 (twice two-directly)
 (twice half-directly)
+(twice big-directly)
 (twice two-through-js-invoke)
 (echoed 1) (echoed 1)
 (twice pair-from-js)
@@ -63,6 +66,12 @@
   (test "and called from compiled code not in tail position" #t (exact? (two-not-in-tail)))
   (test "as it does through js-invoke" #t (exact? (two-through-js-invoke)))
   (test "a number that is not integral arrives inexact" #f (exact? (half-directly)))
+  ;; An exact integer past 2^53 is held as a BigInt, so one arriving is made
+  ;; one, and is the same number as the integer made in Scheme.
+  (test "an integral number past 2^53 arrives as the exact integer it is" '(#t #t #t)
+        (let ((n (big-directly)))
+          (list (exact? n) (eqv? n (expt 10 21)) (equal? (list n) (list (expt 10 21))))))
+  (test "and read from a property" #t (eqv? (js-ref (js-eval "({ big: 1e21 })") "big") (expt 10 21)))
   (test "an exact integer passed to JavaScript and returned is exact again" #t (exact? (echoed 3)))
   ;; An integral number is an exact integer wherever it is, inside an array as
   ;; much as returned (src/core/interpreter/number_representation.js).

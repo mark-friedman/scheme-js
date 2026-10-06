@@ -135,14 +135,20 @@ export function schemeToJsDeep(val, options = {}) {
 
 /**
  * A JavaScript number or BigInt as the Scheme number it is: an integral
- * number is an exact integer, as it is held (number_representation.js), -0
- * the exact zero; a BigInt is one too, held as a number in the safe range; any
- * other number is an inexact real. Anything else is itself.
+ * number is an exact integer, held as it is in the safe range
+ * (number_representation.js), -0 as the exact zero, and past it as the BigInt
+ * of its value, which is how Scheme holds an integer that large, so that it is
+ * eqv? to the same integer made in Scheme; a BigInt is one too, held as a
+ * number in the safe range; any other number is an inexact real. Anything else
+ * is itself.
  * @param {*} val - The value.
  * @returns {*}
  */
 function schemeNumber(val) {
-    if (typeof val === 'number') return val === 0 ? 0 : val;
+    if (typeof val === 'number') {
+        if (Number.isSafeInteger(val)) return val === 0 ? 0 : val;
+        return Number.isInteger(val) ? exactInteger(BigInt(val)) : val;
+    }
     if (typeof val === 'bigint') return exactInteger(val);
     return val;
 }
@@ -261,5 +267,5 @@ export function storedToScheme(object, key, value) {
     if (keys !== undefined && Object.is(keys.get(key), value)) {
         return new Flonum(value);
     }
-    return value === 0 ? 0 : value;
+    return schemeNumber(value);
 }
