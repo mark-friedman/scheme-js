@@ -15,6 +15,9 @@ import { libraryNameToKey } from './src/core/interpreter/library_registry.js';
 import { installLibraryTable, libraryRestorer } from './src/compiler/prebuilt.js';
 import { attachTier } from './src/compiler/tiering.js';
 import prebuiltLibraries from './src/packaging/compiled_libraries.js';
+import prebuiltCompiler from './src/packaging/compiled_compiler.js';
+import { registerCompilerHost } from './src/compiler/host.js';
+import { registerBuildHost } from './src/compiler/build_host.js';
 import { analyze } from './src/core/interpreter/expand.js';
 import { parse } from './src/core/interpreter/reader.js';
 import { SchemeReadError } from './src/core/interpreter/errors.js';
@@ -34,10 +37,18 @@ import readline from 'readline';
 // --- Interpreter Setup ---
 
 /**
- * The directories the shipped libraries' files are read from.
+ * The directories the shipped libraries' files are read from, and the
+ * compiler's, which a program run from the CLI may import as any library.
  * @type {Array<string>}
  */
-const LIBRARY_DIRS = [path.join(__dirname, 'src/core/scheme'), path.join(__dirname, 'src/extras/scheme')];
+const LIBRARY_DIRS = ['src/core/scheme', 'src/extras/scheme', 'src/compiler'].map((dir) => path.join(__dirname, dir));
+
+/**
+ * The prebuilt tables a library is restored from: the shipped libraries', and
+ * the compiler's.
+ * @type {Object<string, Object>}
+ */
+const TABLES = { ...prebuiltLibraries, ...prebuiltCompiler };
 
 /**
  * One of a shipped library's files, as loaded from disk, for checking a
@@ -60,25 +71,33 @@ function shippedSource(file) {
  * @returns {boolean}
  */
 function isPrebuilt(name) {
-    return prebuiltLibraries[libraryNameToKey(name)] !== undefined;
+    return TABLES[libraryNameToKey(name)] !== undefined;
 }
 
 /**
  * Creates the interpreter and loads the standard libraries, their prebuilt
  * compiled code installed as each loads, as a browser page installs it.
+ * @param {Array<string>} [includeDirs=[]] - Directories a library is looked
+ *   for in before any other, as `-I` names them.
  * @returns {Promise<{interpreter: Object, env: Object}>}
  */
-async function bootstrapInterpreter() {
+async function bootstrapInterpreter(includeDirs = []) {
     const { interpreter, env } = createInterpreter();
+
+    // What a program that imports the compiler's library needs that no
+    // library file holds: what the compiler asks of the interpreter, and what
+    // the build steps and the compiler's harnesses ask of the host.
+    registerCompilerHost(env);
+    registerBuildHost(env);
 
     // A shipped library is restored from its table, without its source
     // running, and what the table holds for whatever its other forms made is
     // installed as it loads. A table whose sources no longer match the files,
     // as after editing one without rebuilding, leaves that library to load
     // from source, interpreted.
-    setLibraryRestorer(libraryRestorer(prebuiltLibraries));
+    setLibraryRestorer(libraryRestorer(TABLES));
     setLibraryLoadHook((libraryName, libraryEnv) => {
-        if (libraryEnv) installLibraryTable(prebuiltLibraries, libraryName, libraryEnv, shippedSource);
+        if (libraryEnv) installLibraryTable(TABLES, libraryName, libraryEnv, shippedSource);
     });
 
     // Setup synchronous file resolver for Node.js
@@ -92,9 +111,11 @@ async function bootstrapInterpreter() {
         const fileName = parts[parts.length - 1];
 
         const searchDirs = [
+            ...includeDirs,
             process.cwd(),
             path.join(process.cwd(), 'src/core/scheme'),
             path.join(__dirname, 'src/core/scheme'),
+            path.join(__dirname, 'src/compiler'),
             // Extension libraries (non-R7RS)
             path.join(process.cwd(), 'src/extras/scheme'),
             path.join(__dirname, 'src/extras/scheme'),
@@ -185,11 +206,18 @@ async function bootstrapInterpreter() {
 
 async function startRepl() {
     // `--no-compile` leaves the program's own code interpreted; the standard
-    // library is compiled either way, as it ships.
-    const args = process.argv.slice(2).filter((arg) => arg !== '--no-compile');
-    const compile = !process.argv.slice(2).includes('--no-compile');
+    // library is compiled either way, as it ships. Each `-I dir` names a
+    // directory libraries are looked for in first, as other Schemes' CLIs do.
+    const options = process.argv.slice(2);
+    const includeDirs = [];
+    const args = [];
+    for (let i = 0; i < options.length; i++) {
+        if (options[i] === '-I' && i + 1 < options.length) includeDirs.push(path.resolve(options[++i]));
+        else if (options[i] !== '--no-compile') args.push(options[i]);
+    }
+    const compile = !options.includes('--no-compile');
 
-    const { interpreter, env } = await bootstrapInterpreter();
+    const { interpreter, env } = await bootstrapInterpreter(includeDirs);
     if (compile) attachTier(interpreter, env, { isPrebuilt });
 
     // Initialize Debugger

@@ -5,7 +5,7 @@
  * its library's `define-library` form and its top-level forms as core forms,
  * as JSON;
  * and when one is not, reading and expanding its source with the pinned seed
- * (`library_seed.js`, `scripts/pin_seed.js`).
+ * (`library_seed.js`, `scripts/pin_seed.scm`).
  *
  * JavaScript tests, since what is tested is the seed, which is JavaScript, and
  * the tables it reads.

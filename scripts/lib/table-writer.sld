@@ -2,9 +2,9 @@
 ;;
 ;; Writing the prebuilt tables -- the shipped libraries' and the compiler's own
 ;; -- as JavaScript modules: what `installLibraryTable` in
-;; src/compiler/prebuilt.js reads. A build tool, used by
-;; scripts/generate_compiled_libraries.js and scripts/generate_compiled_compiler.js,
-;; and not shipped. Its procedures are in table_writer.scm.
+;; src/compiler/prebuilt.js reads. A build tool, used by the build steps
+;; (scripts/lib/prebuild.scm) and scripts/pin_seed.scm, and not shipped. Its
+;; procedures are in table_writer.scm.
 
 (define-library (scheme-js table-writer)
   (import (scheme base)
