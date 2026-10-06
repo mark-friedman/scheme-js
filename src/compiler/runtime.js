@@ -149,24 +149,49 @@ export function vectorSet(vector, index, value) {
 // operation, so that each call of an operation is a call site of its own.
 
 /**
+ * @typedef {Object} SlowPath
+ * @property {string} name - The primitive's name.
+ * @property {function(*, *): *} op - The operation on two reals held as
+ *   numbers, BigInts or Flonums, `undefined` where it does not apply.
+ * @property {Function|null} primitive - The primitive, once found.
+ */
+
+/**
+ * An operation's way for `otherwise`. The primitive is found by its name the
+ * first time it is needed, and kept: found on every call, it cost
+ * arithmetic on complex numbers (benchmarks/r7rs/src/mbrotZ.scm) an eighth
+ * of its time.
+ * @param {string} name - The primitive's name.
+ * @param {function(*, *): *} op - The operation on two reals.
+ * @returns {SlowPath}
+ */
+function slowPath(name, op) {
+  return { name, op, primitive: null };
+}
+
+const ADD = slowPath('+', addReals);
+const SUB = slowPath('-', subReals);
+const MUL = slowPath('*', mulReals);
+const LT = slowPath('<', lessReals);
+const GT = slowPath('>', (a, b) => lessReals(b, a));
+const LE = slowPath('<=', lessEqualReals);
+const GE = slowPath('>=', (a, b) => lessEqualReals(b, a));
+const NUM_EQ = slowPath('=', equalReals);
+
+/**
  * An operation on two operands that are not both held as numbers or Flonums:
  * a real held as a BigInt (`addReals` and the rest), and otherwise the
  * primitive, so that every error is its own.
- * @param {function(*, *): *} op - The operation, `undefined` where it does
- *   not apply.
- * @param {string} name - The primitive's name.
+ * @param {SlowPath} slow - The operation.
  * @param {*} a - One operand.
  * @param {*} b - The other.
  * @returns {*}
  */
-function otherwise(op, name, a, b) {
-  const r = op(a, b);
-  return r !== undefined ? r : primitiveCell(name).primitive(a, b);
+function otherwise(slow, a, b) {
+  const r = slow.op(a, b);
+  if (r !== undefined) return r;
+  return (slow.primitive ?? (slow.primitive = primitiveCell(slow.name).primitive))(a, b);
 }
-
-/** `>` and `>=` with their operands swapped, for `otherwise`. */
-const greaterReals = (a, b) => lessReals(b, a);
-const greaterEqualReals = (a, b) => lessEqualReals(b, a);
 
 /**
  * `+` of two operands.
@@ -178,7 +203,7 @@ export function add(a, b) {
   if (typeof a === 'number' && typeof b === 'number') return addNumbers(a, b);
   const x = heldDouble(a), y = heldDouble(b);
   if (x !== undefined && y !== undefined) return inexactReal(x + y);
-  return otherwise(addReals, '+', a, b);
+  return otherwise(ADD, a, b);
 }
 
 /**
@@ -191,7 +216,7 @@ export function sub(a, b) {
   if (typeof a === 'number' && typeof b === 'number') return subNumbers(a, b);
   const x = heldDouble(a), y = heldDouble(b);
   if (x !== undefined && y !== undefined) return inexactReal(x - y);
-  return otherwise(subReals, '-', a, b);
+  return otherwise(SUB, a, b);
 }
 
 /**
@@ -204,7 +229,7 @@ export function mul(a, b) {
   if (typeof a === 'number' && typeof b === 'number') return mulNumbers(a, b);
   const x = heldDouble(a), y = heldDouble(b);
   if (x !== undefined && y !== undefined) return inexactReal(x * y);
-  return otherwise(mulReals, '*', a, b);
+  return otherwise(MUL, a, b);
 }
 
 /**
@@ -216,7 +241,7 @@ export function mul(a, b) {
 export function lt(a, b) {
   const x = heldDouble(a), y = heldDouble(b);
   if (x !== undefined && y !== undefined) return x < y;
-  return otherwise(lessReals, '<', a, b);
+  return otherwise(LT, a, b);
 }
 
 /**
@@ -228,7 +253,7 @@ export function lt(a, b) {
 export function gt(a, b) {
   const x = heldDouble(a), y = heldDouble(b);
   if (x !== undefined && y !== undefined) return x > y;
-  return otherwise(greaterReals, '>', a, b);
+  return otherwise(GT, a, b);
 }
 
 /**
@@ -240,7 +265,7 @@ export function gt(a, b) {
 export function le(a, b) {
   const x = heldDouble(a), y = heldDouble(b);
   if (x !== undefined && y !== undefined) return x <= y;
-  return otherwise(lessEqualReals, '<=', a, b);
+  return otherwise(LE, a, b);
 }
 
 /**
@@ -252,7 +277,7 @@ export function le(a, b) {
 export function ge(a, b) {
   const x = heldDouble(a), y = heldDouble(b);
   if (x !== undefined && y !== undefined) return x >= y;
-  return otherwise(greaterEqualReals, '>=', a, b);
+  return otherwise(GE, a, b);
 }
 
 /**
@@ -264,7 +289,7 @@ export function ge(a, b) {
 export function numEq(a, b) {
   const x = heldDouble(a), y = heldDouble(b);
   if (x !== undefined && y !== undefined) return x === y;
-  return otherwise(equalReals, '=', a, b);
+  return otherwise(NUM_EQ, a, b);
 }
 
 /**

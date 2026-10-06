@@ -8,7 +8,7 @@
  * Higher-level numeric procedures are in core.scm.
  */
 
-import { assertNumber, assertInteger, assertArity } from '../interpreter/type_check.js';
+import { assertNumber, assertInteger, assertArity, isNumber } from '../interpreter/type_check.js';
 import { SchemeError, SchemeTypeError } from '../interpreter/errors.js';
 import { Values } from '../interpreter/values.js';
 import { Rational, isRational, bitLength, ratioToNumber } from './rational.js';
@@ -1505,16 +1505,30 @@ for (const [name, fn] of Object.entries(mathPrimitives)) mathPrimitives[name] = 
 /**
  * A variadic arithmetic primitive that folds its arguments with `combine`
  * while it applies to them (`addReals` and the rest), and otherwise does what
- * `general` does. A lone argument is checked by `general`.
+ * `general` does. A lone argument is checked by `general`. Two numbers that
+ * are not both reals held as numbers, BigInts or Flonums -- a complex number,
+ * a rational -- are combined by the tower's operation on two numbers,
+ * `tower`, directly: through `general`, the wrapper and the variadic
+ * primitive cost complex arithmetic (benchmarks/r7rs/src/mbrotZ.scm) half
+ * again its time.
  * @param {Function} general - The primitive for any numbers.
  * @param {function(*, *): *} combine - Two reals' result, or `undefined`.
  * @param {number} empty - The result for no arguments.
+ * @param {function(*, *): *} tower - The tower's operation on two numbers,
+ *   in its representation.
  * @returns {Function}
  */
-function foldingReals(general, combine, empty) {
+function foldingReals(general, combine, empty, tower) {
     return (...args) => {
         if (args.length === 0) return empty;
         if (args.length === 1) return general(...args);
+        if (args.length === 2) {
+            const a = args[0], b = args[1];
+            const r = combine(a, b);
+            if (r !== undefined) return r;
+            if (isNumber(a) && isNumber(b)) return fromTower(tower(toTower(a), toTower(b)));
+            return general(a, b);
+        }
         let acc = args[0];
         for (let i = 1; i < args.length; i++) {
             acc = combine(acc, args[i]);
@@ -1564,9 +1578,9 @@ function dividingIntegers(general, divide) {
 const general = { ...mathPrimitives };
 
 {
-    mathPrimitives['+'] = foldingReals(general['+'], addReals, 0);
-    mathPrimitives['*'] = foldingReals(general['*'], mulReals, 1);
-    const subtract = foldingReals(general['-'], subReals, 0);
+    mathPrimitives['+'] = foldingReals(general['+'], addReals, 0, genericAdd);
+    mathPrimitives['*'] = foldingReals(general['*'], mulReals, 1, genericMul);
+    const subtract = foldingReals(general['-'], subReals, 0, genericSub);
     mathPrimitives['-'] = (...args) => {
         if (args.length === 1 && typeof args[0] === 'number') {
             const x = args[0];
