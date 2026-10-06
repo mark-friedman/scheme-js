@@ -179,11 +179,11 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     // Basic dynamic-wind
     {
         const code = `
-      (define log '())
+      (define wind-log '())
       (dynamic-wind
-        (lambda () (set! log (cons 'before log)))
-        (lambda () (set! log (cons 'body log)) 42)
-        (lambda () (set! log (cons 'after log))))
+        (lambda () (set! wind-log (cons 'before wind-log)))
+        (lambda () (set! wind-log (cons 'body wind-log)) 42)
+        (lambda () (set! wind-log (cons 'after wind-log))))
     `;
         const syncResult = runSync(code);
         const asyncResult = await runAsync(code, { stepsPerYield: 2 });
@@ -193,12 +193,12 @@ export async function runAsyncModeFunctionalTests(interpreter, logger) {
     // Dynamic-wind with escape
     {
         const code = `
-      (define log '())
+      (define wind-log '())
       (call/cc (lambda (escape)
         (dynamic-wind
-          (lambda () (set! log (cons 'before log)))
+          (lambda () (set! wind-log (cons 'before wind-log)))
           (lambda () (escape 99))
-          (lambda () (set! log (cons 'after log))))))
+          (lambda () (set! wind-log (cons 'after wind-log))))))
     `;
         const syncResult = runSync(code);
         const asyncResult = await runAsync(code, { stepsPerYield: 2 });

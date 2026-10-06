@@ -75,20 +75,12 @@ function prettyPrintValue(val) {
     if (typeof val === 'bigint') {
         return `${val}`;
     }
-    // Inexact reals: other numbers, and Flonums, whose integral values are
-    // written with a decimal point
+    // Exact integers held as numbers are written as integers; inexact reals --
+    // other numbers, and Flonums -- as write writes them: a copy of its rules
+    // here showed -0.0 as 0.0 and 1e21 as 1e+21.0, which read takes for a symbol.
+    if (typeof val === 'number' && Number.isInteger(val)) return `${val}`;
     if (typeof val === 'number' || val instanceof Flonum) {
-        const v = typeof val === 'number' ? val : val.value;
-        if (typeof val === 'number' && Number.isInteger(v)) return `${v}`;
-        if (Object.is(v, -0)) return '-0.0';
-        if (Number.isInteger(v) && Number.isFinite(v)) {
-            return `${v}.0`;
-        }
-        // Handle special values
-        if (v === Infinity) return '+inf.0';
-        if (v === -Infinity) return '-inf.0';
-        if (Number.isNaN(v)) return '+nan.0';
-        return `${v}`;
+        return writeString(val);
     }
     // Other objects (Rational, Complex, etc.) use their toString method
     return `${val}`;
