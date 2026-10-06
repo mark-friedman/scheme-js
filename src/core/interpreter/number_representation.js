@@ -127,6 +127,17 @@ export function fromTower(v) {
 }
 
 /**
+ * The double a value holds if it is held as a JavaScript number or a Flonum
+ * -- an exact integer's value, or an inexact real's -- else `undefined`.
+ * @param {*} x - The value.
+ * @returns {number|undefined}
+ */
+export function heldDouble(x) {
+    if (typeof x === 'number') return x;
+    return x instanceof Flonum ? x.value : undefined;
+}
+
+/**
  * An exact integer as a JavaScript number, for an index or a count, which is
  * one already unless it is too large to be an index.
  * @param {number|bigint} k - The integer.

@@ -14,7 +14,8 @@ import { Values } from '../interpreter/values.js';
 import { Rational, isRational, bitLength, ratioToNumber } from './rational.js';
 import { Complex, isComplex, makeRectangular, makePolar } from './complex.js';
 import {
-    toTower, fromTower, addReals, subReals, mulReals, lessReals, lessEqualReals, equalReals, Flonum
+    toTower, fromTower, addReals, subReals, mulReals, lessReals, lessEqualReals, equalReals, Flonum,
+    inexactReal, heldDouble, mulNumbers
 } from '../interpreter/number_representation.js';
 
 // =============================================================================
@@ -1559,8 +1560,10 @@ function dividingIntegers(general, divide) {
     };
 }
 
+/** Every primitive as wrapped, before any is given a direct path. */
+const general = { ...mathPrimitives };
+
 {
-    const general = { ...mathPrimitives };
     mathPrimitives['+'] = foldingReals(general['+'], addReals, 0);
     mathPrimitives['*'] = foldingReals(general['*'], mulReals, 1);
     const subtract = foldingReals(general['-'], subReals, 0);
@@ -1583,3 +1586,229 @@ function dividingIntegers(general, divide) {
         return r !== 0 && (r < 0) !== (b < 0) ? r + b : r;
     });
 }
+
+// =============================================================================
+// Numbers and boxes taken directly
+// =============================================================================
+//
+// A wrapped primitive converts each argument -- an exact integer to a BigInt
+// -- and its result back, in a function every primitive shares, whose call of
+// the primitive V8 therefore cannot inline: `(inexact x)` cost 33 ns a call,
+// against 4.6 before exact integers were numbers, and two such calls a point
+// made benchmarks/r7rs/src/mbrot.scm 40% slower. Each primitive here takes an
+// argument held as a number, a Flonum or a BigInt as it is, in a function of
+// its own, and leaves anything else, and every error, to the wrapped one.
+// Each answers what the wrapped one does: an inexact result through
+// `inexactReal`, which boxes it if it is an integer.
+
+/**
+ * The double held by an inexact real, or undefined for any other value.
+ * @param {*} x - The value.
+ * @returns {number|undefined}
+ */
+function inexactDouble(x) {
+    if (typeof x === 'number') return Number.isInteger(x) ? undefined : x;
+    return x instanceof Flonum ? x.value : undefined;
+}
+
+/**
+ * Whether a value is a real held as a number, a Flonum or a BigInt.
+ * @param {*} x - The value.
+ * @returns {boolean}
+ */
+function isHeldReal(x) {
+    return typeof x === 'number' || x instanceof Flonum || typeof x === 'bigint';
+}
+
+/**
+ * A one-argument function of the reals JavaScript's Math computes, which
+ * converts an exact argument to its nearest double as the wrapped primitive
+ * does, for an argument held as a number or a Flonum.
+ * @param {string} name - The primitive's name.
+ * @param {function(number): number} f - The Math function.
+ * @param {function(number): boolean} [inDomain] - Whether the function is
+ *   real there; elsewhere the wrapped primitive gives the complex value.
+ * @returns {Function}
+ */
+function directMath(name, f, inDomain) {
+    const wrapped = general[name];
+    return function (x) {
+        if (arguments.length === 1) {
+            const d = heldDouble(x);
+            if (d !== undefined && (inDomain === undefined || inDomain(d))) return inexactReal(f(d));
+        }
+        return wrapped.apply(null, arguments);
+    };
+}
+
+mathPrimitives['inexact'] = function inexact(z) {
+    if (arguments.length === 1) {
+        if (typeof z === 'number') return Number.isInteger(z) ? inexactReal(z) : z;
+        if (z instanceof Flonum) return z;
+    }
+    return general['inexact'].apply(null, arguments);
+};
+
+mathPrimitives['exact'] = function exact(z) {
+    if (arguments.length === 1) {
+        if (typeof z === 'number' && Number.isInteger(z)) return z;
+        // `+ 0` makes -0.0 exact zero.
+        if (z instanceof Flonum && Number.isSafeInteger(z.value)) return z.value + 0;
+    }
+    return general['exact'].apply(null, arguments);
+};
+mathPrimitives['inexact->exact'] = mathPrimitives['exact'];
+
+mathPrimitives['abs'] = function abs(x) {
+    if (arguments.length === 1) {
+        if (typeof x === 'number') return x < 0 ? -x : x;
+        if (x instanceof Flonum) return inexactReal(Math.abs(x.value));
+    }
+    return general['abs'].apply(null, arguments);
+};
+
+mathPrimitives['magnitude'] = function magnitude(z) {
+    if (arguments.length === 1) {
+        if (typeof z === 'number') return z < 0 ? -z : z;
+        if (z instanceof Flonum) return inexactReal(Math.abs(z.value));
+        if (z instanceof Complex) return fromTower(z.magnitude());
+    }
+    return general['magnitude'].apply(null, arguments);
+};
+
+mathPrimitives['real-part'] = function realPart(z) {
+    if (arguments.length === 1) {
+        if (isHeldReal(z)) return z;
+        if (z instanceof Complex) return fromTower(z.real);
+    }
+    return general['real-part'].apply(null, arguments);
+};
+
+mathPrimitives['imag-part'] = function imagPart(z) {
+    if (arguments.length === 1) {
+        // An inexact real's imaginary part is inexact zero, as the tower has it.
+        if (typeof z === 'number') return Number.isInteger(z) ? 0 : inexactReal(0);
+        if (z instanceof Flonum) return inexactReal(0);
+        if (typeof z === 'bigint') return 0;
+        if (z instanceof Complex) return fromTower(z.imag);
+    }
+    return general['imag-part'].apply(null, arguments);
+};
+
+/**
+ * A rounding of a real to an integer: an exact integer is its own, an
+ * inexact integer too, and a fraction is rounded by `round`.
+ * @param {string} name - The primitive's name.
+ * @param {function(number): number} round - The rounding of a double.
+ * @returns {Function}
+ */
+function directRounding(name, round) {
+    const wrapped = general[name];
+    return function (x) {
+        if (arguments.length === 1) {
+            if (typeof x === 'number') return Number.isInteger(x) ? x : inexactReal(round(x));
+            if (x instanceof Flonum) return x;
+        }
+        return wrapped.apply(null, arguments);
+    };
+}
+
+mathPrimitives['floor'] = directRounding('floor', Math.floor);
+mathPrimitives['ceiling'] = directRounding('ceiling', Math.ceil);
+mathPrimitives['truncate'] = directRounding('truncate', Math.trunc);
+mathPrimitives['round'] = directRounding('round', (x) => {
+    // Math.round takes a half up; R7RS 6.2.6 takes it to the even integer.
+    const r = Math.round(x);
+    return r - x === 0.5 && r % 2 !== 0 ? r - 1 : r;
+});
+
+mathPrimitives['square'] = function square(z) {
+    if (arguments.length === 1) {
+        if (typeof z === 'number') return Number.isInteger(z) ? mulNumbers(z, z) : inexactReal(z * z);
+        if (z instanceof Flonum) return inexactReal(z.value * z.value);
+    }
+    return general['square'].apply(null, arguments);
+};
+
+// An exact argument's square root and logarithm are the wrapped primitive's:
+// a square's root is exact, and an exact number beyond a double's range is
+// computed from its exact value.
+mathPrimitives['sqrt'] = function sqrt(z) {
+    if (arguments.length === 1) {
+        const d = inexactDouble(z);
+        // -0.0 is not below zero, and is its own root.
+        if (d !== undefined && d >= 0) return inexactReal(Math.sqrt(d));
+    }
+    return general['sqrt'].apply(null, arguments);
+};
+
+mathPrimitives['log'] = function log(z) {
+    if (arguments.length === 1) {
+        const d = inexactDouble(z);
+        if (d !== undefined && d > 0) return inexactReal(Math.log(d));
+    }
+    return general['log'].apply(null, arguments);
+};
+
+mathPrimitives['exp'] = directMath('exp', Math.exp);
+mathPrimitives['sin'] = directMath('sin', Math.sin);
+mathPrimitives['cos'] = directMath('cos', Math.cos);
+mathPrimitives['tan'] = directMath('tan', Math.tan);
+mathPrimitives['asin'] = directMath('asin', Math.asin, (d) => d >= -1 && d <= 1);
+mathPrimitives['acos'] = directMath('acos', Math.acos, (d) => d >= -1 && d <= 1);
+mathPrimitives['atan'] = function atan(y, x) {
+    const dy = heldDouble(y);
+    if (dy !== undefined) {
+        if (arguments.length === 1) return inexactReal(Math.atan(dy));
+        const dx = heldDouble(x);
+        if (arguments.length === 2 && dx !== undefined) return inexactReal(Math.atan2(dy, dx));
+    }
+    return general['atan'].apply(null, arguments);
+};
+
+mathPrimitives['/'] = function divide(a, b) {
+    // Two reals, either inexact, are divided as doubles, as the tower
+    // divides them -- by an exact zero too, which only an exact division
+    // refuses.
+    if (arguments.length === 2) {
+        const da = heldDouble(a), db = heldDouble(b);
+        if (da !== undefined && db !== undefined && (inexactDouble(a) !== undefined || inexactDouble(b) !== undefined)) {
+            return inexactReal(da / db);
+        }
+    }
+    return general['/'].apply(null, arguments);
+};
+
+// The predicates on numbers. A number is an exact integer if it is an
+// integer, and otherwise inexact; a Flonum is an inexact integer; a BigInt an
+// exact integer.
+
+/**
+ * A predicate on numbers that answers for a real held as a number, a Flonum
+ * or a BigInt by `answer`, and leaves anything else to the wrapped one.
+ * @param {string} name - The primitive's name.
+ * @param {function(*): boolean} answer - The answer for such a real.
+ * @returns {Function}
+ */
+function directPredicate(name, answer) {
+    const wrapped = general[name];
+    return function (x) {
+        if (arguments.length === 1 && isHeldReal(x)) return answer(x);
+        return wrapped.apply(null, arguments);
+    };
+}
+
+mathPrimitives['number?'] = directPredicate('number?', () => true);
+mathPrimitives['complex?'] = directPredicate('complex?', () => true);
+mathPrimitives['real?'] = directPredicate('real?', () => true);
+mathPrimitives['rational?'] = directPredicate('rational?', (x) => typeof x !== 'number' || Number.isFinite(x));
+mathPrimitives['integer?'] = directPredicate('integer?', (x) => typeof x !== 'number' || Number.isInteger(x));
+mathPrimitives['exact-integer?'] = directPredicate('exact-integer?',
+    (x) => typeof x === 'number' ? Number.isInteger(x) : typeof x === 'bigint');
+mathPrimitives['exact?'] = directPredicate('exact?',
+    (x) => typeof x === 'number' ? Number.isInteger(x) : typeof x === 'bigint');
+mathPrimitives['inexact?'] = directPredicate('inexact?',
+    (x) => typeof x === 'number' ? !Number.isInteger(x) : x instanceof Flonum);
+mathPrimitives['nan?'] = directPredicate('nan?', (x) => typeof x === 'number' && Number.isNaN(x));
+mathPrimitives['finite?'] = directPredicate('finite?', (x) => typeof x !== 'number' || Number.isFinite(x));
+mathPrimitives['infinite?'] = directPredicate('infinite?', (x) => x === Infinity || x === -Infinity);

@@ -988,3 +988,57 @@
   (test "a negative exact integer is the error's irritant"
     '(-4)
     (guard (e ((error-object? e) (error-object-irritants e))) (exact-integer-sqrt -4))))
+
+;; An exact integer is a JavaScript number or a BigInt, and an inexact real a
+;; number or, where its value is an integer, a box
+;; (src/core/interpreter/number_representation.js). The commonest primitives
+;; take each directly ("Numbers and boxes taken directly" in
+;; src/core/primitives/math.js); every answer here, and its exactness, is the
+;; numeric tower's.
+(test-group "the primitives on every way a real is held"
+  (define big (expt 2 70))
+  (define (both x) (list x (exact? x)))
+  (define predicates (list number? real? rational? integer? exact? inexact? nan? finite? infinite?))
+  (test "inexact" '((3. #f) (2.5 #f) (3. #f)) (map (lambda (x) (both (inexact x))) '(3 2.5 3.)))
+  (test "exact" '((3 #t) (0 #t) (3 #t)) (map (lambda (x) (both (exact x))) '(3. -0. 3)))
+  (test "exact of a fraction is a rational" 5/2 (exact 2.5))
+  (test "abs" '((3 #t) (2.5 #f) (3. #f) (0. #f)) (map (lambda (x) (both (abs x))) '(-3 -2.5 -3. -0.)))
+  (test "abs of a BigInt" big (abs (- big)))
+  (test "magnitude" '((3 #t) (3. #f) (5. #f))
+        (map (lambda (x) (both (magnitude x))) (list -3 -3. (make-rectangular 3. 4.))))
+  (test "real-part and imag-part of an exact integer" '((3 #t) (0 #t))
+        (list (both (real-part 3)) (both (imag-part 3))))
+  (test "of an inexact integer" '((3. #f) (0. #f)) (list (both (real-part 3.)) (both (imag-part 3.))))
+  (test "of a complex number" '((1. #f) (2. #f))
+        (let ((z (make-rectangular 1. 2.))) (list (both (real-part z)) (both (imag-part z)))))
+  (test "floor, ceiling, truncate and round of a fraction are inexact integers"
+        '((-3. #f) (-2. #f) (-2. #f) (-2. #f))
+        (map (lambda (f) (both (f -2.5))) (list floor ceiling truncate round)))
+  (test "of an exact integer, itself" '(7 7 7 7) (map (lambda (f) (f 7)) (list floor ceiling truncate round)))
+  (test "ceiling of a negative fraction is -0.0" "-0.0" (number->string (ceiling -.5)))
+  (test "round takes a half to the even integer" '(4. 2.) (list (round 3.5) (round 2.5)))
+  (test "square" '((9 #t) (6.25 #f) (9. #f)) (map (lambda (x) (both (square x))) '(3 2.5 3.)))
+  (test "square past 2^53 is exact" 1152921504606846976 (square 1073741824))
+  (test "sqrt of an inexact real" '((2. #f) (1.5 #f)) (map (lambda (x) (both (sqrt x))) '(4. 2.25)))
+  (test "sqrt of -0.0" "-0.0" (number->string (sqrt -0.)))
+  (test "sqrt of an exact square stays exact" '(3 #t) (both (sqrt 9)))
+  (test "sqrt of a negative inexact real is not real" #f (real? (sqrt -4.)))
+  (test "exp, sin, cos and atan of an exact integer are inexact" '(#f #f #f #f)
+        (map (lambda (f) (exact? (f 0))) (list exp sin cos atan)))
+  (test "exp of 0" 1. (exp 0))
+  (test "atan of two exact integers" (atan 1. 1.) (atan 1 1))
+  (test "log of an inexact real" 0. (log 1.))
+  (test "asin beyond 1 is not real" #f (real? (asin 2.)))
+  (test "division with an inexact real" '((1.5 #f) (2. #f) (+inf.0 #f))
+        (list (both (/ 3. 2)) (both (/ 3 1.5)) (both (/ 1.5 0))))
+  (test "division of exact integers stays exact" 3/2 (/ 3 2))
+  (test "the predicates of an exact integer" '(#t #t #t #t #t #f #f #t #f)
+        (map (lambda (p) (p 3)) predicates))
+  (test "of a BigInt" '(#t #t #t #t #t #f #f #t #f) (map (lambda (p) (p big)) predicates))
+  (test "of an inexact integer" '(#t #t #t #t #f #t #f #t #f) (map (lambda (p) (p 3.)) predicates))
+  (test "of a fraction" '(#t #t #t #f #f #t #f #t #f) (map (lambda (p) (p 2.5)) predicates))
+  (test "of +inf.0" '(#t #t #f #f #f #t #f #f #t) (map (lambda (p) (p +inf.0)) predicates))
+  (test "of +nan.0" '(#t #t #f #f #f #t #t #f #f) (map (lambda (p) (p +nan.0)) predicates))
+  (test "exact-integer?" '(#t #t #f #f) (map exact-integer? (list 3 big 3. 2.5)))
+  (test "number? of something that is not a number" #f (number? 'a))
+  (test-error "abs of something that is not a number is the primitive's error" "number" (abs 'a)))
