@@ -13647,3 +13647,24 @@ captures one and re-enters it before returning; and that tail-calls a procedure 
 `callCompiledEntry`, the remainder's node and the tail call it shares with `continueApplication`, and
 a continuation jump's owner -- the save-and-resume protocol and the evaluator being what may be
 JavaScript.
+
+# Task 88 measured before it was built, and moved down (2026-10-06)
+
+88 was to recover what 43's number representation costs `fibfp` (1.93x the code before 43) and
+`fft` (1.17x), with a raw-double entry for a procedure whose parameters stay inexact, and to measure
+how common integral inexacts are outside the benchmarks. Profiled first: `fibfp` spends its time in
+its own code on the boxed representation, 365,000 inexact results a run of which only 89 are new
+boxes; `chudnovsky` (1.35x) spreads its over bignum work, conversions at the edge of the safe range
+about 13%. Then counted, with the `Flonum` constructor and `inexactReal` instrumented for the
+measurement and restored after it, over one run of each of `run_tier.js`'s programs:
+
+| set | programs | boxes made | inexact results |
+|---|---|---|---|
+| the repository's test files | 74 | 2,028 | 150,427 |
+| the corpus's test programs | 23 | 7,513 | 272,319 |
+| page programs | 3 | 0 | 4,060 |
+| the canonical suite | 44 | 249,105 | 1,591,435 |
+
+Most of the canonical figures are `quicksort`, `fft`, `fibfp` and `mbrotZ`. What 88 would remove
+falls on kernels, which R130 found the canonical suite concentrated in; it moves down beside 54, to
+wait for code outside the benchmarks that does heavy integral inexact arithmetic.
