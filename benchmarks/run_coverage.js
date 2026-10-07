@@ -6,31 +6,46 @@
  *
  * The eight Stage 0 programs were found overfitted (R20 in
  * `docs/compiler_findings.md`): they called 16 distinct procedures, against
- * 136 in the repository's own Scheme, and 98% of their calls landed on a
- * primitive the compiler expands inline, against 34%. Every optimization had
+ * 136 in the repository's Scheme test files, and 98% of their calls landed on
+ * a primitive the compiler expands inline, against 34%. Every optimization had
  * been chosen on them, and their speedups did not transfer. The canonical
  * suite replaced them as the gate, but nothing went on checking whether it, or
- * the workloads chosen since, drift the same way. This reports those two
- * measures for every suite, so that a suite fitted to what the compiler does
- * well shows as one.
+ * the workloads chosen since, drift the same way. This reports, for every
+ * suite, how broad it is and how much of it the inline expansions decide.
  *
  * ## What is measured
  *
  * Each program runs once, interpreted, with every procedure bound in its
- * environment wrapped to count its calls by name (`lib/coverage.js`):
+ * environment before it runs -- the language's, not the program's own --
+ * wrapped to count its calls by name (`lib/coverage.js`):
  *
- *  - the eight Stage 0 programs (`benchmarks/programs/`), at their `quick`
- *    sizes;
+ *  - the Stage 0 programs (`benchmarks/programs/`), at their `quick` sizes;
  *  - the canonical suite (`benchmarks/r7rs/`), by workload class and in all,
- *    each program once at its manifest's size;
+ *    each program once at its manifest's size, and then program by program;
  *  - the repository's Scheme test files (`tests/core/scheme/`), as
- *    `run_macro.js` runs them, the code that is not a benchmark.
+ *    `run_macro.js` runs them.
  *
  * For each: the calls counted, the distinct procedures called, and the share
  * of calls on a primitive the compiler expands inline (`inline-expansion-names`
  * in `src/compiler/inline.scm`), pooled over the suite's calls and averaged
- * over its programs. A suite whose share is far above the test files'
- * measures what the compiler inlines more than what programs do.
+ * over its programs. Program by program, the canonical suite's table gives each
+ * program's size in lines, the procedures it calls beyond those every program
+ * calls -- the harness's -- and its share.
+ *
+ * ## How to read it
+ *
+ * The share is how much of a workload's use of the language the inline
+ * expansions decide, not how fitted the workload is to them: applications
+ * spend their calls on `car`, `cdr`, `eq?` and `null?` as kernels do. In the
+ * canonical suite, `compiler` -- Gambit's compiler, 11,000 lines -- puts 92% of
+ * its calls there, `scheme` 99% and `slatex` 58%, a spread no different from
+ * the kernels'. The test files' share is lower because tests call the library
+ * broadly, by design: it is the share of test code, not of programs (R135).
+ * Breadth tells kernels from applications better, though not cleanly: the
+ * canonical programs under 250 lines call one to eleven procedures beyond the
+ * harness's, `compiler` 41, `parsing` 25 and `slatex` 21 -- but `scheme`, at
+ * 1,056 lines, calls 9. A suite of programs that call little beyond the
+ * harness measures a few operations, however its share reads.
  *
  * Usage:
  *   node benchmarks/run_coverage.js [--only stage0,canonical,tests]
@@ -103,6 +118,32 @@ function report(label, programs) {
     + `${percent(inlinedShare)} ${percent(mean)}`);
 }
 
+/**
+ * The canonical suite program by program, largest first: each program's size
+ * in lines, the procedures it calls beyond those every program calls -- the
+ * harness's, which run each program -- and its share of calls inlined. Lists
+ * size beside the share so that a reader can see the share does not follow it.
+ * @param {Array<Object>} programs - The manifest's entries, in run order.
+ * @param {Array<Map<string, number>>} counts - Each program's calls, by name.
+ */
+function byProgram(programs, counts) {
+  const shared = counts.map((c) => new Set(c.keys()))
+    .reduce((common, names) => new Set([...common].filter((name) => names.has(name))));
+  const rows = programs.map((bench, i) => ({
+    name: bench.name,
+    workload: bench.workload,
+    lines: fs.readFileSync(path.join(R7RS_DIR, 'src', `${bench.name}.scm`), 'utf8').split('\n').length,
+    beyond: [...counts[i].keys()].filter((name) => !shared.has(name)).length,
+    share: coverage(counts[i]).inlinedShare
+  })).sort((a, b) => b.lines - a.lines);
+  console.log(`\n  The canonical suite by program, largest first; the harness calls ${shared.size} procedures in every one`);
+  console.log(`  ${'program'.padEnd(14)} ${'class'.padEnd(14)} ${'lines'.padStart(7)} ${'beyond harness'.padStart(15)} ${'inlined'.padStart(10)}`);
+  for (const row of rows) {
+    console.log(`  ${row.name.padEnd(14)} ${row.workload.padEnd(14)} ${String(row.lines).padStart(7)} `
+      + `${String(row.beyond).padStart(15)} ${percent(row.share)}`);
+  }
+}
+
 console.log('Coverage: each suite run once, interpreted, its calls counted by name');
 console.log(`\n  ${''.padEnd(40)} ${''.padStart(12)} ${''.padStart(9)} ${'share inlined, pooled'.padStart(21)} / by program`);
 console.log(`  ${'suite'.padEnd(40)} ${'calls'.padStart(12)} ${'distinct'.padStart(9)} ${'pooled'.padStart(10)} ${'mean'.padStart(10)}`);
@@ -135,6 +176,7 @@ if (ONLY.includes('canonical')) {
   }
   for (const [workload, counts] of [...byClass].sort()) report(`canonical: ${workload} (${counts.length})`, counts);
   report(`canonical, all (${programs.length})`, all);
+  byProgram(programs, all);
 }
 
 if (ONLY.includes('tests')) {
@@ -149,5 +191,5 @@ if (ONLY.includes('tests')) {
       // A test file that cannot run this way counts nothing.
     }
   }
-  report(`the repository's test files (${files.length})`, programs);
+  report(`the repository's test files, test code (${files.length})`, programs);
 }

@@ -7,7 +7,7 @@
  * against this interpreter, and the optimizations were then chosen by measuring
  * against them. Suite and optimizations ended up fitted to each other: 98% of
  * the microbenchmarks' calls land on a primitive the compiler inlines, against
- * 34% in real code, and a speedup that reads as ~12x there was 1.39x on the
+ * 34% in the test files, and a speedup that reads as ~12x there was 1.39x on the
  * project's own Scheme. These programs come from the Gabriel and Gambit lineage
  * by way of Larceny, nobody here chose them, and they cover workloads the eight
  * do not touch at all -- flonums, bignums, bytevectors, strings, records,

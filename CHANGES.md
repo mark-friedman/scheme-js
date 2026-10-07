@@ -13742,3 +13742,20 @@ handle is otherwise left interpreted; that is 93, now first in the plan. The use
 and size acceptable for now, so 41 moves down, its likely direction several runtime files a page
 chooses among, with and without the compiler and the resumable twins. JavaScript under `src/`:
 none; the fix is the compiler's Scheme.
+
+# The coverage report reads the inline share as what it is (2026-10-07)
+
+The previous entry's observation, that `compiler` puts 92% of its calls on inline expansions, is
+recorded where it changes how the coverage report is read rather than only here: R135, with R130
+annotated. Program by program across the canonical suite, the share does not follow size -- the
+twelve programs over 600 lines range from 58% to 99%, the kernels under 50 lines from 27% to 100% --
+so it measures how much of a workload's use of the language the inline expansions decide, not how
+fitted the workload is to them, and the test files' 55.6% is the share of test code. Breadth, the
+procedures a program calls beyond the 33 the harness calls in every one, tells kernels from
+applications better: 1 to 11 for the programs under 250 lines, 41 for `compiler`, though 9 for
+`scheme`.
+
+`run_coverage.js` now prints that table for the canonical suite, largest program first, says in its
+header how to read the share, and labels the test files as test code. `performance_baseline.md`'s
+warning, `run_macro.js`, `run_r7rs.js` and the canonical suite's manifest and README no longer call
+the test files real code, and task 88's row rests on its own box counts rather than on R130.

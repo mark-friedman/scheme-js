@@ -3592,6 +3592,9 @@ fifteen.
 a kernel sees. The coverage report goes beside it, and the transfer checks -- `run_tier.js`'s test-file
 and corpus sets, `run_macro.js` -- keep their weight in decisions.
 
+*Annotated 2026-10-07:* the comparison with the test files is superseded by R135. Their 55.6% is the
+share of test code, and the canonical suite's applications spread across the same range as its kernels.
+
 **R131. A continuation captured and re-entered inside a compiled procedure that JavaScript called
 did not stay in the call.**
 
@@ -3661,3 +3664,30 @@ is otherwise left interpreted.
 (expander.sld lists them), and a form the lowering does not lower is not searched, since its
 procedure is declined. Whether a compiler error should leave the procedure interpreted instead of
 ending the program is 93.
+
+**R135. A high share of calls on the inline expansions did not mark a kernel.**
+
+R20 and R130 read the share of a suite's calls landing on a primitive the compiler expands inline
+against the repository's test files, taken as real code, and took a share far above theirs for a
+suite fitted to the compiler: Stage 0's 98% against 34%, the canonical suite's 88.7% a program against
+55.6%. `run_coverage.js` said so in its header. Vendoring `compiler` -- Gambit's compiler, 11,199 lines
+and 1,346 definitions, an application by any measure -- tested that as nothing had: 92.0% of its calls
+into the language are inline expansions. Program by program across the canonical suite, the share does
+not follow size. Of the twelve programs over 600 lines, `slatex` has 58.1%, `maze` 76.8%, `parsing`
+83.1%, `compiler` 92.0%, `dynamic` 97.0% and `scheme` 98.9%; the kernels under 50 lines range from
+27.4% (`string`) to 100%. Programs spend their calls into the language on `car`, `cdr`, `eq?` and
+`null?`, small or large. The test files' lower share fits what they are: code that calls the
+library's procedures in order to test them.
+
+Breadth tells kernels from applications better, if not cleanly. Counting the procedures each program
+calls beyond the 33 the harness calls in every one, the programs under 250 lines call 1 to 11,
+`compiler` 41, `parsing` 25, `slatex` 21, `matrix` and `maze` 20 -- but `scheme`, at 1,056 lines, 9.
+
+*Consequence:* the share is read as how much of a workload's use of the language the inline
+expansions decide, not as its fitness to them, and the test files' share as that of test code. R130's
+conclusion, that a gain on the canonical suite is an upper bound on what other code sees, no longer has
+the share to rest on; whether a gain transfers is what the transfer checks measure -- `run_tier.js`'s
+sets and `run_macro.js` -- and they keep their weight. R20's transfer failure stands as measured: 12x on
+the Stage 0 programs was 1.39x on the test files. `run_coverage.js` now lists each canonical program's
+size, its breadth beyond the harness and its share, so that a suite fitted to a few operations shows as
+narrow.

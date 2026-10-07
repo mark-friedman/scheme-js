@@ -6,15 +6,16 @@
  * The eight programs in `benchmarks/programs/` are microbenchmarks, and a
  * coverage check showed how narrow they are: they exercise **16 distinct
  * primitives**, and **98% of their primitive calls** land on the fifteen
- * primitives the compiler inlines. Real Scheme in this repository exercises
+ * primitives the compiler inlines. The repository's Scheme test files exercise
  * **139**. Every optimization in the compiler effort was chosen by measuring against
  * those eight programs, so their numbers cannot be trusted to say what a real
  * program would see -- the suite and the optimizations were fitted to each
  * other.
  *
  * This benchmark is the transfer test. Its workload is the project's own
- * `.scm` test files: real code, written to check correctness rather than to be
- * fast, and not chosen by anyone for its performance characteristics. If an
+ * `.scm` test files: code written to check correctness rather than to be
+ * fast, and not chosen by anyone for its performance characteristics. It is
+ * test code, which calls the library more broadly than programs do (R135). If an
  * improvement measured on the microbenchmarks does not show up here, it did not
  * generalize.
  *

@@ -7,7 +7,7 @@
  * rather than a bare list of filenames. The eight microbenchmarks in
  * `benchmarks/programs/` turned out to be overfitted to the optimizations
  * chosen against them -- 98% of their calls landed on a primitive the compiler
- * inlines, against 34% in real code. The
+ * inlines, against 34% in the repository's test files. The
  * defence against repeating that is not a larger suite but a *classified* one:
  * report each workload class separately and never blend them into one number,
  * so that an optimization which helps hot fixnum loops and does nothing for

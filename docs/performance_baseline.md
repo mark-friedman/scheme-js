@@ -40,9 +40,9 @@ the paper's own program, transcribed from its Figure 15, and so not in the table
 > `threads10` is now in the suite beside it, for both.
 >
 > **This suite is overfitted to the optimizations chosen against it.** At Stage 0 a coverage check
-> showed it calling **16 distinct procedures against 136 in real code**, with 98% of its calls on
-> the fifteen primitives the compiler then inlined, against 34% in real code. It is no longer what
-> decisions are made on:
+> showed it calling **16 distinct procedures against 136 in the repository's test files**, with 98%
+> of its calls on the fifteen primitives the compiler then inlined, against 34% there. It is no
+> longer what decisions are made on:
 >
 > - The canonical suite ([`npm run benchmark:r7rs`](../benchmarks/run_r7rs.js), programs from
 >   `ecraven/r7rs-benchmarks` that nobody here chose, 45 of its 52 in a default run) replaced it
@@ -55,11 +55,14 @@ the paper's own program, transcribed from its Figure 15, and so not in the table
 >   repository's test files, other people's libraries' test programs and page-shaped programs
 >   ([`npm run benchmark:tier`](../benchmarks/run_tier.js)), and
 >   [`npm run benchmark:macro`](../benchmarks/run_macro.js).
-> - [`npm run benchmark:coverage`](../benchmarks/run_coverage.js) measures how concentrated each
->   suite is. The canonical suite is broader than this one -- 97 distinct procedures against 20 --
->   but per program it still puts 88.7% of its calls on primitives the compiler inlines, against
->   91.5% here and 55.6% for the repository's test files. A gain measured on either suite is an
->   upper bound on what code that is not a kernel sees.
+> - [`npm run benchmark:coverage`](../benchmarks/run_coverage.js) measures how broad each suite is
+>   and how much of its use of the language the compiler's inline expansions decide. The canonical
+>   suite is broader than this one -- 101 distinct procedures against 20. Its share on inline
+>   expansions, 88.8% a program against 91.5% here, does not mark it as fitted to them: its
+>   applications, Gambit's compiler among them at 92%, spread as widely as its kernels, and the
+>   test files' 55.6% is the share of test code, which calls the library broadly (R135). Breadth
+>   is the better sign of a kernel: one procedure beyond the harness's for `fib`, 41 for
+>   `compiler`.
 
 | Program | Measures |
 |---|---|
