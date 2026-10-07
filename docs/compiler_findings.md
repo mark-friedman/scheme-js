@@ -3609,3 +3609,19 @@ sentinel, invoking the continuation again from its own frames, and passes on onl
 tests now cover a procedure that leaves JavaScript's call by raising, by escaping through a
 continuation captured outside, by re-entering one captured inside, and by a tail call to a procedure
 still interpreted.
+
+**R132. The resumable forms that can never run are not where the generated code's size is.**
+
+Task 41 hoped to shrink the generated code by leaving out the resumable form of a procedure that can
+never be suspended -- one none of whose callees can capture or recurse deep enough to move frames to
+the heap. Measured on the tables (each function's twin, `function ($pc, $f)`): the twins are 47% of
+the shipped libraries' generated code, 3,206 of 6,782 KB, and 49% of the compiler's, 1,876 of 3,830
+KB; but a twin with no point to resume from -- no `reify` in it, so nothing can ever resume it -- is
+224 of 974 functions and 130 KB, 1.9% of the libraries' code, and 1.3% of the compiler's. Nearly every
+procedure calls something that can recurse or capture. Keeping each twin as text, to be made a
+function when first needed, takes the libraries' module from 62.6 ms to 53.6 to import, and nothing
+off the download: gzipped, the bundle is 0.94 MB either way, a little more with the twins as strings.
+
+*Consequence:* the only large lever left is not shipping the twins at all -- making one, on a
+procedure's first suspension, with the compiler a page fetches after it starts -- and that is a
+decision about what a page loads, the user's.

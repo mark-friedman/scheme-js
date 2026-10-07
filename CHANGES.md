@@ -13668,3 +13668,14 @@ measurement and restored after it, over one run of each of `run_tier.js`'s progr
 Most of the canonical figures are `quicksort`, `fft`, `fibfp` and `mbrotZ`. What 88 would remove
 falls on kernels, which R130 found the canonical suite concentrated in; it moves down beside 54, to
 wait for code outside the benchmarks that does heavy integral inexact arithmetic.
+
+# Task 41 measured (2026-10-06)
+
+41 asked first how much of the generated code is resumable forms that can never run. The twins are
+47% of the shipped libraries' generated code (3,206 of 6,782 KB) and 49% of the compiler's (1,876 of
+3,830 KB); those with no point to resume from are 1.9% and 1.3% (R132). Keeping the twins as text, to
+make each a function when first needed, saves 9 ms of the 63 ms the libraries' module takes to
+import, and nothing of the download: the bundle is 0.94 MB gzipped, a little more with the twins as
+strings. What would shrink the code by about half -- not shipping twins, making one on a procedure's
+first suspension with the compiler a page fetches anyway -- waits on the user's judgement of whether
+page load is too slow.
