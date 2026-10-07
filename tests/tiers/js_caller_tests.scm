@@ -154,3 +154,51 @@
         "exact" (exactness-given-back (js-eval "(k) => k(1)")))
   (test "a string JavaScript passes arrives as a string"
         "ab" (value-given-back (js-eval "(k) => k('ab')"))))
+
+;; ---------------------------------------------------------------------------
+;; A procedure that leaves other than by returning
+;; ---------------------------------------------------------------------------
+;;
+;; What a call from JavaScript does when the procedure raises, escapes through
+;; a continuation captured outside the call, captures and re-enters one inside
+;; it, or tail-calls a procedure the tier has not compiled: the same whichever
+;; tier runs the procedure.
+
+;; /**
+;;  * Calls a procedure from JavaScript with no arguments and returns what it
+;;  * returned, as JavaScript received it.
+;;  */
+(define call-from-js (js-eval "(f) => f()"))
+
+(define (fails) (car '()))
+(define (counts-by-reentry)
+  (let ((n 0) (again #f))
+    (call/cc (lambda (k) (set! again k)))
+    (set! n (+ n 1))
+    (if (< n 3) (again #f) n)))
+(define (not-yet-compiled) "interpreted")
+(define (tail-calls-interpreted) (not-yet-compiled))
+(define (escapes k) (k "escaped"))
+
+(define (fails-safely) (guard (e (#t "caught")) (call-from-js fails)))
+(define (escape-from-js) (call/cc (lambda (k) (call-from-js (lambda () (escapes k))))))
+
+(guard (e (#t #f)) (fails)) (guard (e (#t #f)) (fails))
+(counts-by-reentry) (counts-by-reentry)
+(tail-calls-interpreted) (tail-calls-interpreted)
+(escapes (lambda (x) x)) (escapes (lambda (x) x))
+(fails-safely) (fails-safely)
+(escape-from-js) (escape-from-js)
+
+(test-group "JavaScript calling a procedure that leaves other than by returning"
+  ;; `fails-safely`, built on `guard`, the tier declines (`safety.scm`); what
+  ;; it calls from JavaScript is compiled.
+  (test "the tier compiled them, and only in the run with it attached"
+        *tier-attached* (all-compiled? fails counts-by-reentry tail-calls-interpreted escapes))
+  ;; Raised beneath a handler in the Scheme that called JavaScript, an error
+  ;; goes to that handler, as it would with no JavaScript between.
+  (test "an error raised in it goes to a guard around the call from JavaScript" "caught" (fails-safely))
+  (test "a continuation captured outside the call escapes through it" "escaped" (escape-from-js))
+  (test "a continuation captured inside it is re-entered before it returns" "number 3" (js-sees counts-by-reentry))
+  (test "a tail call to a procedure the tier has not compiled finishes" "string interpreted"
+        (js-sees tail-calls-interpreted)))

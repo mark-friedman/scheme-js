@@ -1,7 +1,9 @@
 import { Values, isSchemeClosure, callSchemeProcedure, registerGlobalEnvironment } from './values.js';
 import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
-import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush, beginStepAgain } from './unwind.js';
+import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush, beginStepAgain, openCompiledSegment } from './unwind.js';
+import { CompiledEntryRemainder } from './frames.js';
+import { TailCall } from './values.js';
 import { takeCompiledRaise } from './ast_nodes.js';
 import { interpretCompiledOver } from './library_registry.js';
 import { globalContext } from './context.js';
@@ -326,6 +328,10 @@ export class Interpreter {
     // We use a COPY of the initialStack to avoid mutating the parent's record of it,
     // although frames themselves are shared.
     const registers = [null, ast, env, [...initialStack], thisContext];
+    // The sentinel this run started on, if JavaScript started it: what marks a
+    // continuation captured in it.
+    const bottom = initialStack[initialStack.length - 1];
+    const ownSentinel = bottom !== undefined && bottom.isSentinel === true ? bottom : null;
 
     // Track recursion depth
     this.depth++;
@@ -381,6 +387,17 @@ export class Interpreter {
           // Check for Continuation Unwind
           // We check the constructor name to avoid circular dependency imports if possible.
           if (e.constructor.name === 'ContinuationUnwind') {
+            // A continuation captured in this run, invoked from a run nested
+            // in it -- by compiled code, which calls a continuation through a
+            // run of its own -- is this run's to take: its stack holds this
+            // run's sentinel. Invoked again from here, it stays in this run,
+            // as it would had this run invoked it. Thrown on past, it would
+            // reach the JavaScript that started this run as an exception.
+            if (this.depth > 1 && ownSentinel !== null && e.continuation !== null && e.target.includes(ownSentinel)) {
+              registers[CTL] = new TailAppNode(new LiteralNode(e.continuation),
+                e.args.map((arg) => new LiteralNode(arg)));
+              continue;
+            }
             // If we are nested (depth > 1), strictly propagate up to the top level
             if (this.depth > 1) {
               throw e;
@@ -487,6 +504,47 @@ export class Interpreter {
         options.compiledBoundary === true && compiledStack.refusesCapture)
     ];
     return this.run(ast, this.globalEnv, stackWithSentinel, thisContext, options);
+  }
+
+  /**
+   * Calls a compiled procedure for JavaScript, its arguments already
+   * converted into Scheme: its compiled code called directly, as a run calls
+   * it, and its value converted out, as a run's is.
+   *
+   * A run of the interpreter is what finishes, before the procedure returns to
+   * JavaScript, what its code cannot on the JavaScript stack: frames moved to
+   * the heap when its recursion goes deep, a continuation captured beneath it,
+   * a tail call to a procedure that is not its own. Every call used to start
+   * one, which cost JavaScript half a microsecond a call whichever tier made
+   * the procedure. Now one is started only when the code returns one of those,
+   * or throws, and its first step takes up what the code left
+   * (`CompiledEntryRemainder`), with the stack the run started with -- the
+   * frames beneath the JavaScript caller and the sentinel -- as it would have
+   * been at that point had the run made the call. While the code runs, the
+   * run's depth is counted as the run's would be, so that a run nested in it
+   * passes a continuation's unwinding on as it did.
+   *
+   * @param {Function} raw - The procedure's raw entry.
+   * @param {Array<*>} args - Its arguments, Scheme values.
+   * @param {*} [thisContext] - The JavaScript `this` it was called with.
+   * @returns {*} Its value, converted for JavaScript.
+   */
+  callCompiledEntry(raw, args, thisContext = undefined) {
+    const flush = openCompiledSegment(false);
+    let result;
+    this.depth++;
+    try {
+      result = raw(...args);
+    } catch (e) {
+      restoreFlush(flush);
+      this.depth--;
+      return this.runWithSentinel(new CompiledEntryRemainder('throw', e), thisContext);
+    }
+    restoreFlush(flush);
+    this.depth--;
+    if (result === UNWIND) return this.runWithSentinel(new CompiledEntryRemainder('unwind', null), thisContext);
+    if (result instanceof TailCall) return this.runWithSentinel(new CompiledEntryRemainder('tail', result), thisContext);
+    return unpackForJs(result);
   }
 
   /**

@@ -360,10 +360,11 @@ function interpreterOf(env) {
  * value Scheme holds and JavaScript is given.
  *
  * Its plain call faces JavaScript as an interpreted closure's does
- * (`createClosure`): its arguments converted into Scheme, the call run on an
- * interpreter -- so that pending tail calls run to a value, and a capture or a
- * move of compiled frames to the heap finishes within the call -- and its
- * result converted out. Code that holds Scheme values -- compiled code, the
+ * (`createClosure`): its arguments converted into Scheme, its code called, and
+ * its result converted out, with what the code leaves -- a pending tail call,
+ * a capture or a move of compiled frames to the heap -- finished on an
+ * interpreter within the call (`Interpreter.callCompiledEntry`). Code that
+ * holds Scheme values -- compiled code, the
  * interpreter, `callSchemeProcedure` -- calls the raw entry instead
  * (`SCHEME_RAW_CALL`), which takes and returns Scheme values and may return a
  * pending tail call or the unwind sentinel.
@@ -378,11 +379,8 @@ function interpreterOf(env) {
  */
 export function createCompiledProcedure(raw, env) {
     const procedure = function (...jsArgs) {
-        const ast = new TailAppNode(
-            new LiteralNode(procedure),
-            fitToParameters(jsArgs, raw.length, procedure.$rest === true)
-                .map((value) => new LiteralNode(jsToScheme(value))));
-        return interpreterOf(env).runWithSentinel(ast, this);
+        return interpreterOf(env).callCompiledEntry(raw,
+            fitToParameters(jsArgs, raw.length, procedure.$rest === true).map(jsToScheme), this);
     };
     procedure[SCHEME_RAW_CALL] = raw;
     // For `callSchemeProcedure`, which runs it on the same interpreter.
@@ -700,11 +698,18 @@ export class ContinuationUnwind extends Error {
     /**
      * @param {Array} registers - The register state to restore.
      * @param {boolean} isReturn - True if this is a value return, false for tail call.
+     * @param {Function} [continuation] - The continuation invoked, which a
+     *   run whose own frames it holds invokes again there (`run`).
+     * @param {Array<*>} [args] - What it was invoked with.
+     * @param {Array} [target] - Its frame stack, sentinels and all.
      */
-    constructor(registers, isReturn = false) {
+    constructor(registers, isReturn = false, continuation = null, args = [], target = []) {
         super("Continuation Unwind");
         this.registers = registers;
         this.isReturn = isReturn;
+        this.continuation = continuation;
+        this.args = args;
+        this.target = target;
     }
 }
 

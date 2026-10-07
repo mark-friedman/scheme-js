@@ -13596,3 +13596,54 @@ result derived from Gambit, and the real `threads10`, whose source is in Thivier
 paper: both downloads of other people's code into the repository, for the user to approve.
 
 No JavaScript under `src/`.
+
+# JavaScript calling compiled Scheme through its compiled entry (task 92, 2026-10-06)
+
+The interop axis (task 44) found JavaScript paying about half a microsecond to call a Scheme
+procedure, whichever tier made it: every plain call of a compiled procedure built syntax-tree nodes
+and ran them on the interpreter, so that its tail calls, deep recursion and continuations would
+finish before it returned to JavaScript.
+
+## The direct entry
+
+A compiled procedure's plain call now converts its arguments, calls its code directly and converts
+its value out (`Interpreter.callCompiledEntry`). A run of the interpreter is started only when the
+code returns something it could not finish -- a pending tail call, or the unwind sentinel, for
+frames moving to the heap or a continuation being captured -- or throws, and the run's first step
+takes up what it left (`CompiledEntryRemainder` in `frames.js`): the unwind completed with
+`completeCapture`, the tail call made, the exception thrown again where the run's handlers see it.
+The run starts with the stack it would have had had it made the call -- the frames beneath the
+JavaScript caller, then the sentinel -- so what happens next is what happened before. While the code
+runs, the interpreter's depth is counted as the run's would be, so that a run nested in it passes a
+continuation's unwinding on as before. A closure the tier compiled calls its compiled procedure, and
+gains the same.
+
+| JavaScript calling | before | after |
+|---|---|---|
+| a compiled procedure of a number (`run_interop.scm`) | 459 ns | 48 ns |
+| ... of an array of ten, adding them up | 512 | 100 |
+| `Array.prototype.map` over ten, with a compiled procedure | 4,826 | 529 |
+| a procedure of one argument (`run_codegen.js`) | 497 | 92 |
+
+## What its tests found
+
+A continuation captured inside a compiled procedure that JavaScript called, and invoked again
+before the procedure returned, escaped to the JavaScript as a `ContinuationUnwind` exception
+whenever the JavaScript was itself called from Scheme; interpreted, the same code returned its value
+(R131). Compiled code invokes a continuation through a run of its own, which did not own it and threw
+the jump outward; the run JavaScript had started, being nested, threw it on. A nested run now takes
+a jump whose target holds its own sentinel, invoking the continuation again from its own frames.
+
+## Tests
+
+`js_caller_tests.scm`, five tests in each tier: a procedure JavaScript calls that raises, beneath a
+`guard` around the JavaScript; that escapes through a continuation captured outside the call; that
+captures one and re-enters it before returning; and that tail-calls a procedure still interpreted.
+
+## Verification
+
+9,033 tests pass in Node with none failing (7 skipped), and 8,805 in the browser with none failing
+(31 skipped). JavaScript under `src/`: 127 lines added and 27 removed, the evaluator's --
+`callCompiledEntry`, the remainder's node and the tail call it shares with `continueApplication`, and
+a continuation jump's owner -- the save-and-resume protocol and the evaluator being what may be
+JavaScript.

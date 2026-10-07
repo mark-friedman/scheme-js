@@ -3591,3 +3591,21 @@ fifteen.
 *Consequence:* a gain measured on the canonical suite is still an upper bound on what code that is not
 a kernel sees. The coverage report goes beside it, and the transfer checks -- `run_tier.js`'s test-file
 and corpus sets, `run_macro.js` -- keep their weight in decisions.
+
+**R131. A continuation captured and re-entered inside a compiled procedure that JavaScript called
+did not stay in the call.**
+
+`js_caller_tests.scm` said JavaScript calling a Scheme procedure saw the same whichever tier ran
+it, and checked values, conversions, tail calls and deep recursion. It did not check a procedure
+that captures a continuation and invokes it again before returning. Interpreted, that works: the
+invocation is made in the run JavaScript started, which recognises the continuation as its own
+(`withinRun` in `invokeContinuationFrom`). Compiled, the invocation comes from compiled code, which
+calls a continuation through a run of its own; that run, not owning it, threw `ContinuationUnwind`
+outward, and the run JavaScript had started, being nested in the test's own run, threw it on too, to
+the JavaScript, as an exception. Found writing task 92's tests, on the code before 92.
+
+*Consequence:* a run nested in another takes a continuation jump whose target holds its own
+sentinel, invoking the continuation again from its own frames, and passes on only the others. The
+tests now cover a procedure that leaves JavaScript's call by raising, by escaping through a
+continuation captured outside, by re-entering one captured inside, and by a tail call to a procedure
+still interpreted.

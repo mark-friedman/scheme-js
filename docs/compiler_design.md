@@ -117,10 +117,14 @@ calls, deep recursion and continuations before it returns, as an interpreted clo
 compiled procedures, so a compiled procedure is two functions:
 
 - **the procedure**, which Scheme holds and JavaScript is given, made by `markProcedure` in
-  `runtime.js` (`createCompiledProcedure` in `values.js`). Its plain call runs the procedure on the
-  interpreter its environment belongs to -- the program's, or for the compiler's own procedures the
-  compiler's -- as a closure's runs the closure on its interpreter, so the move of frames to the heap
-  and the capture of a continuation have an interpreter beneath them to finish on.
+  `runtime.js` (`createCompiledProcedure` in `values.js`). Its plain call converts its arguments,
+  calls its code directly and converts the value out; what the code leaves unfinished -- a pending
+  tail call, frames to move to the heap, a continuation being captured, an exception -- it hands to a
+  run of the interpreter the procedure's environment belongs to (the program's, or for the compiler's
+  own procedures the compiler's), whose first step takes it up with the stack the call would have had
+  in a run (`Interpreter.callCompiledEntry`, `CompiledEntryRemainder` in `frames.js`). Every call used
+  to start that run, which cost JavaScript about half a microsecond a call; now only the calls that
+  need it do.
 - **its code**, the fast form, which is the procedure's raw entry, `SCHEME_RAW_CALL`, and takes and
   returns Scheme values, a pending `TailCall` or the unwind sentinel among them. Compiled code calls
   it: a call whose value is wanted always read the raw entry, and a direct tail call now does too,

@@ -443,7 +443,7 @@ function invokeContinuationFrom(func, args, env, registers, interpreter) {
         registers[ANS] = value;
 
         if (interpreter.depth > 1) {
-            throw new ContinuationUnwind(registers, true);
+            throw new ContinuationUnwind(registers, true, func, args, targetStack);
         }
         return false;
     }
@@ -464,7 +464,7 @@ function invokeContinuationFrom(func, args, env, registers, interpreter) {
 
     // CRITICAL: Unwind JS stack (Tail Call Mode)
     if (interpreter.depth > 1) {
-        throw new ContinuationUnwind(registers, false);
+        throw new ContinuationUnwind(registers, false, func, args, targetStack);
     }
 
     return true;
@@ -673,26 +673,63 @@ export function continueApplication(exprs, index, values, env, registers, interp
             return completeCapture(registers, interpreter, CAPTURE_HOOKS);
         }
 
-        if (result instanceof TailCall) {
-            const target = result.func;
-            if (isSchemeClosure(target) || isSchemeContinuation(target) || typeof target === 'function') {
-                const tailArgs = result.args || [];
-                const argLiterals = tailArgs.map(a => new LiteralNode(a));
-                registers[CTL] = new TailAppNode(new LiteralNode(target), argLiterals);
-                return true;
-            }
-            registers[CTL] = target;
-            // `eval` hands back the expression with the environment it is to
-            // run in, which is not the one around the call.
-            if (result.args instanceof Environment) registers[ENV] = result.args;
-            return true;
-        }
+        if (result instanceof TailCall) return takeTailCall(result, registers);
 
         registers[ANS] = result;
         return false;
     }
 
     throw new SchemeApplicationError(func);
+}
+
+/**
+ * Makes the tail call a procedure returned, as the run's next step.
+ * @param {TailCall} result - The tail call.
+ * @param {Array} registers - The interpreter registers.
+ * @returns {boolean} True, to continue the trampoline.
+ */
+function takeTailCall(result, registers) {
+    const target = result.func;
+    if (isSchemeClosure(target) || isSchemeContinuation(target) || typeof target === 'function') {
+        const tailArgs = result.args || [];
+        const argLiterals = tailArgs.map(a => new LiteralNode(a));
+        registers[CTL] = new TailAppNode(new LiteralNode(target), argLiterals);
+        return true;
+    }
+    registers[CTL] = target;
+    // `eval` hands back the expression with the environment it is to run in,
+    // which is not the one around the call.
+    if (result.args instanceof Environment) registers[ENV] = result.args;
+    return true;
+}
+
+/**
+ * The first step of a run started to finish what a compiled procedure that
+ * JavaScript called directly could not finish on its own
+ * (`Interpreter.callCompiledEntry`): an unwind it began, moving its frames to
+ * the heap or capturing a continuation, which the run's stack takes as a run's
+ * own call would have; a tail call it returned; or what it threw, thrown
+ * again here, where the run's handlers -- its exception handlers, a
+ * continuation's unwinding -- deal with it as they would have had the run made
+ * the call. Each is what the run would have met as the call's own step, had
+ * the call gone through it as before, so the run's stack is the same.
+ */
+export class CompiledEntryRemainder extends Executable {
+    /**
+     * @param {'unwind'|'tail'|'throw'} kind - What is left.
+     * @param {*} value - The tail call, or what was thrown.
+     */
+    constructor(kind, value) {
+        super();
+        this.kind = kind;
+        this.value = value;
+    }
+
+    step(registers, interpreter) {
+        if (this.kind === 'unwind') return completeCapture(registers, interpreter, CAPTURE_HOOKS);
+        if (this.kind === 'tail') return takeTailCall(this.value, registers);
+        throw this.value;
+    }
 }
 
 
