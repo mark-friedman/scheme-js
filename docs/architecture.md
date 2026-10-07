@@ -151,7 +151,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── programs/                   # Portable R7RS benchmark programs (Stage 0)
 │   │   ├── manifest.js             # Sizes, expected results, categories
 │   │   └── *.scm                   # fib, tak, oddeven, nqueens, ctak,
-│   │                               #   contfib, btsearch, threads
+│   │                               #   contfib, btsearch, threads, threads10
 │   │                               # NOTE: overfitted -- see benchmarks/r7rs/README.md
 │   └── r7rs/                       # Canonical Gabriel/Gambit/Larceny suite (vendored)
 │       ├── plain_js_kernels.js     # Plain JavaScript versions of seven of its programs

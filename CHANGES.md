@@ -13679,3 +13679,28 @@ import, and nothing of the download: the bundle is 0.94 MB gzipped, a little mor
 strings. What would shrink the code by about half -- not shipping twins, making one on a procedure's
 first suspension with the compiler a page fetches anyway -- waits on the user's judgement of whether
 page load is too slow.
+
+# threads10 joins the Stage 0 programs (2026-10-07)
+
+`threads` was written from Thivierge and Feeley's description of their `threads10` (R22). The
+paper's own program, transcribed by the user from its Figure 15, is now
+`benchmarks/programs/threads10.scm`: ten threads on a doubly-linked ring of vectors, each yield
+one capture and one resume, re-entering the `graft` continuation `boot` captures once per thread
+started. Changed from the paper only for the suite: `when` for one-armed `if`, which Racket
+refuses; the yields per thread as `bench-size`, the paper's 100000 its `canonical` size and 1000
+its `quick`; and `threads` answering how many threads ran to their end, so that a scheduler that
+loses or repeats one answers wrongly. Gambit and Racket both answer 10, at both sizes.
+
+| | `quick` (10,000 switches) | `canonical` (1,000,000) |
+|---|---|---|
+| interpreted | 109 ms | 11.1 s |
+| compiled | 9.9 ms | 0.84 s |
+| Gambit `gsi` | 12.8 ms | 1.25 s |
+| Racket CS | 1.3 ms | 0.07 s |
+
+Compiling gains it 11x where it gains `threads` 1.2x: the same 4,000 yields of `threads` take 40 ms
+over its 400 threads and 4 ms over 4, the rest being `append` copying the queue (R133). `threads`
+stays beside it, since `docs/performance_progress.md` is rebuilt from the manifest and `threads`
+holds the history. With nine programs the Stage 0 set calls 20 distinct procedures, 91.5% of each
+program's calls on inline expansions. `docs/performance_baseline.md` now says what replaced the
+Stage 0 set as the gate and what checks its overfitting.

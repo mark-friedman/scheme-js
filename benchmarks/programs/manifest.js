@@ -54,9 +54,9 @@ export const BENCHMARKS = [
   },
 
   // --- Continuations -------------------------------------------------------
-  // btsearch and
-  // threads additionally require multi-shot semantics, so a wrong answer there
-  // is a correctness failure rather than a slow result.
+  // btsearch,
+  // threads and threads10 additionally require multi-shot semantics, so a wrong
+  // answer there is a correctness failure rather than a slow result.
   {
     name: 'ctak', file: 'ctak.scm', category: 'Continuations',
     quick: 18, canonical: 22, expected: '9', usesCallCC: true
@@ -72,6 +72,12 @@ export const BENCHMARKS = [
   {
     name: 'threads', file: 'threads.scm', category: 'Continuations',
     quick: 400, canonical: 2000, expected: '4000', usesCallCC: true, multiShot: true
+  },
+  {
+    // Thivierge & Feeley's own program, where `threads` was written from its
+    // description; the size is the yields per thread, of ten threads.
+    name: 'threads10', file: 'threads10.scm', category: 'Continuations',
+    quick: 1000, canonical: 100000, expected: '10', usesCallCC: true, multiShot: true
   }
 ];
 

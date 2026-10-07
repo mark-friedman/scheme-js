@@ -3625,3 +3625,18 @@ off the download: gzipped, the bundle is 0.94 MB either way, a little more with 
 *Consequence:* the only large lever left is not shipping the twins at all -- making one, on a
 procedure's first suspension, with the compiler a page fetches after it starts -- and that is a
 decision about what a page loads, the user's.
+
+**R133. `threads` did not measure context switches.**
+
+The Stage 0 suite described `threads` as continuations stored and resumed out of order, and its
+figures were read as what a context switch costs: compiling captures was "1.35x on `threads`".
+Its scheduler keeps the ready queue as a list and enqueues with `append`, copying the queue at
+every yield, and the queue is as long as there are threads, 400 at its `quick` size. Compiled,
+the same 4,000 yields take 40 ms over 400 threads, 6.5 ms over 40 and 4 ms over 4: about 90% of
+the time is `append`, a JavaScript primitive that costs the same in both tiers -- which is why
+compiling the program gains it only 1.2x. Found on adding Thivierge and Feeley's `threads10`, whose
+queue is a ring of vectors changed in place: 10,000 switches take 9.9 ms compiled against 109
+interpreted, 11x.
+
+*Consequence:* `threads10` is the measure of a context switch; `threads` stays in the suite for its
+history, read as a list-copying program with a scheduler around it.

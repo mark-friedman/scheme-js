@@ -25,7 +25,8 @@ written so the same source runs unmodified under scheme-js-4, Gambit and Racket:
 supplies `bench-size` and then calls `(bench-run)`. Seven of the eight follow the benchmark set of
 Thivierge & Feeley, *Efficient Compilation of Tail Calls and Continuations to JavaScript*
 (SFP 2012) -- `tak` is the addition, from the Gabriel set. They were written from the paper's
-descriptions of its programs, not from their source.
+descriptions of its programs, not from their source. A ninth, `threads10`, joined on 2026-10-07:
+the paper's own program, transcribed from its Figure 15, and so not in the tables below.
 
 > [!WARNING]
 > **Updated 2026-10-07.** Two caveats, recorded in R20-R22 and R130 of
@@ -34,7 +35,9 @@ descriptions of its programs, not from their source.
 > **`threads` is not their `threads10`**: theirs uses a vector-based doubly-linked queue and runs
 > about a million context switches; ours is a list-based scheduler doing four thousand, written
 > from the paper's description. Its numbers are not comparable to their table, and comparability
-> would also need `canonical` sizes, which nothing reported here uses.
+> would also need `canonical` sizes, which nothing reported here uses. Nor does `threads` measure
+> context switches: most of its time is `append` copying its queue at every yield (R133). Their
+> `threads10` is now in the suite beside it, for both.
 >
 > **This suite is overfitted to the optimizations chosen against it.** At Stage 0 a coverage check
 > showed it calling **16 distinct procedures against 136 in real code**, with 98% of its calls on
@@ -53,9 +56,9 @@ descriptions of its programs, not from their source.
 >   ([`npm run benchmark:tier`](../benchmarks/run_tier.js)), and
 >   [`npm run benchmark:macro`](../benchmarks/run_macro.js).
 > - [`npm run benchmark:coverage`](../benchmarks/run_coverage.js) measures how concentrated each
->   suite is. The canonical suite is broader than this one -- 97 distinct procedures against 16 --
+>   suite is. The canonical suite is broader than this one -- 97 distinct procedures against 20 --
 >   but per program it still puts 88.7% of its calls on primitives the compiler inlines, against
->   91.1% here and 55.6% for the repository's test files. A gain measured on either suite is an
+>   91.5% here and 55.6% for the repository's test files. A gain measured on either suite is an
 >   upper bound on what code that is not a kernel sees.
 
 | Program | Measures |
@@ -67,7 +70,8 @@ descriptions of its programs, not from their source.
 | `ctak` | Continuation capture at moderate stack depth, once per recursion step. |
 | `contfib` | Very frequent capture at shallow depth. Separates per-capture cost from O(depth) cost. |
 | `btsearch` | Backtracking. **Requires multi-shot continuations** — a wrong answer is a correctness failure. |
-| `threads` | Coroutine scheduler. Continuations stored and resumed out of order. |
+| `threads` | Coroutine scheduler over a list. Continuations stored and resumed out of order, but most of the time is `append` copying the queue at each yield. |
+| `threads10` | Thivierge & Feeley's scheduler: ten threads on a vector ring, each yield one capture and one resume. The cost of a context switch. |
 
 Sizes come in two profiles. `canonical` matches the published literature; `quick` is sized so the
 suite finishes in workable time on the interpreter as it stands. All numbers below use `quick`,
