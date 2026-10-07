@@ -433,4 +433,29 @@
   (test "and another name's assignment leaves it a constant" #t
         (and (string-contains (code-of '(define (f x) (let ((k 2.) (j 1)) (set! j 5) (+ (* x k) j))))
                               " * (2))")
+             #t))
+  (test "nor when only one branch of an if assigns it" #f
+        (and (string-contains (code-of '(define (f x c) (let ((k 2.)) (if c (set! k 3.) #f) (* x k))))
+                              " * (2))")
+             #t))
+  (test "nor when an internal definition's procedure assigns it" #f
+        (and (string-contains (code-of '(define (f x) (let ((k 2.)) (define (g) (set! k 3.)) (g) (* x k))))
+                              " * (2))")
+             #t))
+  (test "nor when an operand assigns it" #f
+        (and (string-contains (code-of '(define (f x) (let ((k 2.)) (list (set! k 3.)) (* x k))))
+                              " * (2))")
              #t)))
+
+;; A lambda keeps its parameters as written beside their renamed names, and a
+;; letrec its names, for a debugger to show. A list of them is not a core
+;; form, though its first name may be a core form's tag: `(set)` is the
+;; parameters of `(lambda (set) ...)`, not an assignment.
+(test-group "lowering - names that are core forms' tags"
+  (define (lowers? definition)
+    (lowered-lambda? (lower-lambda (analyze-lambda definition))))
+  (test "a parameter named set" #t (lowers? '(define (f set) set)))
+  (test "one named lit" #t (lowers? '(define (f lit) lit)))
+  (test "ones named app and var" #t (lowers? '(define (f app var) (list app var))))
+  (test "an internal definition named set" #t (lowers? '(define (f x) (define (set) x) (set))))
+  (test "a set named set, assigned" #t (lowers? '(define (f set) (set! set 1) set))))

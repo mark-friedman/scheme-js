@@ -176,32 +176,38 @@
 ;; /**
 ;;  * The names a core form assigns anywhere in it, with `set`, added to those
 ;;  * found already. A local's name is unique to its binding, so a name found
-;;  * is a binding assigned somewhere. A quoted datum is not code, and is not
-;;  * searched.
-;;  * @param {*} form - A core form, or a list of them.
+;;  * is a binding assigned somewhere.
+;;  *
+;;  * Each form is searched by its shape (src/core/scheme/expander.sld), and
+;;  * only in the parts that are forms. The others are data, whatever they look
+;;  * like: a quoted datum, and the names a lambda or a letrec binds, which it
+;;  * keeps as written beside their renamed forms -- `(lambda (set) set)` has
+;;  * the list `(set)` in it, which is not an assignment. A form the lowering
+;;  * does not lower is not searched, since its procedure is declined.
+;;  * @param {list} form - A core form.
 ;;  * @param {list} found - The names found so far.
 ;;  * @returns {list}
 ;;  */
 (define (assigned-names form found)
-  (cond ((not (pair? form)) found)
-        ((symbol? (car form))
-         (case (car form)
-           ((lit) found)
-           ((set) (assigned-names-in (cddr form) (cons (cadr form) found)))
-           (else (assigned-names-in (cdr form) found))))
-        (else (assigned-names-in form found))))
+  (case (car form)
+    ((set) (assigned-names (caddr form) (cons (cadr form) found)))
+    ((library-set) (assigned-names (cadddr form) found))
+    ((define) (assigned-names (caddr form) found))
+    ((if) (assigned-names-in (cdr form) found))
+    ((seq) (assigned-names-in (cadr form) found))
+    ((app) (assigned-names-in (caddr form) (assigned-names (cadr form) found)))
+    ((lambda) (assigned-names (list-ref form 4) found))
+    ((letrec) (assigned-names (cadddr form) (assigned-names-in (caddr form) found)))
+    (else found)))
 
 ;; /**
-;;  * The names a list of core forms, or data around them, assigns
-;;  * (`assigned-names`).
-;;  * @param {*} parts - The forms.
+;;  * The names a list of core forms assigns (`assigned-names`).
+;;  * @param {list} forms - The forms.
 ;;  * @param {list} found - The names found so far.
 ;;  * @returns {list}
 ;;  */
-(define (assigned-names-in parts found)
-  (if (pair? parts)
-      (assigned-names-in (cdr parts) (assigned-names (car parts) found))
-      found))
+(define (assigned-names-in forms found)
+  (fold assigned-names found forms))
 
 ;; /**
 ;;  * What a binding's name is declared as: the constant its initializer is, if

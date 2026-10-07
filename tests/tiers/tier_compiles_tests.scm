@@ -67,6 +67,13 @@
   (let loop ((i 0) (xs '#0=(a b . #0#)))
     (if (= i n) (car xs) (loop (+ i 1) (cdr xs)))))
 
+;; Loops, so it is compiled when it is bound. Its parameter is named as a core
+;; form's tag is, `set` (src/core/scheme/expander.sld), which the compiler
+;; must not take for an assignment.
+(define (set-size set)
+  (let loop ((set set) (n 0))
+    (if (null? set) n (loop (cdr set) (+ n 1)))))
+
 (test-group "When the tier compiles a procedure"
   (test "a procedure called twice from the top level is compiled on its second call"
         *tier-attached* (compiled? cube))
@@ -84,4 +91,7 @@
         100000 (depth 100000))
   (test "a procedure holding a circular literal is compiled"
         *tier-attached* (compiled? nth-of-cycle))
-  (test "and finds in it what was written" 'b (nth-of-cycle 5)))
+  (test "and finds in it what was written" 'b (nth-of-cycle 5))
+  (test "a procedure whose parameter is named set is compiled"
+        *tier-attached* (compiled? set-size))
+  (test "and counts what it is given" 3 (set-size '(a b c))))
