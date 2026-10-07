@@ -158,7 +158,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       ├── README.md               # Provenance, protocol, sizing, blocked programs
 │       ├── UPSTREAM_COMMIT         # Pinned ecraven/r7rs-benchmarks revision
 │       ├── manifest.js             # Workload class, sizes, status per program
-│       ├── src/*.scm               # 51 programs, verbatim, plus common.scm and
+│       ├── src/*.scm               # 52 programs, verbatim, plus common.scm and
 │       │                           #   the Gambit and Racket preludes
 │       └── inputs/*                # Canonical inputs and data files, verbatim
 ├── experiments/                    # Throwaway prototypes, not production code

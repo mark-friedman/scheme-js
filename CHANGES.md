@@ -13704,3 +13704,41 @@ stays beside it, since `docs/performance_progress.md` is rebuilt from the manife
 holds the history. With nine programs the Stage 0 set calls 20 distinct procedures, 91.5% of each
 program's calls on inline expansions. `docs/performance_baseline.md` now says what replaced the
 Stage 0 set as the gate and what checks its overfitting.
+
+# Task 44 done: the canonical `compiler` program, and a compiler defect it found (2026-10-07)
+
+The last of 44. `compiler.scm`, the largest program in `ecraven/r7rs-benchmarks` (459 KB, an old
+version of Gambit's compiler turning a small program into m68000 assembly text), and its input are
+vendored at the suite's pinned commit, its expected output the program's own, checked by
+`run-r7rs-benchmark` and agreed by Gambit and Racket. It had waited only on `string-set!`. Its class
+is `list`: 59% of its calls are on pairs and under 4% on strings, though it had been expected to be
+string-heavy.
+
+Interpreted it ran and answered right; compiled it stopped while loading, at `(define (set->list
+set) set)`. The compiler's search for the names a procedure assigns, added with 43, took any list
+headed by a symbol for a core form, and a lambda keeps its parameters as written -- here `(set)` --
+beside their renamed names (R134). Every procedure whose one parameter was named `set` stopped its
+program under the tier on its second call. `assigned-names` now follows each core form's shape and
+searches only the parts that are forms. Tested in `tests/compiler/emit_tests.scm` (parameters and an
+internal definition named as core forms' tags, and an assignment found in each kind of form) and
+`tests/tiers/tier_compiles_tests.scm` (a loop over a parameter named `set`, in both tiers).
+
+| per iteration | ms |
+|---|---|
+| interpreted | 296 |
+| compiled | 13.0 |
+| Gambit `gsi` | 20.6 |
+| Gambit compiled to JavaScript | 32.6 |
+| Racket CS | 0.86 |
+
+1,039 of its 1,346 definitions compile. One run in each tier, as the correctness pass makes them,
+takes 3.7 s. Like the kernels, it puts most of its calls -- 92%, counted interpreted -- on primitives
+the compiler expands inline (`car`, `cdr`, `null?`, `not`, `eq?`, `pair?`), so R130's concentration
+is not only a kernels' property: a real compiler written in Scheme has it too, and the test files'
+55.6% is as much a property of test code.
+
+The error also passed through the tier and ended the program, where a procedure the compiler cannot
+handle is otherwise left interpreted; that is 93, now first in the plan. The user judged page load
+and size acceptable for now, so 41 moves down, its likely direction several runtime files a page
+chooses among, with and without the compiler and the resumable twins. JavaScript under `src/`:
+none; the fix is the compiler's Scheme.

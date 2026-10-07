@@ -45,9 +45,9 @@ the paper's own program, transcribed from its Figure 15, and so not in the table
 > decisions are made on:
 >
 > - The canonical suite ([`npm run benchmark:r7rs`](../benchmarks/run_r7rs.js), programs from
->   `ecraven/r7rs-benchmarks` that nobody here chose, 44 of its 51 running) replaced it as what a
->   code-generation change must improve without regressing. It reports each workload class
->   separately, never a blend, and runs unmodified under Gambit and Racket
+>   `ecraven/r7rs-benchmarks` that nobody here chose, 45 of its 52 in a default run) replaced it
+>   as what a code-generation change must improve without regressing. It reports each workload
+>   class separately, never a blend, and runs unmodified under Gambit and Racket
 >   ([`npm run benchmark:r7rs-implementations`](../benchmarks/compare_r7rs.js)), which checks the
 >   suite as well as our standing.
 > - Decisions about compiling, and ports of JavaScript to Scheme, are also judged on code that is

@@ -190,6 +190,12 @@ export const R7RS_BENCHMARKS = [
     note: 'canonical is 23; expected value derived from Gambit'
   },
   {
+    name: 'compiler', workload: 'list', status: 'ok', params: null,
+    note: 'an old version of Gambit\'s compiler, compiling a small program to m68000 '
+      + 'assembly text: the largest program upstream, 459 KB. Mostly pairs -- 59% of its '
+      + 'calls -- with strings under 4%. Blocked on string-set! until strings became mutable'
+  },
+  {
     name: 'triangl', workload: 'list', status: 'slow', params: null,
     note: 'the parameters are board positions, not a size; ~18 s per iteration here'
   },

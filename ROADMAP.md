@@ -126,8 +126,10 @@ The interpreter stays a permanent tier; this is a build that leaves it out where
 need it. That needs compiled code to finish its own continuation captures and moves of its frames to
 the heap, which today it hands to an interpreter beneath it.
 
-**Decision:** planned, ranked low (2026-09-30). The work is in
-[docs/compiler_plan.md](docs/compiler_plan.md).
+**Decision:** planned, ranked low (2026-09-30). Page load and size were judged acceptable for now
+(2026-10-07); the likely shape, when it matters, is several runtime files for a page to choose
+among -- with and without the compiler, with and without the code that lets a compiled procedure be
+suspended and resumed. The work is in [docs/compiler_plan.md](docs/compiler_plan.md).
 
 ### High-Precision Inexact Numbers (Future)
 

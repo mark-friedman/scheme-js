@@ -3640,3 +3640,24 @@ interpreted, 11x.
 
 *Consequence:* `threads10` is the measure of a context switch; `threads` stays in the suite for its
 history, read as a list-copying program with a scheduler around it.
+
+**R134. Nothing in a core form but a quoted datum looked like a core form.**
+
+`assigned-names` in `ir.scm`, added with 43's constant bindings, searched a lambda for assignments by
+walking every list in it whose head was a symbol as if it were a core form, skipping only `lit`, on
+the belief its comment stated: that a quoted datum was the only data in a core form. But a lambda
+keeps its parameters as written beside their renamed names, and a letrec its names, for a debugger:
+`(lambda (set) set)` holds the list `(set)`, which the walk took for an assignment and failed on.
+Under the tier, every procedure whose one parameter was named `set` stopped the program that
+defined it the second time it was called, from 43 on. No test, test file, corpus program or canonical
+program had one; the canonical `compiler` program, vendored for 44, has `(define (set->list set)
+set)`.
+
+Its failure also showed the tier passing a compiler error to the program: the error came out of
+`compile-closure` through the tier and ended the run, where a procedure the compiler cannot handle
+is otherwise left interpreted.
+
+*Consequence:* the walk follows each core form's shape and searches only the parts that are forms
+(expander.sld lists them), and a form the lowering does not lower is not searched, since its
+procedure is declined. Whether a compiler error should leave the procedure interpreted instead of
+ending the program is 93.

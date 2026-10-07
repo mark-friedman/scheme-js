@@ -73,8 +73,6 @@ second of work gives Racket one or two ticks, and two ticks is not a measurement
 
 ## What is not here
 
-- `compiler.scm` (459 KB) — was blocked on `string-set!`, which works since strings became
-  mutable; not yet vendored, which `docs/compiler_plan.md` task 44 covers.
 - `cat`, `tail`, `wc`, `sum1` — need `inputs/bib` (4.5 MB) and `inputs/sum1.data`
   (1.1 MB). Host file I/O is also not a meaningful axis in a browser; the text axis
   deserves its own treatment rather than these.
