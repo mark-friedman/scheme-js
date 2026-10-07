@@ -47,6 +47,8 @@
     declined? declined-name declined-reason
     program-run-compiled program-run-declined program-run-unsafe program-run-expressions
     program-run-value
+    ;; The compiler's own failures, which leave their procedures interpreted
+    take-compiler-failures!
     ;; A program's tier
     make-tier tier-bound! tier-due! tier-top-level-procedure note-resume first-resume-to-ask)
   (include "ir.scm" "lift.scm" "inline.scm" "liveness.scm" "emit.scm"

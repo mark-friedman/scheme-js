@@ -59,6 +59,45 @@
     (test "and declined when captures are"
           "captures a continuation, and captures are declined" (lowering-decline captures #t))))
 
+;; A core form the expander never makes: an assignment with no name or value.
+;; The lowering raises on it, as it would on a bug of its own, which is what a
+;; failure of the compiler is.
+(define unlowerable '(lambda (x) #f #f (set)))
+
+;; /**
+;;  * What a thunk writes to the error port, and its value. The port is set and
+;;  * then restored by calling the parameter with a value, which sets it here:
+;;  * `parameterize`'s runtime is not bound in the compiler's own environment.
+;;  * @param {procedure} thunk - The thunk.
+;;  * @returns {pair} The value and the text.
+;;  */
+(define (with-error-text thunk)
+  (let ((port (open-output-string))
+        (saved (current-error-port)))
+    (current-error-port port)
+    (let ((value (thunk)))
+      (current-error-port saved)
+      (cons value (get-output-string port)))))
+
+(test-group "driver - when the compiler fails"
+  (let ((outcome (with-error-text (lambda () (generate-lambda unlowerable "f" #f #f #f #f)))))
+    (test "the procedure is declined, to run interpreted" #t (declined? (car outcome)))
+    (test "with the failure as the reason"
+          #t (string-prefix? "the compiler failed: " (declined-reason (car outcome))))
+    (test "a warning naming it is written to the error port"
+          #t (and (string-contains (cdr outcome) "the compiler failed on f") #t))
+    (test "and the failure is kept, by the procedure's name"
+          '("f") (map car (take-compiler-failures!)))
+    (test "until it is taken" '() (take-compiler-failures!)))
+  (let ((outcome (with-error-text (lambda () (compile-lambda unlowerable "g" #f #f #f #f)))))
+    (test "compiling it to a procedure declines it too" #t (declined? (car outcome)))
+    (test "and keeps that failure" '("g") (map car (take-compiler-failures!))))
+  (test "a procedure the compiler declines for a reason of its own is no failure"
+        '() (begin (with-error-text
+                    (lambda () (generate-lambda (analyze-lambda '(define (f g) (dynamic-wind g g g)))
+                                                "f" #f #f #f #f)))
+                   (take-compiler-failures!))))
+
 (test-group "driver - generated code too large to keep"
   (test "a source within the limit is kept" #f (source-too-large (make-string 10 #\a)))
   (test "one over it is declined, saying why"

@@ -678,6 +678,15 @@ Two different questions, deliberately kept apart.
 
 **Cannot be expressed.** Lowering fails and reports a reason. The procedure stays interpreted.
 
+**The compiler fails.** An error raised while compiling a procedure -- in the lowering, the emitter,
+or making the code a function -- is a bug of the compiler's own, and must not change what the
+program does, since compiling is only an optimization. The procedure is declined, with "the compiler
+failed" and the error's message as its reason, and runs interpreted; a warning naming it goes to the
+error port -- the console on a page, standard error under the CLI -- and the failure is kept until
+taken (`unless-failing` and `take-compiler-failures!` in `src/compiler/driver.scm`). The test suite,
+the canonical harness and `run_tier.js` take them and fail on any, so that the bug is fixed rather
+than hidden. One guard per procedure compiled, about 4 microseconds.
+
 **Can be expressed, and might be slower compiled.** A procedure that captures a continuation, or
 that a capture unwinds through, is compiled; whether that pays is decided as the program runs.
 Compiled frames can take part in a captured continuation, so this is not a soundness question. It

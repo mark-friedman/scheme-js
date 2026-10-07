@@ -358,6 +358,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── standard_library.js     # The standard library interpreted at top level
 │   │   ├── cli_process.js          # Runs `repl.js` in a child process, for the CLI's tests
 │   │   ├── page_libraries.js       # Libraries loaded as a page loads them, shipped ones restored from their tables: for run_tier.js, the tiered tests, the compiled conformance run
+│   │   ├── compiler_failures.js    # The compiler's own failures, taken for the suite, the canonical harness and run_tier.js to fail on
 │   │   └── scheme_test.scm         # Scheme test harness
 │   │
 │   ├── test_manifest.js            # Central registry of all test files

@@ -276,8 +276,23 @@
     (cond ((source-too-large source) => (lambda (reason) (make-declined name reason #f)))
           (else (make-generated name closure env span source (cadr unit) globals (caddr unit))))))
 
+;; ---------------------------------------------------------------------------
+;; When the compiler fails
+;; ---------------------------------------------------------------------------
+;;
+;; The compiler is an optimization, so nothing it does may change what a
+;; program does. An error raised while it compiles a procedure is a bug of its
+;; own: the procedure is declined, and runs interpreted, and the failure is
+;; written to the error port -- the console on a page, standard error under the
+;; CLI -- and kept, so that the test suites, which run with the compiler on,
+;; fail on any. A procedure declined for a reason the compiler gives is no
+;; failure.
+
+;; The failures not yet taken, newest first, each as (name . message).
+(define compiler-failures '())
+
 ;; /**
-;;  * The message an error raised while generating code carries.
+;;  * The message an error raised in the compiler carries.
 ;;  * @param {*} e - What was raised.
 ;;  * @returns {string}
 ;;  */
@@ -285,18 +300,49 @@
   (if (error-object? e) (error-object-message e) "an object that is not an error was raised"))
 
 ;; /**
-;;  * `emit-lowered`, declining rather than raising if generation fails. The one
-;;  * procedure here the compiler leaves interpreted when it compiles itself,
-;;  * since `guard` is a control form; what it calls is compiled.
-;;  * @returns {generated|declined}
+;;  * Declines a procedure the compiler failed on, warning of it and keeping it.
+;;  * @param {string|boolean} name - The procedure's name, or #f.
+;;  * @param {*} e - What the compiler raised.
+;;  * @returns {declined}
 ;;  */
-(define (emit-guarded lowered name closure env span)
-  (guard (e (#t (make-declined name (string-append "code generation failed: " (failure-message e)) #f)))
-    (emit-lowered lowered name closure env span)))
+(define (compiler-failed name e)
+  (let ((message (failure-message e))
+        (port (current-error-port))
+        (named (if (string? name) name "an expression")))
+    (set! compiler-failures (cons (cons named message) compiler-failures))
+    (write-string (string-append "scheme-js: the compiler failed on " named
+                                 ", which runs interpreted instead. This is a bug in the compiler: "
+                                 message "\n")
+                  port)
+    (flush-output-port port)
+    (make-declined name (string-append "the compiler failed: " message) #f)))
+
+;; /**
+;;  * What a thunk that compiles a procedure answers, or the procedure declined
+;;  * if the compiler raises (`compiler-failed`). The one procedure here the
+;;  * compiler leaves interpreted when it compiles itself, since `guard` is a
+;;  * control form; what it calls is compiled.
+;;  * @param {string|boolean} name - The procedure's name, or #f.
+;;  * @param {procedure} thunk - The compiling.
+;;  * @returns {generated|compiled|declined}
+;;  */
+(define (unless-failing name thunk)
+  (guard (e (#t (compiler-failed name e)))
+    (thunk)))
+
+;; /**
+;;  * The compiler's failures since they were last taken, oldest first, each as
+;;  * (name . message); none are kept after.
+;;  * @returns {list}
+;;  */
+(define (take-compiler-failures!)
+  (let ((failures (reverse compiler-failures)))
+    (set! compiler-failures '())
+    failures))
 
 ;; /**
 ;;  * Lowers a lambda, as the tagged list `ir.scm` reads, and generates its
-;;  * JavaScript.
+;;  * JavaScript, raising if the compiler fails.
 ;;  * @param {list} node - The lambda.
 ;;  * @param {string} name - The name to compile it under.
 ;;  * @param {procedure|boolean} closure - The closure it comes from, or #f.
@@ -305,12 +351,19 @@
 ;;  * @param {boolean} decline-captures? - Whether to decline a capture.
 ;;  * @returns {generated|declined}
 ;;  */
-(define (generate-lambda node name closure env span decline-captures?)
+(define (lower-and-emit node name closure env span decline-captures?)
   (let* ((lowered (lower-lambda node))
          (reason (lowering-decline lowered decline-captures?)))
     (if reason
         (make-declined name reason #f)
-        (emit-guarded lowered name closure env span))))
+        (emit-lowered lowered name closure env span))))
+
+;; /**
+;;  * `lower-and-emit`, declining the procedure if the compiler fails.
+;;  * @returns {generated|declined}
+;;  */
+(define (generate-lambda node name closure env span decline-captures?)
+  (unless-failing name (lambda () (lower-and-emit node name closure env span decline-captures?))))
 
 ;; /**
 ;;  * A file's name as a place in a `scheme:///` URL: a name that is itself a
@@ -379,12 +432,15 @@
         (make-compiled (generated-name code) procedure script))))
 
 ;; /**
-;;  * Compiles a lambda: `generate-lambda`, then `instantiate-generated`.
+;;  * Compiles a lambda: `lower-and-emit`, then `instantiate-generated`,
+;;  * declining the procedure if the compiler fails in either.
 ;;  * @returns {compiled|declined}
 ;;  */
 (define (compile-lambda node name closure env span decline-captures?)
-  (let ((result (generate-lambda node name closure env span decline-captures?)))
-    (if (generated? result) (instantiate-generated result) result)))
+  (unless-failing name
+    (lambda ()
+      (let ((result (lower-and-emit node name closure env span decline-captures?)))
+        (if (generated? result) (instantiate-generated result) result)))))
 
 ;; ---------------------------------------------------------------------------
 ;; Definitions, expressions and closures
@@ -576,7 +632,10 @@
   (and (code-generation-allowed?)
        (let* ((generation (generate-environment env #f #f strict?))
               (codes (car generation))
-              (outcomes (map instantiate-generated codes))
+              (outcomes (map (lambda (code)
+                               (unless-failing (generated-name code)
+                                               (lambda () (instantiate-generated code))))
+                             codes))
               (replaced (filter-map (lambda (code outcome)
                                       (and (compiled? outcome)
                                            (cons (generated-closure code) (compiled-procedure outcome))))

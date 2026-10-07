@@ -345,6 +345,17 @@ export async function runAllFromManifest(pathPrefix, interpreter, logger, loader
         }
     }
 
+    // The compiler leaves a procedure it fails on interpreted, so no test
+    // above sees the failure but by a warning; the suite fails on any here.
+    // A test that makes the compiler fail on purpose takes its failure itself.
+    {
+        const { takeCompilerFailures, describeCompilerFailures } = await import('./harness/compiler_failures.js');
+        const failures = takeCompilerFailures();
+        logger.title('The compiler\'s own failures');
+        if (failures.length === 0) logger.pass('the compiler failed on nothing the suite compiled');
+        else logger.fail(`the compiler failed on ${failures.length}: ${describeCompilerFailures(failures)}`);
+    }
+
     // Summary
     if (logger.summary) {
         logger.summary();

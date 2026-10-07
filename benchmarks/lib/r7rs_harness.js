@@ -63,6 +63,7 @@ import { tryCompileClosure, tryCompileExpression, runCompiledThunk } from '../..
 import { recordCompiledOver } from '../../src/core/interpreter/library_registry.js';
 import { runCompiled } from '../../src/core/interpreter/values.js';
 import { unsafeDefinitions } from '../../src/compiler/index.js';
+import { describeCompilerFailures, takeCompilerFailures } from '../../tests/harness/compiler_failures.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -315,7 +316,12 @@ export function runR7rsBenchmark(name, params, count, options = {}) {
   }
 
   const output = chunks.join('\n');
-  return { ...parseCsvLine(output), error: null, compiled, definitions, output };
+  // A procedure the compiler failed on ran interpreted, so the program still
+  // answers; the run is reported as failing all the same, since what it timed
+  // is not what the compiler should have made, and the failure is a bug.
+  const failures = useCompiler ? takeCompilerFailures() : [];
+  const error = failures.length > 0 ? `the compiler failed on ${describeCompilerFailures(failures)}` : null;
+  return { ...parseCsvLine(output), error, compiled, definitions, output };
 }
 
 /**

@@ -86,6 +86,7 @@ import { BUNDLED_SOURCES } from '../src/packaging/bundled_libraries.js';
 import { assembleParts, R7RS_DIR } from './lib/r7rs_harness.js';
 import { corpusIndex, corpusResolver, isBundled } from './lib/corpus_libraries.js';
 import { pageLibraries } from '../tests/harness/page_libraries.js';
+import { describeCompilerFailures, takeCompilerFailures } from '../tests/harness/compiler_failures.js';
 import { R7RS_BENCHMARKS } from './r7rs/manifest.js';
 import { schemeTestFiles, tieredSchemeTestFiles } from '../tests/test_manifest.js';
 
@@ -410,6 +411,12 @@ function runOnce(program, withTier) {
   if (libraries.fromSource.size > 0) {
     throw new Error(`${[...libraries.fromSource].join(', ')} read from source, where a page restores `
       + 'it from its table: the table is stale, and `npm run prebuild` rebuilds it');
+  }
+  // A procedure the compiler failed on ran interpreted, a run no correct
+  // compiler makes; its warning went where the program's output did.
+  const failures = takeCompilerFailures();
+  if (failures.length > 0) {
+    throw new Error(`the compiler failed on ${describeCompilerFailures(failures)}: a bug in the compiler`);
   }
   return { ...result, output: comparable(output) };
 }

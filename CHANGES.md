@@ -13759,3 +13759,35 @@ applications better: 1 to 11 for the programs under 250 lines, 41 for `compiler`
 header how to read the share, and labels the test files as test code. `performance_baseline.md`'s
 warning, `run_macro.js`, `run_r7rs.js` and the canonical suite's manifest and README no longer call
 the test files real code, and task 88's row rests on its own box counts rather than on R130.
+
+# Task 93 done: a compiler error leaves its procedure interpreted, with a warning (2026-10-07)
+
+R134's bug ended the user's program because nothing caught an error raised inside the compiler.
+Compiling is an optimization, so the user decided it should not change what a program does, and that
+a failure should warn on the console or REPL.
+
+`unless-failing` in `driver.scm` now wraps each procedure's compiling: the lowering, the emitter, and
+making the code a function, in `compile-lambda`, `generate-lambda` and `compile-environment`. An error
+declines the procedure with "the compiler failed: " and the message, writes
+
+    scheme-js: the compiler failed on f, which runs interpreted instead. This is a bug in the compiler: <message>
+
+to the error port -- `console.error` on a page, standard error under the CLI -- and keeps the failure
+until `take-compiler-failures!` takes it. It replaces `emit-guarded`, which covered code generation
+alone and declined silently, with "code generation failed". A guard costs about 3.6 microseconds
+interpreted, once per procedure compiled.
+
+So that failures are fixed rather than hidden, everything that runs with the compiler on fails on
+one: the test suite, at its end ("The compiler's own failures", `tests/harness/compiler_failures.js`);
+the canonical harness, which reports one as the run's error, so the correctness pass, `run_r7rs.js`
+and the comparison fail on it; and `run_tier.js`, which throws. Tested in `driver_tests.scm` with a
+core form the lowering raises on: declined, its reason, the warning on the error port, the failure
+kept and taken once, and a reason the compiler gives being no failure.
+
+Checked end to end with R134's bug put back for the purpose: `(define (f set) set)` called three
+times printed `123` under the CLI with the warning on standard error, and on a page in headless
+Chrome finished with the warning in the console. A program's earlier output can follow the warning
+in a terminal, since standard output is buffered and the warning is written to the console's error
+port.
+
+JavaScript under `src/`: none.
