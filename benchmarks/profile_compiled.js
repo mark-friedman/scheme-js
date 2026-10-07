@@ -13,7 +13,7 @@ import path from 'path';
 import { Session } from 'inspector';
 
 import { BENCHMARKS, sizeFor } from './programs/manifest.js';
-import { PROGRAM_DIR, createBenchmarkInterpreter, renderResult, RUN_OPTIONS } from './lib/harness.js';
+import { PROGRAM_DIR, withBenchmarkInterpreter, renderResult, RUN_OPTIONS } from './lib/harness.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { analyze } from '../src/core/interpreter/expand.js';
 import { DefineNode } from '../src/core/interpreter/ast_nodes.js';
@@ -69,16 +69,19 @@ async function main() {
   }
   const size = sizeIndex >= 0 ? parseInt(args[sizeIndex + 1], 10) : sizeFor(bench, 'quick');
 
-  const { interpreter, env, run, compile } = createBenchmarkInterpreter();
-  run(`(define bench-size ${size})`);
-  const asts = parse(fs.readFileSync(path.join(PROGRAM_DIR, bench.file), 'utf8'))
-    .map((form) => analyze(form));
-  const definitions = asts.filter((a) => a instanceof DefineNode);
-  const others = asts.filter((a) => !(a instanceof DefineNode));
-  const outcome = compileProgram(definitions, env, interpreter);
-  for (const ast of others) interpreter.run(ast, env, [], undefined, RUN_OPTIONS);
+  // Loaded and compiled while the harness's libraries are current; the call,
+  // expanded then, is run under the profiler after, which expands nothing.
+  const { interpreter, env, outcome, entry } = withBenchmarkInterpreter({}, ({ interpreter, env, run, compile }) => {
+    run(`(define bench-size ${size})`);
+    const asts = parse(fs.readFileSync(path.join(PROGRAM_DIR, bench.file), 'utf8'))
+      .map((form) => analyze(form, env));
+    const definitions = asts.filter((a) => a instanceof DefineNode);
+    const others = asts.filter((a) => !(a instanceof DefineNode));
+    const compiled = compileProgram(definitions, env, interpreter);
+    for (const ast of others) interpreter.run(ast, env, [], undefined, RUN_OPTIONS);
+    return { interpreter, env, outcome: compiled, entry: compile('(bench-run)') };
+  });
 
-  const entry = compile('(bench-run)');
   drive(interpreter, entry, env); // warm up steady-state inline caches
 
   const session = new Session();

@@ -3691,3 +3691,54 @@ sets and `run_macro.js` -- and they keep their weight. R20's transfer failure st
 the Stage 0 programs was 1.39x on the test files. `run_coverage.js` now lists each canonical program's
 size, its breadth beyond the harness and its share, so that a suite fitted to a few operations shows as
 narrow.
+
+*Annotated 2026-10-07:* the figures above were counted under the benchmark harness of before 94, which
+counted the standard library's calls to its own procedures as the program's (R136). Counted again with
+the libraries imported, the conclusion stands and is sharper: of the programs over 600 lines, `slatex`
+39.1%, `compiler` 76.1%, `scheme` 92.4% and `graphs` 99.8%; under 50 lines, 24.2% to 100%. Breadth
+separates less cleanly than said: the programs under 250 lines call 0 to 15 procedures beyond the 17
+the harness calls, `compiler` 44, but `graphs`, at 611 lines, 8.
+
+**R136. The benchmark harness did not run a program as a user's program runs.**
+
+The canonical suite's README said this implementation's runs differed from a user's in two respects,
+the `import` form removed and `read` drawing from a string port. A third was the harness itself:
+`benchmarks/lib/harness.js` read the standard library's files straight into the program's environment
+rather than importing the libraries. Their macros were then defined for the whole process, with no
+library behind them, and the expander resolves the free names in such a macro's expansion where it is
+used, as plain globals: `parameterize` became a call of whatever the program's `param-dynamic-bind`
+was, so a program defining its own took `parameterize` over, as it cannot under the CLI, the REPL or
+`eval`. The compiled tier compiled that copy of the library as each run started, not the tables the
+bundle ships. Every canonical timing, the correctness pass and the Stage 0 figures ran this way. Found
+answering why task 93's tests could not use `parameterize`: the compiler's Scheme test runner expanded
+each form in the compiler's environment after the compiler had started, when its library registry,
+private to it, was no longer current, so the expander knew none of the compiler library's keywords and
+fell back on the same process-wide macros.
+
+It also skewed the coverage report: a library's procedures, being the program's globals, had their
+calls to each other counted as the program's, where the test files, run with the libraries imported,
+did not. So R130 compared the canonical suite counted one way with the test files counted another.
+
+*Consequence:* the harness imports the standard libraries at the top level, as the REPL does, each run
+in a registry of its own (`withBenchmarkInterpreter`): interpreted from source for the interpreted
+tier, restored from the shipped tables for the compiled. The compiler's tests run inside a registry of
+their own while its compiler is current (`withCompilerLibrary`). Measured against the code before, the
+interpreted tier is unchanged (each class within 2%; `parsing` 23% faster), the Stage 0 programs and
+their step counts unchanged, and the compiled list class 10% slower, which is R137.
+
+**R137. A shipped library's procedures share their type feedback with the compiler's copies.**
+
+Run under the new harness, compiled `destruc` took 4.3 ms an iteration where it had taken 3.5, `peval`
+8.0 where 7.1, `scheme` 171 microseconds where 156, alternating between the trees. Profiled, the time
+had moved into `length` and `zero?`, whose code was the same; but under the new harness they come from
+the shipped table, as they do under the CLI and on a page. Each restoring of a table makes its
+procedures' closures from the same function literal in `compiled_libraries.js`, so V8 keeps one set of
+type feedback for every instance -- and the compiler, restored from the same table into a registry of
+its own, calls `length` and `zero?` on its own data throughout. Restored from a second instance of
+the table module instead, which the compiler does not use, `destruc` took 1.08 s for 300 iterations, as
+before (1.084), against 1.30-1.33 s sharing it. The old harness compiled its library afresh each run,
+which hid this. Under the CLI one module serves both; on a page the compiler's bundle imports the
+tables from `dist/scheme.js`, so the sharing is there too, by the build's structure, unmeasured.
+
+*Consequence:* a compiled program's calls into the library are slower, by up to a quarter on list
+programs, for sharing code with the compiler. Task 95.

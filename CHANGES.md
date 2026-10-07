@@ -13791,3 +13791,47 @@ in a terminal, since standard output is buffered and the warning is written to t
 port.
 
 JavaScript under `src/`: none.
+
+# Task 94 done: benchmarks and the compiler's tests run as a program does (2026-10-07)
+
+Asked why task 93's tests could not use `parameterize`, the answer was larger than the test runner.
+`benchmarks/lib/harness.js` read the standard library's files straight into the program's
+environment instead of importing the libraries, so their macros had no library behind them and the
+names their expansions introduce were looked up where they were used: a program defining its own
+`param-dynamic-bind` took `parameterize` over under the harness, though not under the CLI, the REPL
+or `eval`, all checked. Its compiled tier compiled that copy of the library as each run started,
+not the shipped tables (R136). The compiler's Scheme test runner expanded forms in the compiler's
+environment after its private registry had been left, when the expander no longer knew the
+compiler library's keywords.
+
+- `withBenchmarkInterpreter(options, fn)` replaces `createBenchmarkInterpreter`: the standard
+  libraries imported at the top level, as the REPL imports them, in a registry of their own --
+  read from source and interpreted for the interpreted tier, restored from the shipped tables for
+  the compiled -- with `fn` run while it is current, and the process's top-level macros put back
+  after (`asOwnPage`, shared with `run_tier.js`, as are `bundledSource`, `isPrebuilt`,
+  `shippedLibraries` and `STANDARD_IMPORTS`). Every benchmark that used the old harness now runs
+  inside it: the canonical harness, `run_compiled.js`, `run_coverage.js`, `run_codegen.js`,
+  `run_hash_tables.js`, the step counter and both profilers, which load and expand inside and
+  profile after.
+- `withCompilerLibrary(fn)` in `lowering.js` is the compiler's start-up given a callback; the
+  compiler's tests run inside one, so `driver_tests.scm` uses `parameterize` again.
+- `run_hash_tables.js` compared a JavaScript number with a `BigInt`, broken since task 43.
+
+Measured against the code before, from a worktree at the previous commit: the interpreted tier of
+the canonical suite unchanged, every class within 2% (`parsing` 23% faster); the Stage 0 programs
+unchanged in both tiers, and their step counts identical; the compiled list class 10% slower.
+Alternating the trees, `destruc` 3.5 to 4.3 ms, `peval` 7.1 to 8.0, `scheme` 156 to 171
+microseconds; `compiler` varies from 10 to 24 ms in either and says nothing. Profiled, the time is
+in `length` and `zero?`, whose code is the same: restored from the shipped table, they share V8's
+type feedback with the compiler's own copies, restored from the same table. With the program's
+libraries restored from a second instance of the table module, `destruc` was as fast as before
+(R137). That is task 95, ranked first for the user to confirm.
+
+The coverage report now counts only a program's calls into the language, a library's calls to its
+own procedures being in its own environment: the canonical suite calls 86 distinct procedures, not
+101, `compiler` puts 76% of its calls on inline expansions, not 92%, and R135's conclusion stands
+(annotated). In passing, `run_tier.js` showed `compiler` run once under the tier taking 1,685 ms
+against 492 without it, 1,240 of them compiling.
+
+JavaScript under `src/`: `withCompilerLibrary` in `lowering.js`, the start-up given a callback --
+the door into the compiler, starting it and handing it out.

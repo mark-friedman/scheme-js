@@ -34,7 +34,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { createBenchmarkInterpreter, PROJECT_ROOT } from './lib/harness.js';
+import { withBenchmarkInterpreter, PROJECT_ROOT } from './lib/harness.js';
 import { compileEnvironment, tryCompileDefinition } from '../src/compiler/index.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { analyze } from '../src/core/interpreter/expand.js';
@@ -113,14 +113,14 @@ function workload(size) {
 }
 
 /**
- * Builds an environment holding the workload at a size, with every loop
- * compiled.
+ * Defines the workload at a size in an environment, with every loop compiled.
  * @param {number} size - How many keys.
  * @param {boolean} compileLibrary - Whether to compile the table library.
- * @returns {{env: Object, interpreter: Object, uncompiled: Array<string>}}
+ * @param {{interpreter: Object, env: Object, run: function(string): *}} pair -
+ *   From `withBenchmarkInterpreter`.
+ * @returns {Array<string>} The loops the tier declined.
  */
-function build(size, compileLibrary) {
-  const { interpreter, env, run } = createBenchmarkInterpreter({ compileStdlib: true });
+function build(size, compileLibrary, { interpreter, env, run }) {
   for (const file of LIBRARY) run(fs.readFileSync(path.join(PROJECT_ROOT, file), 'utf8'));
   if (compileLibrary) compileEnvironment(env);
 
@@ -128,7 +128,7 @@ function build(size, compileLibrary) {
   run(setup);
   const uncompiled = [];
   for (const source of Object.values(loops)) {
-    const ast = analyze(parse(source)[0]);
+    const ast = analyze(parse(source)[0], env);
     const result = tryCompileDefinition(ast, env);
     if (result.compiled) env.define(result.name, result.procedure);
     else {
@@ -136,7 +136,7 @@ function build(size, compileLibrary) {
       interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
     }
   }
-  return { env, interpreter, uncompiled };
+  return uncompiled;
 }
 
 /**
@@ -146,9 +146,10 @@ function build(size, compileLibrary) {
  * @returns {number}
  */
 function time(loop) {
-  // Called with Scheme values, and its result left one: an exact integer.
-  const call = (n) => callSchemeProcedure(loop, [BigInt(n)]);
-  const expected = BigInt(OPS);
+  // Called with Scheme values, and its result left one: an exact integer,
+  // which in the safe range is a JavaScript number.
+  const call = (n) => callSchemeProcedure(loop, [n]);
+  const expected = OPS;
   call(OPS / 10);
   let best = Infinity;
   for (let r = 0; r < RUNS; r++) {
@@ -176,12 +177,14 @@ const NAMES = {
  * @returns {Object<string, number>} Net nanoseconds per operation by workload.
  */
 function measure(size, compileLibrary) {
-  const { env, uncompiled } = build(size, compileLibrary);
-  if (uncompiled.length > 0) {
-    throw new Error(`loops the tier declined, which would measure the interpreter: ${uncompiled}`);
-  }
   const raw = {};
-  for (const [label, name] of Object.entries(NAMES)) raw[label] = time(env.lookup(name));
+  withBenchmarkInterpreter({ compileStdlib: true }, (pair) => {
+    const uncompiled = build(size, compileLibrary, pair);
+    if (uncompiled.length > 0) {
+      throw new Error(`loops the tier declined, which would measure the interpreter: ${uncompiled}`);
+    }
+    for (const [label, name] of Object.entries(NAMES)) raw[label] = time(pair.env.lookup(name));
+  });
   const net = {};
   for (const label of Object.keys(NAMES)) {
     if (label !== 'baseline') net[label] = raw[label] - raw.baseline;

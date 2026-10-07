@@ -55,7 +55,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { createBenchmarkInterpreter } from './harness.js';
+import { withBenchmarkInterpreter } from './harness.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/expand.js';
 import { DefineNode, LambdaNode } from '../../src/core/interpreter/ast_nodes.js';
@@ -260,51 +260,52 @@ export function runR7rsBenchmark(name, params, count, options = {}) {
     // The standard library is compiled only for the compiler tier, so the
     // interpreted baseline stays the interpreter throughout and the ratio
     // reports what the whole tier is worth -- generated code and a compiled
-    // library together, since that is how it would be shipped.
-    const { interpreter, env } = createBenchmarkInterpreter({ compileStdlib: useCompiler });
-    for (const form of parse(prelude)) {
-      interpreter.run(analyze(form), env, [], undefined, { jsAutoConvert: 'raw' });
-    }
-
-    const asts = parse(body).map((form) => analyze(form));
-
-    // Only for `declineCaptures`, the old rule: which definitions a
-    // continuation could be captured inside, computed over the whole program
-    // before anything runs, because the answer for one procedure depends on
-    // what its callees do -- `maze`'s `make-maze` names no control global and
-    // is reached, because `dig-maze` escapes through it.
-    const unsafe = useCompiler && declineCaptures ? unsafeDefinitions(asts, env) : new Map();
-
-    for (const ast of asts) {
-      const procedure = ast instanceof DefineNode && ast.valueExpr instanceof LambdaNode;
-      if (ast instanceof DefineNode) definitions++;
-      if (useCompiler && procedure) {
-        // Defined as the interpreter defines it, then compiled from the
-        // closure that made, as the tier compiles a program's procedures: so
-        // one whose continuations are re-entered can be switched back to it.
-        interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
-        if (unsafe.has(ast.name)) continue;
-        const closure = env.lookup(ast.name);
-        const result = tryCompileClosure(closure, ast.name, { declineCaptures });
-        if (result.compiled) {
-          runCompiled(closure, result.procedure);
-          recordCompiledOver(new Map([[closure, result.procedure]]), env);
-          compiled++;
-        }
-        continue;
-      } else if (useCompiler && !procedure) {
-        // A top-level expression, or a definition's value, that makes
-        // procedures or loops: `nboyer` assigns every procedure it has from
-        // inside one top-level `let`.
-        const result = tryCompileExpression(ast instanceof DefineNode ? ast.valueExpr : ast, env, { declineCaptures });
-        if (result.compiled) {
-          const value = runCompiledThunk(interpreter, env, result.procedure);
-          if (ast instanceof DefineNode) env.define(ast.name, value);
-          continue;
-        }
+    // library together, since that is how it is shipped.
+    withBenchmarkInterpreter({ compileStdlib: useCompiler }, ({ interpreter, env }) => {
+      for (const form of parse(prelude)) {
+        interpreter.run(analyze(form, env), env, [], undefined, { jsAutoConvert: 'raw' });
       }
-      interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
-    }
+
+      const asts = parse(body).map((form) => analyze(form, env));
+
+      // Only for `declineCaptures`, the old rule: which definitions a
+      // continuation could be captured inside, computed over the whole program
+      // before anything runs, because the answer for one procedure depends on
+      // what its callees do -- `maze`'s `make-maze` names no control global and
+      // is reached, because `dig-maze` escapes through it.
+      const unsafe = useCompiler && declineCaptures ? unsafeDefinitions(asts, env) : new Map();
+
+      for (const ast of asts) {
+        const procedure = ast instanceof DefineNode && ast.valueExpr instanceof LambdaNode;
+        if (ast instanceof DefineNode) definitions++;
+        if (useCompiler && procedure) {
+          // Defined as the interpreter defines it, then compiled from the
+          // closure that made, as the tier compiles a program's procedures: so
+          // one whose continuations are re-entered can be switched back to it.
+          interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
+          if (unsafe.has(ast.name)) continue;
+          const closure = env.lookup(ast.name);
+          const result = tryCompileClosure(closure, ast.name, { declineCaptures });
+          if (result.compiled) {
+            runCompiled(closure, result.procedure);
+            recordCompiledOver(new Map([[closure, result.procedure]]), env);
+            compiled++;
+          }
+          continue;
+        } else if (useCompiler && !procedure) {
+          // A top-level expression, or a definition's value, that makes
+          // procedures or loops: `nboyer` assigns every procedure it has from
+          // inside one top-level `let`.
+          const result = tryCompileExpression(ast instanceof DefineNode ? ast.valueExpr : ast, env, { declineCaptures });
+          if (result.compiled) {
+            const value = runCompiledThunk(interpreter, env, result.procedure);
+            if (ast instanceof DefineNode) env.define(ast.name, value);
+            continue;
+          }
+        }
+        interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
+      }
+    });
   } catch (e) {
     console.log = realLog;
     return {

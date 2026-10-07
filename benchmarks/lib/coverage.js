@@ -130,18 +130,45 @@ export function countPrimitives(env) {
  * @returns {Promise<*>} Whatever `fn` returned.
  */
 export async function silenced(fn) {
+  const restore = quieten();
+  try {
+    return await fn();
+  } finally {
+    restore();
+  }
+}
+
+/**
+ * `silenced`, for a synchronous function, restoring the console before it
+ * returns: for a run that must end before anything else happens, as one does
+ * inside a library registry of its own (`withBenchmarkInterpreter`).
+ * @param {function(): *} fn - The function to run.
+ * @returns {*} Whatever `fn` returned.
+ */
+export function silencedNow(fn) {
+  const restore = quieten();
+  try {
+    return fn();
+  } finally {
+    restore();
+  }
+}
+
+/**
+ * Suppresses console output and stdout writes.
+ * @returns {function(): void} What puts them back.
+ */
+function quieten() {
   const saved = {
     log: console.log, error: console.error, warn: console.warn, info: console.info,
     write: process.stdout.write
   };
   console.log = console.error = console.warn = console.info = () => {};
   process.stdout.write = () => true;
-  try {
-    return await fn();
-  } finally {
+  return () => {
     Object.assign(console, { log: saved.log, error: saved.error, warn: saved.warn, info: saved.info });
     process.stdout.write = saved.write;
-  }
+  };
 }
 
 /**

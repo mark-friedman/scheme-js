@@ -37,15 +37,21 @@
  * The share is how much of a workload's use of the language the inline
  * expansions decide, not how fitted the workload is to them: applications
  * spend their calls on `car`, `cdr`, `eq?` and `null?` as kernels do. In the
- * canonical suite, `compiler` -- Gambit's compiler, 11,000 lines -- puts 92% of
- * its calls there, `scheme` 99% and `slatex` 58%, a spread no different from
- * the kernels'. The test files' share is lower because tests call the library
- * broadly, by design: it is the share of test code, not of programs (R135).
- * Breadth tells kernels from applications better, though not cleanly: the
- * canonical programs under 250 lines call one to eleven procedures beyond the
- * harness's, `compiler` 41, `parsing` 25 and `slatex` 21 -- but `scheme`, at
- * 1,056 lines, calls 9. A suite of programs that call little beyond the
- * harness measures a few operations, however its share reads.
+ * canonical suite, `compiler` -- Gambit's compiler, 11,000 lines -- puts 76% of
+ * its calls there, `scheme` 92%, `graphs` 99.8% and `slatex` 39%, a spread no
+ * different from the kernels'. The test files' share is lower because tests
+ * call the library broadly, by design: it is the share of test code, not of
+ * programs (R135, R136). Breadth tells kernels from applications better,
+ * though not cleanly: the canonical programs under 250 lines call none to
+ * fifteen procedures beyond the harness's, `compiler` 44, `slatex` and
+ * `dynamic` 21 -- but `scheme`, at 1,056 lines, calls 11, and `graphs`, at
+ * 611, 8. A suite of programs that call little beyond the harness measures a
+ * few operations, however its share reads.
+ *
+ * Only a program's calls into the language are counted: each suite imports the
+ * standard libraries (`withBenchmarkInterpreter` in `lib/harness.js`), and a
+ * library's procedures call each other in its own environment, which the
+ * counting does not wrap.
  *
  * Usage:
  *   node benchmarks/run_coverage.js [--only stage0,canonical,tests]
@@ -54,9 +60,9 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createBenchmarkInterpreter, PROGRAM_DIR } from './lib/harness.js';
+import { withBenchmarkInterpreter, PROGRAM_DIR } from './lib/harness.js';
 import { assembleParts, R7RS_DIR } from './lib/r7rs_harness.js';
-import { countPrimitives, coverage, silenced, testEnvironment } from './lib/coverage.js';
+import { countPrimitives, coverage, silenced, silencedNow, testEnvironment } from './lib/coverage.js';
 import { BENCHMARKS } from './programs/manifest.js';
 import { R7RS_BENCHMARKS } from './r7rs/manifest.js';
 import { parse } from '../src/core/interpreter/reader.js';
@@ -77,16 +83,17 @@ function addInto(into, counts) {
 
 /**
  * Runs Scheme source in a counting interpreter, its output discarded, and
- * answers the calls counted.
+ * answers the calls counted. Synchronous, so that it can run inside
+ * `withBenchmarkInterpreter`.
  * @param {{interpreter: Object, env: Object}} pair - The interpreter.
  * @param {string} source - What to run.
- * @returns {Promise<Map<string, number>>}
+ * @returns {Map<string, number>}
  */
-async function counted({ interpreter, env }, source) {
+function counted({ interpreter, env }, source) {
   const counter = countPrimitives(env);
   try {
-    await silenced(() => {
-      for (const form of parse(source)) interpreter.run(analyze(form), env, [], undefined, { jsAutoConvert: 'raw' });
+    silencedNow(() => {
+      for (const form of parse(source)) interpreter.run(analyze(form, env), env, [], undefined, { jsAutoConvert: 'raw' });
     });
   } finally {
     counter.restore();
@@ -151,10 +158,11 @@ console.log(`  ${'suite'.padEnd(40)} ${'calls'.padStart(12)} ${'distinct'.padSta
 if (ONLY.includes('stage0')) {
   const programs = [];
   for (const bench of BENCHMARKS) {
-    const pair = createBenchmarkInterpreter();
-    pair.run(`(define bench-size ${bench.quick})`);
-    pair.run(fs.readFileSync(path.join(PROGRAM_DIR, bench.file), 'utf8'));
-    programs.push(await counted(pair, '(bench-run)'));
+    programs.push(withBenchmarkInterpreter({}, (pair) => {
+      pair.run(`(define bench-size ${bench.quick})`);
+      pair.run(fs.readFileSync(path.join(PROGRAM_DIR, bench.file), 'utf8'));
+      return counted(pair, '(bench-run)');
+    }));
   }
   report(`Stage 0 programs (${BENCHMARKS.length})`, programs);
 }
@@ -165,11 +173,16 @@ if (ONLY.includes('canonical')) {
   const programs = R7RS_BENCHMARKS.filter((bench) => bench.status === 'ok');
   for (const bench of programs) {
     const { prelude, body } = assembleParts(bench.name, bench.params, 1, 'scheme-js-4');
-    const pair = createBenchmarkInterpreter();
-    pair.run(prelude);
-    // Run where the suite keeps its data files, which some programs open.
-    process.chdir(R7RS_DIR);
-    const counts = await counted(pair, body).finally(() => process.chdir(ROOT));
+    const counts = withBenchmarkInterpreter({}, (pair) => {
+      pair.run(prelude);
+      // Run where the suite keeps its data files, which some programs open.
+      process.chdir(R7RS_DIR);
+      try {
+        return counted(pair, body);
+      } finally {
+        process.chdir(ROOT);
+      }
+    });
     all.push(counts);
     if (!byClass.has(bench.workload)) byClass.set(bench.workload, []);
     byClass.get(bench.workload).push(counts);
@@ -186,7 +199,7 @@ if (ONLY.includes('tests')) {
   for (const file of files) {
     const pair = await silenced(testEnvironment);
     try {
-      programs.push(await counted(pair, fs.readFileSync(path.join(dir, file), 'utf8')));
+      programs.push(counted(pair, fs.readFileSync(path.join(dir, file), 'utf8')));
     } catch {
       // A test file that cannot run this way counts nothing.
     }

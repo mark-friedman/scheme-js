@@ -57,12 +57,12 @@ the paper's own program, transcribed from its Figure 15, and so not in the table
 >   [`npm run benchmark:macro`](../benchmarks/run_macro.js).
 > - [`npm run benchmark:coverage`](../benchmarks/run_coverage.js) measures how broad each suite is
 >   and how much of its use of the language the compiler's inline expansions decide. The canonical
->   suite is broader than this one -- 101 distinct procedures against 20. Its share on inline
->   expansions, 88.8% a program against 91.5% here, does not mark it as fitted to them: its
->   applications, Gambit's compiler among them at 92%, spread as widely as its kernels, and the
->   test files' 55.6% is the share of test code, which calls the library broadly (R135). Breadth
->   is the better sign of a kernel: one procedure beyond the harness's for `fib`, 41 for
->   `compiler`.
+>   suite is broader than this one -- 86 distinct procedures against 20. Its share on inline
+>   expansions, 86.8% a program against 91.5% here, does not mark it as fitted to them: its
+>   applications, Gambit's compiler among them at 76%, spread as widely as its kernels, and the
+>   test files' 55.6% is the share of test code, which calls the library broadly (R135, R136).
+>   Breadth is the better sign of a kernel, if not a clean one: one procedure beyond the
+>   harness's for `fib`, 44 for `compiler`.
 
 | Program | Measures |
 |---|---|

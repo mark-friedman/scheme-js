@@ -17,7 +17,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { BENCHMARKS } from './programs/manifest.js';
-import { PROGRAM_DIR, createBenchmarkInterpreter, renderResult, RUN_OPTIONS } from './lib/harness.js';
+import { PROGRAM_DIR, withBenchmarkInterpreter, renderResult, RUN_OPTIONS } from './lib/harness.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { analyze } from '../src/core/interpreter/expand.js';
 import { DefineNode } from '../src/core/interpreter/ast_nodes.js';
@@ -29,39 +29,37 @@ const RUNS = runsIndex >= 0 ? parseInt(process.argv[runsIndex + 1], 10) : 5;
 const DECLINE_CAPTURES = process.argv.includes('--decline-captures');
 
 /**
- * Loads a benchmark and returns a timed entry point for one tier.
+ * Loads a benchmark in one tier and times it.
  * @param {Object} bench - Manifest entry.
  * @param {number} size - Value to bind to `bench-size`.
  * @param {boolean} useCompiler - Whether to compile definitions.
- * @returns {{run: function(): *, compiled: number, declined: Array<Object>}} Entry point.
+ * @returns {{median: number, value: *, compiled: number, declined: Array<Object>}}
+ *   Median milliseconds, the last value, and what the compiler did.
  */
-function prepare(bench, size, useCompiler) {
+function measure(bench, size, useCompiler) {
   // The standard library is compiled for the compiler tier and not for the
   // interpreted baseline, matching `benchmarks/lib/r7rs_harness.js`. The
   // library is itself Scheme, so leaving it interpreted under the tier
   // measures the boundary between them rather than the generated code.
-  const { interpreter, env, run, compile } =
-    createBenchmarkInterpreter({ compileStdlib: useCompiler });
-  run(`(define bench-size ${size})`);
-  const source = fs.readFileSync(path.join(PROGRAM_DIR, bench.file), 'utf8');
-  const asts = parse(source).map((form) => analyze(form));
+  return withBenchmarkInterpreter({ compileStdlib: useCompiler }, ({ interpreter, env, run, compile }) => {
+    run(`(define bench-size ${size})`);
+    const source = fs.readFileSync(path.join(PROGRAM_DIR, bench.file), 'utf8');
+    const asts = parse(source).map((form) => analyze(form, env));
 
-  let outcome = { compiled: [], declined: [] };
-  if (useCompiler) {
-    const definitions = asts.filter((a) => a instanceof DefineNode);
-    const others = asts.filter((a) => !(a instanceof DefineNode));
-    outcome = compileProgram(definitions, env, interpreter, { declineCaptures: DECLINE_CAPTURES });
-    for (const ast of others) interpreter.run(ast, env, [], undefined, RUN_OPTIONS);
-  } else {
-    for (const ast of asts) interpreter.run(ast, env, [], undefined, RUN_OPTIONS);
-  }
+    let outcome = { compiled: [], declined: [] };
+    if (useCompiler) {
+      const definitions = asts.filter((a) => a instanceof DefineNode);
+      const others = asts.filter((a) => !(a instanceof DefineNode));
+      outcome = compileProgram(definitions, env, interpreter, { declineCaptures: DECLINE_CAPTURES });
+      for (const ast of others) interpreter.run(ast, env, [], undefined, RUN_OPTIONS);
+    } else {
+      for (const ast of asts) interpreter.run(ast, env, [], undefined, RUN_OPTIONS);
+    }
 
-  const entry = compile('(bench-run)');
-  return {
-    run: () => settle(interpreter.run(entry, env, [], undefined, RUN_OPTIONS)),
-    compiled: outcome.compiled.length,
-    declined: outcome.declined
-  };
+    const entry = compile('(bench-run)');
+    const { median, value } = time(() => settle(interpreter.run(entry, env, [], undefined, RUN_OPTIONS)));
+    return { median, value, compiled: outcome.compiled.length, declined: outcome.declined };
+  });
 }
 
 /**
@@ -91,9 +89,9 @@ console.log('|-----------|------|-------------|----------|---------|------------
 const results = {};
 for (const bench of BENCHMARKS) {
   const size = bench.quick;
-  const interpreted = time(prepare(bench, size, false).run);
-  const withCompiler = prepare(bench, size, true);
-  const compiled = time(withCompiler.run);
+  const interpreted = measure(bench, size, false);
+  const compiled = measure(bench, size, true);
+  const withCompiler = compiled;
 
   const rendered = renderResult(compiled.value);
   const ok = rendered === bench.expected;

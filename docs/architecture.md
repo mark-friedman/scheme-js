@@ -140,7 +140,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   └── render.scm              # A page rendered from its data a few times: many small templates
 │   ├── record_progress.js          # Regenerates docs/performance_progress.md
 │   ├── lib/
-│   │   ├── harness.js              # Shared bootstrap and timing
+│   │   ├── harness.js              # A run as the REPL runs a program, the standard libraries imported, each in a registry of its own; timing
 │   │   ├── r7rs_harness.js         # Canonical-suite protocol, sizing, calibration
 │   │   ├── r7rs_worker.js          # One measurement per child process, under a budget
 │   │   ├── r7rs_compare.js         # Cross-implementation arithmetic: per-class ratios, reading a saved run

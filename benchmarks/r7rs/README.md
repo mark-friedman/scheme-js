@@ -40,9 +40,13 @@ prints the elapsed time measured with R7RS `current-jiffy`.
 Gambit and Racket are run exactly that way, with their own vendored preludes. This
 implementation differs in two respects, both in `benchmarks/lib/r7rs_harness.js`:
 
-- The `(import ...)` form is removed, and the interpreter is bootstrapped the way the
-  rest of `benchmarks/` bootstraps one, so benchmark startup does not depend on the
-  library loader.
+- The `(import ...)` form is removed, and the standard libraries are imported at the top
+  level instead, as the REPL imports them (`withBenchmarkInterpreter` in
+  `benchmarks/lib/harness.js`), each run in a library registry of its own: read from their
+  source and interpreted for the interpreter tier, restored from the tables the bundle ships
+  for the compiled tier. A macro of theirs then means what it means in a user's program;
+  until 2026-10-07 their files were read straight into the program's environment, where a
+  program could take over the names a macro's expansion uses (R136).
 - `read` called with no argument draws from the input text through a string port rather
   than from standard input, which has no meaning in a browser. A call *with* a port still
   reads from that port — `dynamic`, `read0`, `read1` and `sum1` open their own data

@@ -10,7 +10,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { PROGRAM_DIR, createBenchmarkInterpreter, renderResult, RUN_OPTIONS } from './harness.js';
+import { PROGRAM_DIR, withBenchmarkInterpreter, renderResult, RUN_OPTIONS } from './harness.js';
 import { instrumentInterpreter } from '../../src/debug/instrumentation.js';
 
 /**
@@ -33,18 +33,19 @@ export const SWEEP_SIZES = {
  * @returns {{stats: Object, result: string}} Statistics and the rendered result.
  */
 export function countBenchmark(bench, size) {
-  const { interpreter, env, run, compile } = createBenchmarkInterpreter();
-  run(`(define bench-size ${size})`);
-  run(fs.readFileSync(path.join(PROGRAM_DIR, bench.file), 'utf8'));
+  return withBenchmarkInterpreter({}, ({ interpreter, env, run, compile }) => {
+    run(`(define bench-size ${size})`);
+    run(fs.readFileSync(path.join(PROGRAM_DIR, bench.file), 'utf8'));
 
-  const ast = compile('(bench-run)');
-  const probe = instrumentInterpreter(interpreter);
-  let value;
-  let stats;
-  try {
-    value = interpreter.run(ast, env, [], undefined, RUN_OPTIONS);
-  } finally {
-    stats = probe.stop();
-  }
-  return { stats, result: renderResult(value) };
+    const ast = compile('(bench-run)');
+    const probe = instrumentInterpreter(interpreter);
+    let value;
+    let stats;
+    try {
+      value = interpreter.run(ast, env, [], undefined, RUN_OPTIONS);
+    } finally {
+      stats = probe.stop();
+    }
+    return { stats, result: renderResult(value) };
+  });
 }

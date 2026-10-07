@@ -65,18 +65,13 @@
 (define unlowerable '(lambda (x) #f #f (set)))
 
 ;; /**
-;;  * What a thunk writes to the error port, and its value. The port is set and
-;;  * then restored by calling the parameter with a value, which sets it here:
-;;  * `parameterize`'s runtime is not bound in the compiler's own environment.
+;;  * What a thunk writes to the error port, and its value.
 ;;  * @param {procedure} thunk - The thunk.
 ;;  * @returns {pair} The value and the text.
 ;;  */
 (define (with-error-text thunk)
-  (let ((port (open-output-string))
-        (saved (current-error-port)))
-    (current-error-port port)
-    (let ((value (thunk)))
-      (current-error-port saved)
+  (let ((port (open-output-string)))
+    (let ((value (parameterize ((current-error-port port)) (thunk))))
       (cons value (get-output-string port)))))
 
 (test-group "driver - when the compiler fails"

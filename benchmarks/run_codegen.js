@@ -32,7 +32,7 @@
  *   node benchmarks/run_codegen.js [--ops N] [--runs N] [--only group] [--json]
  */
 
-import { createBenchmarkInterpreter } from './lib/harness.js';
+import { withBenchmarkInterpreter } from './lib/harness.js';
 import { tryCompileDefinition } from '../src/compiler/index.js';
 import { parse } from '../src/core/interpreter/reader.js';
 import { analyze } from '../src/core/interpreter/expand.js';
@@ -278,17 +278,17 @@ function loopDefinition(name, call) {
 }
 
 /**
- * Builds an environment holding a group, compiled or interpreted.
+ * Defines a group in an environment, compiled or interpreted.
  * @param {Object} group - The group.
  * @param {boolean} compiled - Whether to compile its procedures.
- * @returns {{interpreter: Object, env: Object}} The interpreter and environment.
+ * @param {Object} interpreter - The interpreter.
+ * @param {Object} env - Its environment, from `withBenchmarkInterpreter`.
  */
-function build(group, compiled) {
-  const { interpreter, env } = createBenchmarkInterpreter({ compileStdlib: true });
+function build(group, compiled, interpreter, env) {
   const loops = [['baseline', '(one key-a)'], ...group.workloads]
     .map(([, call], i) => loopDefinition(`workload-${i}`, call));
   for (const form of parse(group.definitions + loops.join('\n'))) {
-    const ast = analyze(form);
+    const ast = analyze(form, env);
     const result = compiled ? tryCompileDefinition(ast, env) : { compiled: false };
     if (result.compiled) {
       env.define(result.name, result.procedure);
@@ -301,7 +301,6 @@ function build(group, compiled) {
       interpreter.run(ast, env, [], undefined, { jsAutoConvert: 'raw' });
     }
   }
-  return { interpreter, env };
 }
 
 /**
@@ -318,7 +317,7 @@ function time(interpreter, env, loop, ops) {
   // deep recursion group needs. One entry per run, not per call. `settle` runs
   // out a tail call the loop may end in.
   const call = (n) => settle(interpreter.run(
-    analyze(parse(`(${loop} ${n})`)[0]), env, [], undefined, { jsAutoConvert: 'raw' }));
+    analyze(parse(`(${loop} ${n})`)[0], env), env, [], undefined, { jsAutoConvert: 'raw' }));
   call(Math.max(1, Math.floor(ops / 10)));
   let best = Infinity;
   let total;
@@ -337,16 +336,18 @@ function time(interpreter, env, loop, ops) {
  * @returns {Array<{label: string, ns: number, total: *}>} Net per-call figures.
  */
 function measure(group, compiled) {
-  const { interpreter, env } = build(group, compiled);
-  const ops = Math.max(5, Math.floor((compiled ? OPS : INTERPRETER_OPS) * (group.scale ?? 1)));
-  const labels = ['baseline', ...group.workloads.map(([label]) => label)];
-  const raw = labels.map((label, i) => ({ label, ...time(interpreter, env, `workload-${i}`, ops) }));
-  // Totals scale with the count, so compare them per call.
-  return raw.map((r) => ({
-    label: r.label,
-    ns: r.label === 'baseline' ? r.ns : r.ns - raw[0].ns,
-    perCall: Number(r.total) / ops
-  }));
+  return withBenchmarkInterpreter({ compileStdlib: true }, ({ interpreter, env }) => {
+    build(group, compiled, interpreter, env);
+    const ops = Math.max(5, Math.floor((compiled ? OPS : INTERPRETER_OPS) * (group.scale ?? 1)));
+    const labels = ['baseline', ...group.workloads.map(([label]) => label)];
+    const raw = labels.map((label, i) => ({ label, ...time(interpreter, env, `workload-${i}`, ops) }));
+    // Totals scale with the count, so compare them per call.
+    return raw.map((r) => ({
+      label: r.label,
+      ns: r.label === 'baseline' ? r.ns : r.ns - raw[0].ns,
+      perCall: Number(r.total) / ops
+    }));
+  });
 }
 
 const fmt = (ns) => ns.toFixed(1).padStart(10);

@@ -76,14 +76,11 @@ import { parse } from '../src/core/interpreter/reader.js';
 import { analyze } from '../src/core/interpreter/expand.js';
 import { withPrivateLibraries } from '../src/core/interpreter/library_registry.js';
 import { programEnvironment, runProgramForm } from '../src/core/interpreter/library_loader.js';
-import { globalMacroRegistry } from '../src/core/interpreter/macro_registry.js';
-import { globalContext } from '../src/core/interpreter/context.js';
-import { GLOBAL_SCOPE_ID } from '../src/core/interpreter/syntax_object.js';
 import { callSchemeProcedure, SCHEME_PRIMITIVE } from '../src/core/interpreter/values.js';
 import { attachTier } from '../src/compiler/tiering.js';
 import { compilerEnvironment } from '../src/compiler/lowering.js';
-import { BUNDLED_SOURCES } from '../src/packaging/bundled_libraries.js';
 import { assembleParts, R7RS_DIR } from './lib/r7rs_harness.js';
+import { asOwnPage, shippedLibraries, STANDARD_IMPORTS } from './lib/harness.js';
 import { corpusIndex, corpusResolver, isBundled } from './lib/corpus_libraries.js';
 import { pageLibraries } from '../tests/harness/page_libraries.js';
 import { describeCompilerFailures, takeCompilerFailures } from '../tests/harness/compiler_failures.js';
@@ -146,46 +143,9 @@ function usePolicy(policy) {
 // Libraries
 // =============================================================================
 
-/**
- * A shipped library's source, or a file one includes.
- * @param {string[]} name - A library name, or an include's path.
- * @returns {string} Its source.
- */
-function bundledSource(name) {
-  const last = name[name.length - 1];
-  const source = BUNDLED_SOURCES[`${last}.sld`] ?? BUNDLED_SOURCES[last];
-  if (source === undefined) throw new Error(`no bundled library ${name.join('/')}`);
-  return source;
-}
-
-/**
- * Whether a library ships, and so has a prebuilt table the tier leaves alone.
- * @param {string[]} name - The library's name.
- * @returns {boolean}
- */
-const isPrebuilt = (name) => BUNDLED_SOURCES[`${name[name.length - 1]}.sld`] !== undefined;
-
-/**
- * The shipped libraries, as a page has them: each restored from its prebuilt
- * table.
- * @returns {Object} As `pageLibraries` gives them.
- */
-function shippedLibraries() {
-  return pageLibraries({ resolve: bundledSource, isShipped: isPrebuilt });
-}
-
 // =============================================================================
 // The sets
 // =============================================================================
-
-/**
- * The libraries a page imports as it starts, and those the canonical programs
- * need.
- * @type {string}
- */
-const CANONICAL_IMPORTS = `(import (scheme base) (scheme write) (scheme read) (scheme char) (scheme inexact)
-  (scheme complex) (scheme cxr) (scheme time) (scheme file) (scheme process-context)
-  (scheme case-lambda))`;
 
 /**
  * The canonical suite's programs, each assembled as `run_r7rs.js` assembles
@@ -201,7 +161,7 @@ function canonicalPrograms() {
     libraries: shippedLibraries,
     setup(interpreter, env, evaluate) {
       const { prelude, body } = assembleParts(bench.name, bench.params, 1, 'scheme-js-4', R7RS_DIR);
-      evaluate(CANONICAL_IMPORTS);
+      evaluate(STANDARD_IMPORTS);
       for (const form of parse(prelude)) interpreter.run(analyze(form), env, [], undefined, { jsAutoConvert: 'raw' });
       return body;
     },
@@ -333,13 +293,6 @@ const comparable = (output) => output.join('\n').replace(/in [0-9.e-]+ seconds/g
  * @returns {{ms: number, compilingMs: number, compiled: number, right: boolean, output: string, error: (string|null)}}
  */
 function runOnce(program, withTier) {
-  // Each run is a page of its own: what its programs define by name for the
-  // whole process -- a library's macros, and what a top level imports --
-  // goes when it ends, as a page's does. Kept, a library defining its own
-  // `quasiquote` would expand every later run's quasiquotes that find
-  // `quasiquote` by name, as (scheme core) does.
-  const macros = new Map(globalMacroRegistry.macros);
-  const topLevel = new Map(globalContext.keywordBindings.get(GLOBAL_SCOPE_ID) ?? []);
   const output = [];
   const log = console.log;
   const errorLog = console.error;
@@ -356,7 +309,8 @@ function runOnce(program, withTier) {
   };
   process.chdir(program.cwd);
   try {
-    withPrivateLibraries({ resolver: libraries.resolve, hook: libraries.hook, restorer: libraries.restorer }, () => {
+    // Each run is a page of its own (`asOwnPage`).
+    asOwnPage(() => withPrivateLibraries({ resolver: libraries.resolve, hook: libraries.hook, restorer: libraries.restorer }, () => {
       const { interpreter, env } = createInterpreter();
       const evaluate = (source) => {
         let value;
@@ -396,7 +350,7 @@ function runOnce(program, withTier) {
       const compiled = tier === null ? 0
         : [...tier.outcomes].filter(([name, outcome]) => outcome === 'compiled' && !earlier.has(name)).length;
       result = { ...result, ms, compilingMs: spent.ms, compiled, right: result.error === null && program.right(output, evaluate) };
-    });
+    }));
   } catch (e) {
     result.error = e.message;
   } finally {
@@ -404,8 +358,6 @@ function runOnce(program, withTier) {
     console.error = errorLog;
     process.exit = exit;
     process.chdir(cwd);
-    globalMacroRegistry.macros = macros;
-    globalContext.keywordBindings.set(GLOBAL_SCOPE_ID, topLevel);
   }
   // A shipped library read from its source makes a run no page makes.
   if (libraries.fromSource.size > 0) {

@@ -20,7 +20,7 @@ import path from 'path';
 import { Session } from 'inspector';
 
 import { BENCHMARKS, sizeFor } from './programs/manifest.js';
-import { PROGRAM_DIR, createBenchmarkInterpreter, renderResult, RUN_OPTIONS } from './lib/harness.js';
+import { PROGRAM_DIR, withBenchmarkInterpreter, renderResult, RUN_OPTIONS } from './lib/harness.js';
 
 /**
  * Invokes the evaluator's trampoline.
@@ -86,14 +86,17 @@ async function main() {
 
   // Bootstrap and load the program BEFORE profiling starts, so the profile
   // reflects evaluation only and not parsing, analysis or library loading.
-  const { interpreter, env, run, compile } = createBenchmarkInterpreter();
-  run(`(define bench-size ${size})`);
-  run(fs.readFileSync(path.join(PROGRAM_DIR, bench.file), 'utf8'));
+  // The call is expanded while the harness's libraries are current, and run
+  // under the profiler after: running it expands nothing.
+  const { interpreter, env, ast } = withBenchmarkInterpreter({}, ({ interpreter, env, run, compile }) => {
+    run(`(define bench-size ${size})`);
+    run(fs.readFileSync(path.join(PROGRAM_DIR, bench.file), 'utf8'));
+    return { interpreter, env, ast: compile('(bench-run)') };
+  });
 
   // Invoke the interpreter directly rather than through the harness wrapper:
   // V8 attributes inlined frames to their caller, so a wrapper closure in the
   // hot path silently absorbs the evaluator's own self time.
-  const ast = compile('(bench-run)');
   trampoline(interpreter, ast, env); // warm up steady-state ICs
 
   const session = new Session();

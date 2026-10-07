@@ -151,6 +151,20 @@ let bootstrapFailure = null;
  *   read from its exports up front.
  */
 function bootstrap() {
+  return withCompilerLibrary((scheme) => scheme);
+}
+
+/**
+ * Loads a compiler of its own, as `bootstrap` loads the one this module hands
+ * out, and calls `fn` with it while its libraries are current: their scopes
+ * are known to the expander only then, so a form expanded in the compiler's
+ * environment afterwards finds none of the compiler library's keywords. For
+ * the compiler's Scheme tests, which run in its environment.
+ * @param {function({interpreter: Object, env: Object, exports: Map<string, Function>}): *} fn -
+ *   What to run.
+ * @returns {*} What `fn` returned.
+ */
+export function withCompilerLibrary(fn) {
   const tables = { ...prebuiltLibraries, ...prebuiltCompiler };
   return withPrivateLibraries({
     resolver: resolve,
@@ -160,7 +174,7 @@ function bootstrap() {
     const { interpreter, env } = createInterpreter();
     registerCompilerHost(env);
     const exports = loadLibrarySync(COMPILER_LIBRARY, analyze, interpreter, env);
-    return { interpreter, env: getLibraryEnv(COMPILER_LIBRARY), exports };
+    return fn({ interpreter, env: getLibraryEnv(COMPILER_LIBRARY), exports });
   });
 }
 
