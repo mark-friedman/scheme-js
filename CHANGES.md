@@ -13835,3 +13835,29 @@ against 492 without it, 1,240 of them compiling.
 
 JavaScript under `src/`: `withCompilerLibrary` in `lowering.js`, the start-up given a callback --
 the door into the compiler, starting it and handing it out.
+
+# Task 95 measured, not shipped: a program's library code apart from the system's (2026-10-07)
+
+R137 found compiled list programs slower because a shipped library's procedures share V8's type
+feedback across every copy restored from the table, and blamed the compiler's copy. A
+`withCodeOfItsOwn(tables)` in `prebuilt.js` made a library's procedures anew from their text, one
+`new Function` per library, falling back to the table's code where a page's policy forbids making
+code.
+
+Used for the compiler's libraries, it changed nothing (`destruc` 4.4-4.5 ms either way): the library
+system's seed restores `(scheme core)` from the same tables, and its expander and reader feed
+`length` and `zero?` on every form. Used for the program's libraries instead -- at the page's entry,
+the CLI, the development page and the harnesses -- `destruc` went to 3.6 ms, `peval` to 7.2-7.4 and
+`scheme` to 156 microseconds, their speed before 94; but the compiled list class gained only 2% and
+no other class moved, and start-up paid:
+
+| | before | with the program's own code |
+|---|---|---|
+| a page's first script has run | 212-215 ms | 237 ms |
+| the compiler has arrived | 306-307 ms | 332-333 ms |
+| the CLI evaluating 1, `--no-compile` | 256-263 ms | 288-289 ms |
+
+The copies are parsed, about 12 ms for `(scheme core)`, and compiled cold, where the shared code had
+been compiled already for the seed. Decided with the user not to ship it; the code is reverted, and
+R138 records the measurements and the remedy to try should it matter -- code of its own only for the
+procedures a program calls, made on the first call. JavaScript under `src/`: none kept.

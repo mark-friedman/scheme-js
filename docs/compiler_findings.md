@@ -3742,3 +3742,27 @@ tables from `dist/scheme.js`, so the sharing is there too, by the build's struct
 
 *Consequence:* a compiled program's calls into the library are slower, by up to a quarter on list
 programs, for sharing code with the compiler. Task 95.
+
+*Annotated 2026-10-07:* the compiler was not the sharer that mattered; the library system's own Scheme
+is (R138).
+
+**R138. The compiler was not what slowed a program's library code, and giving the program code of its
+own costs more than it gains.**
+
+R137 put the slowdown on the compiler's copies of the libraries. Giving them code of their own, each
+library's procedures made anew from the tables' text with one `new Function`, changed nothing: compiled
+`destruc` took 4.4-4.5 ms an iteration either way. The library system's seed restores `(scheme core)`
+and the other libraries its expander, reader and library system are written with from the same tables,
+and they call `length` and `zero?` on every form read and expanded; R137's experiment had separated the
+program's copies from the seed's as well as from the compiler's. Giving the program's libraries code of
+their own instead, as a page or the CLI restores them, brought `destruc` to 3.6 ms, `peval` to 7.2-7.4
+and `scheme` to 156 microseconds, as before 94. But over the whole compiled suite the list class gained
+2% and no other class moved, while a page ran its first script 23 ms later (237 against 212-215 ms) and
+the CLI evaluated `1` without the tier 28 ms later: the copies are parsed -- about 12 ms for `(scheme
+core)` -- and then compiled cold, where the shared code had been compiled already for the seed.
+
+*Consequence:* not shipped, decided with the user: a start-up cost on every page for a few list
+programs. A program's library procedures share their type feedback with the system's own Scheme, a
+known cost of up to a quarter on programs that lean on `length` and `zero?`, and about 2% on the list
+class. Were it to matter, the remedy to try is one whose cost follows use -- code of its own for only
+the procedures a program calls, made when first called -- not remaking every library a program imports.
