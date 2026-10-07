@@ -13470,3 +13470,72 @@ a run where the reading had made it 24%.
 9,019 tests pass in Node with none failing (7 skipped), and 8,795 in the browser with none failing
 (30 skipped). Chibi's suite 1,225 of 1,225 and the chapter tests 220 of 220 with the standard library
 restored. JavaScript under `src/`: none; the loader is the tests' harness, which `run_tier.js` uses.
+
+# The build steps as Scheme programs (task 76, 2026-10-06)
+
+`npm run prebuild` and `npm run pin:seed` run Scheme programs from the CLI where they ran
+JavaScript, and so does `npm run benchmark:self-host`.
+
+## The build
+
+- `scripts/generate_compiled_libraries.scm` loads every shipped library from its source, in a library
+  registry of its own, and in each library's load hook has the compiler generate code for the
+  procedures the library defines, makes its table and installs the code, before the libraries that
+  import it load. `scripts/generate_compiled_compiler.scm` does the same for the compiler's library,
+  keeping what its exports reach. `scripts/pin_seed.scm` writes the reader's and the expander's
+  libraries as core forms. What they share -- the libraries' files, the forms loading runs, a table,
+  the reports -- is `(scheme-js prebuild)`, in `scripts/lib/`, beside the table writer they call
+  directly where `table_writer.js` called it for them.
+- They write what the JavaScript wrote, checked file against file: the same tables, the same seed and
+  the same reports, but for the numbers the expander appends to the names it renames, which count
+  from where the process's counter stands and so depend on what ran before. Run again, the build
+  writes the same bytes. The whole build takes about 5.5 s.
+
+## What the CLI gives a program for it
+
+- **`-I dir`**, a directory libraries are looked for in before any other, as other Schemes' CLIs
+  have it: `node repl.js -I scripts/lib scripts/generate_compiled_libraries.scm`.
+- **The compiler's library, imported as any library.** The CLI's resolver finds `src/compiler/`, its
+  restorer restores the library from the compiler's table, and `(scheme-js compiler host)` is
+  registered. A program that imports it has its own instance of the compiler; one that does not pays
+  nothing. The library exports the accessors of the records its entry points answer with.
+- **`(scheme-js compiler build)`** (`src/compiler/build_host.js`), registered by the CLI alone, holds
+  what only the host can do for a build: a library registry of the program's own with a Scheme
+  resolver and load hook, loading a library with each form handed to Scheme with its core form,
+  expanding a form, installing a library's prebuilt table or code just generated (`new Function`),
+  and the fingerprints and runtime interface a table records. What a build reads of the evaluator's
+  objects -- a closure's parameters, a datum's span -- it reads through `(scheme-js interop)`.
+
+## The self-host benchmark
+
+`benchmarks/run_self_host.scm` loads the compiler's library three times, each in a registry of its
+own: interpreted; with its own procedures compiled as the build compiles them; and with the standard
+library restored from its tables too, as it ships. It lowers every lambda of its corpus in each,
+checks that they agree, and times the lowering alone. Its corpus is read as R7RS, dot notation off,
+and so holds `slatex.scm`'s procedures, which the JavaScript read as property references and dropped
+(R127): 1,116 lambdas where it had 1,022. Agreement 1,116 of 1,116; a pass 1,938 ms interpreted, 965
+compiled, 23.7 with the standard library compiled.
+
+## What stays JavaScript
+
+`decline_reasons.js` and `run_macro.js` reach further into the evaluator than the build does --
+syntax-tree nodes, environments the standard library is installed into, the corpus index
+`run_tier.js` shares, the debugger's instrumentation -- and porting them would add doors to `src/`
+to remove JavaScript outside it (R128). Decided with the user: they stay, analysis tools run by
+hand, and `src/compiler/index.js` keeps the entry points they and other tests call.
+
+JavaScript under `src/`: `build_host.js`, 194 lines, the doors -- into the library system and the
+expander, whose state JavaScript holds, and the generating of code. Removed, outside `src/`: the three
+build scripts, `table_writer.js` and `run_self_host.js`, about 900 lines.
+
+## Tests
+
+`cli_build_tests.js`, four tests: a library found through `-I`, and not without it; the compiler's
+library imported by a program; and a small library loaded and tabled through the build's doors as
+the build tables every shipped one -- its forms noted, its procedure compiled and restored, its files
+fingerprinted.
+
+## Verification
+
+9,023 tests pass in Node with none failing (7 skipped), and 8,795 in the browser with none failing
+(31 skipped, the CLI's tests among them).

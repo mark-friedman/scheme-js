@@ -92,7 +92,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 
 ```text
 /
-├── repl.js                         # Node.js REPL entry point; a program it runs has the process's standard ports
+├── repl.js                         # Node.js REPL entry point; a program it runs has the process's standard ports, imports the compiler as any library, and -I names library directories
 ├── rollup.config.js                # Rollup bundling configuration
 ├── .agent/rules/rules.md           # The project's rules; AGENTS.md and CLAUDE.md link here
 ├── .claude/                        # Claude Code project settings
@@ -167,12 +167,13 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       └── stack_shape.js          # What a debugger's call stack would show
 ├── scripts/                        # Build and audit tooling
 │   ├── generate_bundled_libraries.js # Inlines .sld/.scm sources for the browser
-│   ├── generate_compiled_libraries.js # Compiles every shipped library at build time
-│   ├── generate_compiled_compiler.js # Compiles the compiler's own library at build time
-│   ├── pin_seed.js                 # Writes the pinned seed: the reader's and the expander's libraries as core forms (npm run pin:seed)
+│   ├── generate_compiled_libraries.scm # Compiles every shipped library at build time: a Scheme program, run from the CLI
+│   ├── generate_compiled_compiler.scm # Compiles the compiler's own library at build time: a Scheme program
+│   ├── pin_seed.scm                # Writes the pinned seed: the reader's and the expander's libraries as core forms (npm run pin:seed)
+│   ├── lib/prebuild.sld            # (scheme-js prebuild): what those build steps share, found with -I scripts/lib
+│   ├── lib/prebuild.scm            # Its procedures: the libraries' files, the forms loading runs, a library's table, reports
 │   ├── lib/table-writer.sld        # (scheme-js table-writer): writes a module of prebuilt tables, one per library
 │   ├── lib/table_writer.scm        # Its procedures: constants as JavaScript, entries, tables, the module
-│   ├── lib/table_writer.js         # Loads it for the build scripts, and calls it
 │   ├── audit_r7rs.js               # R7RS-small conformance audit
 │   ├── language_balance.scm        # Lines of Scheme and JavaScript a change adds under src/ (npm run audit:languages)
 │   └── r7rs_identifiers.js         # Required-identifier reference list
@@ -310,6 +311,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │      ├── safety.scm         # The opt-in rule declining what a capture could unwind through
 │      ├── tier.scm           # A program's own code compiled as it runs: when, installing it, switching re-entered ones back
 │      ├── host.js            # (scheme-js compiler host): new Function, the interpreter's structures, weak tables
+│      ├── build_host.js      # (scheme-js compiler build), the CLI's only: private registries, loading, expanding, installing generated code
 │      ├── lowering.js        # Door into the compiler's Scheme: starts its library, hands out its entry points
 │      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted; restoring it, its data decoded from JSON
 │      ├── tiering.js         # Attaching the tier: makes its record, whose Scheme procedures the interpreter calls
@@ -439,6 +441,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── cli_stdin_tests.js      # `node repl.js` programs reading piped input; the REPL unaffected
 │   │   ├── cli_stdout_tests.js     # What they write: when, in what order, and to which stream
 │   │   ├── cli_repl_input_tests.js # The interactive REPL continuing an expression over lines
+│   │   ├── cli_build_tests.js      # What a build step run from the CLI is given: -I, the compiler's library, the build's doors
 │   │   ├── string_tests.js
 │   │   ├── string_interop_tests.js # Mutable strings at the JavaScript boundary, both tiers
 │   │   ├── vector_tests.js

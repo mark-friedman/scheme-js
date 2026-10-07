@@ -3533,3 +3533,30 @@ tiered test and all 1,445 conformance tests pass, with `(scheme core)`'s 130 pro
 *Consequence:* the tiered tests, the conformance suites and `run_tier.js` load libraries through one
 helper, `tests/harness/page_libraries.js`, made as a page makes its loader, and each fails a run in
 which a shipped library was read from its source.
+
+**R127. The self-host benchmark's corpus was not every procedure its files define.**
+
+`run_self_host.js` lowered "every lambda from real source": each top-level procedure definition in
+the canonical benchmarks, the core of the standard library and `ir.scm`, 1,022 of them. It read the
+files with dot notation on, as a program is read, and `slatex.scm` names its procedures with dots, so
+`slatex.foo` was read as a JavaScript property reference and the definitions failed to analyze and
+were dropped: 2 of its 94 were measured. Read as R7RS, as a library's file is, the corpus is 1,116
+lambdas (`gcbench.scm` and `matrix.scm` gain one each the same way).
+
+*Consequence:* a corpus is read as the language it is written in; the Scheme program that replaced
+the harness reads it so. Its figures before and after are of different corpora.
+
+**R128. The compiler's harnesses were not a small step from Scheme programs.**
+
+The plan put the build steps and the harnesses that drive the compiler -- `run_self_host.js`,
+`decline_reasons.js`, `run_macro.js` -- together as one task whose JavaScript was small. The build
+steps and the self-host benchmark became Scheme programs over a handful of doors into what only the
+host has: a library registry of the program's own, loading a library with each form noted, expanding
+a form, installing generated code. The other two reach further into the evaluator: `decline_reasons.js`
+offers the compiler syntax-tree nodes from environments the standard library is installed into, and
+reads its corpus through `benchmarks/lib/corpus_libraries.js`, which `run_tier.js` shares;
+`run_macro.js` counts through the debugger's instrumentation. Each would add doors to `src/`, which
+the *Scheme first* rule counts, to remove JavaScript outside it, which it does not.
+
+*Consequence:* decided with the user, those two stay JavaScript, as analysis tools run by hand, and
+`src/compiler/index.js` keeps the entry points they and other tests call.

@@ -81,7 +81,8 @@ like a program's own code, for working on the interpreter and compiler themselve
 
 **Where it stands:** the compiler is Scheme -- its passes, the driver that decides what to compile,
 and the tier that compiles a program's own code as it runs -- over a small JavaScript host library; so
-are the interpreter's reader, macro expander, library system and printer, and the debugger's logic.
+are the interpreter's reader, macro expander, library system and printer, the debugger's logic, and
+the build steps that compile the shipped libraries and the compiler itself.
 The evaluator, the numeric tower and most primitive libraries are JavaScript; the evaluator's own loop
 moves last, once compiled Scheme is fast enough for it. Ranked in
 [docs/compiler_plan.md](docs/compiler_plan.md).
