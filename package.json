@@ -31,7 +31,11 @@
     "benchmark:self-host": "node repl.js --no-compile -I scripts/lib benchmarks/run_self_host.scm",
     "benchmark:hash-tables": "node benchmarks/run_hash_tables.js",
     "benchmark:codegen": "node benchmarks/run_codegen.js",
-    "benchmark:tier": "node benchmarks/run_tier.js"
+    "benchmark:tier": "node benchmarks/run_tier.js",
+    "benchmark:interop": "node repl.js --no-compile benchmarks/run_interop.scm",
+    "benchmark:startup": "node benchmarks/run_startup.js",
+    "benchmark:debugger": "node benchmarks/run_debugger.js",
+    "benchmark:coverage": "node benchmarks/run_coverage.js"
   },
   "private": true,
   "devDependencies": {

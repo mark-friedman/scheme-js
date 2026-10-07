@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Start-up</title>
+</head>
+<body>
+    <!-- A page as a page is written: the bundle, the adapter that runs its
+         Scheme scripts, and one script. benchmarks/run_startup.js reads when
+         the script ran and when the compiler, which the bundle fetches after
+         it starts, had arrived, each in milliseconds since the page's
+         navigation began. -->
+    <script type="module">
+        import { loadCompiler } from '../../dist/scheme.js';
+        loadCompiler().then(() => { window.compilerArrived = performance.now(); });
+    </script>
+    <script type="module" src="../../dist/scheme-html.js"></script>
+    <script type="text/scheme">
+        (js-set! (js-eval "window") "schemeRan" (js-invoke (js-eval "performance") "now"))
+    </script>
+</body>
+</html>

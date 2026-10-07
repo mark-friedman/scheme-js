@@ -13539,3 +13539,60 @@ fingerprinted.
 
 9,023 tests pass in Node with none failing (7 skipped), and 8,795 in the browser with none failing
 (31 skipped, the CLI's tests among them).
+
+# The missing axes of the benchmark suite: interop, start-up, the debugger, and coverage (task 44, first part, 2026-10-06)
+
+The validity review that found the Stage 0 programs overfitted (R20-R23) listed what the suite
+lacked. Four of its steps are done; two, both downloads, wait for the user.
+
+## Interop (`npm run benchmark:interop`, `benchmarks/run_interop.scm`)
+
+A Scheme program, run from the CLI, timing each kind of crossing between Scheme and JavaScript in a
+loop, with the same loop around the cheapest call on its side subtracted, interpreted and compiled --
+the same procedure compiled by `compile-closure` -- beside the same work in plain JavaScript:
+
+| | interpreted | compiled |
+|---|---|---|
+| JavaScript calling a procedure of a number | 463 ns | 459 ns |
+| ... of an array of ten, adding them up | 13,481 | 512 |
+| `Array.prototype.map` over ten, with a procedure | 6,238 | 4,826 |
+| Scheme calling a JavaScript function | 263 | 47 |
+| a property read, `js-ref` | 317 | 19 |
+| a class's instance made, `js-new` | 499 | 66 |
+
+JavaScript calling Scheme costs about half a microsecond whichever tier made the procedure: every
+plain call of a compiled procedure builds syntax-tree nodes and runs them on the interpreter, so that
+its tail calls and continuations finish before it returns. That is task 92, placed next.
+
+## Start-up (`npm run benchmark:startup`, `benchmarks/run_startup.js`)
+
+Medians of fresh processes and browser contexts: Node itself 25 ms; the CLI evaluating `1`, 301 ms
+with the tier, 231 without; in a fresh process, 119 ms importing the runtime's modules, 56 making an
+interpreter, 17 restoring `(scheme base)` and `(scheme write)`, 68 starting the compiler; a page in
+headless Chrome runs its first `text/scheme` script 196 ms after its navigation starts, and has the
+compiler 281 ms after. The roadmap's "about 60 ms" was not that (R129), and gives the measurement now.
+
+## The debugger (`npm run benchmark:debugger`, `benchmarks/run_debugger.js`)
+
+Six kernels in the canonical classes' shapes under four states of the debugger. Attached and off
+costs nothing; debugging on, with nothing to stop at, costs the interpreted tier 1.5-2.1x, and a
+breakpoint elsewhere 2.5-3.6x, the debugger asked at every step; compiled code is untouched, since it
+runs as itself only where a breakpoint is.
+
+## Coverage (`npm run benchmark:coverage`, `benchmarks/run_coverage.js`)
+
+R20's two measures for every suite, each program run once interpreted with its calls counted by name:
+distinct procedures called, and the share of calls on a primitive the compiler expands inline, pooled
+and averaged over programs. The Stage 0 programs: 16 procedures, 91.1% inlined by program. The
+canonical suite: 97 procedures, 88.7% -- its string class 56.8%. The repository's test files: 155,
+55.6%. The canonical suite is broader than what it replaced but nearly as concentrated on the inline
+expansions (R130). The counting and the test runner's environment moved from `run_macro.js` to
+`benchmarks/lib/coverage.js`, which both use.
+
+## Left
+
+The canonical `compiler` program, vendored from upstream at the pinned commit with its expected
+result derived from Gambit, and the real `threads10`, whose source is in Thivierge and Feeley's
+paper: both downloads of other people's code into the repository, for the user to approve.
+
+No JavaScript under `src/`.

@@ -129,6 +129,11 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── run_hash_tables.js          # SRFI 125 tables and record reads under the tier
 │   ├── run_codegen.js              # Targeted: one construct per code-generation decision, both tiers
 │   ├── run_tier.js                 # Programs as a page runs them, the tier's compiling counted: canonical, test files, corpus, page; the policy settable
+│   ├── run_interop.scm             # The interop axis: each crossing between Scheme and JavaScript, both tiers and plain JavaScript; a Scheme program
+│   ├── run_startup.js              # The start-up axis: the CLI, a fresh process phase by phase, a page in headless Chrome
+│   ├── startup/                    # probe.js, one start phase by phase; page.html, a page as pages are written
+│   ├── run_debugger.js             # The debugger-on axis: kernels under four states of the debugger, both tiers
+│   ├── run_coverage.js             # How fitted each suite is to the compiler's inline expansions (R20's measures)
 │   ├── tier_programs/              # Synthetic programs in the shapes of a page's code, for run_tier.js --set page
 │   │   ├── events.scm              # Handlers made once by a setup procedure, then called by a stream of events
 │   │   ├── messages.scm            # A model updated by messages through a dispatch table; selectors made once
@@ -140,6 +145,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── r7rs_worker.js          # One measurement per child process, under a budget
 │   │   ├── r7rs_compare.js         # Cross-implementation arithmetic: per-class ratios, reading a saved run
 │   │   ├── corpus_libraries.js     # The corpus's libraries and test programs, and a resolver over them and the bundle
+│   │   ├── coverage.js             # Calls counted by name, the share inlined, and the test runner's environment
 │   │   ├── step_counts.js          # Deterministic dispatch counting
 │   │   └── progress_report.js      # Progress-document rendering
 │   ├── programs/                   # Portable R7RS benchmark programs (Stage 0)

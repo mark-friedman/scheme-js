@@ -3560,3 +3560,34 @@ the *Scheme first* rule counts, to remove JavaScript outside it, which it does n
 
 *Consequence:* decided with the user, those two stay JavaScript, as analysis tools run by hand, and
 `src/compiler/index.js` keeps the entry points they and other tests call.
+
+**R129. A page did not start in about 60 ms.**
+
+The roadmap said the libraries' being compiled at build time let a page start "in about 60 ms
+without running the compiler", a figure with no measurement recorded beside it. Measured
+(`benchmarks/run_startup.js`, headless Chrome, a page as pages are written, the bundle served
+locally): the page's first `text/scheme` script runs 196 ms after its navigation starts, and the
+compiler, which the bundle fetches once it has started, arrives at 281 ms. In a fresh Node process
+the same start is 119 ms importing the runtime's modules, most of it parsing the prebuilt tables, 56
+ms making an interpreter, which starts the library system, and 17 ms restoring `(scheme base)` and
+`(scheme write)`; the CLI evaluates `1` in 231 ms with the tier off and 301 with it, the difference
+starting the compiler.
+
+*Consequence:* the roadmap gives the measured figure and the benchmark that measures it. Start-up
+is an axis of its own, measured where a change could move it.
+
+**R130. The canonical suite is nearly as concentrated on the compiler's inline expansions as the
+programs it replaced.**
+
+The canonical suite was adopted as the correction for the Stage 0 programs' overfitting (R20,
+`benchmarks/r7rs/README.md`). It is broader: run once, interpreted, its 44 programs call 97 distinct
+procedures where the eight called 16. But by R20's other measure it is not far from them: averaged
+over its programs, 88.7% of their calls land on a primitive the compiler expands inline, against
+91.1% for the eight and 55.6% for the repository's test files (`benchmarks/run_coverage.js`); pooled,
+97.4%, 96.1% and 75.0%. Only its string class, 56.8%, looks like the test files. The classic kernels
+are arithmetic, `car`, `cdr` and `eq?` as Stage 0's were, and the inline set has grown since R20's
+fifteen.
+
+*Consequence:* a gain measured on the canonical suite is still an upper bound on what code that is not
+a kernel sees. The coverage report goes beside it, and the transfer checks -- `run_tier.js`'s test-file
+and corpus sets, `run_macro.js` -- keep their weight in decisions.
