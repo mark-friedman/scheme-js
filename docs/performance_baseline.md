@@ -22,20 +22,41 @@ npm run audit:r7rs                  # R7RS-small conformance audit
 
 Eight portable R7RS programs live in [`benchmarks/programs/`](../benchmarks/programs/). They are
 written so the same source runs unmodified under scheme-js-4, Gambit and Racket: the driver
-supplies `bench-size` and then calls `(bench-run)`. Seven of the eight are the complete benchmark set from
+supplies `bench-size` and then calls `(bench-run)`. Seven of the eight follow the benchmark set of
 Thivierge & Feeley, *Efficient Compilation of Tail Calls and Continuations to JavaScript*
-(SFP 2012) -- `tak` is the addition, from the Gabriel set -- so our numbers can be placed next to
-theirs.
+(SFP 2012) -- `tak` is the addition, from the Gabriel set. They were written from the paper's
+descriptions of its programs, not from their source.
 
 > [!WARNING]
-> Two caveats, recorded in R20-R22 of [compiler_findings.md](compiler_findings.md). **`threads` is
-> not their `threads10`**: theirs uses a vector-based doubly-linked queue and runs about a million
-> context switches, mine is a list-based scheduler doing four thousand, so its numbers are not
-> comparable to their table. And comparability requires `canonical` sizes, which nothing reported
-> here uses. More importantly, a coverage check showed this suite exercises **16 distinct callables
-> against 136 in real code**, with 98% of its calls landing on the fifteen primitives the compiler
-> inlines against 34% in real code -- so it is **overfitted** to the optimizations chosen against
-> it. Use [`npm run benchmark:macro`](../benchmarks/run_macro.js) for a transfer check.
+> **Updated 2026-10-07.** Two caveats, recorded in R20-R22 and R130 of
+> [compiler_findings.md](compiler_findings.md).
+>
+> **`threads` is not their `threads10`**: theirs uses a vector-based doubly-linked queue and runs
+> about a million context switches; ours is a list-based scheduler doing four thousand, written
+> from the paper's description. Its numbers are not comparable to their table, and comparability
+> would also need `canonical` sizes, which nothing reported here uses.
+>
+> **This suite is overfitted to the optimizations chosen against it.** At Stage 0 a coverage check
+> showed it calling **16 distinct procedures against 136 in real code**, with 98% of its calls on
+> the fifteen primitives the compiler then inlined, against 34% in real code. It is no longer what
+> decisions are made on:
+>
+> - The canonical suite ([`npm run benchmark:r7rs`](../benchmarks/run_r7rs.js), programs from
+>   `ecraven/r7rs-benchmarks` that nobody here chose, 44 of its 51 running) replaced it as what a
+>   code-generation change must improve without regressing. It reports each workload class
+>   separately, never a blend, and runs unmodified under Gambit and Racket
+>   ([`npm run benchmark:r7rs-implementations`](../benchmarks/compare_r7rs.js)), which checks the
+>   suite as well as our standing.
+> - Decisions about compiling, and ports of JavaScript to Scheme, are also judged on code that is
+>   not a benchmark (the rule at the head of [compiler_plan.md](compiler_plan.md)): the
+>   repository's test files, other people's libraries' test programs and page-shaped programs
+>   ([`npm run benchmark:tier`](../benchmarks/run_tier.js)), and
+>   [`npm run benchmark:macro`](../benchmarks/run_macro.js).
+> - [`npm run benchmark:coverage`](../benchmarks/run_coverage.js) measures how concentrated each
+>   suite is. The canonical suite is broader than this one -- 97 distinct procedures against 16 --
+>   but per program it still puts 88.7% of its calls on primitives the compiler inlines, against
+>   91.1% here and 55.6% for the repository's test files. A gain measured on either suite is an
+>   upper bound on what code that is not a kernel sees.
 
 | Program | Measures |
 |---|---|
