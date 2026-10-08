@@ -1,21 +1,14 @@
 /**
  * @fileoverview The printer's door. How `write`, `display`, `write-shared`
  * and `write-simple` write a datum is Scheme, the printer of `(scheme core)`
- * (src/core/scheme/printer.scm); here are the text it gives JavaScript, and
- * what only JavaScript can say about a value the printer is given: whether it
- * is an object written by its fields and what they are, a procedure's name,
- * whether it is a continuation, several values, and a host value's own text.
+ * (src/core/scheme/printer.scm); here is the text it gives JavaScript. What
+ * only JavaScript can say about a value the printer is given is in
+ * printer_primitives.js.
  */
 
-import { Cons, list } from '../../interpreter/cons.js';
-import { Symbol, intern } from '../../interpreter/symbol.js';
-import { Port, EOF_OBJECT } from './ports.js';
-import { Rational } from '../rational.js';
-import { Complex } from '../complex.js';
-import { Char } from '../char_class.js';
-import { SchemeString, stringValue } from '../string_class.js';
-import { Flonum } from '../../interpreter/number_representation.js';
-import { Values, isSchemeContinuation, callSchemeProcedure } from '../../interpreter/values.js';
+import { intern } from '../../interpreter/symbol.js';
+import { stringValue } from '../string_class.js';
+import { callSchemeProcedure } from '../../interpreter/values.js';
 import { systemLibrary } from '../../interpreter/library_seed.js';
 
 // ============================================================================
@@ -86,75 +79,6 @@ export function replText(val) {
     return stringValue(callSchemeProcedure(core.get('repl-text'), [val]));
 }
 
-// ============================================================================
-// What the printer asks of JavaScript
-// ============================================================================
-
-/**
- * Whether a value is written as an object, `#{(key value) ...}`: a record,
- * a class's instance or another JavaScript object that is not one of the
- * values Scheme has a syntax for. An error object is not: its message is not
- * one of its fields, and it is written as its text, as the REPLs show it.
- * @param {*} val
- * @returns {boolean}
- */
-function isHostObject(val) {
-    return val !== null && typeof val === 'object'
-        && !Array.isArray(val) && !(val instanceof Uint8Array) && !(val instanceof Cons)
-        && !(val instanceof Port) && !(val instanceof Symbol) && !(val instanceof SchemeString)
-        && val !== EOF_OBJECT && !(val instanceof Char) && !(val instanceof Rational)
-        && !(val instanceof Complex) && !(val instanceof Flonum) && !(val instanceof Values)
-        && !(val instanceof Error);
-}
-
-export const printerPrimitives = {
-    /**
-     * Whether a value is written as an object, by its fields.
-     * @param {*} val
-     * @returns {boolean}
-     */
-    '%host-object?': isHostObject,
-
-    /**
-     * An object's fields, as `#{...}` writes them: its own enumerable
-     * properties, but a record's 'type' and 'typeDescriptor'.
-     * @param {Object} obj
-     * @returns {Cons|null} A list of (key . value), each key a string.
-     */
-    '%host-object-fields': (obj) => list(...Object.entries(obj)
-        .filter(([key]) => key !== 'type' && key !== 'typeDescriptor')
-        .map(([key, value]) => new Cons(key, value))),
-
-    /**
-     * A procedure's name: the one Scheme gave it, a primitive's or a class's,
-     * or a JavaScript function's own.
-     * @param {Function} proc
-     * @returns {string|boolean} The name, or false where it has none.
-     */
-    '%procedure-name': (proc) => {
-        const name = 'schemeName' in proc ? proc.schemeName : proc.name;
-        return typeof name === 'string' && name !== '' && name !== 'anonymous' ? name : false;
-    },
-
-    /**
-     * Whether a procedure is a continuation.
-     * @param {Function} proc
-     * @returns {boolean}
-     */
-    '%continuation?': isSchemeContinuation,
-
-    /**
-     * The values of several, as a list, or false for any other value.
-     * @param {*} val
-     * @returns {Cons|null|boolean}
-     */
-    '%values-list': (val) => val instanceof Values ? list(...val.values) : false,
-
-    /**
-     * The text of a value Scheme has no syntax for, as it gives it: a port's,
-     * an error object's, or `undefined`.
-     * @param {*} val
-     * @returns {string}
-     */
-    '%host-text': (val) => String(val)
-};
+// What the printer asks of JavaScript is printer_primitives.js, which compiled
+// code needs without the library system this module's doors start.
+export { printerPrimitives } from './printer_primitives.js';

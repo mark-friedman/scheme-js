@@ -65,7 +65,7 @@
 ;; Parameter objects, so that `parameterize` binds one for the dynamic extent
 ;; of its body. Each begins as the console port the runtime keeps
 ;; (`%console-output-port` and the others, in
-;; src/core/primitives/io/primitives.js), and takes only a port of its kind.
+;; src/core/primitives/io/port_primitives.js), and takes only a port of its kind.
 ;;
 ;; Each is a top-level procedure over a global cell (`parameter-dispatch` in
 ;; parameter.scm) rather than what `make-parameter` returns: a closure

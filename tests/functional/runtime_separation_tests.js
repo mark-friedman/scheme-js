@@ -9,8 +9,9 @@
  * number parser reached through the reader, whose module starts the library
  * system's seed and with it every library's table; `procedure?` and `apply`
  * registered where the interpreter's control forms are; the error-object
- * primitives beside the interpreter's raise; the console ports loading
- * `node:fs` with a top-level `await`. This bundles what compiled code needs,
+ * primitives beside the interpreter's raise; the port and printer primitives
+ * beside the doors to the reader, the library system and the printer's
+ * Scheme; the console ports loading `node:fs` with a top-level `await`. This bundles what compiled code needs,
  * as the build bundles a page's, and checks that none of the rest comes with
  * it. Only JavaScript can see a module graph, and only Node can bundle one.
  */
@@ -42,9 +43,8 @@ const RUNTIME_MODULES = [
   'src/core/primitives/bytevector.js',
   'src/core/primitives/apply.js',
   'src/core/primitives/error_object.js',
-  'src/core/primitives/io/console_port.js',
-  'src/core/primitives/io/stdout_port.js',
-  'src/core/primitives/io/stdin_port.js',
+  'src/core/primitives/io/port_primitives.js',
+  'src/core/primitives/io/printer_primitives.js',
   'src/extras/primitives/hash_table.js',
   'src/extras/primitives/bitwise.js'
 ];
@@ -63,7 +63,9 @@ const NOT_NEEDED = [
   'src/core/interpreter/library_seed.js',
   'src/packaging/compiled_libraries.js',
   'src/core/primitives/control.js',
-  'src/core/primitives/exception.js'
+  'src/core/primitives/exception.js',
+  'src/core/primitives/io/primitives.js',
+  'src/core/primitives/io/printer.js'
 ];
 
 /**

@@ -248,14 +248,16 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── io/                 # Port system and I/O primitives
 │       │   │   ├── index.js        # Barrel export
 │       │   │   ├── ports.js        # Port base classes
-│       │   │   ├── primitives.js   # Scheme binding definitions
+│       │   │   ├── primitives.js   # Scheme binding definitions: the port primitives, with `features` and `%read`, which reach the library system and the reader
+│       │   │   ├── port_primitives.js # The port primitives, which compiled code running with no interpreter needs too
 │       │   │   ├── file_port.js    # File ports
 │       │   │   ├── string_port.js  # String ports
 │       │   │   ├── stdin_port.js   # The port over standard input (Node.js), read synchronously
 │       │   │   ├── stdout_port.js  # The ports over standard output and error (Node.js), written synchronously
 │       │   │   ├── console_port.js # Console ports
 │       │   │   ├── bytevector_port.js # Bytevector ports
-│       │   │   └── printer.js      # The printer's door: its text for JavaScript (writeString, the REPLs'), and what only JavaScript can say of a value
+│       │   │   ├── printer.js      # The printer's door: its text for JavaScript (writeString, the REPLs'), and what only JavaScript can say of a value
+│       │   │   └── printer_primitives.js # What only JavaScript can say of a value, for the printer's Scheme, without the doors
 │       │   ├── eq.js               # Equality predicates (eq?, eqv?, boolean=?)
 │       │   ├── record.js           # define-record-type support, and a record's type and fields for Scheme that looks inside any record
 │       │   ├── exception.js        # Raising, and handlers: what the interpreter performs
