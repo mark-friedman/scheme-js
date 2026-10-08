@@ -3766,3 +3766,20 @@ programs. A program's library procedures share their type feedback with the syst
 known cost of up to a quarter on programs that lean on `length` and `zero?`, and about 2% on the list
 class. Were it to matter, the remedy to try is one whose cost follows use -- code of its own for only
 the procedures a program calls, made when first called -- not remaking every library a program imports.
+
+**R139. `ctak` and `fibc` were not slow compiled for capturing at every call.**
+
+The plan and the design said `ctak` and `fibc` ran slower compiled than interpreted -- `ctak` 0.73x,
+`fibc` 1.39x of the interpreter's speed -- because they capture a continuation at every call and
+resume each saved frame once, which the capture policy cannot tell from an escape, and kept them as
+the case for an escape fast path proved by a cross-procedure analysis (37(b)). Profiled while scoping
+77, half of compiled `ctak`'s time was the constructor of `ContinuationUnwind`, thrown at every
+invocation of a continuation across compiled code: it extended `Error`, so each one took a JavaScript
+stack trace, through a deep stack. Made a plain object, as `CaptureUnwind` already was, compiled
+`ctak` went from 152 to 68 ms an iteration and `fibc` from 104 to 36, alternating three rounds each;
+interpreted they are unchanged, 120 and 155 ms, so compiled they now run 1.8 and 4.3 times faster.
+
+*Consequence:* the continuation class is no longer the worst by these two programs, and the escape
+fast path's case rests on escapes in real code, not on them. A thrown control signal is never an
+`Error`.
+

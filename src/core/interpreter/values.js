@@ -691,10 +691,15 @@ export function callSchemeMethod(proc, thisArg, args) {
 }
 
 /**
- * Error thrown to unwind the JavaScript stack when invoking a Continuation.
+ * Thrown to unwind the JavaScript stack when invoking a Continuation.
  * This allows jumping across JS boundaries (e.g. inside js-eval).
+ *
+ * Not an Error: a control signal, as `CaptureUnwind` is, thrown at every
+ * invocation of a continuation across JavaScript or compiled code. An Error
+ * would capture a stack trace each time, which was half the time of compiled
+ * `ctak` (benchmarks/r7rs/src/ctak.scm).
  */
-export class ContinuationUnwind extends Error {
+export class ContinuationUnwind {
     /**
      * @param {Array} registers - The register state to restore.
      * @param {boolean} isReturn - True if this is a value return, false for tail call.
@@ -704,7 +709,7 @@ export class ContinuationUnwind extends Error {
      * @param {Array} [target] - Its frame stack, sentinels and all.
      */
     constructor(registers, isReturn = false, continuation = null, args = [], target = []) {
-        super("Continuation Unwind");
+        this.name = 'ContinuationUnwind';
         this.registers = registers;
         this.isReturn = isReturn;
         this.continuation = continuation;

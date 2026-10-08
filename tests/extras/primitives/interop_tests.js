@@ -1,5 +1,6 @@
 import { assert, run, createTestLogger, createTestEnv } from '../../harness/helpers.js';
 import { LiteralNode, TailAppNode } from '../../../src/core/interpreter/ast.js';
+import { ContinuationUnwind } from '../../../src/core/interpreter/values.js';
 
 /**
  * Runs JS Interop tests.
@@ -280,6 +281,12 @@ export function runInteropTests(interpreter, logger) {
     // These tests verify that ContinuationUnwind correctly handles continuations
     // across deeply nested JavaScript/Scheme stack segments.
     logger.title("Interleaved Stack Continuation Tests");
+
+    // Thrown each time a continuation is invoked across JavaScript or compiled
+    // code: a control signal, which an Error would make cost a stack trace --
+    // half the time of compiled `ctak` (benchmarks/r7rs/src/ctak.scm).
+    assert(logger, "Interleaved: a continuation's unwind is no Error, and carries no stack trace",
+        [new ContinuationUnwind([]) instanceof Error, 'stack' in new ContinuationUnwind([])], [false, false]);
 
     // Test 1: Invoke outer continuation from nested callback
     // Stack: Scheme → JS (js-invoke-with-callback) → Scheme (callback invokes outer k)

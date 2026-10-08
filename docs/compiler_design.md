@@ -728,7 +728,11 @@ closure of its own and stays compiled; so does anything compiled from its analyz
 `declineCaptures`.
 
 What the count does not catch is a program that captures at every call and resumes each frame
-once -- `fibc`, `ctak` -- which is the shape the escape fast path below is for.
+once -- `fibc`, `ctak` -- which is the shape the escape fast path below is for. They ran compiled
+slower than interpreted mostly for another reason: each invocation of a continuation across
+compiled code threw a `ContinuationUnwind` that was a JavaScript `Error`, and so took a stack trace,
+half of `ctak`'s time. A plain object since task 96, they run compiled 1.8 and 4.3 times faster than
+interpreted (R139), and the fast path's case rests on escapes in general rather than on them.
 
 An escape also needs less than the protocol gives it. A continuation called while the capture that
 made it is still on the stack reifies nothing it will use: a JavaScript `throw` caught at the

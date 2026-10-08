@@ -13861,3 +13861,26 @@ The copies are parsed, about 12 ms for `(scheme core)`, and compiled cold, where
 been compiled already for the seed. Decided with the user not to ship it; the code is reverted, and
 R138 records the measurements and the remedy to try should it matter -- code of its own only for the
 procedures a program calls, made on the first call. JavaScript under `src/`: none kept.
+
+# Task 96 done: a continuation's unwind is not an Error (2026-10-07)
+
+Found while scoping task 77, by asking whether the interpreter's half of the save-and-resume
+protocol is what makes the continuation class the canonical suite's worst. Profiled, half of
+compiled `ctak`'s time was one constructor: `ContinuationUnwind`, thrown at every invocation of a
+continuation across JavaScript or compiled code, extended `Error`, and so took a JavaScript stack
+trace each time, through a deep stack. It is now a plain object, as `CaptureUnwind` already was; the
+two runs that catch it test its constructor's name, and nothing tested for an `Error`.
+
+| per iteration, alternating three rounds | before | after |
+|---|---|---|
+| `ctak`, compiled | 152 ms | 68 ms |
+| `fibc`, compiled | 104 ms | 36 ms |
+| `dynamic`, compiled | 87-90 ms | 87-88 ms |
+| `ctak`, `fibc`, `dynamic`, interpreted | 119-124, 156-159 ms, 1.53-1.55 s | 116-120, 151-153 ms, 1.51-1.54 s |
+
+Both programs had been explained as the shape the capture policy cannot help -- capture at every
+call, resume each frame once -- and kept as the case for an escape fast path proved across
+procedures (37(b)); they now run compiled 1.8 and 4.3 times faster than interpreted (R139).
+Measured while other work loaded the machine, so each figure is one of three that agreed. Tested in
+`interop_tests.js`: the unwind is no `Error` and carries no stack trace. JavaScript under `src/`:
+the evaluator's signal, fixed in place.
