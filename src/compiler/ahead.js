@@ -24,6 +24,7 @@
  */
 
 import * as R from './runtime.js';
+import { RUNTIME } from './runtime_object.js';
 import { Environment } from '../core/interpreter/environment.js';
 import { registerPrimitive } from '../core/interpreter/primitive_bindings.js';
 import { SCHEME_PRIMITIVE, SCHEME_RAW_CALL, registerGlobalEnvironment } from '../core/interpreter/values.js';
@@ -139,7 +140,7 @@ export function runProgram(program, primitives = AHEAD_PRIMITIVES) {
       // binding reads it from, is written as the library's name.
       const pool = item.constants(CONSTRUCTORS).map((constant) => (constant !== null && typeof constant === 'object'
         && Array.isArray(constant.library) ? libraries.get(constant.library.join('.')) : constant));
-      const made = item.make(R, env, pool);
+      const made = item.make(RUNTIME, env, pool);
       if (item.procedure !== undefined) {
         env.define(item.procedure, made);
       } else if (item.define !== undefined) {
@@ -150,4 +151,26 @@ export function runProgram(program, primitives = AHEAD_PRIMITIVES) {
     }
   }
   return value;
+}
+
+/**
+ * Runs a program compiled ahead of time as the whole of what a process or a
+ * page does, as the CLI runs a program's file: what it wrote to the console
+ * output port and had not ended with a newline written out as it ends, and a
+ * raise nobody handled reported as the CLI reports one, on the console's
+ * error stream, with the process's exit status 1 under Node. The module the
+ * build writes calls this as it loads (src/packaging/ahead_bundle.js).
+ * @param {{source: string, units: Array<Object>}} program - The table, and
+ *   the program's file, which the report names.
+ */
+export function runMain(program) {
+  const output = AHEAD_PRIMITIVES['%console-output-port']();
+  try {
+    runProgram(program);
+    output.flush();
+  } catch (e) {
+    output.flush();
+    console.error(`Error executing ${program.source}: ${e?.message ?? e}`);
+    if (typeof process !== 'undefined') process.exitCode = 1;
+  }
 }

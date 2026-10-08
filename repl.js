@@ -18,10 +18,12 @@ import prebuiltLibraries from './src/packaging/compiled_libraries.js';
 import prebuiltCompiler from './src/packaging/compiled_compiler.js';
 import { registerCompilerHost } from './src/compiler/host.js';
 import { registerBuildHost } from './src/compiler/build_host.js';
+import { writeProgramBundle } from './src/packaging/ahead_bundle.js';
+import { stringValue } from './src/core/primitives/string_class.js';
 import { analyze } from './src/core/interpreter/expand.js';
 import { parse } from './src/core/interpreter/reader.js';
 import { SchemeReadError } from './src/core/interpreter/errors.js';
-import { Cons, toArray, cdr, car } from './src/core/interpreter/cons.js';
+import { Cons, toArray, cdr, car, list } from './src/core/interpreter/cons.js';
 import { Symbol } from './src/core/interpreter/symbol.js';
 import { Closure, Continuation, callSchemeProcedure, NO_VALUES } from './src/core/interpreter/values.js';
 import { LiteralNode } from './src/core/interpreter/ast.js';
@@ -202,6 +204,41 @@ async function bootstrapInterpreter(includeDirs = []) {
     return { interpreter, env };
 }
 
+// --- Building a program ahead of time ---
+
+/**
+ * Compiles a program ahead of time, with what it uses of each library, into
+ * one ES module that runs it with no interpreter (`--build PROGRAM -o
+ * OUTPUT`): the build, `build-program-file` in `(scheme-js ahead)`
+ * (scripts/lib/ahead.scm), writes the program's table or says why it cannot
+ * run so, and the table is made one file with its runtime
+ * (src/packaging/ahead_bundle.js). Runs nothing of the program.
+ * @param {string[]} args - The arguments after the options.
+ * @param {string[]} includeDirs - The `-I` directories, where the program's
+ *   libraries are looked for after its own directory.
+ * @returns {Promise<never>} Exits: 0 with the file written, 1 with the
+ *   reasons the program is refused on standard error.
+ */
+async function buildAhead(args, includeDirs) {
+    const program = args[1];
+    const output = args[2] === '-o' ? args[3] : undefined;
+    if (program === undefined || output === undefined) {
+        console.error('usage: node repl.js --build PROGRAM -o OUTPUT');
+        process.exit(1);
+    }
+    const { interpreter, env } = await bootstrapInterpreter([...includeDirs, path.join(__dirname, 'scripts/lib')]);
+    const ahead = programEnvironment(parse('(import (scheme-js ahead))'), analyze, interpreter, env).env;
+    const dirs = [path.dirname(path.resolve(program)), ...includeDirs,
+        path.join(__dirname, 'src/core/scheme'), path.join(__dirname, 'src/extras/scheme')];
+    const outcome = callSchemeProcedure(ahead.lookup('build-program-file'), [program, list(...dirs)]);
+    if (outcome instanceof Cons) {
+        for (const reason of toArray(outcome)) console.error(stringValue(reason));
+        process.exit(1);
+    }
+    await writeProgramBundle(stringValue(outcome), output);
+    process.exit(0);
+}
+
 // --- REPL Logic ---
 
 async function startRepl() {
@@ -216,6 +253,8 @@ async function startRepl() {
         else if (options[i] !== '--no-compile') args.push(options[i]);
     }
     const compile = !options.includes('--no-compile');
+
+    if (args[0] === '--build') return buildAhead(args, includeDirs);
 
     const { interpreter, env } = await bootstrapInterpreter(includeDirs);
     if (compile) attachTier(interpreter, env, { isPrebuilt });

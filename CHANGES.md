@@ -14103,3 +14103,35 @@ refused, by what they reach. `runtime_separation_tests.js` bundles the loader wi
 still finds none of the interpreter in it. JavaScript under `src/`: the loader, as the runtime compiled
 code starts on (`src/compiler/runtime.js`'s item); two build-host doors, into the library system and
 the expander; primitives moved.
+
+# Task 101 done: generated code reads the runtime fast when bundled (2026-10-08)
+
+Found building task 99's one-file program: `earley`, compiled ahead of time and bundled with rollup,
+ran 16% slower than the same table run from the source modules, with the same garbage collection.
+Generated code reads the runtime as properties of the `R` it is given, and `R` was the namespace of
+`src/compiler/runtime.js`. Rollup writes a namespace used as a value as `Object.freeze({__proto__:
+null, ...})`, and V8 keeps an object written with a null prototype in dictionary mode, so in a bundle
+every `R.Cons` and `R.callBinding` was a hash lookup. The page's bundle, `dist/scheme.js`, is built
+that way, so compiled code on every page paid it -- the prebuilt libraries and the tier's code
+alike -- and no figure showed it, since every one was taken in Node from the source modules (R141).
+
+Generated code is now given a copy made by spreading (`src/compiler/runtime_object.js`), an ordinary
+object V8 keeps fast, bundled or not, by the three places that hand it over: the prebuilt tables'
+installing, the tier's `instantiate`, and the loader of a program compiled ahead of time. Through the
+page bundle in Node, each benchmark at a count near a second, before and after:
+
+| | before | after |
+|---|---|---|
+| `nboyer` | 1.56 s | 0.81 s |
+| `browse` | 1.69 s | 0.96 s |
+| `deriv` | 0.29 s | 0.21 s |
+| `earley` | 1.13 s | 0.92 s |
+| `ctak` | 0.98 s | 0.90 s |
+| `maze` | 0.60 s | 0.56 s |
+| `string` | 0.56 s | 0.53 s |
+| `tak`, `fib`, `puzzle`, `fft` | level | level |
+
+`runtime_separation_tests.js` bundles the runtime and checks, in a process allowed V8's own test,
+that the copy keeps fast properties; it fails given the namespace. Measuring the whole canonical
+suite through the bundle, in Node and in a browser, is task 102. JavaScript under `src/`: the copy,
+one line in a module of its own, for `runtime.js`'s item.

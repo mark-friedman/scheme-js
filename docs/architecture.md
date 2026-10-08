@@ -117,7 +117,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── run_macro.js                # Transfer test: the project's own .scm test files
 │   ├── compare_macro.js            # That workload under Gambit and Racket
 │   ├── run_r7rs.js                 # Canonical suite, both tiers, by workload class
-│   ├── run_ahead.js                # Canonical suite compiled ahead of time, beside the tier at its calibrated counts
+│   ├── run_ahead.js                # Canonical suite built with --build and run as one file, beside the tier at its calibrated counts
 │   ├── compare_r7rs.js             # Canonical suite: both tiers vs Gambit (gsi, C, JS), Racket, plain JS
 │   ├── decline_reasons.js          # Why the tier declines procedures: this repository's Scheme, or --corpus
 │   ├── run_escapes.js              # The capture policy on escapes: interpreted, default, captures compiled
@@ -144,7 +144,6 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── harness.js              # A run as the REPL runs a program, the standard libraries imported, each in a registry of its own; timing
 │   │   ├── r7rs_harness.js         # Canonical-suite protocol, sizing, calibration
 │   │   ├── r7rs_worker.js          # One measurement per child process, under a budget
-│   │   ├── ahead_worker.js         # One program compiled ahead of time, run in a process that loads only its runtime
 │   │   ├── r7rs_compare.js         # Cross-implementation arithmetic: per-class ratios, reading a saved run
 │   │   ├── corpus_libraries.js     # The corpus's libraries and test programs, and a resolver over them and the bundle
 │   │   ├── coverage.js             # Calls counted by name, the share inlined, and the test runner's environment
@@ -178,8 +177,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── generate_compiled_libraries.scm # Compiles every shipped library at build time: a Scheme program, run from the CLI
 │   ├── generate_compiled_compiler.scm # Compiles the compiler's own library at build time: a Scheme program
 │   ├── pin_seed.scm                # Writes the pinned seed: the reader's and the expander's libraries as core forms (npm run pin:seed)
-│   ├── build_ahead.scm             # Compiles a program ahead of time, with what it uses of each library, for src/compiler/ahead.js to run
-│   ├── lib/ahead.sld               # (scheme-js ahead): the build of a program compiled ahead of time
+│   ├── lib/ahead.sld               # (scheme-js ahead): the build of a program compiled ahead of time (node repl.js --build)
 │   ├── lib/ahead.scm               # Its procedures: top-level forms as items, where each name is bound, what is reached, refusals, the table
 │   ├── lib/prebuild.sld            # (scheme-js prebuild): what those build steps share, found with -I scripts/lib
 │   ├── lib/prebuild.scm            # Its procedures: the libraries' files, the forms loading runs, a library's table, reports
@@ -194,6 +192,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── scheme_compiler.js      # The compiler, as loadCompiler() fetches it after start-up
 │   │   ├── scheme_repl_wc.js       # Web Component entry point
 │   │   ├── html_adapter.js         # HTML script tag adapter
+│   │   ├── ahead_bundle.js         # A program compiled ahead of time and its runtime as one ES module, with rollup (node repl.js --build)
 │   │   ├── bundled_libraries.js    # GENERATED: library sources, for the browser
 │   │   ├── compiler_sources.js     # GENERATED: the compiler library's sources
 │   │   ├── compiled_libraries.js   # GENERATED: each shipped library, compiled; its other forms as core forms and its define-library form, as JSON
@@ -331,7 +330,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │      ├── lowering.js        # Door into the compiler's Scheme: starts its library, hands out its entry points
 │      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted; restoring it, its data decoded from JSON
 │      ├── tiering.js         # Attaching the tier: makes its record, whose Scheme procedures the interpreter calls
-│      └── runtime.js         # Tail-call step, stack room and flush, global cells, vector helpers, non-procedure report, procedure marking
+│      ├── runtime.js         # Tail-call step, stack room and flush, global cells, vector helpers, non-procedure report, procedure marking
+│      └── runtime_object.js  # The runtime as generated code is given it: a copy, which V8 reads fast where a bundler's namespace it does not
 │
 │   └── debug/                  # The debugger's doors and backends; its logic is (scheme-js debugger)
 │      ├── index.js            # Barrel export

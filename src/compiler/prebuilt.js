@@ -67,6 +67,7 @@
  */
 
 import * as R from './runtime.js';
+import { RUNTIME } from './runtime_object.js';
 import { libraryNameToKey, recordCompiledOver, getLibraryEnv } from '../core/interpreter/library_registry.js';
 import { runCompiled } from '../core/interpreter/values.js';
 import { Cons, list } from '../core/interpreter/cons.js';
@@ -181,7 +182,7 @@ export function installProcedures(env, table, fingerprint, libraryEnvironment = 
     }
     // Built against the closure's own environment, so its free variables
     // resolve where they did when it was interpreted.
-    const procedure = R.recordSource(entry.make(R, closure.env, poolOf(entry, libraryEnvironment)), closure.source);
+    const procedure = R.recordSource(entry.make(RUNTIME, closure.env, poolOf(entry, libraryEnvironment)), closure.source);
     runCompiled(closure, procedure);
     replaced.set(closure, procedure);
     installed.push(name);
@@ -392,7 +393,7 @@ const FORM = intern('form');
  */
 export function restoreProcedure(table, env, name, libraryEnvironment = getLibraryEnv) {
   const entry = table.procedures[name];
-  const procedure = R.recordSource(entry.make(R, env, poolOf(entry, libraryEnvironment)), entry.span);
+  const procedure = R.recordSource(entry.make(RUNTIME, env, poolOf(entry, libraryEnvironment)), entry.span);
   procedure[RESTORED] = entry;
   env.define(name, procedure);
 }

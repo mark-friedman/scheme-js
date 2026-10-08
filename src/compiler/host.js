@@ -32,6 +32,7 @@ import {
   registerBuiltinLibrary, recordCompiledOver, switchBackToClosure
 } from '../core/interpreter/library_registry.js';
 import * as R from './runtime.js';
+import { RUNTIME } from './runtime_object.js';
 import { sourceText } from '../core/interpreter/source_texts.js';
 
 /**
@@ -113,7 +114,7 @@ const hostProcedures = {
   // the heap.
   'instantiate': (source, env, constants, span) => {
     try {
-      const procedure = new Function('R', 'E', 'K', `'use strict';\n${text(source)}`)(R, env, toArray(constants));
+      const procedure = new Function('R', 'E', 'K', `'use strict';\n${text(source)}`)(RUNTIME, env, toArray(constants));
       return R.recordSource(procedure, span === false ? null : span);
     } catch (e) {
       return `code generation failed: ${e.message}`;

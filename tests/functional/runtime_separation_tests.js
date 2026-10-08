@@ -16,8 +16,11 @@
  * it. Only JavaScript can see a module graph, and only Node can bundle one.
  */
 
+import fs from 'fs';
+import os from 'os';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
+import { execFileSync } from 'child_process';
 import { assert } from '../harness/helpers.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -29,6 +32,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
  */
 const RUNTIME_MODULES = [
   'src/compiler/runtime.js',
+  'src/compiler/runtime_object.js',
   'src/core/interpreter/environment.js',
   'src/core/interpreter/primitive_bindings.js',
   'src/core/interpreter/values.js',
@@ -113,4 +117,21 @@ export async function runRuntimeSeparationTests(logger) {
     chunk.code.length < 1024 * 1024, true);
   assert(logger, 'it waits on nothing as it loads: no module imports another with a top-level await',
     /await import\(/.test(chunk.code), false);
+
+  // Bundled, a module's namespace is an object rollup writes with a null
+  // prototype, which V8 keeps in dictionary mode; the runtime generated code
+  // reads as `R` is a copy made by spreading, which it keeps fast
+  // (runtime_object.js). Only V8's own test, in a process that allows it, can say.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scheme-runtime-'));
+  try {
+    const file = path.join(dir, 'runtime.mjs');
+    fs.writeFileSync(file, chunk.code);
+    const index = RUNTIME_MODULES.indexOf('src/compiler/runtime_object.js');
+    const fast = execFileSync(process.execPath, ['--allow-natives-syntax', '--input-type=module', '-e',
+      `import * as b from ${JSON.stringify(pathToFileURL(file).href)}; `
+      + `process.stdout.write(String(%HasFastProperties(b.m${index}.RUNTIME)));`], { encoding: 'utf8' });
+    assert(logger, 'and, bundled, the runtime generated code reads is an object V8 reads fast', fast, 'true');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 }

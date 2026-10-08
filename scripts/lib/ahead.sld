@@ -15,10 +15,11 @@
                 library-definition-exports library-definition-declaration-files
                 import-set-library-name import-set-steps imported-name parse-import-set
                 program-parts)
-          (only (scheme primitives) %environment-define!)
+          (only (scheme primitives) %environment-define! %read-forms)
           (scheme-js compiler)
           (scheme-js compiler build)
           (scheme-js prebuild)
           (scheme-js table-writer))
-  (export top-level-items build-program program-build? program-build-refusals render-program)
+  (export top-level-items build-program program-build? program-build-refusals render-program
+          build-program-file)
   (include "ahead.scm"))

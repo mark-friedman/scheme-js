@@ -596,7 +596,8 @@
 
 ;; /**
 ;;  * A program built ahead of time as a JavaScript module: its table, which
-;;  * `runProgram` in src/compiler/ahead.js runs. It imports nothing.
+;;  * `runProgram` in src/compiler/ahead.js runs, and the program's file, which
+;;  * a report of a raise nobody handled names (`runMain`). It imports nothing.
 ;;  * @param {program-build} build - The build, which nothing refused.
 ;;  * @param {string} source - The program's file, for the banner.
 ;;  * @returns {string}
@@ -609,6 +610,7 @@
    "// it with `runProgram` in src/compiler/ahead.js.\n"
    "\n"
    "export default {\n"
+   "  source: " (json-string source) ",\n"
    "  units: [\n"
    (string-join (map (lambda (unit)
                        (unit-text (program-build-world build) (program-build-reach build) unit))
@@ -616,3 +618,19 @@
                 ",\n")
    "\n  ]\n"
    "};\n"))
+
+;; /**
+;;  * Builds a program's file ahead of time: the text of its table, or why it
+;;  * cannot run so. What `node repl.js --build` asks, and then makes the table
+;;  * one file with the runtime (src/packaging/ahead_bundle.js).
+;;  * @param {string} file - The program's file.
+;;  * @param {list} dirs - The directories its libraries are read from, in the
+;;  *   order they are looked in.
+;;  * @returns {string|list} The table's text; or the reasons it is refused,
+;;  *   a list of strings.
+;;  */
+(define (build-program-file file dirs)
+  (let ((build (build-program (%read-forms (file-text file) file #f) (source-reader dirs))))
+    (if (pair? (program-build-refusals build))
+        (program-build-refusals build)
+        (render-program build file))))

@@ -1,82 +1,56 @@
 /**
  * @fileoverview Programs compiled ahead of time, run with no interpreter.
  *
- * The build (scripts/build_ahead.scm, over scripts/lib/ahead.scm) compiles
- * every form a program runs, and every form of each library it uses that
- * runs as the library loads, and writes them as a table; `runProgram` in
- * src/compiler/ahead.js runs the table with no interpreter, expander, reader
- * or library system. These build programs with the CLI, as a user would, run
- * what it wrote, and check what the programs print -- the interpreter's
- * answers, which each was checked against -- and that a program the runtime
- * could not run is refused, by the name of what it reaches. Only JavaScript
- * can run the generated code, and only Node can run the build.
+ * `node repl.js --build PROGRAM -o OUTPUT` compiles every form a program
+ * runs, and every form of each library it uses that runs as the library
+ * loads, keeps what the program reaches, and writes it with the runtime as
+ * one ES module (scripts/lib/ahead.scm, src/packaging/ahead_bundle.js), which
+ * `node OUTPUT` runs with no interpreter, expander, reader or library system.
+ * These build programs with the CLI and run them as a user would, and check
+ * what they print -- the interpreter's answers, which each was checked
+ * against -- and that a program that could not run so is refused, by the
+ * name of what it reaches. Only Node can run the build.
  */
 
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { execFileSync } from 'child_process';
+import { execFileSync, spawnSync } from 'child_process';
 import { assert } from '../harness/helpers.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 /**
  * Builds a program ahead of time with the CLI.
- * @param {string} dir - Where to write the program and the table.
+ * @param {string} dir - Where to write the program and the module.
  * @param {string} name - The program's name.
  * @param {string} source - Its text.
- * @returns {{file: (string|null), refusals: string[]}} The table's file, or
+ * @returns {{file: (string|null), refusals: string[]}} The module's file, or
  *   null and why the build refused the program.
  */
 function build(dir, name, source) {
   const program = path.join(dir, `${name}.scm`);
-  const table = path.join(dir, `${name}.js`);
+  const output = path.join(dir, `${name}.mjs`);
   fs.writeFileSync(program, source);
   try {
-    execFileSync(process.execPath, ['repl.js', '-I', 'scripts/lib', 'scripts/build_ahead.scm', program, table],
-      { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
-    return { file: table, refusals: [] };
+    execFileSync(process.execPath, [path.join(ROOT, 'repl.js'), '--build', program, '-o', output],
+      { cwd: dir, stdio: ['ignore', 'pipe', 'pipe'] });
+    return { file: output, refusals: [] };
   } catch (e) {
     return { file: null, refusals: e.stderr.toString().trim().split('\n') };
   }
 }
 
 /**
- * Runs a table the build wrote, with what it writes to the console caught.
- * @param {string} file - The table's file.
- * @returns {Promise<{output: string, error: (Error|null), program: Object}>}
+ * Runs a program built ahead of time, as `node OUTPUT`.
+ * @param {string} file - The module.
+ * @returns {Array<string|number>} What it wrote to standard output, less its
+ *   last newline, and to standard error, and its exit status.
  */
-async function run(file) {
-  const { runProgram, AHEAD_PRIMITIVES } = await import('../../src/compiler/ahead.js');
-  const program = (await import(`${new URL(`file://${file}`)}`)).default;
-  // The console port is the process's: what an earlier test left in it
-  // unfinished is written out before this program's output is caught.
-  AHEAD_PRIMITIVES['%console-output-port']().flush();
-  const lines = [];
-  const log = console.log;
-  console.log = (...parts) => lines.push(parts.join(' '));
-  let error = null;
-  try {
-    runProgram(program);
-  } catch (e) {
-    error = e;
-  } finally {
-    AHEAD_PRIMITIVES['%console-output-port']().flush();
-    console.log = log;
-  }
-  return { output: lines.join('\n'), error, program };
-}
-
-/**
- * The names of the procedures a table binds for a library.
- * @param {Object} program - The table.
- * @param {string} library - The library's key, `scheme.core`.
- * @returns {string[]}
- */
-function proceduresOf(program, library) {
-  const unit = program.units.find((u) => u.library !== undefined && u.library.join('.') === library);
-  return unit === undefined ? [] : unit.items.filter((i) => i.procedure !== undefined).map((i) => i.procedure);
+function run(file) {
+  const ran = spawnSync(process.execPath, [file], { encoding: 'utf8' });
+  return [ran.stdout.replace(/\n$/, ''), ran.stderr, ran.status];
 }
 
 // It reads `map` as it imported it, before defining its own, as the
@@ -152,36 +126,25 @@ export async function runAheadProgramTests(logger) {
     assert(logger, 'a program of records, macros, several values, parameters and import filters builds',
       data.refusals, []);
     if (data.file !== null) {
-      const ran = await run(data.file);
-      assert(logger, 'and prints what the interpreter does',
-        [ran.output, ran.error?.message ?? null],
+      assert(logger, 'and prints what the interpreter does', run(data.file),
         ['(2 1 #t 10 4 (two . 2) 3 2 #(0 1 4) (1 2) mine 9 3 "ABC" 20 (1 2 3) 10 0.3333333333333333 '
-          + '1267650600228229401496703205376)\n#(2 3 4)', null]);
+          + '1267650600228229401496703205376)\n#(2 3 4)', '', 0]);
+      const text = fs.readFileSync(data.file, 'utf8');
       assert(logger, 'with only the library procedures it reaches: vector-map, but not string-map',
-        [proceduresOf(ran.program, 'scheme.core').includes('vector-map'),
-          proceduresOf(ran.program, 'scheme.core').includes('string-map')], [true, false]);
-      const program = ran.program.units[ran.program.units.length - 1];
+        [text.includes('procedure: "vector-map"'), text.includes('procedure: "string-map"')], [true, false]);
       assert(logger, 'and none of its own it does not: a procedure naming dynamic-wind, never called, is left out',
-        program.items.some((i) => i.procedure === 'never-called'), false);
+        text.includes('procedure: "never-called"'), false);
     }
 
     const continuations = build(dir, 'continuations', CONTINUATIONS);
-    if (continuations.file === null) {
-      assert(logger, 'a program of continuations builds', continuations.refusals, []);
-    } else {
-      const ran = await run(continuations.file);
-      assert(logger, 'escapes, re-entries, and recursions deep enough that the driver moves frames to the heap',
-        [ran.output, ran.error?.message ?? null], ['(4 (10 11 12) 100000 (20002 3))', null]);
-    }
+    assert(logger, 'escapes, re-entries, and recursions deep enough that the driver moves frames to the heap',
+      continuations.file === null ? continuations.refusals : run(continuations.file),
+      ['(4 (10 11 12) 100000 (20002 3))', '', 0]);
 
     const raises = build(dir, 'raises', RAISES);
-    if (raises.file === null) {
-      assert(logger, 'a program that raises builds', raises.refusals, []);
-    } else {
-      const ran = await run(raises.file);
-      assert(logger, 'an error nobody handles is thrown to whoever ran the program, after what it printed',
-        [ran.output, ran.error?.message, ran.error?.irritants], ['before', 'something went wrong:', [42]]);
-    }
+    assert(logger, 'an error nobody handles is reported as the CLI reports it, after what the program printed',
+      raises.file === null ? raises.refusals : run(raises.file),
+      ['before', `Error executing ${path.join(dir, 'raises.scm')}: something went wrong:\n`, 1]);
 
     logger.title('Programs refused, by what they reach');
 

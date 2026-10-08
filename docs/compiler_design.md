@@ -771,10 +771,13 @@ returns a node for the interpreter to run, and `guard` expands through `call/cc`
 
 ## A program compiled ahead of time
 
-A program can be built so that it runs with no interpreter, expander, reader or library system
-(task 98): `scripts/build_ahead.scm`, over `scripts/lib/ahead.scm`, writes a table, and
-`runProgram` in `src/compiler/ahead.js` runs it. Three things make that possible, and each is a
-choice the rest of the system has to keep true.
+A program can be built so that it runs with no interpreter, expander, reader or library system:
+`node repl.js --build PROGRAM -o OUTPUT` writes one ES module, which `node OUTPUT` runs and a page
+loads with `<script type="module">` (tasks 98 and 99). The build, `(scheme-js ahead)` in
+`scripts/lib/ahead.scm`, writes a table of the program's code, which imports nothing; rollup bundles
+it with the runtime, `runMain` in `src/compiler/ahead.js`, which runs it as the module loads and
+reports a raise nobody handles as the CLI reports one (`src/packaging/ahead_bundle.js`). Three things
+make that possible, and each is a choice the rest of the system has to keep true.
 
 **Every form that runs is compiled, and nothing else is needed.** The build loads the program's
 libraries from their source in a registry of its own, noting each top-level form with the core form

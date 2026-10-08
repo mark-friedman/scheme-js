@@ -3803,3 +3803,24 @@ its whole search runs, is 7% slower, by the same effect at a smaller scale.
 isolation is an upper bound; what runs beneath a long-lived JavaScript frame is collected more
 slowly, and a driver that keeps running costs that.
 
+
+**R141. A page did not run compiled code as fast as Node does.**
+
+Every figure for compiled code was taken in Node, from the source modules, the page programs
+included (`run_tier.js` runs them as a page loads its libraries, but in Node), on the belief that a
+page runs the same generated code at the same speed. It did not. Generated code reads the runtime as
+properties of the `R` it is given -- `R.Cons`, `R.callBinding` -- and that was the namespace of
+`src/compiler/runtime.js`, which V8 reads as fast as any property. Bundled by rollup, as
+`dist/scheme.js` is, a namespace used as a value becomes `Object.freeze({__proto__: null, ...})`,
+and V8 keeps an object written with a null prototype in dictionary mode, so every read was a hash
+lookup. Found when a program compiled ahead of time and bundled ran `earley` 16% slower than the
+same table run unbundled, with the same garbage collection. Through the page bundle in Node, before
+and after giving generated code a copy made by spreading (`runtime_object.js`), per run: `nboyer`
+1.56 to 0.81 s, `browse` 1.69 to 0.96, `deriv` 0.29 to 0.21, `earley` 1.13 to 0.92, `ctak` 0.98
+to 0.90, `maze` 0.60 to 0.56, `string` 0.56 to 0.53; `tak`, `fib`, `puzzle` and `fft`, whose hot code
+reads little of `R`, level.
+
+*Consequence:* generated code is given a copy of the runtime made by spreading, bundled or not, and
+`runtime_separation_tests.js` checks with V8's own test that the bundled copy keeps fast properties.
+A figure taken from the source modules says what Node runs; what a page runs is measured through the
+bundle, which no harness did (task 102).
