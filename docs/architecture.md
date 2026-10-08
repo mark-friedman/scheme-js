@@ -119,6 +119,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── run_r7rs.js                 # Canonical suite, both tiers, by workload class
 │   ├── run_ahead.js                # Canonical suite built with --build and run as one file, beside the tier at its calibrated counts
 │   ├── run_ahead_startup.js        # Small programs as one file against today: size, and start-up under Node and on a page
+│   ├── run_bundle.js               # Canonical suite through the page's entry, source modules against dist/scheme.js, in Node and Chrome
 │   ├── compare_r7rs.js             # Canonical suite: both tiers vs Gambit (gsi, C, JS), Racket, plain JS
 │   ├── decline_reasons.js          # Why the tier declines procedures: this repository's Scheme, or --corpus
 │   ├── run_escapes.js              # The capture policy on escapes: interpreted, default, captures compiled
@@ -145,6 +146,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── harness.js              # A run as the REPL runs a program, the standard libraries imported, each in a registry of its own; timing
 │   │   ├── r7rs_harness.js         # Canonical-suite protocol, sizing, calibration
 │   │   ├── r7rs_worker.js          # One measurement per child process, under a budget
+│   │   ├── bundle_worker.js        # One benchmark through the page's entry, source or bundled, in a process of its own
 │   │   ├── r7rs_compare.js         # Cross-implementation arithmetic: per-class ratios, reading a saved run
 │   │   ├── corpus_libraries.js     # The corpus's libraries and test programs, and a resolver over them and the bundle
 │   │   ├── coverage.js             # Calls counted by name, the share inlined, and the test runner's environment

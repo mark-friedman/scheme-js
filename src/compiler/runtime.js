@@ -15,7 +15,7 @@
 
 import {
   TailCall, Values, SCHEME_PRIMITIVE, SCHEME_RAW_CALL, callWithSchemeValues, callForeign, createCompiledProcedure,
-  createNativeContinuation, callSchemeProcedure
+  createNativeContinuation, callSchemeProcedure, methodReceiver
 } from '../core/interpreter/values.js';
 import { schemeToJsDeep } from '../core/interpreter/js_interop.js';
 // The capture protocol belongs to the interpreter, which owns what a
@@ -24,7 +24,7 @@ import {
   UNWIND, reify, beginCompiledCapture, beginFlush, compiledStack, suspendForPrimitive, restoreFlush,
   CAPTURE_UNDER_PRIMITIVE, runAhead as runAheadWith
 } from '../core/interpreter/unwind.js';
-import { SchemeError, SchemeApplicationError, SchemeArityError } from '../core/interpreter/errors.js';
+import { SchemeError, SchemeApplicationError, SchemeArityError, SchemeUnboundError } from '../core/interpreter/errors.js';
 import { Cons } from '../core/interpreter/cons.js';
 // Kept by the interpreter, which sees every binding write; generated code only
 // reads a cell, once per inlined primitive.
@@ -645,10 +645,58 @@ export function runAhead(procedure, args) {
  * @type {{callCompiledEntry: function(Function, Array<*>, *): *}}
  */
 export const aheadRunner = {
-  callCompiledEntry(raw, args) {
-    // The raw entry as a procedure whose raw entry it is, for `callWithSchemeValues`.
-    let result = runAhead({ [SCHEME_RAW_CALL]: raw }, args);
-    if (result instanceof Values) result = result.first();
-    return schemeToJsDeep(result);
+  callCompiledEntry(raw, args, thisContext = undefined) {
+    // What the code reads as `this` is the receiver it was called with.
+    const receiver = methodReceiver.v;
+    methodReceiver.v = thisContext;
+    try {
+      // The raw entry as a procedure whose raw entry it is, for `callWithSchemeValues`.
+      let result = runAhead({ [SCHEME_RAW_CALL]: raw }, args);
+      if (result instanceof Values) result = result.first();
+      return schemeToJsDeep(result);
+    } finally {
+      methodReceiver.v = receiver;
+    }
   }
 };
+
+// =============================================================================
+// this
+// =============================================================================
+
+/**
+ * What a lambda that reads `this` holds where there was no receiver as it was
+ * entered, nor one the lambda around it took.
+ */
+const NO_RECEIVER = Object.freeze({ receiver: 'none' });
+
+/**
+ * The receiver a lambda that reads `this` takes as it is entered
+ * (`receiver-binding` in ir.scm): that of the method call running, as the
+ * interpreter binds `this` at each application while one runs; or else the
+ * one the lambda around it took, as the interpreter's lambda sees, called
+ * after, the `this` of the application it was made in.
+ * @param {*} [outer] - The receiver the lambda around it took.
+ * @returns {*}
+ */
+export function thisAt(outer = NO_RECEIVER) {
+  const receiver = methodReceiver.v;
+  return receiver !== undefined ? receiver : outer;
+}
+
+/**
+ * A read of `this` (`receiver-read` in ir.scm): the receiver, or, where there
+ * was none, the error the interpreter raises for an unbound variable.
+ * @param {*} receiver - What the lambda took (`thisAt`).
+ * @returns {*}
+ */
+export function thisOf(receiver) {
+  if (receiver === NO_RECEIVER) throw new SchemeUnboundError('this');
+  return receiver;
+}
+
+// Called by generated code as primitives are, through their raw entries.
+for (const fn of [thisAt, thisOf]) {
+  fn[SCHEME_PRIMITIVE] = true;
+  fn[SCHEME_RAW_CALL] = fn;
+}

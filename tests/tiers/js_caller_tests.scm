@@ -206,20 +206,57 @@
 ;; ---------------------------------------------------------------------------
 ;; A procedure called as a method
 ;; ---------------------------------------------------------------------------
+;;
+;; `this` is the receiver JavaScript calls a procedure as a method of. The
+;; interpreter binds it at each application during the method's call, so a
+;; procedure the method calls sees the method's receiver; and a procedure made
+;; during the call, called after it, sees the receiver it was made under.
+;; Compiled code must agree: the tier compiles each of these procedures, which
+;; make procedures, when they are bound.
 
 ;; /**
 ;;  * A procedure for JavaScript to call as a method of an object, answering
-;;  * the object's name: `this` is the receiver, which the interpreter binds as
-;;  * JavaScript calls a procedure as a method. The tier compiles a procedure
-;;  * that makes one when it is bound, and compiled code binds no receiver, so
-;;  * it leaves this one interpreted.
+;;  * the object's name.
 ;;  * @returns {procedure}
 ;;  */
 (define (make-greeter) (lambda () (js-ref this "name")))
 
+;; /**
+;;  * The name of the receiver of the method being called, read by a
+;;  * procedure the method calls.
+;;  * @returns {string}
+;;  */
+(define (receiver-name) (js-ref this "name"))
+
+;; /**
+;;  * A method that answers its receiver's name by calling `receiver-name`.
+;;  * @returns {procedure}
+;;  */
+(define (make-asker) (lambda () (receiver-name)))
+
+;; /**
+;;  * A method that answers a procedure made during its call, which reads
+;;  * `this` when it is called, after the method has returned.
+;;  * @returns {procedure}
+;;  */
+(define (make-rememberer) (lambda () (lambda () (js-ref this "name"))))
+
 (define greeted (js-obj "name" "greeted"))
 (js-set! greeted "greet" (make-greeter))
+(js-set! greeted "ask" (make-asker))
+(js-set! greeted "remember" (make-rememberer))
+(define other (js-obj "name" "other"))
+(js-set! other "greet" (js-ref greeted "greet"))
+(js-invoke greeted "ask")
+(js-invoke greeted "ask")
 
 (test-group "JavaScript calling a procedure as a method"
+  (test "the tier compiled what reads this"
+        (list *tier-attached* *tier-attached* *tier-attached* *tier-attached*)
+        (map compiled? (list make-greeter receiver-name make-asker make-rememberer)))
   (test "it reads its receiver as this" "greeted" (js-invoke greeted "greet"))
-  (test "the tier leaves interpreted what reads this" #f (compiled? make-greeter)))
+  (test "the same procedure called as another's method reads that one" "other" (js-invoke other "greet"))
+  (test "a procedure the method calls reads the method's receiver" "greeted" (js-invoke greeted "ask"))
+  (test "a procedure made during the call remembers its receiver, called after" "greeted"
+        ((js-invoke greeted "remember")))
+  (test-error "with no receiver, this is unbound" "unbound variable: this" (receiver-name)))

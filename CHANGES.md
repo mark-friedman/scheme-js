@@ -14220,3 +14220,60 @@ about a megabyte more as written. Tested in `tests/functional/ahead_program_test
 a string port and from standard input, as the CLI gives it; `eval` refused. JavaScript under `src/`:
 `%read` lost its check; the runtime binds supplied primitives and gives a Node program the standard
 ports, for `runtime.js`'s item.
+
+# Task 103 done: `this` in compiled code (2026-10-08)
+
+`this` is the receiver JavaScript calls a procedure as a method of; a class's constructor and methods
+read their fields through it. The interpreter binds it at each application while a method's call
+runs, so that a procedure the method calls sees the method's receiver, and a procedure made during
+the call sees, called after it, the receiver it was made under. Compiled code read it as a global of
+that name and failed, which task 99 found; since then such procedures had been declined, and a
+program compiled ahead of time with a class whose constructor or methods use `this` refused.
+
+Now the runtime keeps the receiver of the call running in a cell (`methodReceiver` in `values.js`):
+each run of the interpreter sets it to its own while it runs, and so does each way JavaScript calls
+compiled code with a receiver -- a compiled procedure's plain call, `callSchemeMethod`, the driver of
+a program compiled ahead of time -- each putting back what it found; a nested run that compiled
+code starts by calling an interpreted closure is given it, as one run of the interpreter would be. A
+lambda that reads `this`, itself or in a lambda inside it, takes as it is entered the receiver
+running, or else the one the lambda around it took (`receiver-binding` in `ir.scm`, `R.thisAt`),
+into a local that frames save and closures capture like any other; a read of `this` is of that
+local, and with no receiver an unbound variable, as the interpreter's (`R.thisOf`). Procedures that
+read no `this` are unchanged. Which lambdas read `this` is found by following each core form by its
+shape (`subforms`); a first version walked every list inside a lambda and took a lambda's parameters
+as written, `(var)` for one named `var`, for a variable's form, and the compiler failed on `peval`'s
+and `compiler`'s procedures, which the canonical programs' compiled run caught.
+
+Tested in `tests/tiers/js_caller_tests.scm`, interpreted and under the tier, which compiles each of
+these procedures: a method reading its receiver; the same procedure called as another object's
+method; a procedure the method calls, compiled and not yet compiled, reading the method's receiver;
+a procedure made during a method's call, called after it, remembering its receiver; and `this`
+unbound with no receiver. A class with a constructor and methods compiles ahead of time and runs
+(`tests/functional/ahead_program_tests.js`). JavaScript under `src/`: the receiver's cell, set where
+JavaScript enters Scheme, for the evaluator's and the save-and-resume protocol's items; `thisAt` and
+`thisOf`, for `runtime.js`'s.
+
+# Task 102 done: the canonical suite through the page bundle (2026-10-08)
+
+Every figure for compiled code had been taken in Node from the source modules, and task 101 found the
+page's bundle running some programs up to 1.9 times slower for a reason only the bundle had (R141).
+`benchmarks/run_bundle.js` measures what a page runs as a page builds it: each canonical benchmark
+through the page's entry, `src/packaging/scheme_entry.js` -- the compiler loaded, the program's own
+code compiled, the program run as a page runs a script that begins with its imports
+(`assembleProgram` in `benchmarks/lib/r7rs_harness.js`) -- as the source modules and as
+`dist/scheme.js`, each in Node (`benchmarks/lib/bundle_worker.js`, a process a run) and in headless
+Chrome (a fresh context a run), at one count calibrated on the source modules in Node.
+
+With 101 in, the bundle costs nothing. Of the default profile's 45 programs, the bundle against the
+source runs at 0.89 to 1.06 in Node and 0.91 to 1.04 in Chrome, each a single run, none
+systematically slower; `read1`, `parsing` and `dynamic` read data files, which a browser has no file
+system for. Chrome against Node, which the harness was not built to measure, differs more: `bv2string`
+2.7 times slower in Chrome (9.4 ms an iteration against 3.4), now task 104; `string` 3.2 times
+faster, `slatex` 2, `ctak` and `fibc` 1.4; the rest within a fifth.
+
+Building it found two things about measuring pages. A page's server in the harness's own process,
+whose synchronous measurements in Node block its event loop, left a page's module fetches hanging
+-- a run timing out after three minutes with nothing running -- so the harness serves from a
+process of its own. And a benchmark run in a page's environment, as the canonical harness runs one
+in Node, sees only what the page imports, which leaves out `(scheme file)`; each now runs with its
+own import declarations, as a program.

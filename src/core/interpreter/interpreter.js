@@ -1,4 +1,4 @@
-import { Values, isSchemeClosure, callSchemeProcedure, registerGlobalEnvironment } from './values.js';
+import { Values, isSchemeClosure, callSchemeProcedure, registerGlobalEnvironment, methodReceiver } from './values.js';
 import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
 import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush, beginStepAgain, openCompiledSegment, enterRun, leaveRun } from './unwind.js';
@@ -343,6 +343,9 @@ export class Interpreter {
       && initialStack[initialStack.length - 1].compiledBoundary === true;
     // No driver beneath this run takes a continuation by a jump through it.
     const driver = enterRun();
+    // Compiled code reads `this` as this run's receiver.
+    const receiver = methodReceiver.v;
+    methodReceiver.v = thisContext;
 
     // The Top-Level Trampoline
     try {
@@ -473,6 +476,7 @@ export class Interpreter {
       restoreFlush(flush);
       this.unwindsOut = unwindsOut;
       leaveRun(driver);
+      methodReceiver.v = receiver;
     }
   }
 
@@ -533,21 +537,28 @@ export class Interpreter {
    * @returns {*} Its value, converted for JavaScript.
    */
   callCompiledEntry(raw, args, thisContext = undefined) {
-    const flush = openCompiledSegment(false);
-    let result;
-    this.depth++;
+    // What the code reads as `this` is the receiver it was called with.
+    const receiver = methodReceiver.v;
+    methodReceiver.v = thisContext;
     try {
-      result = raw(...args);
-    } catch (e) {
+      const flush = openCompiledSegment(false);
+      let result;
+      this.depth++;
+      try {
+        result = raw(...args);
+      } catch (e) {
+        restoreFlush(flush);
+        this.depth--;
+        return this.runWithSentinel(new CompiledEntryRemainder('throw', e), thisContext);
+      }
       restoreFlush(flush);
       this.depth--;
-      return this.runWithSentinel(new CompiledEntryRemainder('throw', e), thisContext);
+      if (result === UNWIND) return this.runWithSentinel(new CompiledEntryRemainder('unwind', null), thisContext);
+      if (result instanceof TailCall) return this.runWithSentinel(new CompiledEntryRemainder('tail', result), thisContext);
+      return unpackForJs(result);
+    } finally {
+      methodReceiver.v = receiver;
     }
-    restoreFlush(flush);
-    this.depth--;
-    if (result === UNWIND) return this.runWithSentinel(new CompiledEntryRemainder('unwind', null), thisContext);
-    if (result instanceof TailCall) return this.runWithSentinel(new CompiledEntryRemainder('tail', result), thisContext);
-    return unpackForJs(result);
   }
 
   /**
@@ -685,6 +696,8 @@ export class Interpreter {
     const unwindsOut = this.unwindsOut;
     this.unwindsOut = false;
     const driver = enterRun();
+    const receiver = methodReceiver.v;
+    methodReceiver.v = undefined;
 
     try {
       let stepCount = 0;
@@ -778,6 +791,7 @@ export class Interpreter {
       restoreFlush(flush);
       this.unwindsOut = unwindsOut;
       leaveRun(driver);
+      methodReceiver.v = receiver;
     }
   }
 

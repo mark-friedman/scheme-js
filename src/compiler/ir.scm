@@ -255,12 +255,14 @@
 ;;  13  assigned          the names the procedure assigns anywhere, found
 ;;                        before it is lowered, so that a binding is known
 ;;                        constant where it is declared (`constant-binding`)
+;;  14  receiver          the local holding `this` for the innermost lambda
+;;                        being lowered that reads it, or #f (`receiver-local`)
 
 ;; /**
 ;;  * Creates an empty lowering state.
 ;;  * @returns {vector} The state.
 ;;  */
-(define (make-state) (vector '() #f '() '() #f 0 #f #f #f #f '() '() '() '()))
+(define (make-state) (vector '() #f '() '() #f 0 #f #f #f #f '() '() '() '() #f))
 
 (define (state-globals st) (vector-ref st 0))
 (define (state-calls-unknown? st) (vector-ref st 1))
@@ -644,11 +646,10 @@
          (let ((hit (scope-lookup scope name)))
            (cond
              ;; `this` is no global: it is a method's receiver, which the
-             ;; interpreter binds as JavaScript calls a procedure as a method
-             ;; (frames.js), and compiled code has none, so would read a global
-             ;; of the name.
-             ((and (not hit) (eq? name 'this))
-              (fail! st "reads this, a method's receiver, which compiled code does not bind"))
+             ;; innermost lambda reading it took as it was entered
+             ;; (`receiver-local`).
+             ((and (not hit) (eq? name 'this) (vector-ref st 14))
+              (receiver-read (vector-ref st 14) tail st))
              ((not hit)
               (state-add-global! st name)
               ;; A global callee is nameable in the sense this flag means: the
@@ -680,17 +681,25 @@
 
       ((eq? tag 'lambda)
        (let ((inner (make-scope scope))
-             (outer-self (vector-ref st 8)))
+             (outer-self (vector-ref st 8))
+             (outer-receiver (vector-ref st 14))
+             (receiver (and (mentions-this? (ast-4 node)) (receiver-name! st))))
          (declare-all! inner (ast-1 node))
          (if (ast-2 node) (scope-declare! inner (ast-2 node) #f) #f)
+         (if receiver (scope-declare! inner receiver #f) #f)
          ;; This lambda is now the procedure a tail call could loop to, and
-         ;; stops being it once its body is lowered.
+         ;; stops being it once its body is lowered; and, if it reads `this`,
+         ;; the one whose receiver the reads find.
          (vector-set! st 8 (take-self! st node))
+         (if receiver (vector-set! st 14 receiver) #f)
          (let ((body (lower-body (ast-4 node) inner st)))
            (vector-set! st 8 outer-self)
+           (vector-set! st 14 outer-receiver)
            (if (not body)
                #f
-               (list 'lambda (ast-1 node) (ast-2 node) (ast-3 node) body tail #t)))))
+               (list 'lambda (ast-1 node) (ast-2 node) (ast-3 node)
+                     (if receiver (receiver-binding receiver outer-receiver body) body)
+                     tail #t)))))
 
       ((eq? tag 'let)
        (let ((init (lower-node (ast-2 node) scope #f st)))
@@ -894,6 +903,72 @@
   (let ((n (vector-ref st 5)))
     (vector-set! st 5 (+ n 1))
     (string->symbol (string-append "%cwv" (number->string n)))))
+
+;; ---------------------------------------------------------------------------
+;; `this`
+;; ---------------------------------------------------------------------------
+;;
+;; `this` is the receiver JavaScript calls a procedure as a method of. The
+;; interpreter binds it at each application while a method's call runs, and a
+;; procedure made then sees, called after, the receiver it was made under
+;; (frames.js). The runtime keeps the receiver of the call running (`thisAt`
+;; in src/compiler/runtime.js), so compiled code does the same: a lambda that
+;; reads `this`, itself or in a lambda inside it, takes the receiver as it is
+;; entered into a local, or, where there is none, the one the lambda around it
+;; took; a read of `this` is of that local, and of no receiver at all an
+;; unbound variable, as in the interpreter.
+
+;; /**
+;;  * Whether a core form reads `this` free anywhere inside it, a lambda inside
+;;  * it included, followed by its shape (`subforms` in `driver.scm`), never into
+;;  * a lambda's parameters as written. A local is never `this`, which the
+;;  * expander renames, so a variable of that name is the receiver.
+;;  * @param {list} form - The core form.
+;;  * @returns {boolean}
+;;  */
+(define (mentions-this? form)
+  (case (ast-tag form)
+    ((var) (eq? (ast-1 form) 'this))
+    ((library-set) (mentions-this? (ast-3 form)))
+    (else (any mentions-this? (subforms form)))))
+
+;; /**
+;;  * A name for the local a lambda holds its receiver in.
+;;  * @param {vector} st - Lowering state.
+;;  * @returns {symbol}
+;;  */
+(define (receiver-name! st)
+  (let ((n (vector-ref st 5)))
+    (vector-set! st 5 (+ n 1))
+    (string->symbol (string-append "%this" (number->string n)))))
+
+;; /**
+;;  * A lambda's body, with its receiver bound first: the receiver of the
+;;  * method call running as it is entered, or else the one the lambda around
+;;  * it took (`%this-at`, `R.thisAt`).
+;;  * @param {symbol} receiver - The local.
+;;  * @param {symbol|boolean} outer - The local of the lambda around it that
+;;  *   reads `this`, or #f.
+;;  * @param {list} body - The lowered body.
+;;  * @returns {list}
+;;  */
+(define (receiver-binding receiver outer body)
+  (list 'let receiver
+        (list 'call (list 'global '%this-at #f #t) (if outer (list (list 'local outer #f #f)) '()) #f)
+        body #t (if (ir-callable? body) #t #f)))
+
+;; /**
+;;  * A read of `this`: the receiver the local holds, or, where there was none,
+;;  * an unbound variable's error (`%this-of`, `R.thisOf`).
+;;  * @param {symbol} receiver - The local.
+;;  * @param {boolean} tail - Whether the read is in tail position.
+;;  * @param {vector} st - Lowering state.
+;;  * @returns {list}
+;;  */
+(define (receiver-read receiver tail st)
+  (let ((nm (synthesized-name! st)))
+    (list 'let nm (list 'call (list 'global '%this-of #f #t) (list (list 'local receiver #f #f)) #f)
+          (list 'local nm tail #f) tail #f)))
 
 ;; /**
 ;;  * Lowers `((lambda (a b) body) x y)` as bindings rather than as a call.

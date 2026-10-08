@@ -128,6 +128,19 @@ const READS = `(import (scheme base) (scheme read) (scheme write))
 (write (list first second (eof-object? (read port)) (read)))
 `;
 
+// A class whose constructor and methods read `this`, the receiver JavaScript
+// calls them with.
+const CLASSES = `(import (scheme base) (scheme write) (scheme-js interop))
+(define-class <Counter> Counter counter?
+  (fields (count counter-count counter-count-set!))
+  (constructor (start) (set! this.count start))
+  (methods
+    (bump! (by) (counter-count-set! this (+ this.count by)) this.count)))
+(define c (Counter 10))
+(c.bump! 5)
+(write (list (counter? c) (counter-count c) (c.bump! 1)))
+`;
+
 const RAISES = `(import (scheme base) (scheme write))
 (display "before")
 (newline)
@@ -177,6 +190,10 @@ export async function runAheadProgramTests(logger) {
       reads.file === null ? reads.refusals : run(reads.file, '(piped in)'),
       ['((1 (2 . 3) #(4 "five") six) 7 #t (piped in))', '', 0]);
 
+    const classes = build(dir, 'classes', CLASSES);
+    assert(logger, 'a class whose constructor and methods read this',
+      classes.file === null ? classes.refusals : run(classes.file), ['(#t 15 16)', '', 0]);
+
     const raises = build(dir, 'raises', RAISES);
     assert(logger, 'an error nobody handles is reported as the CLI reports it, after what the program printed',
       raises.file === null ? raises.refusals : run(raises.file),
@@ -194,10 +211,6 @@ export async function runAheadProgramTests(logger) {
     assert(logger, 'one using parameterize, by the library procedure that winds',
       refusalOf('parameterize', '(import (scheme base))\n(define p (make-parameter 1))\n(parameterize ((p 2)) (p))\n')
         .some((line) => line.startsWith('param-dynamic-bind in (scheme core) is not compiled')), true);
-    assert(logger, 'one whose method reads this, the receiver compiled code does not bind, by the class',
-      refusalOf('this', '(import (scheme base) (scheme-js interop))\n'
-        + '(define-class <C> C c? (fields (n c-n)) (constructor (n) (set! this.n n)) (methods))\n(C 1)\n')
-        .some((line) => line.startsWith('<C> in the program is not compiled: reads this')), true);
     assert(logger, 'one that cannot be expanded, as running it would say',
       refusalOf('malformed', '(import (scheme base))\n(if)\n')[0].startsWith('Error building'), true);
     assert(logger, 'one evaluating, which needs the expander and an interpreter, by the form',

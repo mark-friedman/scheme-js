@@ -265,6 +265,22 @@ a literal, a variable or a lambda. A literal and an unassigned local are left as
 nothing can change them. The differential fuzzer found this in its first long run: six programs in
 5,000, one cause.
 
+## `this` in compiled code
+
+`this` is the receiver JavaScript calls a procedure as a method of -- a class's constructor and
+methods read their fields through it. The interpreter binds it at each application while a method's
+call runs (`registers[THIS]`, `frames.js`), so a procedure the method calls sees the method's
+receiver, and a procedure made during the call sees, called after it, the receiver it was made
+under. Compiled code does the same with a cell the runtime keeps, the receiver of the call running
+(`methodReceiver` in `values.js`): each run of the interpreter sets it to its own for as long as it
+runs, and so does each way JavaScript calls compiled code with a receiver, each putting back what
+it found; and a nested run that compiled code starts by calling an interpreted closure is given it,
+as one run of the interpreter would be. A lambda that reads `this`, itself or in a lambda inside
+it, takes as it is entered the receiver running, or else the one the lambda around it took
+(`receiver-binding` in `ir.scm`, `R.thisAt`), into a local that frames save and closures capture
+like any other; a read of `this` is of that local, and where there was no receiver, an unbound
+variable, as in the interpreter (`R.thisOf`). Procedures that never read `this` pay nothing.
+
 ## Raising from compiled code
 
 `raise`, `raise-continuable` and `error` do not raise: they return a pending raise, a `TailCall`
@@ -799,9 +815,8 @@ at all, since every unit's environment is inside the runtime's environment of pr
 
 **What cannot run is refused by name, at build time, rather than failing as it runs.** Code the
 compiler declined, reached from anything that runs -- a procedure naming `dynamic-wind`,
-`with-exception-handler`, `guard` or `parameterize`, for which there is no compiled code yet, or
-reading `this`, the receiver the interpreter binds as JavaScript calls a procedure as a method,
-which compiled code has none of (task 103) -- refuses the program, saying which procedure and why;
+`with-exception-handler`, `guard` or `parameterize`, for which there is no compiled code yet --
+refuses the program, saying which procedure and why;
 so does a constant that cannot be written down, and a primitive the runtime does not carry
 (`AHEAD_PRIMITIVES`: those that need nothing of the interpreter or the library system, JavaScript
 interop, classes, promises and the command line among them). Unreached, a procedure that could not

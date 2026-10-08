@@ -191,6 +191,22 @@ export function assembleParts(name, params, count, implName, dir = R7RS_DIR) {
 }
 
 /**
+ * Assembles a run as a program: the benchmark's own import declarations, then
+ * the run as `assemble` makes it, so that it sees what it imports and nothing
+ * else, as a page's script that begins with them does (`benchmarks/run_bundle.js`).
+ * @param {string} name - Program name.
+ * @param {string|null} params - Replacement parameters, or null for canonical.
+ * @param {number} count - Repetitions.
+ * @param {string} implName - Implementation name for the CSV line.
+ * @param {string} [dir] - Suite directory.
+ * @returns {string} Complete Scheme source, a program with import declarations.
+ */
+export function assembleProgram(name, params, count, implName, dir = R7RS_DIR) {
+  const source = fs.readFileSync(path.join(dir, 'src', `${name}.scm`), 'utf8');
+  return `${source.match(/^\(import[\s\S]*?\)\s*$/m)[0]}\n${assemble(name, params, count, implName, dir)}`;
+}
+
+/**
  * Assembles a benchmark to be compiled ahead of time (`benchmarks/run_ahead.js`):
  * the program's own import declarations, its input as data, the program and
  * the shared postlude, as one program.

@@ -489,11 +489,13 @@
 
 ;; /**
 ;;  * The globals the lowering itself introduces, which are the runtime's
-;;  * primitives whatever the environment binds under their names
-;;  * (`lower-call-with-values` in ir.scm), each with what reads it.
+;;  * procedures whatever the environment binds under their names
+;;  * (`lower-call-with-values` and `receiver-binding` in ir.scm), each with
+;;  * what reads it.
 ;;  */
 (define runtime-globals
-  '((%apply . "R.applyProcedure") (%values->list . "R.valuesToList")))
+  '((%apply . "R.applyProcedure") (%values->list . "R.valuesToList")
+    (%this-at . "R.thisAt") (%this-of . "R.thisOf")))
 
 ;; /**
 ;;  * The JavaScript expression that reads a global: its cell's value, or, before

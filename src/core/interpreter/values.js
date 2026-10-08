@@ -194,12 +194,14 @@ export function createClosure(params, body, env, restParam, interpreter, name = 
     // compiler tier. The wrapper above exists for JavaScript callers and so
     // converts in both directions; routing compiled code through it silently
     // turned exact integers into doubles and threw on bignums beyond 2^53.
+    // The run sees the receiver of the method call it is part of, as one
+    // run of the interpreter would.
     closure[SCHEME_RAW_CALL] = function (...schemeArgs) {
         const ast = new TailAppNode(
             new LiteralNode(closure),
             schemeArgs.map((value) => new LiteralNode(value)));
         return interpreter.runWithSentinel(
-            ast, undefined, { jsAutoConvert: 'raw', compiledBoundary: true });
+            ast, methodReceiver.v, { jsAutoConvert: 'raw', compiledBoundary: true });
     };
 
     // Entry point for primitives that hold Scheme values and bind `this`.
@@ -704,6 +706,16 @@ export function takesSchemeValues(f) {
 }
 
 /**
+ * The receiver of the method call running: what `this` is to compiled code
+ * (`thisAt` in src/compiler/runtime.js), as the THIS register is to the
+ * interpreter. Each run of the interpreter sets it to its own for as long as
+ * it runs, and so does each way JavaScript calls compiled code with a
+ * receiver; each puts back what it found.
+ * @type {{v: *}}
+ */
+export const methodReceiver = { v: undefined };
+
+/**
  * Calls a procedure for which `takesSchemeValues` holds, from a primitive that
  * holds Scheme values, binding `this`. Nothing is converted in either
  * direction.
@@ -719,11 +731,14 @@ export function callSchemeMethod(proc, thisArg, args) {
     }
     // A compiled procedure, through its raw entry, may return a pending tail
     // call rather than a value. It may not move its frames to the heap stack
-    // beneath this JavaScript.
+    // beneath this JavaScript. What it reads as `this` is the receiver.
     const flush = suspendFlush();
+    const receiver = methodReceiver.v;
+    methodReceiver.v = thisArg;
     try {
         return settleTailCalls((proc[SCHEME_RAW_CALL] ?? proc).apply(thisArg, args));
     } finally {
+        methodReceiver.v = receiver;
         restoreFlush(flush);
     }
 }
