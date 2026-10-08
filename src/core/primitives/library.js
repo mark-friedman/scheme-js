@@ -36,10 +36,12 @@ import { runCompiled, runInterpreted, shareInterpreter } from '../interpreter/va
  * @param {Function} resolver - The host's resolver, from an array of strings
  *   to a file's text or a promise of it.
  * @param {string[]} path - The path.
+ * @param {string[]} [library] - For a file a library includes, the path of
+ *   the library's own file, which the resolver is given too.
  * @returns {*} The resolver's answer, or false for a promise.
  */
-export function resolveNow(resolver, path) {
-    const source = resolver(path);
+export function resolveNow(resolver, path, library) {
+    const source = library === undefined ? resolver(path) : resolver(path, library);
     if (source !== null && typeof source === 'object' && typeof source.then === 'function') {
         source.then(() => {}, () => {});
         return false;
@@ -80,9 +82,11 @@ export function makeScopedEnvironment(base) {
 export const libraryPrimitives = {
     /**
      * The file a path names, from the host's resolver, or #f if the resolver
-     * can answer only later (`resolveNow`).
+     * can answer only later (`resolveNow`); for a file a library includes,
+     * given the path of the library's own file too, else #f or nothing.
      */
-    '%resolve': (resolver, path) => resolveNow(resolver, stringsOf(path)),
+    '%resolve': (resolver, path, library = false) =>
+        resolveNow(resolver, stringsOf(path), library === false ? undefined : stringsOf(library)),
 
     /**
      * The text of a file an `include` form names, from the resolver the

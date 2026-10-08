@@ -30,27 +30,46 @@
 
 ;; /**
 ;;  * What reads the files of some directories: a file's text, by its name,
-;;  * from the first of them that has it, or #f.
+;;  * from the first of them that has it, or #f. Given the names a file it
+;;  * belongs beside may have, too, it looks first in the directory of the
+;;  * first of those found, as a file a library includes is looked for
+;;  * beside the library's own file.
 ;;  * @param {list} dirs - The directories, as paths.
-;;  * @returns {procedure}
+;;  * @returns {procedure} From a file's name, and the names of the one it is
+;;  *   beside, if any, to its text or #f.
 ;;  */
 (define (source-reader dirs)
-  (lambda (file)
-    (let ((dir (find (lambda (dir) (file-exists? (string-append dir "/" file))) dirs)))
-      (and dir (file-text (string-append dir "/" file))))))
+  (define (in dir file) (string-append dir "/" file))
+  (define (dir-of file) (find (lambda (dir) (file-exists? (in dir file))) dirs))
+  (lambda (file . beside)
+    (let* ((home (any dir-of beside))
+           (dir (if (and home (file-exists? (in home file))) home (dir-of file))))
+      (and dir (file-text (in dir file))))))
+
+;; /**
+;;  * The names a library's own file is looked for by, in order: by the last
+;;  * part of its name, `foo.sld` before `foo`, as every resolver of the
+;;  * bundle's does.
+;;  * @param {list} name - Its name or path, as strings.
+;;  * @returns {list}
+;;  */
+(define (library-file-names name)
+  (list (string-append (last name) ".sld") (last name)))
 
 ;; /**
 ;;  * The resolver a registry finds a library's file, or one it includes, by:
-;;  * by the last part of its name, `foo.sld` before `foo`, as every resolver
-;;  * of the bundle's does.
+;;  * by the last part of its name (`library-file-names`). A file a library
+;;  * includes is looked for first beside the library's own file, so that a
+;;  * file in a directory looked in earlier -- a program's own, named like one
+;;  * a library of the system's includes -- is not taken for it.
 ;;  * @param {procedure} read-source - A `source-reader`.
-;;  * @returns {procedure} From a name or path, as strings, to the file's text.
+;;  * @returns {procedure} From a name or path, as strings, and for a file a
+;;  *   library includes the library's name too, to the file's text.
 ;;  */
 (define (library-resolver read-source)
-  (lambda (path)
-    (let ((name (last path)))
-      (or (read-source (string-append name ".sld"))
-          (read-source name)
+  (lambda (path . library)
+    (let ((beside (if (pair? library) (library-file-names (car library)) '())))
+      (or (any (lambda (file) (apply read-source file beside)) (library-file-names path))
           (error "no library file for" (string-join path "/"))))))
 
 ;; /**
@@ -114,6 +133,17 @@
           (append (library-definition-includes definition)
                   (library-definition-includes-ci definition)
                   (library-definition-declaration-files definition)))))
+
+;; /**
+;;  * The text of each file a library is made of (`library-files`), each read
+;;  * where loading the library reads it: beside the library's own file first.
+;;  * @param {procedure} read-source - A `source-reader`.
+;;  * @param {list} name - The library's name, as strings.
+;;  * @param {list} files - Its files' names.
+;;  * @returns {list} Their texts.
+;;  */
+(define (library-file-texts read-source name files)
+  (map (lambda (file) (apply read-source file (library-file-names name))) files))
 
 ;; ---------------------------------------------------------------------------
 ;; The forms loading runs
@@ -258,7 +288,7 @@
 ;;  */
 (define (library-table-for read-source name env forms generated declined)
   (let*-values (((files) (library-files read-source name))
-                ((fingerprint) (fingerprint-sources (map read-source files)))
+                ((fingerprint) (fingerprint-sources (library-file-texts read-source name files)))
                 ;; Not every value can be written down (`constants-expression`):
                 ;; a procedure whose constant cannot be is left out, and runs
                 ;; interpreted.

@@ -7,10 +7,13 @@
 ;; includes, its body, and the table of what it exports.
 ;;
 ;; What only the host can do it is given: the file resolver, a procedure from
-;; a path to a file's text (and the load hook, called with each library
-;; loaded by name), and through primitives the reader, environments, and the
-;; expander's tables of scopes and syntactic keywords. Expanding and running a
-;; library's body is the host's too, the `evaluate` procedure a loader holds.
+;; a path to a file's text -- given, for a file a library includes, the path
+;; of the library's own file too, so that one that looks in several places
+;; can look first where it found that (`resolve-included`) -- (and the load
+;; hook, called with each library loaded by name), and through primitives the
+;; reader, environments, and the expander's tables of scopes and syntactic
+;; keywords. Expanding and running a library's body is the host's too, the
+;; `evaluate` procedure a loader holds.
 ;;
 ;; Names are symbols here: a library's name is the list it is written as, of
 ;; symbols and exact integers, and the names it exports and an import set
@@ -340,7 +343,10 @@
 
 ;; /**
 ;;  * The path the resolver is given for a file a library includes: the file's
-;;  * name in place of the last part of the library's.
+;;  * name in place of the last part of the library's. A resolver that finds
+;;  * files by the last part of the path alone is given the library's path too
+;;  * (`resolve-included`): every library whose name has the same first parts
+;;  * asks by the same path.
 ;;  * @param {list} name - The library's name.
 ;;  * @param {string} file - The file's name, as the library writes it.
 ;;  * @returns {list} Strings.
@@ -539,7 +545,8 @@
 ;;  * @property {library-registry} registry - Where libraries are found and
 ;;  *   registered.
 ;;  * @property {procedure} resolve - From a path, a list of strings, to the
-;;  *   file's text, or #f if the host can answer only later.
+;;  *   file's text, or #f if the host can answer only later; for a file a
+;;  *   library includes, given the path of the library's own file too.
 ;;  * @property {object|boolean} base-environment - The environment a
 ;;  *   library's own is made inside, or #f where nothing is to be loaded.
 ;;  * @property {procedure|boolean} evaluate - From a form and a library's
@@ -565,8 +572,8 @@
   (make-loader registry
                (let ((resolver (registry-resolver registry)))
                  (if resolver
-                     (lambda (path) (%resolve resolver path))
-                     (lambda (path) (error "library: no file resolver is set" (joined path "/")))))
+                     (lambda (path . library) (%resolve resolver path (and (pair? library) (car library))))
+                     (lambda (path . library) (error "library: no file resolver is set" (joined path "/")))))
                base-environment
                evaluate))
 
@@ -625,7 +632,25 @@
         (else (first-define-library (cdr forms)))))
 
 ;; /**
-;;  * The forms of a file, read.
+;;  * The text of a file a library includes, or of a file of library
+;;  * declarations it includes, from the loader: asked for by its path
+;;  * (`include-path`) and the path of the library's own file, so that a
+;;  * resolver that looks in several places looks first where it found the
+;;  * library's file, as most Schemes find an included file relative to the
+;;  * file that includes it. A file elsewhere named like one a library of the
+;;  * system's includes -- `list.scm` in a program's directory -- is then not
+;;  * taken for it.
+;;  * @param {loader} loader - The loader.
+;;  * @param {list} name - The library's name.
+;;  * @param {string} file - The file's name, as the library writes it.
+;;  * @returns {string|boolean} The text, or #f if the host can answer only
+;;  *   later.
+;;  */
+(define (resolve-included loader name file)
+  ((loader-resolve loader) (include-path name file) (name-strings name)))
+
+;; /**
+;;  * The forms of a library's own file, read.
 ;;  * @param {loader} loader - The loader.
 ;;  * @param {list} path - The path the resolver is given.
 ;;  * @param {string} filename - The name the forms' locations give.
@@ -633,10 +658,32 @@
 ;;  * @returns {list}
 ;;  */
 (define (read-library-file loader path filename fold-case?)
-  (let ((source ((loader-resolve loader) path)))
-    (if (not (string? source))
-        (error "library: async resolver not supported in sync load" (joined path "/")))
-    (%read-forms source filename fold-case?)))
+  (read-resolved ((loader-resolve loader) path) path filename fold-case?))
+
+;; /**
+;;  * The forms of a file a library includes, read (`resolve-included`).
+;;  * @param {loader} loader - The loader.
+;;  * @param {list} name - The library's name.
+;;  * @param {string} file - The file's name, which the forms' locations give.
+;;  * @param {boolean} fold-case? - Whether to read as `#!fold-case` does.
+;;  * @returns {list}
+;;  */
+(define (read-included-file loader name file fold-case?)
+  (read-resolved (resolve-included loader name file) (include-path name file) file fold-case?))
+
+;; /**
+;;  * The forms of a file's text, as the resolver gave it.
+;;  * @param {string|boolean} source - The text, or #f if the resolver can
+;;  *   answer only later, which a load cannot wait for.
+;;  * @param {list} path - The path it was asked for by.
+;;  * @param {string} filename - The name the forms' locations give.
+;;  * @param {boolean} fold-case? - Whether to read as `#!fold-case` does.
+;;  * @returns {list}
+;;  */
+(define (read-resolved source path filename fold-case?)
+  (if (not (string? source))
+      (error "library: async resolver not supported in sync load" (joined path "/")))
+  (%read-forms source filename fold-case?))
 
 ;; /**
 ;;  * The exports of a library, loaded from its file if it is not loaded yet:
@@ -685,8 +732,8 @@
          (let ((files (restorer (name-strings name) #f)))
            (and (pair? files)
                 (restorer (name-strings name)
-                          (map (loader-resolve loader)
-                               (cons path (map (lambda (file) (include-path name file)) (cdr files))))))))))
+                          (cons ((loader-resolve loader) path)
+                                (map (lambda (file) (resolve-included loader name file)) (cdr files)))))))))
 
 ;; /**
 ;;  * Defines a library from a `define-library` form a program holds. The
@@ -747,7 +794,7 @@
 (define (declared-definitions loader name definition)
   (append-each
     (lambda (file)
-      (let ((declared (parse-declarations #f (read-library-file loader (include-path name file) file #f)
+      (let ((declared (parse-declarations #f (read-included-file loader name file #f)
                                           (feature-test loader))))
         (cons declared (declared-definitions loader name declared))))
     (library-definition-declaration-files definition)))
@@ -762,7 +809,7 @@
 ;;  */
 (define (body-forms loader name definition)
   (define (included fold-case?)
-    (lambda (file) (read-library-file loader (include-path name file) file fold-case?)))
+    (lambda (file) (read-included-file loader name file fold-case?)))
   (append (library-definition-body definition)
           (append-each (included #f) (library-definition-includes definition))
           (append-each (included #t) (library-definition-includes-ci definition))))
@@ -1085,16 +1132,15 @@
 ;;  * @returns {wants}
 ;;  */
 (define (definition-wants loader name definition found)
+  (define (included-at-hand? file) (string? (resolve-included loader name file)))
   (define (file-wants file found)
-    (let ((path (include-path name file)))
-      (if (at-hand? loader path) found (want path found))))
+    (if (included-at-hand? file) found (want (include-path name file) found)))
   (define (declarations-want file found)
-    (let ((path (include-path name file)))
-      (if (at-hand? loader path)
-          (definition-wants loader name
-                            (parse-declarations #f (read-library-file loader path file #f) (feature-test loader))
-                            found)
-          (want path found))))
+    (if (included-at-hand? file)
+        (definition-wants loader name
+                          (parse-declarations #f (read-included-file loader name file #f) (feature-test loader))
+                          found)
+        (want (include-path name file) found)))
   (let* ((found (fold (lambda (spec found) (library-wants loader (import-set-library-name spec) found))
                       found
                       (library-definition-imports definition)))

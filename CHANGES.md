@@ -14497,3 +14497,42 @@ each: `earley`, which spends a fifth of its time collecting garbage (R140), 15.2
 elsewhere would cost what that ceiling does not repay: a `WeakMap` the reader and the expander pay
 for on every span, or a subclass of `Cons` for read data, which would make every `car` and `cdr`
 site in compiled code see two shapes.
+# Task 107 done: a library's included files found beside it (2026-10-08)
+
+Found building task 106. `node repl.js --build` looks for a library's file in the program's
+directory first, then the `-I` ones, then `src/core/scheme` and `src/extras/scheme`, and it looked for
+every file a library includes the same way, by its bare name: `include-path` in
+`src/core/scheme/library_system.scm` gives the resolver the library's name with its last part
+replaced by the file's, and every resolver here reads only the last part. So a program beside a
+file named like any include of a system library -- `list.scm`, `numbers.scm`, `core.scm`,
+`ports.scm` -- had that file included into `(scheme base)` in its place, and `(write (list 1 2))`
+failed to build with "read: missing ')'". The interpreter had the same defect for the directory it
+runs in, which its resolver searches first: run there, it failed to start, and so did the build,
+which starts it.
+
+The path alone cannot say which library is including: `(scheme base)` and a program's own
+`(scheme foo)` both ask for `("scheme" "list.scm")`. So the library system now tells the resolver:
+for a file a library includes, or a file of library declarations it includes, the loader passes the
+path it asked for the library's own file by as a second argument (`resolve-included`), and a
+resolver that looks in several places looks first where it found that file, as most Schemes resolve
+an include relative to the including file. The build's resolver (`library-resolver` in
+`scripts/lib/prebuild.scm`) reads the file from the directory holding the library's `.sld` first,
+then searches as before, and fingerprints a table's files the same way (`library-file-texts`); the
+CLI's (`besideLibrary` in `repl.js`) looks in the directory of the file it found for the library.
+A resolver that takes one argument -- the browser's, the bundle's, the tests' -- ignores the second
+and behaves as before. A load that fetches its files first (`files-wanted`) still asks for them by
+path alone; no such resolver searches more than one place.
+
+A user's own libraries in the program's directory still load, their includes from beside them:
+tested with a library there whose included file is named `list.scm`, beside garbage `core.scm` and
+`numbers.scm` (`tests/functional/ahead_program_tests.js`), and the interpreter run from such a
+directory (`tests/functional/cli_program_tests.js`, whose harness gained a `cwd` option). The
+library system's own tests check what its resolver is asked: a library's file by its path, and each
+file it names in `include`, `include-ci` or `include-library-declarations` with the library's path
+too, as it loads and as a table's files are fetched to be fingerprinted
+(`tests/core/scheme/library_system_tests.scm`).
+
+The prebuilt tables were regenerated; outside the library system's own, they differ only in the
+numbers of generated names. JavaScript under `src/`, 15 lines added, all fixed in place: `%resolve`
+(a primitive, `library.js`), `loaderFor` (`library_loader.js`) and the build host's registry door
+(`build_host.js`) pass the argument through. `repl.js`'s resolver is the CLI's host file access.

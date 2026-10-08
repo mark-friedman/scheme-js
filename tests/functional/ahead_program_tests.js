@@ -211,6 +211,16 @@ const RAISES = `(import (scheme base) (scheme write))
 (display "after")
 `;
 
+// Files in a program's directory named like files the system's libraries
+// include -- not Scheme, but for `list.scm`, the include of a library of the
+// program's own beside it -- which the build looks in first for libraries.
+const BESIDE = {
+  'list.scm': '(define (tally xs) (length xs))\n',
+  'core.scm': '(this is not the core library\n',
+  'numbers.scm': '(this is not the numbers library\n',
+  'tools.sld': '(define-library (my tools) (export tally) (import (scheme base)) (include "list.scm"))\n'
+};
+
 /**
  * Runs the tests.
  * @param {Object} logger - Test logger.
@@ -295,6 +305,18 @@ export async function runAheadProgramTests(logger) {
     assert(logger, 'one evaluating, which needs the expander and an interpreter, by the form',
       refusalOf('eval', '(import (scheme base) (scheme eval))\n(eval 1 (environment (quote (scheme base))))\n'),
       ['a top-level form in the program is not compiled: references control global \'eval\'']);
+
+    logger.title('Programs beside files named like what the system\'s libraries include');
+
+    const beside = path.join(dir, 'beside');
+    fs.mkdirSync(beside);
+    for (const [file, text] of Object.entries(BESIDE)) fs.writeFileSync(path.join(beside, file), text);
+    const system = build(beside, 'system', '(import (scheme base) (scheme write))\n(write (list 1 2))\n');
+    assert(logger, 'a library of the system\'s includes its own files, not the program\'s',
+      system.file === null ? system.refusals : run(system.file), ['(1 2)', '', 0]);
+    const own = build(beside, 'own', '(import (scheme base) (scheme write) (my tools))\n(write (list (tally (list 1 2 3)) (inexact 1/2)))\n');
+    assert(logger, 'and a library of the program\'s, in its directory, the file it includes there',
+      own.file === null ? own.refusals : run(own.file), ['(3 0.5)', '', 0]);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

@@ -27,6 +27,8 @@ const TIMEOUT_MS = 30000;
  * @param {number} [options.output] - A descriptor to give it as both standard
  *   output and standard error instead of two pipes, so that what it writes to
  *   each lands in one place, in the order it was written.
+ * @param {string} [options.cwd] - The directory it runs in; the repository's
+ *   root by default.
  * @param {function(Object, string): void} [options.onOutput] - Called with the
  *   child and everything it has written to standard output so far, once when
  *   it starts and again each time it writes; when given, `input` is not
@@ -35,10 +37,10 @@ const TIMEOUT_MS = 30000;
  * @returns {Promise<{status: number|null, stdout: string, stderr: string}>}
  *   How it exited and what it wrote.
  */
-export function runCli(args, { input = '', stdin, output, onOutput } = {}) {
+export function runCli(args, { input = '', stdin, output, cwd = ROOT, onOutput } = {}) {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, [REPL, ...args], {
-      cwd: ROOT,
+      cwd,
       stdio: [stdin ?? 'pipe', output ?? 'pipe', output ?? 'pipe']
     });
     let stdout = '';

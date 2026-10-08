@@ -77,6 +77,57 @@ function isPrebuilt(name) {
 }
 
 /**
+ * Whether a path names a file.
+ * @param {string} p - The path.
+ * @returns {boolean}
+ */
+function isFile(p) {
+    return fs.existsSync(p) && fs.statSync(p).isFile();
+}
+
+/**
+ * Where the file the library system asks for by a path lies: in the first
+ * directory that has it, as the path joined (`scheme/macros.scm`), with
+ * `.sld` (`scheme/base.sld`) or `.scm`, or by its last part alone, with
+ * `.sld` or as it is.
+ * @param {Array<string>} parts - The path: a library's name, or a file a
+ *   library includes.
+ * @param {Array<string>} searchDirs - The directories, in the order they are
+ *   looked in.
+ * @returns {string|null} The file's path, or null.
+ */
+function findLibraryFile(parts, searchDirs) {
+    const relativePath = parts.join('/');
+    const fileName = parts[parts.length - 1];
+    for (const dir of searchDirs) {
+        const candidates = [relativePath, relativePath + '.sld', relativePath + '.scm', fileName + '.sld', fileName]
+            .map((name) => path.join(dir, name));
+        const found = candidates.find(isFile);
+        if (found !== undefined) return found;
+    }
+    return null;
+}
+
+/**
+ * Where a file a library includes lies beside the library's own file, if it
+ * does there: as most Schemes find an included file, relative to the file
+ * that includes it.
+ * @param {Array<string>} parts - The file's path (`include-path` in
+ *   src/core/scheme/library_system.scm).
+ * @param {Array<string>} library - The library's name, as the library system
+ *   asks for its own file.
+ * @param {Array<string>} searchDirs - The directories, in the order they are
+ *   looked in.
+ * @returns {string|null} The file's path, or null.
+ */
+function besideLibrary(parts, library, searchDirs) {
+    const home = findLibraryFile(library, searchDirs);
+    if (home === null) return null;
+    const beside = path.join(path.dirname(home), parts[parts.length - 1]);
+    return isFile(beside) ? beside : null;
+}
+
+/**
  * Creates the interpreter and loads the standard libraries, their prebuilt
  * compiled code installed as each loads, as a browser page installs it.
  * @param {Array<string>} [includeDirs=[]] - Directories a library is looked
@@ -102,16 +153,11 @@ async function bootstrapInterpreter(includeDirs = []) {
         if (libraryEnv) installLibraryTable(TABLES, libraryName, libraryEnv, shippedSource);
     });
 
-    // Setup synchronous file resolver for Node.js
-    setFileResolver((libraryName) => {
-        const parts = libraryName;
-        // Search paths:
-        // 1. Current directory
-        // 2. src/core/scheme/
-
-        const relativePath = parts.join('/');
-        const fileName = parts[parts.length - 1];
-
+    // Setup synchronous file resolver for Node.js. A file a library
+    // includes is looked for beside the library's own file first, so that
+    // one named like it in a directory searched earlier -- the current one,
+    // or a -I one -- is not taken for it.
+    setFileResolver((libraryName, library) => {
         const searchDirs = [
             ...includeDirs,
             process.cwd(),
@@ -125,30 +171,10 @@ async function bootstrapInterpreter(includeDirs = []) {
             path.join(process.cwd(), 'tests/core/scheme/compliance/chibi_original'),
             path.join(process.cwd(), 'tests/core/scheme/compliance/chibi_revised')
         ];
-
-        for (const dir of searchDirs) {
-            // Check exact match (e.g. scheme/macros.scm)
-            let p = path.join(dir, relativePath);
-            if (fs.existsSync(p) && fs.statSync(p).isFile()) return fs.readFileSync(p, 'utf8');
-
-            // Check .sld (e.g. scheme/base.sld)
-            p = path.join(dir, relativePath + '.sld');
-            if (fs.existsSync(p) && fs.statSync(p).isFile()) return fs.readFileSync(p, 'utf8');
-
-            // Check .scm
-            p = path.join(dir, relativePath + '.scm');
-            if (fs.existsSync(p) && fs.statSync(p).isFile()) return fs.readFileSync(p, 'utf8');
-
-            // Check flat filename .sld
-            p = path.join(dir, fileName + '.sld');
-            if (fs.existsSync(p) && fs.statSync(p).isFile()) return fs.readFileSync(p, 'utf8');
-
-            // Check flat filename exact
-            p = path.join(dir, fileName);
-            if (fs.existsSync(p) && fs.statSync(p).isFile()) return fs.readFileSync(p, 'utf8');
-        }
-
-        throw new Error(`Library not found: ${libraryName.join(' ')}`);
+        const file = (library && besideLibrary(libraryName, library, searchDirs))
+            ?? findLibraryFile(libraryName, searchDirs);
+        if (file === null) throw new Error(`Library not found: ${libraryName.join(' ')}`);
+        return fs.readFileSync(file, 'utf8');
     });
 
     // Define 'load' primitive
