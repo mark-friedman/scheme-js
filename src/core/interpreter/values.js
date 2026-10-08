@@ -10,7 +10,7 @@
  * anywhere they appear (in variables, arrays, objects, Maps, etc.).
  */
 
-import { suspendFlush, restoreFlush } from './unwind.js';
+import { suspendFlush, restoreFlush, jumpIfDriving } from './unwind.js';
 import { LiteralNode, TailAppNode } from './ast_nodes.js';
 import { Cons } from './cons.js';
 import { SchemeError } from './errors.js';
@@ -428,6 +428,38 @@ export function createContinuation(fstack, interpreter) {
     // Custom toString for pretty-printing, one function for every continuation.
     continuation.toString = continuationText;
 
+    return continuation;
+}
+
+/**
+ * Creates the continuation of a capture a driver finished (`drive` in
+ * unwind.js): a continuation like any other, but holding the driver and its
+ * frames rather than a frame stack, which is made the first time the
+ * interpreter invokes it (`nativeFrameStack`), and with an entry for callers
+ * holding Scheme values -- the compiled code a driver runs -- that tries the
+ * driver's jump first (`jumpIfDriving`). Made at every capture a driver
+ * finishes, so it makes nothing more: a getter for the stack made `ctak`
+ * slower than the interpreter's copies.
+ *
+ * @param {Object} driver - The driver.
+ * @param {Object|null} frames - Its frames, innermost first.
+ * @param {Object} interpreter - The interpreter.
+ * @returns {Function} The continuation.
+ */
+export function createNativeContinuation(driver, frames, interpreter) {
+    const continuation = function (...jsArgs) {
+        return interpreter.invokeContinuation(continuation, continuationValue(jsArgs.map(jsToScheme)), this);
+    };
+    continuation[SCHEME_CONTINUATION] = true;
+    continuation.fstack = null;
+    continuation.driver = driver;
+    continuation.frames = frames;
+    continuation.interpreter = interpreter;
+    continuation.toString = continuationText;
+    continuation[SCHEME_RAW_CALL] = (...args) => {
+        jumpIfDriving(continuation, continuationValue(args));
+        return invokeWithSchemeValues(continuation, args);
+    };
     return continuation;
 }
 

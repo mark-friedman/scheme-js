@@ -9,7 +9,7 @@
  */
 
 import { Executable, ANS, CTL, ENV, FSTACK, THIS } from './stepables_base.js';
-import { isSchemeClosure, isSchemeContinuation, isSchemePrimitive, TailCall, ContinuationUnwind, Values, createContinuation, SCHEME_RAW_CALL, callWithSchemeValues, callSchemeProcedure } from './values.js';
+import { isSchemeClosure, isSchemeContinuation, isSchemePrimitive, TailCall, ContinuationUnwind, Values, createContinuation, createNativeContinuation, SCHEME_RAW_CALL, callWithSchemeValues, callSchemeProcedure } from './values.js';
 import { registerFrames, getWindFrameClass } from './frame_registry.js';
 import { schemeToJsDeep, jsToScheme } from './js_interop.js';
 import { Cons } from './cons.js';
@@ -17,7 +17,7 @@ import { Environment } from './environment.js';
 import { globalContext } from './context.js';
 import { GlobalRef, GLOBAL_SCOPE_ID, globalScopeRegistry } from './syntax_object.js';
 import { SchemeApplicationError, SchemeArityError, SchemeError } from './errors.js';
-import { UNWIND, completeCapture, openCompiledSegment, suspendFlush, restoreFlush, noteResume } from './unwind.js';
+import { UNWIND, finishUnwind, nativeFrameStack, openCompiledSegment, suspendFlush, restoreFlush, noteResume } from './unwind.js';
 
 // Import AST nodes needed by frames (Literal, TailApp, RestoreContinuation)
 // Note: This creates a dependency on ast_nodes, but it's a one-way dependency
@@ -373,7 +373,8 @@ export class AppFrame extends Executable {
  */
 function invokeContinuationFrom(func, args, env, registers, interpreter) {
     const currentStack = registers[FSTACK];
-    const targetStack = func.fstack;
+    // A continuation a driver made has its frame stack made when first needed.
+    const targetStack = func.fstack ?? (func.fstack = nativeFrameStack(func));
 
     // Handle multiple values: wrap 2+ args in Values, like `values` primitive
     let value;
@@ -670,7 +671,7 @@ export function continueApplication(exprs, index, values, env, registers, interp
         // recorded itself on the way out; splicing them in where the boundary
         // sat completes the stack, and the capture can finish.
         if (result === UNWIND) {
-            return completeCapture(registers, interpreter, CAPTURE_HOOKS);
+            return finishUnwind(registers, interpreter, CAPTURE_HOOKS);
         }
 
         if (result instanceof TailCall) return takeTailCall(result, registers);
@@ -726,7 +727,7 @@ export class CompiledEntryRemainder extends Executable {
     }
 
     step(registers, interpreter) {
-        if (this.kind === 'unwind') return completeCapture(registers, interpreter, CAPTURE_HOOKS);
+        if (this.kind === 'unwind') return finishUnwind(registers, interpreter, CAPTURE_HOOKS);
         if (this.kind === 'tail') return takeTailCall(this.value, registers);
         throw this.value;
     }
@@ -1001,7 +1002,7 @@ export class CompiledFrame extends Executable {
         // popped -- so what is left on the stack below is exactly the rest of
         // the new continuation, and the capture can be finished here.
         if (result === UNWIND) {
-            return completeCapture(registers, interpreter, CAPTURE_HOOKS);
+            return finishUnwind(registers, interpreter, CAPTURE_HOOKS);
         }
 
         registers[ANS] = result;
@@ -1074,7 +1075,8 @@ function pushMovedFrames(fstack, frames) {
 }
 
 /**
- * What `unwind.js` needs from the interpreter in order to finish a capture.
+ * What `unwind.js` needs from the interpreter in order to finish a capture,
+ * in a run (`completeCapture`) or in a driver of its own (`finishUnwind`).
  *
  * It owns the protocol but deliberately not the interpreter's vocabulary, so
  * the dependency points one way: the interpreter knows about compiled code only
@@ -1092,6 +1094,11 @@ const CAPTURE_HOOKS = {
     applyCall: (procedure, args) => new TailAppNode(
         new LiteralNode(procedure), args.map((arg) => new LiteralNode(arg))),
     pushMoved: pushMovedFrames,
+    call: callWithSchemeValues,
+    callScheme: callSchemeProcedure,
+    takeTailCall: (result, registers) => takeTailCall(result, registers),
+    nativeContinuation: createNativeContinuation,
+    isTailCall: (x) => x instanceof TailCall,
     // A run's stack is its parent's, then the sentinel it started on, then its
     // own frames; the parent's are there already, where the unwind ends.
     segmentOf: (fstack) => {

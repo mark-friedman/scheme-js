@@ -1,7 +1,7 @@
 import { Values, isSchemeClosure, callSchemeProcedure, registerGlobalEnvironment } from './values.js';
 import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
-import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush, beginStepAgain, openCompiledSegment } from './unwind.js';
+import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush, beginStepAgain, openCompiledSegment, enterRun, leaveRun } from './unwind.js';
 import { CompiledEntryRemainder } from './frames.js';
 import { TailCall } from './values.js';
 import { takeCompiledRaise } from './ast_nodes.js';
@@ -341,6 +341,8 @@ export class Interpreter {
     const unwindsOut = this.unwindsOut;
     this.unwindsOut = initialStack.length > 0
       && initialStack[initialStack.length - 1].compiledBoundary === true;
+    // No driver beneath this run takes a continuation by a jump through it.
+    const driver = enterRun();
 
     // The Top-Level Trampoline
     try {
@@ -470,6 +472,7 @@ export class Interpreter {
       this.depth--;
       restoreFlush(flush);
       this.unwindsOut = unwindsOut;
+      leaveRun(driver);
     }
   }
 
@@ -681,6 +684,7 @@ export class Interpreter {
     const flush = flushState();
     const unwindsOut = this.unwindsOut;
     this.unwindsOut = false;
+    const driver = enterRun();
 
     try {
       let stepCount = 0;
@@ -773,6 +777,7 @@ export class Interpreter {
       this.depth--;
       restoreFlush(flush);
       this.unwindsOut = unwindsOut;
+      leaveRun(driver);
     }
   }
 

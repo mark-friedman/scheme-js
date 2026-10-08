@@ -180,6 +180,26 @@ back into Scheme, as `continueApplication` does -- without it, a continuation in
 resumed frame started from whatever stack was recorded last, and rewound into winds it was already
 in, which the differential fuzzer found.
 
+**A capture made by compiled code is finished by a driver of the runtime's own** (`drive` in
+`unwind.js`, task 77), when nothing but compiled frames lies between it and the outermost run and
+no debugger is on. The frames go on a list of the driver's, innermost first, which a continuation
+shares rather than copies; each is resumed by calling its twin; and a continuation invoked from
+compiled code running in the driver -- by a call or a tail call -- is taken by a jump, a plain
+object thrown to the driver. The continuation is the interpreter's too: the run's stack beneath
+the driver, copied once at the driver's first capture, with the frames on top, made only when
+something else invokes it -- interpreted code, code inside a nested run, anyone after the driver
+has returned -- and those take the interpreter's way, which runs the `dynamic-wind` thunks between.
+A run clears the driver it starts beneath (`enterRun`), so no jump crosses one. Anything else an
+unwind collects -- a nested run's frames, a capture made by interpreted code, a step taken again
+for the debugger, and a move to the heap -- goes to `completeCapture` as before, the driver's
+frames beneath it. Compiled `ctak` runs 1.65 times faster and `fibc` 2.5 times; `puzzle`, whose
+capture holds frames in the driver while its whole search runs, 7% slower.
+
+Moves to the heap stay with the interpreter, which hands each moved frame back to its run to resume
+(`MovedFrames`): run inside a driver, what a move's frames go on to do -- in `earley` the rest of
+the program -- took a fifth longer, all of it in garbage collection, the same cost that once made
+resuming a moved frame from inside the frame holding it slower (R140).
+
 **A frame saves only what is live where it resumes** (`src/compiler/liveness.scm`). Saving every
 local at every suspension point was quadratic — frame literals were 57% of all generated code in
 the benchmark corpus — and a frame only needs what can still be read after it resumes. Three

@@ -13940,3 +13940,54 @@ program's top-level forms must be compiled, here by wrapping them in `main`; and
 load `node:fs` with a top-level `await`, which a bundler that wraps modules cannot keep. The trial
 printed nothing, raised nothing, and used no records, `dynamic-wind`, parameters or JavaScript
 interop; each adds to what a build carries. Recorded in task 77's row, for the user to decide on.
+
+# Task 77 done: compiled code finishes its own continuation captures (2026-10-07)
+
+Increment (1) of task 77, which the user chose to go ahead with after its two checks. A capture
+made by compiled code used to be finished by the interpreter's run beneath: the saved frames put on
+its frame stack as interpreter frames, the continuation a copy of that stack made twice over, every
+frame resumed one interpreter step at a time, and a continuation invoked from compiled code thrown
+back through a run of its own. Now, when only compiled frames lie between the capture and the
+outermost run and no debugger is on, a driver of the runtime's own finishes it (`drive` in
+`src/core/interpreter/unwind.js`, reached through `finishUnwind` wherever the interpreter calls
+compiled code):
+
+- the frames go on a list of the driver's, innermost first, which a continuation shares;
+- each is resumed by calling its twin with a copy of its slots, so continuations stay multi-shot,
+  and the policy that switches re-entered procedures back still counts each resume;
+- a continuation invoked from compiled code running in the driver, by a call or a tail call, is
+  taken by a jump: a plain object thrown to the driver, which resumes the continuation's frames;
+- the continuation is the interpreter's as well (`createNativeContinuation` in values.js): its
+  frame stack -- the run's stack beneath the driver, copied once at the driver's first capture, and
+  the frames on top as one `MovedFrames` -- is made only when interpreted code, code inside a nested
+  run, or anyone after the driver has returned invokes it, which takes the interpreter's way and
+  runs the winds between. A run clears the driver it starts beneath (`enterRun`), so a jump never
+  crosses one.
+
+Anything else an unwind collects goes to `completeCapture` as before, with the driver's frames
+beneath: a nested run's frames, a capture made by interpreted code, a step taken again for the
+debugger, and moves to the heap.
+
+| compiled, per iteration | before | after |
+|---|---|---|
+| `fibc` | 35.8 ms | 14.4 ms |
+| `ctak` | 67.5 ms | 40.8 ms |
+| `puzzle` | 8.7 ms | 9.3 ms |
+
+The continuation class is 1.6 times faster; every other class is level, and so are `run_tier.js`'s
+test files (1.3%), corpus (0.3%) and page programs. Three things the prototype had not shown (R140):
+a continuation made with a getter for its stack and four closures made `ctak` slower than before,
+until it was made with two closures and plain properties; moves to the heap, finished in the
+driver, made `earley` 23% slower, all of it garbage collection, because the rest of the program then
+ran inside the driver, so they stay with the interpreter and deep recursion gains nothing; and
+`puzzle`, whose capture holds its frames in the driver while its search runs, is 7% slower by the
+same effect.
+
+Tested in `tests/tiers/continuation_tests.scm`, run interpreted and under the tier -- escapes,
+re-entries within and after the capturing procedure, one continuation re-entered three times,
+re-entry from interpreted code within a wind, escapes through a wind and from a JavaScript callback,
+captures beneath frames moved to the heap, several values -- and in
+`tests/functional/native_unwind_tests.js`, which checks by the driver's counts which way each case
+went. The increments that remain, toward a program compiled ahead of time and run as one file, are
+tasks 97 to 99. JavaScript under `src/`: the save-and-resume protocol, and the continuation it
+makes, a value.

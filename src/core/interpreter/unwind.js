@@ -55,7 +55,7 @@
  * point to resume from.
  */
 
-import { CTL, ENV, FSTACK } from './stepables_base.js';
+import { ANS, CTL, ENV, FSTACK } from './stepables_base.js';
 
 /**
  * Returned by compiled code whose callee began capturing a continuation.
@@ -485,4 +485,284 @@ export function completeCapture(registers, interpreter, hooks) {
   registers[CTL] =
     hooks.applyReceiver(lambdaExpr, hooks.makeContinuation(stack, interpreter));
   return true;
+}
+
+// =============================================================================
+// Finishing an unwind without the interpreter
+// =============================================================================
+//
+// `completeCapture` puts the frames an unwind saved on the interpreter's
+// frame stack, as interpreter frames, makes the continuation a copy of that
+// stack, and resumes the frames one interpreter step at a time; a continuation
+// invoked from compiled code goes through a run of the interpreter of its own
+// and is thrown back to this one. For a capture made by compiled code, with
+// only compiled frames between it and the run that finishes it, all of that
+// is done here instead, by a driver: the saved frames
+// kept as a list of their own, innermost first, which a continuation shares
+// rather than copies; each resumed by calling its resumable form; and a
+// continuation invoked from compiled code running in the driver taken by a
+// throw the driver catches. That made compiled `ctak` 1.6 and `fibc` 2.4
+// times faster.
+//
+// A continuation the driver makes is the interpreter's as well: the run's
+// frame stack beneath the driver, copied at the driver's first capture, with
+// the compiled frames on top, made only if something asks for it -- invoked
+// from interpreted code, from inside a run of the interpreter, after the
+// driver has returned. Those take the interpreter's way, which runs the
+// `dynamic-wind` thunks a jump would skip, since a jump is taken only where no
+// run lies between it and its driver: a run clears the driver it was called
+// beneath (`enterRun`). Anything else an unwind collects -- the frames of a run
+// it passed through, a capture made by interpreted code, a step to take again
+// for the debugger -- is handed to `completeCapture` with the driver's frames
+// beneath, as before; and so is everything while a debugger is on, whose
+// stack is the interpreter's.
+
+/**
+ * How the unwinds that reached a run were finished: by the driver, and how
+ * many continuations it took by a jump; or handed to the interpreter. For the
+ * tests and measurements that need to know which way ran.
+ * @type {{finished: number, jumps: number, handedDown: number}}
+ */
+export const nativeUnwinds = { finished: 0, jumps: 0, handedDown: 0 };
+
+/**
+ * The driver whose compiled code is running now with no run of the
+ * interpreter between it and the driver, or null.
+ * @type {Object|null}
+ */
+let currentDriver = null;
+
+/**
+ * Notes that a run of the interpreter starts: no driver beneath it is current
+ * until it ends.
+ * @returns {Object|null} What `leaveRun` gives back.
+ */
+export function enterRun() {
+  const saved = currentDriver;
+  currentDriver = null;
+  return saved;
+}
+
+/**
+ * Notes that a run of the interpreter ends.
+ * @param {Object|null} saved - What `enterRun` returned.
+ * @returns {void}
+ */
+export function leaveRun(saved) {
+  currentDriver = saved;
+}
+
+/**
+ * Thrown to take a continuation a driver made, back to that driver. A control
+ * signal, not an Error, which would take a stack trace every time.
+ */
+class NativeJump {
+  /**
+   * @param {Object} driver - The driver.
+   * @param {Object|null} stack - The continuation's frames, innermost first.
+   * @param {*} value - What the continuation was invoked with.
+   */
+  constructor(driver, stack, value) {
+    this.driver = driver;
+    this.stack = stack;
+    this.value = value;
+  }
+}
+
+/**
+ * Finishes an unwind that has reached a run of the interpreter: in a driver,
+ * where it can be (above), and otherwise as `completeCapture` does.
+ * @param {Array} registers - The run's registers.
+ * @param {Object} interpreter - The interpreter.
+ * @param {CaptureHooks & NativeHooks} hooks - What this needs from the interpreter.
+ * @returns {boolean} Whether the run's trampoline continues.
+ */
+export function finishUnwind(registers, interpreter, hooks) {
+  if (interpreter.unwindsOut || interpreter.debugRuntime?.enabled || !nativelyFinishable()) {
+    return completeCapture(registers, interpreter, hooks);
+  }
+  return drive(registers, interpreter, hooks);
+}
+
+/**
+ * Whether the unwind in progress can be finished in a driver: a capture made
+ * by compiled code, every frame it saved compiled.
+ *
+ * Not a move to the heap, which the interpreter finishes (`MovedFrames` in
+ * frames.js): after one, everything the frames moved go on to do -- in
+ * `earley` the rest of the program -- would run inside the driver, and there
+ * it took a fifth longer, the time all in garbage collection, as it did when
+ * a moved frame was resumed from inside the frame holding it.
+ * @returns {boolean}
+ */
+function nativelyFinishable() {
+  const pending = unwinding.pending;
+  if (pending === null || pending.lambdaExpr === undefined) return false;
+  return pending.env === null && pending.segment.length === 0
+    && unwinding.frames.every((piece) => piece.twin !== undefined);
+}
+
+/**
+ * What a driver needs from the interpreter, beside `CaptureHooks`.
+ * @typedef {Object} NativeHooks
+ * @property {function(Function, Array): *} call - Calls a procedure with
+ *   Scheme values, as compiled code does (`callWithSchemeValues`).
+ * @property {function(Function, Array): *} callScheme - Calls a Scheme
+ *   procedure from JavaScript (`callSchemeProcedure`), for the policy that
+ *   switches re-entered procedures back.
+ * @property {function(TailCall, Array): boolean} takeTailCall - Makes a tail
+ *   call the run's next step.
+ * @property {function(Object, Object, Object): Function} nativeContinuation -
+ *   A continuation of a driver's frames (`createNativeContinuation`).
+ * @property {function(*): boolean} isTailCall - Whether a value is a pending
+ *   tail call.
+ */
+
+/**
+ * Finishes the unwind in progress, and runs what follows it, in a driver:
+ * until the frames the driver keeps are all resumed, or until an unwind
+ * reaches it that it cannot finish, which is handed to `completeCapture` with
+ * those frames beneath it.
+ * @param {Array} registers - The run's registers.
+ * @param {Object} interpreter - The interpreter.
+ * @param {CaptureHooks & NativeHooks} hooks - What this needs.
+ * @returns {boolean} Whether the run's trampoline continues.
+ */
+function drive(registers, interpreter, hooks) {
+  // What a continuation holds of the driver: whether it is running, the run's
+  // frame stack beneath it -- read until its first capture copies it -- and
+  // the hooks. Nothing more, since a program may keep its continuations.
+  const driver = { live: true, base: null, beneath: registers[FSTACK], hooks };
+  // The frames the driver holds, innermost first, as `{frame, next}`.
+  let stack = null;
+  // What to do next: resume `frame` with `value`, or call `callee` -- a
+  // capture's receiver -- with `args`, so that a step allocates nothing but
+  // its frame's copy.
+  let frame = null;
+  let value;
+  let callee = null;
+  let args = null;
+  let result = UNWIND;
+  let handDown = false;
+  const savedDriver = currentDriver;
+  const flush = flushState();
+  currentDriver = driver;
+  compiledStack.flushable = true;
+  compiledStack.refusesCapture = false;
+  // What compiled code calls back into Scheme starts from the run's stack, as
+  // where the interpreter calls compiled code.
+  interpreter.pushJsContext(registers[FSTACK]);
+  try {
+    for (;;) {
+      if (frame !== null || callee !== null) {
+        compiledStack.room = compiledStack.limit;
+        try {
+          if (frame !== null) {
+            const { twin, pc, slots } = frame;
+            frame = null;
+            noteResume(twin, hooks.callScheme);
+            // Copied, never shared, so the continuation stays multi-shot.
+            result = twin(pc, { ...slots, $r: value });
+          } else {
+            const f = callee;
+            const a = args;
+            callee = null;
+            args = null;
+            result = hooks.call(f, a);
+          }
+          value = undefined;
+          // A tail call with frames still to return to is made here, and so
+          // is one to a continuation of this driver's, which is a jump; any
+          // other, with none, is the run's to make, as the call's own would be.
+          while (hooks.isTailCall(result) && (stack !== null || result.func.driver === driver)) {
+            result = hooks.call(result.func, result.args);
+          }
+        } catch (e) {
+          if (!(e instanceof NativeJump) || e.driver !== driver) throw e;
+          nativeUnwinds.jumps++;
+          stack = e.stack;
+          result = e.value;
+        }
+      }
+      if (result === UNWIND) {
+        if (!nativelyFinishable()) {
+          for (let node = stack; node !== null; node = node.next) unwinding.frames.push(node.frame);
+          handDown = true;
+          break;
+        }
+        // Saved innermost first, as the unwind travelled outward.
+        for (let i = unwinding.frames.length - 1; i >= 0; i--) stack = { frame: unwinding.frames[i], next: stack };
+        callee = unwinding.pending.lambdaExpr;
+        unwinding.frames = [];
+        unwinding.pending = null;
+        nativeUnwinds.finished++;
+        args = [continuationOf(driver, stack, interpreter)];
+        continue;
+      }
+      if (stack === null) break;
+      frame = stack.frame;
+      stack = stack.next;
+      value = result;
+      result = undefined;
+    }
+  } finally {
+    interpreter.popJsContext();
+    restoreFlush(flush);
+    currentDriver = savedDriver;
+    driver.live = false;
+    driver.beneath = null;
+  }
+  if (handDown) {
+    nativeUnwinds.handedDown++;
+    return completeCapture(registers, interpreter, hooks);
+  }
+  if (hooks.isTailCall(result)) return hooks.takeTailCall(result, registers);
+  registers[ANS] = result;
+  return false;
+}
+
+/**
+ * The continuation of a capture a driver finishes, holding the driver and its
+ * frames. Beneath them is the run's frame stack, copied once, at the driver's
+ * first capture, while the run waits on the driver and so cannot have changed
+ * it.
+ * @param {Object} driver - The driver.
+ * @param {Object|null} stack - The frames, innermost first.
+ * @returns {Function} The continuation.
+ */
+function continuationOf(driver, stack, interpreter) {
+  if (driver.base === null) driver.base = [...driver.beneath];
+  return driver.hooks.nativeContinuation(driver, stack, interpreter);
+}
+
+/**
+ * Takes a continuation a driver made by a jump to its driver, if compiled
+ * code is running in that driver now with no run between; otherwise returns,
+ * and the continuation is invoked the interpreter's way.
+ * @param {Function} continuation - The continuation.
+ * @param {*} value - What it is invoked with.
+ * @returns {void}
+ * @throws {NativeJump} Where it can be taken by a jump.
+ */
+export function jumpIfDriving(continuation, value) {
+  const driver = continuation.driver;
+  if (driver.live && currentDriver === driver) throw new NativeJump(driver, continuation.frames, value);
+}
+
+/**
+ * The frame stack of a continuation a driver made, as the interpreter holds
+ * one: the run's stack beneath the driver, then its compiled frames, moved to
+ * the heap as one frame.
+ * @param {Function} continuation - The continuation.
+ * @returns {Array} The frame stack.
+ */
+export function nativeFrameStack(continuation) {
+  const { base, hooks } = continuation.driver;
+  const frames = [];
+  for (let node = continuation.frames; node !== null; node = node.next) {
+    frames.push(hooks.frameFor(node.frame.twin, node.frame.pc, node.frame.slots));
+  }
+  const fstack = [...base];
+  hooks.pushMoved(fstack, frames.reverse());
+  return fstack;
 }

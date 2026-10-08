@@ -3783,3 +3783,23 @@ interpreted they are unchanged, 120 and 155 ms, so compiled they now run 1.8 and
 fast path's case rests on escapes in real code, not on them. A thrown control signal is never an
 `Error`.
 
+**R140. The first check's driver did not carry over whole.**
+
+Task 77's first check ran a prototype driver in place of the interpreter beneath compiled code and
+measured `ctak` 2.4x, `fibc` 2.6x, escapes 2.85x and a million-deep recursion 1.7-1.9x faster. Built
+into the system, with the interpreter's continuations, winds, nested runs and debugger to keep, three
+things changed. Its first cut made each continuation with a getter for its frame stack and four
+closures, and `ctak`, which captures 63,609 times an iteration, ran slower than before; made with two
+closures and plain properties, it ran 1.65 times faster, not 2.4. Moves to the heap, finished in the
+driver, made `earley` 23% slower, 15.8 to 19.5 ms, the whole difference garbage collection --
+scavenges, the same 111 of them, took 383 ms against 163 -- because everything the moved frames go
+on to do, the rest of the program, ran inside the driver; neither the closures it made at each step
+nor what its continuations held was the cause, and the counts of frames saved and moved were the same
+both ways. So moves stay with the interpreter, as `MovedFrames` already did for the same cost, and
+the deep-recursion gain is not had. And `puzzle`, whose capture keeps its frames in the driver while
+its whole search runs, is 7% slower, by the same effect at a smaller scale.
+
+*Consequence:* the driver finishes captures made by compiled code only. A prototype measured in
+isolation is an upper bound; what runs beneath a long-lived JavaScript frame is collected more
+slowly, and a driver that keeps running costs that.
+

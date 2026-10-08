@@ -88,6 +88,7 @@ export const functionalTests = [
     { path: 'functional/tiering_tests.js', fn: 'runTieringTests', async: true, needsInterpreter: false },
     { path: 'functional/string_interop_tests.js', fn: 'runStringInteropTests', needsInterpreter: false },
     { path: 'functional/capture_policy_tests.js', fn: 'runCapturePolicyTests', async: true, needsInterpreter: false },
+    { path: 'functional/native_unwind_tests.js', fn: 'runNativeUnwindTests', async: true, needsInterpreter: false },
     { path: 'functional/primitive_binding_tests.js', fn: 'runPrimitiveBindingTests', async: true, needsInterpreter: false },
     { path: 'debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
     { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },
@@ -137,6 +138,7 @@ export const tieredSchemeTestFiles = [
     'tests/tiers/double_loop_tests.scm',
     'tests/tiers/inexact_constant_tests.scm',
     'tests/tiers/complex_arithmetic_tests.scm',
+    'tests/tiers/continuation_tests.scm',
 ];
 
 // Scheme tests of the compiler's own Scheme, run in the environment the
