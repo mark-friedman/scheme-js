@@ -13913,3 +13913,30 @@ made them. A real increment (1) would keep that path where it holds and fall bac
 protocol for interpreter frames beneath, winds and parameters, and continuations used after their
 run returned or from interpreted code. Recorded in task 77's row; the second check, what an
 ahead-of-time build saves, follows.
+
+# Task 77, second check: what an ahead-of-time build saves (2026-10-07)
+
+The second of the two checks chosen with the user. A trial built by hand in a scratch directory,
+for a small program -- `fib`, `map`, `apply`, `assoc` over strings, `string-append`, vectors and
+`list-tail`, its work in a `main` procedure so that all of it compiles -- held the program's
+generated code, the 12 of `(scheme core)`'s 130 procedures it reaches (found by following the
+globals each one's code names), the data primitives registered in a bare environment, and the first
+check's driver, with no interpreter, expander, reader, library system or debugger. It gives the
+CLI's answer.
+
+| | trial, ahead of time | today |
+|---|---|---|
+| bundle | 186 KB, 46 KB gzipped | `dist/scheme.js` 8.56 MB, 898 KB gzipped (the compiler another 4.43 MB, 469 KB) |
+| Node, start to answer | 39 ms (Node alone 24) | CLI 366 ms with the tier, 389 with `--no-compile` |
+| a page, navigation to answer | 16.5 ms | 195 ms for a trivial script, 332 for this program |
+
+What a real build would have to untangle, found making it: `string.js` imports `parseNumber`
+through `reader.js`, whose module starts the library system's seed, which imports every table --
+3.4 MB of the first bundle came from that one import, redirected for the trial to
+`number_parser.js`; `procedure?` and `apply` are registered from `control.js` and `error` from
+`exception.js`, which import the interpreter (stood in for in the trial); a library's value forms,
+such as `equal-tree-budget`, are run by the evaluator as the library loads (supplied by hand); a
+program's top-level forms must be compiled, here by wrapping them in `main`; and the console ports
+load `node:fs` with a top-level `await`, which a bundler that wraps modules cannot keep. The trial
+printed nothing, raised nothing, and used no records, `dynamic-wind`, parameters or JavaScript
+interop; each adds to what a build carries. Recorded in task 77's row, for the user to decide on.
