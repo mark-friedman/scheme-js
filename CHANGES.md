@@ -14329,3 +14329,13 @@ it was level, and task 101's figures, measured again so, held.
 Tested in `tests/tiers/exact_division_tests.scm`, interpreted and under the tier: every sign, small
 integers and integers beyond V8's small ones up to 2^53, a BigInt, inexact integers, a zero divisor,
 and no negative zero where an exact zero belongs -- which `equal?` alone would not have caught.
+
+# Task 58 closed: the inner loops of a procedure the tier declines (2026-10-08)
+
+Measured, and not done. Compiling the inner loops of a declined procedure was worth it only if many
+procedures stayed declined, and since 37(a) compiles the procedures that capture, few do: of the
+corpus's 2,422 top-level definitions (`benchmarks/decline_reasons.js --corpus`) 92.4% compile, and 9,
+0.4%, are declined for a control form -- 3 handing `call/cc` on as a value, 2 `eval`, 2
+`dynamic-wind`, 1 `exit`, 1 `raise`. The 124 made inside a procedure are compiled with it by the tier.
+The count on local closures 58 needed, a cost on every interpreted call, would buy inner loops in
+nine procedures.
