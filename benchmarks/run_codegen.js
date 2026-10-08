@@ -115,6 +115,28 @@ const GROUPS = [
     ]
   },
   {
+    name: 'division',
+    about: 'quotient, remainder and modulo of two exact integers, small and beyond V8\'s small integers (task 105)',
+    definitions: `
+      (define (one x) 1)
+      (define (divide a b) (if (= (quotient a b) 0) 0 1))
+      (define (remaining a b) (if (= (remainder a b) -1) 0 1))
+      (define (modular a b) (if (= (modulo a b) -1) 0 1))
+      (define (digits n) (+ (remainder n 10) (quotient n 10)))
+      (define key-a 'a)
+      (define small 123456)
+      (define large 4294967311)
+      (define divisor 16384)`,
+    workloads: [
+      ['quotient of small integers', '(divide small divisor)'],
+      ['remainder of small integers', '(remaining small divisor)'],
+      ['modulo of small integers', '(modular small divisor)'],
+      ['quotient beyond 2^31', '(divide large divisor)'],
+      ['remainder beyond 2^31', '(remaining large divisor)'],
+      ['a digit and the rest: remainder and quotient', '(digits small)']
+    ]
+  },
+  {
     name: 'vectors',
     about: 'vector-ref, vector-set! and vector-length on an array and an exact index in range',
     definitions: `

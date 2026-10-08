@@ -3824,3 +3824,20 @@ reads little of `R`, level.
 `runtime_separation_tests.js` checks with V8's own test that the bundled copy keeps fast properties.
 A figure taken from the source modules says what Node runs; what a page runs is measured through the
 bundle, which no harness did (task 102).
+
+**R142. A copy of the repository and the repository ran the same code differently.**
+
+A before-and-after measurement had been made by running "before" from a copy of the repository in a
+scratch directory and "after" from the repository itself, as task 101's and the first of task 105's
+were, on the belief that the code alone decides a figure. It does not. Measuring 105, `fibc` --
+which divides nowhere, and which none of the eight procedures 105 changed is reached by -- came out
+about a fifth slower after, 18.8 to 22.0 ms against 15.7 to 16.4, consistently over six interleaved
+runs. Then the repository's `src/` copied into the scratch directory, identical file for file, ran
+it in 15.4 to 16.0 ms, while the repository ran it in 18.9 to 19.8; copies at a short path and at a
+path eighty characters long ran it alike, so the path's length is not the cause, and nothing in the
+code or Node's settings names the directory. The cause was not found. Measured again from two
+copies of equal standing, `fibc` was level, 15.6 to 15.3 ms, and 101's figures, measured again so,
+held: `nboyer` 1.62 to 0.84 s through the page bundle, `browse` 1.75 to 0.99.
+
+*Consequence:* before and after are two copies side by side, alike but for the change, never a copy
+against the repository (*Code-generation decisions are measured twice*, in compiler_plan.md).

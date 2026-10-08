@@ -168,6 +168,18 @@
   (total name arity local))
 
 ;; /**
+;;  * When an exact division's fast path holds: two integers held as numbers --
+;;  * not an integral inexact, which is a box, nor a BigInt -- and a divisor
+;;  * that is not zero, for which `%` is exact.
+;;  * @param {list} ops - The operands.
+;;  * @returns {list} An expression.
+;;  */
+(define (exact-division-test ops)
+  (let ((a (car ops)) (b (cadr ops)))
+    (js "typeof " a " === 'number' && typeof " b " === 'number'"
+        " && Number.isInteger(" a ") && Number.isInteger(" b ") && " b " !== 0")))
+
+;; /**
 ;;  * Whether an operand is a constant whose identity is its value: a symbol, a
 ;;  * boolean or the empty list. `eqv?` against one is JavaScript `===`, since
 ;;  * symbols are interned and the other two are immediates; against a number
@@ -217,6 +229,21 @@
     (list 'vector-length 1
           (lambda (ops) (js "Array.isArray(" (car ops) ")"))
           (lambda (ops) (js (car ops) ".length")))
+    ;; Exact division, inline on two integers and a divisor that is not zero,
+    ;; as the primitives' own fast paths are (`dividingIntegers` in
+    ;; src/core/primitives/math.js), the primitive otherwise: V8 in Node inlines
+    ;; the primitive into compiled code, and V8 in Chrome does not, where
+    ;; `benchmarks/r7rs/src/bv2string.scm` spent nearly half its time calling
+    ;; it. `+ 0` makes JavaScript's -0 exact zero; `modulo` takes the sign of
+    ;; the divisor, adding it to a remainder of the other sign.
+    (list 'quotient 2 exact-division-test
+          (lambda (ops) (let ((a (car ops)) (b (cadr ops)))
+                          (js "((" a " - " a " % " b ") / " b " + 0)"))))
+    (list 'remainder 2 exact-division-test
+          (lambda (ops) (js "(" (car ops) " % " (cadr ops) " + 0)")))
+    (list 'modulo 2 exact-division-test
+          (lambda (ops) (let ((a (car ops)) (b (cadr ops)))
+                          (js "((" a " % " b ") * " b " < 0 ? " a " % " b " + " b " : " a " % " b " + 0)"))))
     ;; Only against a constant `===` is exact for. That is what `case` tests
     ;; its key with, one datum at a time; anything else calls the primitive.
     (list 'eqv? 2

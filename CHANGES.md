@@ -14302,3 +14302,30 @@ random cases, but `bv2string`'s numbers stay below 2^30, and the extra test made
 15% slower in Node. Tested: exact division across those ranges and both signs, against values
 computed apart, in `tests/core/scheme/number_tests.scm`. JavaScript under `src/`: primitives fixed
 in place.
+
+# Task 105 done: exact division in generated code (2026-10-08)
+
+Task 104 found Chrome spending nearly half of `bv2string` calling the division primitives, which
+Node's V8 inlines into compiled code and Chrome's does not. `quotient`, `remainder` and `modulo` now
+expand inline, as `+` and `car` do (`src/compiler/inline.scm`): on two integers held as numbers and
+a divisor that is not zero, `%` and a division, `+ 0` making JavaScript's -0 an exact zero, and
+`modulo` taking the divisor's sign; on anything else -- an inexact integer, a BigInt, a zero divisor
+-- the primitive.
+
+`benchmarks/run_codegen.js` has a `division` group: compiled, a remainder of small integers 5.2 to
+3.4 ns, a quotient 5.6 to 4.1, a modulo 5.8 to 4.1, either beyond 2^31 8.5 to 7.0, and a digit and
+the rest of a number 16.0 to 1.8. The canonical suite, before and after measured from two copies of
+equal standing: `compiler` 17.8 to 13.3 ms, `bv2string` 3.0 to 2.4, `maze` 0.59 to 0.51, `primes`
+0.44 to 0.39, the rest within noise, so the fixnum, list and vector classes improve and none
+regresses; `run_tier.js`'s corpus set 3,304 to 3,315 ms and page set 208.5 to 202.6, level. In
+Chrome, through the page bundle, `bv2string` gains 4%: the time moved into the compiled
+random-number procedure, where Chrome's `%` is slower than Node's.
+
+Measuring it found R142: "before" had first run from a copy of the repository and "after" from the
+repository, and `fibc`, which divides nowhere, came out a fifth slower after; the repository ran
+the identical code a fifth slower than the copy did, for no cause found. Measured from two copies,
+it was level, and task 101's figures, measured again so, held.
+
+Tested in `tests/tiers/exact_division_tests.scm`, interpreted and under the tier: every sign, small
+integers and integers beyond V8's small ones up to 2^53, a BigInt, inexact integers, a zero divisor,
+and no negative zero where an exact zero belongs -- which `equal?` alone would not have caught.

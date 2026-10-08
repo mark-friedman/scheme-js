@@ -488,8 +488,11 @@ level, so a tree walk 400 deep through compiled `map` went from 1.9 to 1.25 ms.
 
 ## Inlined primitives, and knowing they are still primitives
 
-`(car x)` compiles to `x.car` behind a type test, and `(+ a b)` to a JavaScript addition, with the
-real primitive as the fallback for every other operand shape (`src/compiler/inline.scm`). Scheme lets a
+`(car x)` compiles to `x.car` behind a type test, `(+ a b)` to a JavaScript addition, and
+`(remainder a b)` to `%` on two integers held as numbers, with the real primitive as the fallback for
+every other operand shape (`src/compiler/inline.scm`). An expansion is worth having where the
+primitive's call is hot, and also where an engine will not inline the primitive itself: V8 in Node
+inlined the division primitives into compiled code and V8 in Chrome did not (task 105). Scheme lets a
 program redefine `car`, so the expansion is correct only while the name still denotes the
 primitive — and that has to hold every time it runs, not just when it was compiled.
 
