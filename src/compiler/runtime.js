@@ -14,13 +14,15 @@
  */
 
 import {
-  TailCall, SCHEME_PRIMITIVE, SCHEME_RAW_CALL, callWithSchemeValues, callForeign, createCompiledProcedure
+  TailCall, Values, SCHEME_PRIMITIVE, SCHEME_RAW_CALL, callWithSchemeValues, callForeign, createCompiledProcedure,
+  createNativeContinuation, callSchemeProcedure
 } from '../core/interpreter/values.js';
+import { schemeToJsDeep } from '../core/interpreter/js_interop.js';
 // The capture protocol belongs to the interpreter, which owns what a
 // continuation is; this module only makes it reachable from generated code.
 import {
   UNWIND, reify, beginCompiledCapture, beginFlush, compiledStack, suspendForPrimitive, restoreFlush,
-  CAPTURE_UNDER_PRIMITIVE
+  CAPTURE_UNDER_PRIMITIVE, runAhead as runAheadWith
 } from '../core/interpreter/unwind.js';
 import { SchemeError, SchemeApplicationError, SchemeArityError } from '../core/interpreter/errors.js';
 import { Cons } from '../core/interpreter/cons.js';
@@ -603,3 +605,50 @@ export function recordSource(procedure, source) {
   if (source) procedure.source = source;
   return procedure;
 }
+
+// =============================================================================
+// Running with no interpreter
+// =============================================================================
+
+/**
+ * What a driver with no interpreter beneath it needs (`runAhead` in
+ * unwind.js): how compiled code calls a procedure, how it tells a pending
+ * tail call, and the continuations it makes.
+ * @type {Object}
+ */
+const AHEAD_HOOKS = {
+  call: callWithSchemeValues,
+  callScheme: callSchemeProcedure,
+  isTailCall: (x) => x instanceof TailCall,
+  nativeContinuation: createNativeContinuation
+};
+
+/**
+ * Calls a procedure with Scheme values and runs the call to its end with no
+ * interpreter at all, as a program compiled ahead of time runs: the
+ * continuations it captures and the frames it moves to the heap finished by
+ * a driver of the runtime's own.
+ * @param {Function} procedure - The procedure: compiled, or a primitive.
+ * @param {Array<*>} args - Its arguments, Scheme values.
+ * @returns {*} Its value.
+ */
+export function runAhead(procedure, args) {
+  return runAheadWith(procedure, args, AHEAD_HOOKS);
+}
+
+/**
+ * What stands for the interpreter of an environment a program compiled ahead
+ * of time runs in, which has none: JavaScript calling one of its procedures
+ * (`createCompiledProcedure` in values.js) runs the call with `runAhead`, and
+ * gets its value as it would from the interpreter, the first of several and
+ * converted for JavaScript.
+ * @type {{callCompiledEntry: function(Function, Array<*>, *): *}}
+ */
+export const aheadRunner = {
+  callCompiledEntry(raw, args) {
+    // The raw entry as a procedure whose raw entry it is, for `callWithSchemeValues`.
+    let result = runAhead({ [SCHEME_RAW_CALL]: raw }, args);
+    if (result instanceof Values) result = result.first();
+    return schemeToJsDeep(result);
+  }
+};

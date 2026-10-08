@@ -15,7 +15,7 @@ import { assert } from '../harness/helpers.js';
 import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/expand.js';
 import { writeString } from '../../src/core/primitives/io/printer.js';
-import { settle } from '../../src/compiler/runtime.js';
+import { settle, runAhead } from '../../src/compiler/runtime.js';
 import { compileProgram } from '../../src/compiler/index.js';
 import { nativeUnwinds } from '../../src/core/interpreter/unwind.js';
 import { interpretedLibrary, installStandardLibrary } from '../harness/standard_library.js';
@@ -33,6 +33,19 @@ function program(definitions) {
   const asts = parse(definitions).map((form) => analyze(form));
   compileProgram(asts, env, interpreter);
   return {
+    env,
+    /**
+     * Calls one of the program's procedures with no interpreter beneath,
+     * as a program compiled ahead of time runs (`runAhead`).
+     * @param {string} name - The procedure.
+     * @param {Array<*>} args - Its arguments, Scheme values.
+     * @returns {{value: string, finished: number, jumps: number}}
+     */
+    ahead(name, args) {
+      const before = { ...nativeUnwinds };
+      const value = writeString(runAhead(env.lookup(name), args));
+      return { value, finished: nativeUnwinds.finished - before.finished, jumps: nativeUnwinds.jumps - before.jumps };
+    },
     run(source) {
       const before = { ...nativeUnwinds };
       let value;
@@ -100,4 +113,35 @@ export async function runNativeUnwindTests(logger) {
   const moved = deep.run('(deep 100000)');
   assert(logger, 'frames moved to the heap are moved by the interpreter, as before',
     [moved.value, moved.finished, moved.jumps], ['100000', 0, 0]);
+
+  logger.title('With no interpreter beneath: a program compiled ahead of time');
+
+  const tak = program(`
+    (define (ctak x y z) (call/cc (lambda (k) (ctak-aux k x y z))))
+    (define (ctak-aux k x y z)
+      (if (not (< y x))
+          (k z)
+          (call/cc (lambda (k)
+                     (ctak-aux k
+                               (call/cc (lambda (k) (ctak-aux k (- x 1) y z)))
+                               (call/cc (lambda (k) (ctak-aux k (- y 1) z x)))
+                               (call/cc (lambda (k) (ctak-aux k (- z 1) x y))))))))`);
+  const ctak = tak.ahead('ctak', [12, 8, 4]);
+  assert(logger, 'a continuation taken at every call gives tak\'s answer, every capture finished by the driver',
+    [ctak.value, ctak.finished > 0, ctak.jumps > 0], ['5', true, true]);
+
+  assert(logger, 'an escape from for-each', escapes.ahead('find-first', [escapes.env.lookup('even?'), parse("(1 3 4 5)")[0]]).value, '4');
+  const again = reentry.ahead('re-enter', []);
+  assert(logger, 're-entered twice by jumps, after the procedure that took it returned',
+    [again.value, again.jumps], ['(10 11 12)', 2]);
+  assert(logger, 'and again after its driver has returned, through a driver of its own',
+    writeString(runAhead(reentry.env.lookup('saved'), [5])), '(10 11 12 15)');
+  const deepAhead = deep.ahead('deep', [100000]);
+  assert(logger, 'a recursion 100,000 deep, its frames moved to the heap by the driver',
+    [deepAhead.value, deepAhead.finished > 0], ['100000', true]);
+
+  const values = program(`(define (two) (call/cc (lambda (k) (k 1 2))))
+                          (define (sum-two) (call-with-values two +))`);
+  assert(logger, 'a continuation given two values', values.ahead('sum-two', []).value, '3');
 }
+

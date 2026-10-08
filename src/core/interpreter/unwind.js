@@ -721,6 +721,122 @@ function drive(registers, interpreter, hooks) {
   return false;
 }
 
+// =============================================================================
+// Running with no interpreter at all
+// =============================================================================
+//
+// A program compiled ahead of time runs with no interpreter: nothing beneath
+// its compiled code to finish an unwind, to make a tail call it hands back,
+// or to invoke a continuation the interpreter's way. A driver with nothing
+// beneath does all of it: a capture as `drive` does, a move to the heap the
+// same way -- the frames on its list, the call made again from the driver --
+// and every tail call. A continuation one makes is taken by a jump while its
+// driver runs it; invoked otherwise -- after its driver has returned, from
+// JavaScript, from a driver started since -- it re-enters through a driver of
+// its own, which resumes its frames and returns what the last of them does.
+
+/**
+ * Runs a call to the end with no interpreter at all.
+ * @param {Function} callee - The procedure.
+ * @param {Array<*>} args - Its arguments, Scheme values.
+ * @param {NativeHooks & {frameFor: Function}} hooks - What the driver needs.
+ * @returns {*} Its value.
+ */
+export function runAhead(callee, args, hooks) {
+  return ahead(hooks, null, undefined, callee, args);
+}
+
+/**
+ * Invokes a continuation a driver with no interpreter made, where it cannot
+ * be taken by a jump: its frames resumed by a driver of their own.
+ * @param {Function} continuation - The continuation.
+ * @param {*} value - What it is invoked with.
+ * @returns {*} What the last of its frames returns.
+ */
+function reenterAhead(continuation, value) {
+  return ahead(continuation.driver.hooks, continuation.frames, value, null, null);
+}
+
+/**
+ * The loop of a driver with no interpreter beneath it: a call to make, or
+ * frames to resume with a value.
+ * @param {Object} hooks - What the driver needs.
+ * @param {Object|null} frames - Frames to resume, innermost first, or null.
+ * @param {*} value - What to resume them with.
+ * @param {Function|null} first - A procedure to call first, or null.
+ * @param {Array<*>|null} firstArgs - Its arguments.
+ * @returns {*} The value the call or the frames end with.
+ */
+function ahead(hooks, frames, value, first, firstArgs) {
+  const driver = { live: true, base: null, beneath: null, hooks, reenter: reenterAhead };
+  let stack = frames;
+  let frame = null;
+  let callee = first;
+  let args = firstArgs;
+  let result = value;
+  const savedDriver = currentDriver;
+  const flush = flushState();
+  currentDriver = driver;
+  compiledStack.flushable = true;
+  compiledStack.refusesCapture = false;
+  try {
+    for (;;) {
+      if (frame !== null || callee !== null) {
+        compiledStack.room = compiledStack.limit;
+        try {
+          if (frame !== null) {
+            const { twin, pc, slots } = frame;
+            frame = null;
+            noteResume(twin, hooks.callScheme);
+            result = twin(pc, { ...slots, $r: value });
+          } else {
+            const f = callee;
+            const a = args;
+            callee = null;
+            args = null;
+            result = hooks.call(f, a);
+          }
+          value = undefined;
+          while (hooks.isTailCall(result)) result = hooks.call(result.func, result.args);
+        } catch (e) {
+          if (!(e instanceof NativeJump) || e.driver !== driver) throw e;
+          nativeUnwinds.jumps++;
+          stack = e.stack;
+          result = e.value;
+        }
+      }
+      if (result === UNWIND) {
+        const pending = unwinding.pending;
+        if (pending === null || !unwinding.frames.every((piece) => piece.twin !== undefined)
+            || (pending.call === undefined && (pending.env !== null || pending.segment.length !== 0))) {
+          throw new Error('an unwind reached compiled code running with no interpreter, which only an interpreter could finish');
+        }
+        for (let i = unwinding.frames.length - 1; i >= 0; i--) stack = { frame: unwinding.frames[i], next: stack };
+        unwinding.frames = [];
+        unwinding.pending = null;
+        nativeUnwinds.finished++;
+        if (pending.call !== undefined) {
+          callee = pending.call;
+          args = pending.args;
+        } else {
+          callee = pending.lambdaExpr;
+          args = [hooks.nativeContinuation(driver, stack, null)];
+        }
+        continue;
+      }
+      if (stack === null) return result;
+      frame = stack.frame;
+      stack = stack.next;
+      value = result;
+      result = undefined;
+    }
+  } finally {
+    restoreFlush(flush);
+    currentDriver = savedDriver;
+    driver.live = false;
+  }
+}
+
 /**
  * The continuation of a capture a driver finishes, holding the driver and its
  * frames. Beneath them is the run's frame stack, copied once, at the driver's

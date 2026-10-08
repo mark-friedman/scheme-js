@@ -27,7 +27,7 @@ import { Flonum } from '../core/interpreter/number_representation.js';
 export const LIBRARIES = {
   "scheme-js.debugger": {
     fingerprint: "47207789",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["debugger.sld","debugger.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"debugger\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"make-debugger-host\",\"make-debugger\",\"debugger?\",\"debugger-enabled?\",\"set-debugger-enabled!\",\"debugger-debugging?\",\"debugger-interpretation\",\"debugger-changed!\",\"reset-debugger!\",\"add-breakpoint!\",\"remove-breakpoint!\",\"clear-breakpoints!\",\"debugger-breakpoints\",\"breakpoint-at\",\"breakpoint-id\",\"breakpoint-filename\",\"breakpoint-line\",\"breakpoint-column\",\"enter-activation!\",\"replace-activation!\",\"exit-activation!\",\"debugger-activations\",\"debugger-depth\",\"activation-name\",\"activation-source\",\"activation-env\",\"activation-tail-calls\",\"debugger-mode\",\"debugger-paused?\",\"debugger-aborted?\",\"debugger-target-depth\",\"debugger-pause-reason\",\"debugger-pause-data\",\"step-into!\",\"step-over!\",\"step-out!\",\"resume!\",\"abort!\",\"pause!\",\"step-stops?\",\"should-pause?\",\"pause-at!\",\"pause-on-exception!\",\"breaks-on-exception?\",\"debugger-breaks-on-caught?\",\"set-debugger-breaks-on-caught!\",\"debugger-breaks-on-uncaught?\",\"set-debugger-breaks-on-uncaught!\",\"span-contains?\",\"innermost-holding\",\"compiled-procedure-at\",\"transformer-at\",\"breakpoints->js\",\"activations->js\",\"pause-state->js\",\"debugger-command?\",\"debugger-command\",\"reset-frame-selection!\",\"eval-answer\",\"eval-failure\",\"pause-message\"],[\"l\",\"include\",[\"s\",\"debugger.scm\"]]]",
     procedures: {
@@ -11413,7 +11413,7 @@ export const LIBRARIES = {
   },
   "scheme-js.define-macro": {
     fingerprint: "a425e228",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["define-macro.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"define-macro\"],[\"l\",\"export\",\"define-macro\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"]]]",
     procedures: {
@@ -11425,7 +11425,7 @@ export const LIBRARIES = {
   },
   "scheme-js.expander": {
     fingerprint: "b380dd57",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["expander.sld","expander.scm","syntax_rules.scm","explicit_renaming.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"expander\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"expand\",\"expand-in-environment\"],[\"l\",\"include\",[\"s\",\"expander.scm\"],[\"s\",\"syntax_rules.scm\"],[\"s\",\"explicit_renaming.scm\"]]]",
     procedures: {
@@ -31334,7 +31334,7 @@ export const LIBRARIES = {
   },
   "scheme-js.interop": {
     fingerprint: "6f1ef106",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["interop.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"interop\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"js-eval\",\"js-ref\",\"js-set!\",\"js-invoke\",\"js-obj\",\"js-obj-merge\",\"js-typeof\",\"js-undefined\",\"js-undefined?\",\"js-null\",\"js-null?\",\"js-new\"]],[\"l\",\"export\",\"js-eval\",\"js-ref\",\"js-set!\",\"js-invoke\",\"js-obj\",\"js-obj-merge\",\"js-typeof\",\"js-undefined\",\"js-undefined?\",\"js-null\",\"js-null?\",\"js-new\"]]",
     procedures: {
@@ -31346,7 +31346,7 @@ export const LIBRARIES = {
   },
   "scheme-js.js-conversion": {
     fingerprint: "47a51ec1",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["js-conversion.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"js-conversion\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"]],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"]],[\"l\",\"export\",\"scheme->js\",\"scheme->js-deep\",\"js->scheme\",\"js->scheme-deep\",\"make-js-object\",\"js-object?\",\"js-ref\",\"js-set!\"],[\"l\",\"begin\",[\"l\",\"define-record-type\",\"js-object\",[\"l\",\"make-js-object-internal\"],\"js-object?\"],[\"l\",\"register-js-object-record\",\"js-object\"],[\"l\",\"define\",[\"l\",\"make-js-object\"],[\"l\",\"make-js-object-internal\"]]]]",
     procedures: {
@@ -31389,7 +31389,7 @@ export const LIBRARIES = {
   },
   "scheme-js.library-system": {
     fingerprint: "80268352",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["library-system.sld","library_system.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"library-system\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"parse-define-library\",\"library-definition?\",\"library-definition-name\",\"library-definition-exports\",\"library-definition-imports\",\"library-definition-body\",\"library-definition-includes\",\"library-definition-includes-ci\",\"library-definition-declaration-files\",\"parse-import-set\",\"import-set?\",\"import-set-library-name\",\"import-set-steps\",\"imported-name\",\"requirement-met?\",\"standard-features\",\"registry-requirement-met?\",\"library-key\",\"make-library-registry\",\"library-registry?\",\"add-feature!\",\"registry-features\",\"registry-feature-list\",\"registry-resolver\",\"set-registry-resolver!\",\"registry-load-hook\",\"set-registry-load-hook!\",\"registry-restorer\",\"set-registry-restorer!\",\"registered-exports\",\"registered-environment\",\"register-exports!\",\"registered-keys\",\"clear-registry!\",\"make-loader\",\"registry-loader\",\"loader-registry\",\"load-library\",\"define-library!\",\"import-sets!\",\"import-into!\",\"syntactic-keyword?\",\"program-parts\",\"make-debugged-programs\",\"record-compiled-over!\",\"compiled-over?\",\"interpret-compiled-over!\",\"switch-back-to-closure!\",\"files-wanted\",\"definition-files-wanted\",\"define-library-parts\"],[\"l\",\"include\",[\"s\",\"library_system.scm\"]]]",
     procedures: {
@@ -41527,7 +41527,7 @@ export const LIBRARIES = {
   },
   "scheme-js.procedural-macros": {
     fingerprint: "b00c8e71",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["procedural-macros.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"procedural-macros\"],[\"l\",\"export\",\"er-macro-transformer\",\"define-macro\"]]",
     procedures: {
@@ -41539,7 +41539,7 @@ export const LIBRARIES = {
   },
   "scheme-js.promise": {
     fingerprint: "0daa230e",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["promise.sld","promise.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"promise\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"js-promise?\",\"make-js-promise\",\"js-promise-resolve\",\"js-promise-reject\",\"js-promise-then\",\"js-promise-catch\",\"js-promise-finally\",\"js-promise-all\",\"js-promise-race\",\"js-promise-all-settled\"]],[\"l\",\"export\",\"js-promise?\",\"make-js-promise\",\"js-promise-resolve\",\"js-promise-reject\",\"js-promise-then\",\"js-promise-catch\",\"js-promise-finally\",\"js-promise-all\",\"js-promise-race\",\"js-promise-all-settled\",\"js-promise-map\",\"js-promise-chain\",\"async-lambda\"],[\"l\",\"include\",[\"s\",\"promise.scm\"]]]",
     procedures: {
@@ -41662,7 +41662,7 @@ export const LIBRARIES = {
   },
   "scheme-js.reader": {
     fingerprint: "e616b41e",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["reader.sld","reader.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"reader\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"read-source\",\"read-source-continuing\",\"read-from-port\",\"complete-text?\",\"delimiter-parens\",\"matching-delimiter\"],[\"l\",\"include\",[\"s\",\"reader.scm\"]]]",
     procedures: {
@@ -56518,7 +56518,7 @@ export const LIBRARIES = {
   },
   "scheme-js.special-forms": {
     fingerprint: "3cf5fabc",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["special-forms.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"special-forms\"],[\"l\",\"export\",\"define\",\"set!\",\"lambda\",\"if\",\"begin\",\"quote\",\"quasiquote\",\"unquote\",\"unquote-splicing\",\"let\",\"letrec\",\"define-syntax\",\"let-syntax\",\"letrec-syntax\",\"syntax-rules\",\"er-macro-transformer\",\"define-macro\",\"...\",\"_\",\"=>\",\"else\",\"cond-expand\",\"import\",\"define-library\"]]",
     procedures: {
@@ -56530,7 +56530,7 @@ export const LIBRARIES = {
   },
   "scheme.base": {
     fingerprint: "de1b2c11",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["base.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"base\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"]],[\"l\",\"import\",[\"l\",\"scheme\",\"core\"]],[\"l\",\"import\",[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"eq?\",\"eqv?\",\"equal?\",\"+\",\"-\",\"*\",\"/\",\"=\",\"<\",\">\",\"<=\",\">=\",\"number?\",\"complex?\",\"real?\",\"rational?\",\"integer?\",\"exact-integer?\",\"exact?\",\"inexact?\",\"finite?\",\"infinite?\",\"nan?\",\"zero?\",\"positive?\",\"negative?\",\"odd?\",\"even?\",\"abs\",\"quotient\",\"remainder\",\"modulo\",\"floor\",\"ceiling\",\"truncate\",\"round\",\"max\",\"min\",\"gcd\",\"lcm\",\"rationalize\",\"expt\",\"sqrt\",\"square\",\"exact-integer-sqrt\",\"exact\",\"inexact\",\"floor/\",\"floor-quotient\",\"floor-remainder\",\"truncate/\",\"truncate-quotient\",\"truncate-remainder\",\"numerator\",\"denominator\",\"make-rectangular\",\"make-polar\",\"real-part\",\"imag-part\",\"magnitude\",\"angle\",\"bytevector?\",\"make-bytevector\",\"bytevector\",\"bytevector-length\",\"bytevector-u8-ref\",\"bytevector-u8-set!\",\"bytevector-copy\",\"bytevector-copy!\",\"bytevector-append\",\"utf8->string\",\"string->utf8\",\"not\",\"boolean?\",\"boolean=?\",\"cons\",\"car\",\"cdr\",\"pair?\",\"null?\",\"list?\",\"set-car!\",\"set-cdr!\",\"list\",\"append\",\"length\",\"list-ref\",\"list-tail\",\"reverse\",\"list-copy\",\"make-list\",\"list-set!\",\"memq\",\"memv\",\"member\",\"assq\",\"assv\",\"assoc\",\"caar\",\"cadr\",\"cdar\",\"cddr\",\"caaar\",\"caadr\",\"cadar\",\"caddr\",\"cdaar\",\"cdadr\",\"cddar\",\"cdddr\",\"caaaar\",\"caaadr\",\"caadar\",\"caaddr\",\"cadaar\",\"cadadr\",\"caddar\",\"cadddr\",\"cdaaar\",\"cdaadr\",\"cdadar\",\"cdaddr\",\"cddaar\",\"cddadr\",\"cdddar\",\"cddddr\",\"symbol?\",\"symbol=?\",\"symbol->string\",\"string->symbol\",\"char?\",\"char=?\",\"char<?\",\"char>?\",\"char<=?\",\"char>=?\",\"char->integer\",\"integer->char\",\"string?\",\"make-string\",\"string\",\"string-length\",\"string-ref\",\"string=?\",\"string<?\",\"string>?\",\"string<=?\",\"string>=?\",\"substring\",\"string-append\",\"string-copy\",\"string-copy!\",\"string-set!\",\"string-fill!\",\"string->list\",\"list->string\",\"number->string\",\"string->number\",\"string-upcase\",\"string-downcase\",\"string-foldcase\",\"vector?\",\"make-vector\",\"vector\",\"vector-length\",\"vector-ref\",\"vector-set!\",\"vector-fill!\",\"vector-copy\",\"vector-copy!\",\"vector-append\",\"vector->list\",\"list->vector\",\"vector->string\",\"string->vector\",\"apply\",\"map\",\"for-each\",\"string-map\",\"string-for-each\",\"vector-map\",\"vector-for-each\",\"call-with-current-continuation\",\"call/cc\",\"dynamic-wind\",\"values\",\"call-with-values\",\"procedure?\",\"make-parameter\",\"parameterize\",\"raise\",\"raise-continuable\",\"with-exception-handler\",\"error\",\"error-object?\",\"error-object-message\",\"error-object-irritants\",\"file-error?\",\"read-error?\",\"port?\",\"input-port?\",\"output-port?\",\"textual-port?\",\"binary-port?\",\"input-port-open?\",\"output-port-open?\",\"current-input-port\",\"current-output-port\",\"current-error-port\",\"close-port\",\"close-input-port\",\"close-output-port\",\"call-with-port\",\"flush-output-port\",\"open-input-string\",\"open-output-string\",\"get-output-string\",\"open-input-bytevector\",\"open-output-bytevector\",\"get-output-bytevector\",\"eof-object\",\"eof-object?\",\"read-char\",\"peek-char\",\"char-ready?\",\"read-line\",\"read-string\",\"read\",\"read-u8\",\"peek-u8\",\"u8-ready?\",\"read-bytevector\",\"read-bytevector!\",\"write-char\",\"write-string\",\"display\",\"newline\",\"write\",\"write-simple\",\"write-shared\",\"write-u8\",\"write-bytevector\",\"define\",\"set!\",\"lambda\",\"if\",\"begin\",\"quote\",\"quasiquote\",\"unquote\",\"unquote-splicing\",\"define-syntax\",\"let-syntax\",\"letrec-syntax\",\"syntax-rules\",\"syntax-error\",\"include\",\"include-ci\",\"cond-expand\",\"features\",\"...\",\"_\",\"=>\",\"else\",\"and\",\"or\",\"cond\",\"case\",\"do\",\"when\",\"unless\",\"guard\",\"let\",\"let*\",\"letrec\",\"letrec*\",\"let-values\",\"let*-values\",\"define-values\",\"define-record-type\",\"define-class\"],[\"l\",\"begin\"]]",
     procedures: {
@@ -56542,7 +56542,7 @@ export const LIBRARIES = {
   },
   "scheme.case-lambda": {
     fingerprint: "dd9d041d",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["case-lambda.sld","case_lambda.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"case-lambda\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"]],[\"l\",\"export\",\"case-lambda\"],[\"l\",\"include\",[\"s\",\"case_lambda.scm\"]]]",
     procedures: {
@@ -56555,7 +56555,7 @@ export const LIBRARIES = {
   },
   "scheme.char": {
     fingerprint: "81a15601",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["char.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"char\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"]],[\"l\",\"export\",\"char-ci=?\",\"char-ci<?\",\"char-ci>?\",\"char-ci<=?\",\"char-ci>=?\",\"char-alphabetic?\",\"char-numeric?\",\"char-whitespace?\",\"char-upper-case?\",\"char-lower-case?\",\"char-upcase\",\"char-downcase\",\"char-foldcase\",\"digit-value\",\"string-ci=?\",\"string-ci<?\",\"string-ci>?\",\"string-ci<=?\",\"string-ci>=?\",\"string-upcase\",\"string-downcase\",\"string-foldcase\"],[\"l\",\"begin\"]]",
     procedures: {
@@ -56567,7 +56567,7 @@ export const LIBRARIES = {
   },
   "scheme.complex": {
     fingerprint: "2117f1e3",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["complex.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"complex\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"]],[\"l\",\"export\",\"make-rectangular\",\"make-polar\",\"real-part\",\"imag-part\",\"magnitude\",\"angle\"]]",
     procedures: {
@@ -56579,7 +56579,7 @@ export const LIBRARIES = {
   },
   "scheme.control": {
     fingerprint: "0d0c0d7e",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["control.sld","control.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"control\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"]],[\"l\",\"import\",[\"l\",\"scheme\",\"core\"]],[\"l\",\"include\",[\"s\",\"control.scm\"]],[\"l\",\"export\",\"when\",\"unless\",\"or\",\"let*\",\"do\",\"case\",\"guard\",\"let-values\",\"let*-values\",\"define-values\"]]",
     procedures: {
@@ -56599,7 +56599,7 @@ export const LIBRARIES = {
   },
   "scheme.core": {
     fingerprint: "5ef6e9ac",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["core.sld","macros.scm","equality.scm","cxr.scm","numbers.scm","list.scm","parameter.scm","ports.scm","printer.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"core\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme-js\",\"special-forms\"]],[\"l\",\"include\",[\"s\",\"macros.scm\"]],[\"l\",\"include\",[\"s\",\"equality.scm\"]],[\"l\",\"include\",[\"s\",\"cxr.scm\"]],[\"l\",\"include\",[\"s\",\"numbers.scm\"]],[\"l\",\"include\",[\"s\",\"list.scm\"]],[\"l\",\"include\",[\"s\",\"parameter.scm\"]],[\"l\",\"include\",[\"s\",\"ports.scm\"]],[\"l\",\"include\",[\"s\",\"printer.scm\"]],[\"l\",\"export\",\"define\",\"set!\",\"lambda\",\"if\",\"begin\",\"quote\",\"quasiquote\",\"unquote\",\"unquote-splicing\",\"define-syntax\",\"let-syntax\",\"letrec-syntax\",\"syntax-rules\",\"er-macro-transformer\",\"define-macro\",\"...\",\"_\",\"=>\",\"else\",\"cond-expand\",\"import\",\"define-library\",\"and\",\"or\",\"let\",\"let*\",\"letrec\",\"cond\",\"syntax-error\",\"include\",\"include-ci\",\"define-record-type\",\"define-record-field\",\"define-class\",\"define-class-field\",\"define-class-method\",\"equal?\",\"map\",\"for-each\",\"string-map\",\"string-for-each\",\"vector-map\",\"vector-for-each\",\"call-with-port\",\"call-with-input-file\",\"call-with-output-file\",\"with-input-from-file\",\"with-output-to-file\",\"current-input-port\",\"current-output-port\",\"current-error-port\",\"read-char\",\"peek-char\",\"char-ready?\",\"read-line\",\"read-string\",\"read-u8\",\"peek-u8\",\"u8-ready?\",\"read-bytevector\",\"read-bytevector!\",\"read\",\"write-char\",\"write-string\",\"write-u8\",\"write-bytevector\",\"newline\",\"display\",\"write\",\"write-simple\",\"write-shared\",\"flush-output-port\",\"datum->string\",\"repl-text\",\"memq\",\"memv\",\"member\",\"assq\",\"assv\",\"assoc\",\"length\",\"list-ref\",\"list-tail\",\"reverse\",\"list-copy\",\"make-list\",\"list-set!\",\"caar\",\"cadr\",\"cdar\",\"cddr\",\"caaar\",\"caadr\",\"cadar\",\"caddr\",\"cdaar\",\"cdadr\",\"cddar\",\"cdddr\",\"caaaar\",\"caaadr\",\"caadar\",\"caaddr\",\"cadaar\",\"cadadr\",\"caddar\",\"cadddr\",\"cdaaar\",\"cdaadr\",\"cdadar\",\"cdaddr\",\"cddaar\",\"cddadr\",\"cdddar\",\"cddddr\",\"=\",\"<\",\">\",\"<=\",\">=\",\"zero?\",\"positive?\",\"negative?\",\"odd?\",\"even?\",\"max\",\"min\",\"gcd\",\"lcm\",\"rationalize\",\"round\",\"inexact->exact\",\"make-parameter\",\"parameterize\",\"native-report-test-result\"]]",
     procedures: {
@@ -76842,7 +76842,7 @@ export const LIBRARIES = {
   },
   "scheme.cxr": {
     fingerprint: "5091d727",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["cxr.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"cxr\"],[\"l\",\"import\",[\"l\",\"scheme\",\"core\"]],[\"l\",\"export\",\"caar\",\"cadr\",\"cdar\",\"cddr\",\"caaar\",\"caadr\",\"cadar\",\"caddr\",\"cdaar\",\"cdadr\",\"cddar\",\"cdddr\",\"caaaar\",\"caaadr\",\"caadar\",\"caaddr\",\"cadaar\",\"cadadr\",\"caddar\",\"cadddr\",\"cdaaar\",\"cdaadr\",\"cdadar\",\"cdaddr\",\"cddaar\",\"cddadr\",\"cdddar\",\"cddddr\"]]",
     procedures: {
@@ -76854,7 +76854,7 @@ export const LIBRARIES = {
   },
   "scheme.eval": {
     fingerprint: "57557cf9",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["eval.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"eval\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"eval\",\"%import-environment\"]],[\"l\",\"export\",\"eval\",\"environment\"],[\"l\",\"begin\",[\"l\",\"define\",[\"d\",\"sets\",\"environment\"],[\"l\",\"%import-environment\",\"sets\"]]]]",
     procedures: {
@@ -76895,7 +76895,7 @@ export const LIBRARIES = {
   },
   "scheme.file": {
     fingerprint: "0c16e342",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["file.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"file\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"]],[\"l\",\"import\",[\"l\",\"only\",[\"l\",\"scheme\",\"core\"],\"call-with-input-file\",\"call-with-output-file\",\"with-input-from-file\",\"with-output-to-file\"]],[\"l\",\"export\",\"open-input-file\",\"open-output-file\",\"open-binary-input-file\",\"open-binary-output-file\",\"call-with-input-file\",\"call-with-output-file\",\"with-input-from-file\",\"with-output-to-file\",\"file-exists?\",\"delete-file\"],[\"l\",\"begin\"]]",
     procedures: {
@@ -76907,7 +76907,7 @@ export const LIBRARIES = {
   },
   "scheme.inexact": {
     fingerprint: "680164ac",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["inexact.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"inexact\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"]],[\"l\",\"export\",\"acos\",\"asin\",\"atan\",\"cos\",\"sin\",\"tan\",\"exp\",\"log\",\"sqrt\",\"finite?\",\"infinite?\",\"nan?\"]]",
     procedures: {
@@ -76919,7 +76919,7 @@ export const LIBRARIES = {
   },
   "scheme.lazy": {
     fingerprint: "552f3931",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["lazy.sld","lazy.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"lazy\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"]],[\"l\",\"export\",\"delay\",\"force\",\"make-promise\",\"promise?\",\"delay-force\"],[\"l\",\"include\",[\"s\",\"lazy.scm\"]],[\"l\",\"begin\",[\"l\",\"define-syntax\",\"delay\",[\"l\",\"syntax-rules\",null,[\"l\",[\"l\",\"delay\",\"expr\"],[\"l\",\"cons\",[\"l\",\"cons\",[\"l\",\"quote\",\"promise-tag\"],false],[\"l\",\"lambda\",null,\"expr\"]]]]],[\"l\",\"define-syntax\",\"delay-force\",[\"l\",\"syntax-rules\",null,[\"l\",[\"l\",\"delay-force\",\"expr\"],[\"l\",\"cons\",[\"l\",\"cons\",[\"l\",\"quote\",\"promise-tag\"],false],[\"l\",\"lambda\",null,[\"l\",\"force\",\"expr\"]]]]]]]]",
     procedures: {
@@ -77320,7 +77320,7 @@ export const LIBRARIES = {
   },
   "scheme.load": {
     fingerprint: "17b0c762",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["load.sld","load.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"load\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"scheme\",\"read\"],[\"l\",\"scheme\",\"eval\"],[\"l\",\"scheme\",\"repl\"],[\"l\",\"scheme\",\"file\"]],[\"l\",\"export\",\"load\"],[\"l\",\"include\",[\"s\",\"load.scm\"]]]",
     procedures: {
@@ -77332,7 +77332,7 @@ export const LIBRARIES = {
   },
   "scheme.process-context": {
     fingerprint: "98fa790d",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["process-context.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"process-context\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"command-line\",\"exit\",\"get-environment-variable\",\"get-environment-variables\",\"emergency-exit\"]],[\"l\",\"export\",\"command-line\",\"exit\",\"get-environment-variable\",\"get-environment-variables\",\"emergency-exit\"],[\"l\",\"begin\"]]",
     procedures: {
@@ -77344,7 +77344,7 @@ export const LIBRARIES = {
   },
   "scheme.r5rs": {
     fingerprint: "1ff030ca",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["r5rs.sld","r5rs.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"r5rs\"],[\"l\",\"import\",[\"l\",\"except\",[\"l\",\"scheme\",\"base\"],\"exact\",\"inexact\"],[\"l\",\"rename\",[\"l\",\"only\",[\"l\",\"scheme\",\"base\"],\"exact\",\"inexact\"],[\"l\",\"exact\",\"inexact->exact\"],[\"l\",\"inexact\",\"exact->inexact\"]],[\"l\",\"scheme\",\"char\"],[\"l\",\"scheme\",\"complex\"],[\"l\",\"scheme\",\"cxr\"],[\"l\",\"scheme\",\"eval\"],[\"l\",\"scheme\",\"file\"],[\"l\",\"scheme\",\"inexact\"],[\"l\",\"scheme\",\"lazy\"],[\"l\",\"scheme\",\"load\"],[\"l\",\"scheme\",\"read\"],[\"l\",\"scheme\",\"repl\"],[\"l\",\"scheme\",\"write\"]],[\"l\",\"export\",\"*\",\"+\",\"-\",\"/\",\"<\",\"<=\",\"=\",\">\",\">=\",\"abs\",\"acos\",\"and\",\"angle\",\"append\",\"apply\",\"asin\",\"assoc\",\"assq\",\"assv\",\"atan\",\"begin\",\"boolean?\",\"caaaar\",\"caaadr\",\"caaar\",\"caadar\",\"caaddr\",\"caadr\",\"caar\",\"cadaar\",\"cadadr\",\"cadar\",\"caddar\",\"cadddr\",\"caddr\",\"cadr\",\"call-with-current-continuation\",\"call-with-input-file\",\"call-with-output-file\",\"call-with-values\",\"car\",\"case\",\"cdaaar\",\"cdaadr\",\"cdaar\",\"cdadar\",\"cdaddr\",\"cdadr\",\"cdar\",\"cddaar\",\"cddadr\",\"cddar\",\"cdddar\",\"cddddr\",\"cdddr\",\"cddr\",\"cdr\",\"ceiling\",\"char->integer\",\"char-alphabetic?\",\"char-ci<=?\",\"char-ci<?\",\"char-ci=?\",\"char-ci>=?\",\"char-ci>?\",\"char-downcase\",\"char-lower-case?\",\"char-numeric?\",\"char-ready?\",\"char-upcase\",\"char-upper-case?\",\"char-whitespace?\",\"char<=?\",\"char<?\",\"char=?\",\"char>=?\",\"char>?\",\"char?\",\"close-input-port\",\"close-output-port\",\"complex?\",\"cond\",\"cons\",\"cos\",\"current-input-port\",\"current-output-port\",\"define\",\"define-syntax\",\"delay\",\"denominator\",\"display\",\"do\",\"dynamic-wind\",\"else\",\"eof-object?\",\"eq?\",\"equal?\",\"eqv?\",\"eval\",\"even?\",\"exact->inexact\",\"exact?\",\"exp\",\"expt\",\"floor\",\"for-each\",\"force\",\"gcd\",\"if\",\"imag-part\",\"inexact->exact\",\"inexact?\",\"input-port?\",\"integer->char\",\"integer?\",\"interaction-environment\",\"lambda\",\"lcm\",\"length\",\"let\",\"let*\",\"let-syntax\",\"letrec\",\"letrec-syntax\",\"list\",\"list->string\",\"list->vector\",\"list-ref\",\"list-tail\",\"list?\",\"load\",\"log\",\"magnitude\",\"make-polar\",\"make-rectangular\",\"make-string\",\"make-vector\",\"map\",\"max\",\"member\",\"memq\",\"memv\",\"min\",\"modulo\",\"negative?\",\"newline\",\"not\",\"null-environment\",\"null?\",\"number->string\",\"number?\",\"numerator\",\"odd?\",\"open-input-file\",\"open-output-file\",\"or\",\"output-port?\",\"pair?\",\"peek-char\",\"positive?\",\"procedure?\",\"quasiquote\",\"quote\",\"quotient\",\"rational?\",\"rationalize\",\"read\",\"read-char\",\"real-part\",\"real?\",\"remainder\",\"reverse\",\"round\",\"scheme-report-environment\",\"set!\",\"set-car!\",\"set-cdr!\",\"sin\",\"sqrt\",\"string\",\"string->list\",\"string->number\",\"string->symbol\",\"string-append\",\"string-ci<=?\",\"string-ci<?\",\"string-ci=?\",\"string-ci>=?\",\"string-ci>?\",\"string-copy\",\"string-fill!\",\"string-length\",\"string-ref\",\"string-set!\",\"string<=?\",\"string<?\",\"string=?\",\"string>=?\",\"string>?\",\"string?\",\"substring\",\"symbol->string\",\"symbol?\",\"syntax-rules\",\"tan\",\"truncate\",\"values\",\"vector\",\"vector->list\",\"vector-fill!\",\"vector-length\",\"vector-ref\",\"vector-set!\",\"vector?\",\"with-input-from-file\",\"with-output-to-file\",\"write\",\"write-char\",\"zero?\",\"=>\",\"...\"],[\"l\",\"include\",[\"s\",\"r5rs.scm\"]]]",
     procedures: {
@@ -77536,7 +77536,7 @@ export const LIBRARIES = {
   },
   "scheme.read": {
     fingerprint: "d3b129fe",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["read.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"read\"],[\"l\",\"import\",[\"l\",\"only\",[\"l\",\"scheme\",\"core\"],\"read\"]],[\"l\",\"export\",\"read\"]]",
     procedures: {
@@ -77548,7 +77548,7 @@ export const LIBRARIES = {
   },
   "scheme.repl": {
     fingerprint: "9a9b00fa",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["repl.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"repl\"],[\"l\",\"import\",[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"interaction-environment\"]],[\"l\",\"export\",\"interaction-environment\"],[\"l\",\"begin\"]]",
     procedures: {
@@ -77560,7 +77560,7 @@ export const LIBRARIES = {
   },
   "scheme.time": {
     fingerprint: "a2e1d3e1",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["time.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"time\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"current-second\",\"current-jiffy\",\"jiffies-per-second\"]],[\"l\",\"export\",\"current-second\",\"current-jiffy\",\"jiffies-per-second\"],[\"l\",\"begin\"]]",
     procedures: {
@@ -77572,7 +77572,7 @@ export const LIBRARIES = {
   },
   "scheme.write": {
     fingerprint: "86ec4af0",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["write.sld"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"write\"],[\"l\",\"import\",[\"l\",\"only\",[\"l\",\"scheme\",\"core\"],\"display\",\"write\",\"write-shared\",\"write-simple\"]],[\"l\",\"export\",\"display\",\"write\",\"write-shared\",\"write-simple\"]]",
     procedures: {
@@ -77584,7 +77584,7 @@ export const LIBRARIES = {
   },
   "srfi.1": {
     fingerprint: "bd2a2c03",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["1.sld","list_lib.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"srfi\",1],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"scheme\",\"cxr\"]],[\"l\",\"export\",\"cons\",\"list\",\"xcons\",\"cons*\",\"make-list\",\"list-tabulate\",\"list-copy\",\"circular-list\",\"iota\",\"pair?\",\"null?\",\"proper-list?\",\"circular-list?\",\"dotted-list?\",\"not-pair?\",\"null-list?\",\"list=\",\"car\",\"cdr\",\"caar\",\"cadr\",\"cdar\",\"cddr\",\"caaar\",\"caadr\",\"cadar\",\"caddr\",\"cdaar\",\"cdadr\",\"cddar\",\"cdddr\",\"caaaar\",\"caaadr\",\"caadar\",\"caaddr\",\"cadaar\",\"cadadr\",\"caddar\",\"cadddr\",\"cdaaar\",\"cdaadr\",\"cdadar\",\"cdaddr\",\"cddaar\",\"cddadr\",\"cdddar\",\"cddddr\",\"list-ref\",\"first\",\"second\",\"third\",\"fourth\",\"fifth\",\"sixth\",\"seventh\",\"eighth\",\"ninth\",\"tenth\",\"car+cdr\",\"take\",\"drop\",\"take-right\",\"drop-right\",\"take!\",\"drop-right!\",\"split-at\",\"split-at!\",\"last\",\"last-pair\",\"length\",\"length+\",\"append\",\"concatenate\",\"reverse\",\"append!\",\"concatenate!\",\"reverse!\",\"append-reverse\",\"append-reverse!\",\"zip\",\"unzip1\",\"unzip2\",\"unzip3\",\"unzip4\",\"unzip5\",\"count\",\"fold\",\"unfold\",\"pair-fold\",\"reduce\",\"fold-right\",\"unfold-right\",\"pair-fold-right\",\"reduce-right\",\"append-map\",\"append-map!\",\"pair-for-each\",\"filter-map\",\"map-in-order\",\"map\",\"for-each\",\"map!\",\"filter\",\"partition\",\"remove\",\"filter!\",\"partition!\",\"remove!\",\"member\",\"memq\",\"memv\",\"find\",\"find-tail\",\"any\",\"every\",\"list-index\",\"take-while\",\"drop-while\",\"take-while!\",\"span\",\"break\",\"span!\",\"break!\",\"delete\",\"delete-duplicates\",\"delete!\",\"delete-duplicates!\",\"assoc\",\"assq\",\"assv\",\"alist-cons\",\"alist-copy\",\"alist-delete\",\"alist-delete!\",\"lset<=\",\"lset=\",\"lset-adjoin\",\"lset-union\",\"lset-union!\",\"lset-intersection\",\"lset-intersection!\",\"lset-difference\",\"lset-difference!\",\"lset-xor\",\"lset-xor!\",\"lset-diff+intersection\",\"lset-diff+intersection!\",\"set-car!\",\"set-cdr!\"],[\"l\",\"include\",[\"s\",\"list_lib.scm\"]]]",
     procedures: {
@@ -86880,7 +86880,7 @@ export const LIBRARIES = {
   },
   "srfi.125": {
     fingerprint: "172c753c",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["125.sld","hash_table.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"srfi\",125],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"scheme\",\"case-lambda\"],[\"l\",\"only\",[\"l\",\"scheme\",\"char\"],\"string-ci=?\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"%make-hash-store\",\"%hash-store-ref\",\"%hash-store-set!\",\"%hash-store-delete!\",\"%hash-store-contains?\",\"%hash-store-size\",\"%hash-store-keys\",\"%hash-store-values\",\"%hash-store-clear!\",\"%hash-store-copy\",\"%hash-store-some-key\"],[\"l\",\"srfi\",128]],[\"l\",\"export\",\"make-hash-table\",\"hash-table\",\"hash-table-unfold\",\"alist->hash-table\",\"hash-table?\",\"hash-table-contains?\",\"hash-table-exists?\",\"hash-table-empty?\",\"hash-table=?\",\"hash-table-mutable?\",\"hash-table-ref\",\"hash-table-ref/default\",\"hash-table-set!\",\"hash-table-delete!\",\"hash-table-intern!\",\"hash-table-update!\",\"hash-table-update!/default\",\"hash-table-pop!\",\"hash-table-clear!\",\"hash-table-size\",\"hash-table-keys\",\"hash-table-values\",\"hash-table-entries\",\"hash-table-find\",\"hash-table-count\",\"hash-table-map\",\"hash-table-for-each\",\"hash-table-walk\",\"hash-table-map!\",\"hash-table-map->list\",\"hash-table-fold\",\"hash-table-prune!\",\"hash-table-copy\",\"hash-table-empty-copy\",\"hash-table->alist\",\"hash-table-union!\",\"hash-table-merge!\",\"hash-table-intersection!\",\"hash-table-difference!\",\"hash-table-xor!\",\"hash\",\"string-hash\",\"string-ci-hash\",\"hash-by-identity\",\"hash-table-equivalence-function\",\"hash-table-hash-function\"],[\"l\",\"include\",[\"s\",\"hash_table.scm\"]]]",
     procedures: {
@@ -96291,7 +96291,7 @@ export const LIBRARIES = {
   },
   "srfi.128": {
     fingerprint: "57113b86",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["128.sld","comparator.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"srfi\",128],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"scheme\",\"char\"],[\"l\",\"scheme\",\"complex\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"%hash-bound\",\"%hash-salt\",\"%identity-hash\",\"number-hash\",\"string-hash\",\"string-ci-hash\"]],[\"l\",\"export\",\"comparator?\",\"comparator-ordered?\",\"comparator-hashable?\",\"make-comparator\",\"make-pair-comparator\",\"make-list-comparator\",\"make-vector-comparator\",\"make-eq-comparator\",\"make-eqv-comparator\",\"make-equal-comparator\",\"boolean-hash\",\"char-hash\",\"char-ci-hash\",\"string-hash\",\"string-ci-hash\",\"symbol-hash\",\"number-hash\",\"hash-bound\",\"hash-salt\",\"make-default-comparator\",\"default-hash\",\"comparator-register-default!\",\"comparator-type-test-predicate\",\"comparator-equality-predicate\",\"comparator-ordering-predicate\",\"comparator-hash-function\",\"comparator-test-type\",\"comparator-check-type\",\"comparator-hash\",\"=?\",\"<?\",\">?\",\"<=?\",\">=?\",\"comparator-if<=>\"],[\"l\",\"include\",[\"s\",\"comparator.scm\"]]]",
     procedures: {
@@ -102165,7 +102165,7 @@ export const LIBRARIES = {
   },
   "srfi.151": {
     fingerprint: "5b4e045c",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["151.sld","bitwise.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"srfi\",151],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"scheme\",\"case-lambda\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"%bitwise-and\",\"%bitwise-ior\",\"%bitwise-xor\",\"%arithmetic-shift\",\"%integer-length\",\"%bit-count\"]],[\"l\",\"export\",\"bitwise-not\",[\"l\",\"rename\",\"%bitwise-and\",\"bitwise-and\"],[\"l\",\"rename\",\"%bitwise-ior\",\"bitwise-ior\"],[\"l\",\"rename\",\"%bitwise-xor\",\"bitwise-xor\"],\"bitwise-eqv\",\"bitwise-nand\",\"bitwise-nor\",\"bitwise-andc1\",\"bitwise-andc2\",\"bitwise-orc1\",\"bitwise-orc2\",[\"l\",\"rename\",\"%arithmetic-shift\",\"arithmetic-shift\"],[\"l\",\"rename\",\"%bit-count\",\"bit-count\"],[\"l\",\"rename\",\"%integer-length\",\"integer-length\"],\"bitwise-if\",\"bit-set?\",\"copy-bit\",\"bit-swap\",\"any-bit-set?\",\"every-bit-set?\",\"first-set-bit\",\"bit-field\",\"bit-field-any?\",\"bit-field-every?\",\"bit-field-clear\",\"bit-field-set\",\"bit-field-replace\",\"bit-field-replace-same\",\"bit-field-rotate\",\"bit-field-reverse\",\"bits->list\",\"list->bits\",\"bits->vector\",\"vector->bits\",\"bits\",\"bitwise-fold\",\"bitwise-for-each\",\"bitwise-unfold\",\"make-bitwise-generator\"],[\"l\",\"include\",[\"s\",\"bitwise.scm\"]]]",
     procedures: {
@@ -107595,7 +107595,7 @@ export const LIBRARIES = {
   },
   "srfi.152": {
     fingerprint: "eecece92",
-    runtime: "d693ef58",
+    runtime: "26f9e13b",
     files: ["152.sld","string_lib.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"srfi\",152],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"scheme\",\"char\"]],[\"l\",\"export\",\"string?\",\"string-null?\",\"string-every\",\"string-any\",\"make-string\",\"string\",\"string-tabulate\",\"string-unfold\",\"string-unfold-right\",\"string->vector\",\"string->list\",\"vector->string\",\"list->string\",\"reverse-list->string\",\"string-length\",\"string-ref\",\"substring\",\"string-copy\",\"string-take\",\"string-take-right\",\"string-drop\",\"string-drop-right\",\"string-pad\",\"string-pad-right\",\"string-trim\",\"string-trim-right\",\"string-trim-both\",\"string-replace\",\"string=?\",\"string<?\",\"string>?\",\"string<=?\",\"string>=?\",\"string-ci=?\",\"string-ci<?\",\"string-ci>?\",\"string-ci<=?\",\"string-ci>=?\",\"string-prefix-length\",\"string-suffix-length\",\"string-prefix?\",\"string-suffix?\",\"string-index\",\"string-index-right\",\"string-skip\",\"string-skip-right\",\"string-contains\",\"string-contains-right\",\"string-append\",\"string-concatenate\",\"string-concatenate-reverse\",\"string-join\",\"string-fold\",\"string-fold-right\",\"string-map\",\"string-for-each\",\"string-count\",\"string-filter\",\"string-remove\",\"string-replicate\",\"string-split\",\"read-string\",\"write-string\",\"string-set!\",\"string-fill!\"],[\"l\",\"include\",[\"s\",\"string_lib.scm\"]]]",
     procedures: {

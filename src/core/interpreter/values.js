@@ -439,16 +439,21 @@ export function createContinuation(fstack, interpreter) {
  * holding Scheme values -- the compiled code a driver runs -- that tries the
  * driver's jump first (`jumpIfDriving`). Made at every capture a driver
  * finishes, so it makes nothing more: a getter for the stack made `ctak`
- * slower than the interpreter's copies.
+ * slower than the interpreter's copies. With no interpreter -- a program
+ * compiled ahead of time -- one not taken by a jump re-enters through a driver
+ * of its own (`runAhead` in unwind.js).
  *
  * @param {Object} driver - The driver.
  * @param {Object|null} frames - Its frames, innermost first.
- * @param {Object} interpreter - The interpreter.
+ * @param {Object|null} interpreter - The interpreter, or null if there is none.
  * @returns {Function} The continuation.
  */
 export function createNativeContinuation(driver, frames, interpreter) {
     const continuation = function (...jsArgs) {
-        return interpreter.invokeContinuation(continuation, continuationValue(jsArgs.map(jsToScheme)), this);
+        const value = continuationValue(jsArgs.map(jsToScheme));
+        return interpreter === null
+            ? driver.reenter(continuation, value)
+            : interpreter.invokeContinuation(continuation, value, this);
     };
     continuation[SCHEME_CONTINUATION] = true;
     continuation.fstack = null;
@@ -457,8 +462,9 @@ export function createNativeContinuation(driver, frames, interpreter) {
     continuation.interpreter = interpreter;
     continuation.toString = continuationText;
     continuation[SCHEME_RAW_CALL] = (...args) => {
-        jumpIfDriving(continuation, continuationValue(args));
-        return invokeWithSchemeValues(continuation, args);
+        const value = continuationValue(args);
+        jumpIfDriving(continuation, value);
+        return interpreter === null ? driver.reenter(continuation, value) : invokeWithSchemeValues(continuation, args);
     };
     return continuation;
 }
