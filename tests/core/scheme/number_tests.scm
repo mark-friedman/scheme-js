@@ -1184,3 +1184,25 @@
   (> 1)
   (<= 1)
   (>= 1))
+
+;; Exact division of integers held as numbers, beyond V8's small integers --
+;; 2^30 in a browser, 2^31 in Node -- up to the largest exact integer a number
+;; holds, both signs (`dividingIntegers` in src/core/primitives/math.js). Each
+;; row is (a b quotient remainder modulo), computed apart.
+(test-group "exact division beyond small integers"
+  (for-each
+   (lambda (row)
+     (let ((a (list-ref row 0)) (b (list-ref row 1)))
+       (test (string-append "quotient, remainder, modulo of " (number->string a) " and " (number->string b))
+             (cddr row)
+             (list (quotient a b) (remainder a b) (modulo a b)))))
+   '((1073741831 16384 65536 7 7) (-1073741831 16384 -65536 -7 16377) (1073741831 -16384 -65536 7 -16377)
+     (2147483653 3 715827884 1 1) (-2147483653 7 -306783379 0 0)
+     (4503599627370495 2147483659 2097151 2124414986 2124414986)
+     (-4503599627370495 2147483659 -2097151 -2124414986 23068673)
+     (4503599627370493 -12345 -364811634456 11173 -1172)
+     (9007199254740991 1000003 9007172233 224292 224292)
+     (-9007199254740991 -1000003 9007172233 -224292 -224292)
+     (1099511627776 1048576 1048576 0 0) (-1099511627776 1048576 -1048576 0 0)))
+  (test "an exact zero remainder of a negative is zero, not negative zero" "0"
+        (number->string (remainder -1099511627776 1048576))))

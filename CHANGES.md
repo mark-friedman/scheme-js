@@ -14277,3 +14277,28 @@ whose synchronous measurements in Node block its event loop, left a page's modul
 process of its own. And a benchmark run in a page's environment, as the canonical harness runs one
 in Node, sees only what the page imports, which leaves out `(scheme file)`; each now runs with its
 own import declarations, as a program.
+
+# Task 104 done: `bv2string` on a page (2026-10-08)
+
+Task 102 found `benchmarks/r7rs/src/bv2string.scm` running 2.7 times slower in headless Chrome than
+in Node through the same code. Profiled through the page bundle in both: in Chrome nearly half its
+time is in the wrappers of `quotient` and `remainder`, which its random-number generator calls about
+27 million times over a hundred iterations, and which do not appear in Node's profile at all --
+Node's V8 inlines them into the compiled callers, and Chrome's does not -- and Chrome's integer `%`
+is slower besides, 6 ns against 1.2 measured alone; the rest of the difference is the UTF-8 codecs,
+whose `TextDecoder` was made for each call (270 ns a short decode in Chrome, against 99 reusing
+one; an encode is about 700 ns there either way, three times Node's).
+
+Of ours, two things changed. The division primitives' wrappers take two parameters rather than a
+rest parameter (`dividingIntegers` in `src/core/primitives/math.js`), and `utf8->string` and
+`string->utf8` reuse one decoder and one encoder. `bv2string`, per iteration: Node 3.33 to 2.86
+ms, Chrome 9.15 to 8.39. The rest is the engine's; expanding exact division inline in generated
+code, so that the hot path does not depend on the engine inlining a primitive, is task 105.
+
+Tried and not kept: a remainder computed by division rather than `%` beyond V8's small integers --
+2^30 in Chrome, which builds V8 with pointer compression and so keeps 31 bits of them, 2^31 in Node
+-- where `%` is a call to C's `fmod`. It is 2.5 times faster there, and matched BigInt on 300,000
+random cases, but `bv2string`'s numbers stay below 2^30, and the extra test made its small case
+15% slower in Node. Tested: exact division across those ranges and both signs, against values
+computed apart, in `tests/core/scheme/number_tests.scm`. JavaScript under `src/`: primitives fixed
+in place.
