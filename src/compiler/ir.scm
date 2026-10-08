@@ -813,13 +813,16 @@
 ;;  */
 (define (lower-call-cc node scope tail st)
   (let ((fn (ast-1 node)))
-    (if (not (eq? (ast-tag fn) 'var))
+    (if (not (memq (ast-tag fn) '(var library-var)))
         'not-this-shape
         (if (not (if (eq? (ast-1 fn) 'call/cc)
                      #t
                      (eq? (ast-1 fn) 'call-with-current-continuation)))
             'not-this-shape
-            (if (scope-has? scope (ast-1 fn))
+            ;; A local of the same name is not the primitive at all. A
+            ;; library's binding, which a library's macro refers to -- `guard`
+            ;; in (scheme control) -- is never a local.
+            (if (and (eq? (ast-tag fn) 'var) (scope-has? scope (ast-1 fn)))
                 'not-this-shape
                 (if (not (= (length (ast-2 node)) 1))
                     'not-this-shape

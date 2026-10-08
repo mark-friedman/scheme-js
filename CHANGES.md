@@ -14389,3 +14389,73 @@ JavaScript under `src/`: `windList`, `commonWinds` and `travelTo` in `unwind.js`
 continuation records in `values.js`, are the save-and-resume protocol's -- what invoking a
 continuation does; `%winds` and `%set-winds!` (`src/core/primitives/winds.js`) are primitives over
 the runtime's cell. `dynamic-wind` itself is Scheme.
+
+# Task 108 done: handlers and raises ahead of time (2026-10-08)
+
+The rest of 37(c), its second and third stages together: handlers alone would have let a program
+build whose `guard` missed a primitive's error, which it had been refused for. Task 37 is closed with
+it.
+
+A program compiled ahead of time keeps its handlers as a list the runtime holds (`handlerList` in
+`src/core/interpreter/unwind.js`), each `(handler . winds)` with the winds in force where it was
+installed, and `with-exception-handler`, `raise` and `raise-continuable` are Scheme over it,
+`(scheme-js handlers)` (`src/core/scheme/handlers.scm`), which the build supplies in the primitives'
+place as it supplies `dynamic-wind`. A handler is in force for an extent `dynamic-wind` makes, so a
+continuation leaving or entering the extent puts the handlers back with the winds. They do what the
+interpreter does: a raise leaves the extents between it and its handler, running their after-thunks,
+then calls the handler with the handlers outside it in force, and raises an error to those if the
+handler returns; a continuable raise calls its handler where it is.
+
+What JavaScript throws -- a primitive's error, or what `error` raises, which compiled code throws --
+the driver with no interpreter hands to that `raise` (`ahead` in `unwind.js`), wrapped as an error
+object as the interpreter wraps one, so `error` needs no Scheme version and a program that never
+installs a handler carries none of this. It does so only under a handler its own code installed:
+under one installed before it started, around the JavaScript that called the procedure it runs, the
+error goes on through that JavaScript to the driver beneath, as it goes to the run beneath under the
+interpreter. And a continuation of a driver still running beneath the current one is now taken by a
+jump through the drivers and JavaScript between (`jumpIfDriving`): it used to be re-entered, which ran
+the rest of the outer computation inside the callback -- an escape from a `forEach` callback looped
+forever.
+
+`guard` expands, in `(scheme control)`, into a call of that library's `call/cc`, which the lowering
+took for a reference to a control global; it is a capture now, as a call of `call-with-values` so
+written was already rewritten (`lower-call-cc` in `src/compiler/ir.scm`).
+
+Found and fixed on the way:
+
+- The interpreter ran the after-thunks of the extents around a continuable raise before calling its
+  handler, and then, the handler having returned, put the frames back without their before-thunks,
+  and without the handler: a second `raise-continuable` in the same extent found no handler. R7RS
+  6.11 calls the handler in the raise's dynamic environment, the handler outside it in force. Now a
+  continuable raise leaves the stack as it is and pushes a frame marking its handler in use, which
+  the search for the handler in force skips past (`handlerInForce` in
+  `src/core/interpreter/ast_nodes.js`, which the debugger's check of whether a raise is caught uses
+  too), and the frames that restored the stack are gone.
+- `(car 1)`, `(cdr -2)` and `(vector-length 5)` generated `1.car` and the like, which JavaScript
+  cannot parse. Under the tier the procedure was declined when JavaScript refused it; ahead of time
+  rollup refused the whole program. A number written out is put in parentheses where a property of it
+  is read (`property-object` in `src/compiler/inline.scm`).
+
+Measured, 100,000 times each in a program built both ways: a `guard` with nothing raised costs 0.54
+µs ahead of time against 2.6 under the tier; a raise it catches, 5.7 against 3.5; a primitive's
+error it catches, 22 against 14. Most of a caught raise's time ahead of time is the jump that takes
+`guard`'s continuation, through the frames of `with-exception-handler` and `dynamic-wind`.
+
+Tested by building and running a program that catches a raise, an `error`, two primitives' errors,
+re-raises to an outer `guard`, raises continuably twice in one extent, returns from a handler,
+raises from a handler, catches a raise in a `dynamic-wind` and raises continuably in one, and
+raises, errs and escapes in and out of a procedure JavaScript calls back
+(`tests/functional/ahead_program_tests.js`), its answers the interpreter's; the library interpreted
+(`tests/core/scheme/handlers_tests.scm`); the interpreter's continuable raise
+(`tests/core/scheme/exception_tests.scm`); `call/cc` through a library's binding
+(`tests/compiler/driver_tests.scm`); and the parentheses (`tests/compiler/emit_tests.scm`).
+
+JavaScript under `src/`:
+- `handlerList`, `errorRaiser`, the hand-off in `ahead` and the jump in `jumpIfDriving`
+  (`unwind.js`) are the driver's, the save-and-resume protocol's.
+- `%handlers`, `%set-handlers!` and `%set-error-raiser!` (`src/core/primitives/handlers.js`) are
+  primitives over the runtime's cells, and `%raise-unhandled` (`raise.js`) is a primitive beside
+  `raise`'s own, throwing what a raise nobody handles throws.
+- `HandlerCallFrame` and `handlerInForce` are the evaluator's.
+
+The handlers themselves are Scheme.

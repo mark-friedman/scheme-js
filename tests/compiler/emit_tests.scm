@@ -225,6 +225,14 @@
           (and (string-contains source "$vectorRef(s_v, 0)") #t)))
   (test "vector-length needs an array and is inline" '("Array.isArray(v)" "v.length")
         (parts 'vector-length '(v)))
+  ;; `1.car` does not parse, and a JavaScript rejection is no procedure.
+  (test "a number written out is in parentheses where a property of it is read"
+        '(#t #t #t)
+        (map (lambda (name operand property)
+               (let ((source (car (generate-unit (lowered-ir (lower-lambda `(lambda () #f #f (app (var ,name) ((lit ,operand))))))
+                                                 (list name) '() "f" (list name)))))
+                 (and (string-contains source (string-append "(" (number->string operand) ")." property)) #t)))
+             '(car cdr vector-length) '(1 -2 5) '("car" "cdr" "length")))
   (test "a procedure using the helper declares it"
         #t
         (let ((source (car (generate-unit (lowered-ir (lower-lambda '(lambda (v) #f #f (app (var vector-ref) ((var v) (lit 0))))))

@@ -33,6 +33,7 @@ import { readerPrimitives } from './reader_support.js';
 import { expanderPrimitives } from './expander_support.js';
 import { classPrimitives } from './class.js';
 import { windPrimitives } from './winds.js';
+import { handlerPrimitives } from './handlers.js';
 
 /**
  * Creates the global environment with built-in primitives.
@@ -93,6 +94,7 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(jsInteropPrimitives);
     addPrimitives(classPrimitives);
     addPrimitives(windPrimitives);
+    addPrimitives(handlerPrimitives);
     addPrimitives(libraryPrimitives);
     addPrimitives(readerPrimitives);
     addPrimitives(expanderPrimitives);

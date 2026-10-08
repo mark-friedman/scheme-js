@@ -54,6 +54,5 @@ export {
     WindFrame,
     RestoreValueFrame,
     CallWithValuesFrame,
-    ExceptionHandlerFrame,
-    RaiseContinuableResumeFrame
+    ExceptionHandlerFrame
 } from './frames.js';

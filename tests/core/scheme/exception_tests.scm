@@ -113,3 +113,39 @@
   (+ 5 (with-exception-handler
          (lambda (e) 100)
          (lambda () (raise-continuable 'ignored)))))
+
+;; A handler a continuable raise returned from is still the handler: the
+;; extent `with-exception-handler` installed it for has not ended (R7RS 6.11).
+(test "raise-continuable twice in one extent"
+  30
+  (with-exception-handler
+    (lambda (c) (* c 10))
+    (lambda () (+ (raise-continuable 1) (raise-continuable 2)))))
+
+;; The handler of a continuable raise is called in the raise's dynamic
+;; environment, but for the handler in force, so no extent between is left.
+(test "raise-continuable leaves no extent between it and its handler"
+  '(6 (in (handler x) out))
+  (let ((log '()))
+    (define (note x) (set! log (cons x log)))
+    (let ((value (with-exception-handler
+                   (lambda (c) (note (list 'handler c)) 5)
+                   (lambda ()
+                     (dynamic-wind (lambda () (note 'in))
+                                   (lambda () (+ 1 (raise-continuable 'x)))
+                                   (lambda () (note 'out)))))))
+      (list value (reverse log)))))
+
+;; Within the handler of a continuable raise the handler in force is the one
+;; outside it, and after the handler returns, the handler again.
+(test "raise-continuable's handler raises to the handler outside it"
+  '(outer 1 inner)
+  (with-exception-handler
+    (lambda (c) 'outer)
+    (lambda ()
+      (with-exception-handler
+        (lambda (c) (if (eq? c 'first) (raise-continuable 'nested) 1))
+        (lambda ()
+          (let* ((a (raise-continuable 'first))
+                 (b (raise-continuable 'second)))
+            (list a b 'inner)))))))

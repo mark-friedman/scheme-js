@@ -1,26 +1,13 @@
 import { Values, isSchemeClosure, callSchemeProcedure, registerGlobalEnvironment, methodReceiver } from './values.js';
-import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, ExceptionHandlerFrame, RaiseNode } from './ast.js';
+import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
 import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush, beginStepAgain, openCompiledSegment, enterRun, leaveRun } from './unwind.js';
 import { CompiledEntryRemainder } from './frames.js';
 import { TailCall } from './values.js';
-import { takeCompiledRaise } from './ast_nodes.js';
+import { takeCompiledRaise, handlerInForce } from './ast_nodes.js';
 import { interpretCompiledOver } from './library_registry.js';
 import { globalContext } from './context.js';
 
-/**
- * Finds the nearest ExceptionHandlerFrame on the stack.
- * @param {Array} fstack - The frame stack
- * @returns {number} Index of handler or -1 if not found
- */
-function findExceptionHandler(fstack) {
-  for (let i = fstack.length - 1; i >= 0; i--) {
-    if (fstack[i] instanceof ExceptionHandlerFrame) {
-      return i;
-    }
-  }
-  return -1;
-}
 
 /**
  * Wraps a JS Error as a SchemeError if not already one.
@@ -454,7 +441,7 @@ export class Interpreter {
 
           // Check if there's an ExceptionHandlerFrame on the stack
           // If so, route the JS error through Scheme's exception system
-          const handlerIndex = findExceptionHandler(registers[FSTACK]);
+          const handlerIndex = handlerInForce(registers[FSTACK]);
           if (handlerIndex !== -1) {
             // Wrap JS error as SchemeError if needed
             const schemeError = wrapJsError(e);
@@ -777,7 +764,7 @@ export class Interpreter {
             await this.debugRuntime.waitForResume();
           }
 
-          const handlerIndex = findExceptionHandler(registers[FSTACK]);
+          const handlerIndex = handlerInForce(registers[FSTACK]);
           if (handlerIndex !== -1) {
             registers[CTL] = new RaiseNode(wrapJsError(e), false);
             continue;

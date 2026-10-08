@@ -56,6 +56,7 @@
  */
 
 import { ANS, CTL, ENV, FSTACK } from './stepables_base.js';
+import { SchemeError } from './errors.js';
 
 /**
  * Returned by compiled code whose callee began capturing a continuation.
@@ -768,7 +769,11 @@ function reenterAhead(continuation, value) {
  * @returns {*} The value the call or the frames end with.
  */
 function ahead(hooks, frames, value, first, firstArgs) {
-  const driver = { live: true, base: null, beneath: null, hooks, reenter: reenterAhead };
+  // `under` is the driver it starts over, if it starts over one with no run
+  // of the interpreter between (`jumpIfDriving`).
+  const driver = { live: true, base: null, beneath: null, hooks, reenter: reenterAhead, under: currentDriver };
+  // The handlers in force as it starts: one installed since is its own.
+  const handlersBeneath = handlerList.v;
   let stack = frames;
   let frame = null;
   let callee = first;
@@ -799,10 +804,28 @@ function ahead(hooks, frames, value, first, firstArgs) {
           value = undefined;
           while (hooks.isTailCall(result)) result = hooks.call(result.func, result.args);
         } catch (e) {
-          if (!(e instanceof NativeJump) || e.driver !== driver) throw e;
-          nativeUnwinds.jumps++;
-          stack = e.stack;
-          result = e.value;
+          if (e instanceof NativeJump && e.driver === driver) {
+            nativeUnwinds.jumps++;
+            stack = e.stack;
+            result = e.value;
+          } else if (handlerList.v !== handlersBeneath && errorRaiser.v !== null && e instanceof Error) {
+            // An error JavaScript threw -- a primitive's, or what `error`
+            // raises, which compiled code throws (`raiseFromCompiledCode`) --
+            // raised as Scheme raises, while a handler this driver's code
+            // installed is in force, as the interpreter raises one: wrapped as
+            // an error object if it is none. A raise that cannot continue
+            // never returns, so the frames beneath, which the throw left, are
+            // never resumed. Under a handler installed before the driver
+            // started -- around the JavaScript that called the procedure it
+            // runs -- the error goes on through that JavaScript, to the driver
+            // beneath it, as it goes on to the run beneath under the
+            // interpreter: there the handler's escape is a jump.
+            callee = errorRaiser.v;
+            args = [e instanceof SchemeError ? e : new SchemeError(e.message, [], e.name)];
+            continue;
+          } else {
+            throw e;
+          }
         }
       }
       if (result === UNWIND) {
@@ -855,6 +878,13 @@ function continuationOf(driver, stack, interpreter) {
  * Takes a continuation a driver made by a jump to its driver, if compiled
  * code is running in that driver now with no run between; otherwise returns,
  * and the continuation is invoked the interpreter's way.
+ *
+ * Between them there may be drivers with no interpreter, each started over
+ * the one beneath it as JavaScript called a procedure -- a callback a program
+ * compiled ahead of time handed to `forEach`, say. The jump goes through them,
+ * and through the JavaScript, as an exception does, as the interpreter's own
+ * escape from a nested run does; re-entered instead, the continuation would
+ * run the rest of the driver's computation inside the callback.
  * @param {Function} continuation - The continuation.
  * @param {*} value - What it is invoked with.
  * @returns {void}
@@ -862,7 +892,10 @@ function continuationOf(driver, stack, interpreter) {
  */
 export function jumpIfDriving(continuation, value) {
   const driver = continuation.driver;
-  if (driver.live && currentDriver === driver) throw new NativeJump(driver, continuation.frames, value);
+  if (!driver.live) return;
+  for (let d = currentDriver; d != null; d = d.under) {
+    if (d === driver) throw new NativeJump(driver, continuation.frames, value);
+  }
 }
 
 /**
@@ -948,3 +981,30 @@ export function travelTo(continuation) {
     windList.v = entered[i];
   }
 }
+
+// =============================================================================
+// Handlers, for a program compiled ahead of time
+// =============================================================================
+//
+// The interpreter keeps a handler as a frame on its stack. A program compiled
+// ahead of time keeps its handlers as a list the runtime holds, in force for
+// an extent `dynamic-wind` makes: `with-exception-handler`, `raise` and
+// `raise-continuable` written in Scheme over it ((scheme-js handlers),
+// src/core/scheme/handlers.scm). What JavaScript throws -- a primitive's
+// error -- a driver with no interpreter hands to that `raise` while a handler
+// is in force (`ahead`).
+
+/**
+ * The handlers in force: a Scheme list of `(handler . winds)`, innermost
+ * first. Empty under the interpreter, whose handlers are frames.
+ * @type {{v: (Cons|null)}}
+ */
+export const handlerList = { v: null };
+
+/**
+ * The procedure a driver with no interpreter hands an error JavaScript threw
+ * to while a handler is in force: (scheme-js handlers)'s `raise`, which
+ * installs itself as its library loads.
+ * @type {{v: (Function|null)}}
+ */
+export const errorRaiser = { v: null };

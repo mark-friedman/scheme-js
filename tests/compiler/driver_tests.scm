@@ -198,9 +198,14 @@
                                 ".set(\"count\", ")
                #t)))
   (test "a control global reached so is one, by its name"
-        "references control global 'call/cc'"
+        "references control global 'eval'"
         (lowering-decline
-          (lower-lambda `(lambda (f) #f "f" (app (library-var call/cc ,library) ((var f))) (f) #f)) #f))
+          (lower-lambda `(lambda (f) #f "f" (app (library-var eval ,library) ((var f))) (f) #f)) #f))
+  ;; As (scheme control)'s `guard` writes it, wherever it is used.
+  (test "but call/cc called so is a capture, as a variable's call is, and not declined"
+        '(#f #t ())
+        (let ((capturing (lower-lambda `(lambda (f) #f "f" (app (library-var call/cc ,library) ((var f))) (f) #f))))
+          (list (lowering-decline capturing #f) (lowered-captures? capturing) (lowered-globals capturing))))
   ;; As (scheme control)'s `define-values` writes it, wherever it is used.
   (test "but call-with-values called so is rewritten, as a variable's call is, and not declined"
         '(#f (list))

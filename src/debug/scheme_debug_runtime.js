@@ -26,7 +26,7 @@ import { Cons } from '../core/interpreter/cons.js';
 import { ENV } from '../core/interpreter/stepables_base.js';
 import { globalMacroRegistry } from '../core/interpreter/macro_registry.js';
 import { isCompiledOver } from '../core/interpreter/library_registry.js';
-import { getExceptionHandlerFrameClass } from '../core/interpreter/frame_registry.js';
+import { handlerInForce } from '../core/interpreter/ast_nodes.js';
 
 /** The procedures `(scheme-js debugger)` exports, once it is loaded. */
 let debuggerLibrary = null;
@@ -208,9 +208,7 @@ export class SchemeDebugRuntime {
      */
     shouldBreakOnException(exception, fstack) {
         if (!this.enabled) return false;
-        const ExceptionHandlerFrame = getExceptionHandlerFrameClass();
-        const caught = Array.isArray(fstack) && ExceptionHandlerFrame !== undefined
-            && fstack.some((frame) => frame instanceof ExceptionHandlerFrame);
+        const caught = Array.isArray(fstack) && handlerInForce(fstack) !== -1;
         return debuggerCall('breaks-on-exception?', this.scheme, caught);
     }
 

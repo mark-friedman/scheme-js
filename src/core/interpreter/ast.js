@@ -55,8 +55,7 @@ export {
     WindFrame,
     RestoreValueFrame,
     CallWithValuesFrame,
-    ExceptionHandlerFrame,
-    RaiseContinuableResumeFrame
+    ExceptionHandlerFrame
 } from './stepables.js';
 
 // Re-export from winders.js

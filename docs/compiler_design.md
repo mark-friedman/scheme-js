@@ -817,9 +817,8 @@ by value, as the library system binds one; a primitive imported under its own na
 at all, since every unit's environment is inside the runtime's environment of primitives.
 
 **What cannot run is refused by name, at build time, rather than failing as it runs.** Code the
-compiler declined, reached from anything that runs -- a procedure naming `with-exception-handler`,
-`raise` or `guard`, for which there is no compiled code yet -- refuses the program, saying which
-procedure and why;
+compiler declined, reached from anything that runs -- a procedure naming `eval` or `exit`, for
+which there is no compiled code yet -- refuses the program, saying which procedure and why;
 so does a constant that cannot be written down, and a primitive the runtime does not carry
 (`AHEAD_PRIMITIVES`: those that need nothing of the interpreter or the library system, JavaScript
 interop, classes, promises and the command line among them). Unreached, a procedure that could not
@@ -843,6 +842,25 @@ it is compiled, as a call of an ordinary procedure (`lowering-decline`'s `ordina
 `parameterize` is `dynamic-wind` around a change to the parameters' environment (`parameter.scm`),
 so it comes with it. Under the interpreter, continuations are the interpreter's, and the list
 stays empty.
+
+**Handlers are a list the runtime keeps too.** Each is `(handler . winds)`, the winds those in force
+where it was installed, and `with-exception-handler`, `raise` and `raise-continuable` are Scheme
+over the list, `(scheme-js handlers)`, supplied as `dynamic-wind` is. A handler is in force for an
+extent `dynamic-wind` makes, so a continuation that leaves or enters the extent puts the handlers
+back with the winds. They do what the interpreter does: a raise leaves the extents between it and
+its handler, running their after-thunks, before calling it -- so a `guard`'s clauses run outside
+them, as R7RS's own `guard` runs them -- and raises an error to the handlers outside if the handler
+returns; a continuable raise calls its handler where it is. `guard` itself is unchanged: its
+`call/cc`, which names `(scheme control)`'s binding, is a capture like any other.
+
+What JavaScript throws -- a primitive's error, or what `error` raises, which compiled code throws
+(`raiseFromCompiledCode`) -- the driver with no interpreter hands to that `raise` (`ahead` in
+`unwind.js`), so `error` needs no Scheme version. It does so only under a handler installed while it
+ran; under one installed before it started, around the JavaScript that called the procedure it
+runs, the error goes on through that JavaScript to the driver beneath, as it goes to the run beneath
+under the interpreter. A continuation of a driver still running beneath the current one is taken by
+a jump through the drivers and the JavaScript between (`jumpIfDriving`), where it used to be
+re-entered, which ran the rest of the outer computation inside the callback.
 
 The program runs on the driver that needs no interpreter beneath it (`runAhead`), which finishes
 its captures and its moves to the heap itself. Where the compiled tier hands a move to the

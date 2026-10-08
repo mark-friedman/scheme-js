@@ -10,7 +10,7 @@
  * whoever called the program.
  */
 
-import { pendingRaise } from '../interpreter/ast_nodes.js';
+import { pendingRaise, unhandled } from '../interpreter/ast_nodes.js';
 import { SchemeError } from '../interpreter/errors.js';
 
 /**
@@ -37,5 +37,17 @@ export const raisePrimitives = {
     'error': (message, ...irritants) => {
         const msg = typeof message === 'string' ? message : String(message);
         return pendingRaise(new SchemeError(msg, irritants), false);
+    },
+
+    /**
+     * What a raise with no handler in force does where the handlers are
+     * Scheme's ((scheme-js handlers), for a program compiled ahead of time):
+     * throws to whoever called the program what a raise nobody handles throws
+     * under the interpreter.
+     * @param {*} exception - What was raised.
+     * @returns {never}
+     */
+    '%raise-unhandled': (exception) => {
+        throw unhandled(exception);
     }
 };

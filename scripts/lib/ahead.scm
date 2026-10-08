@@ -194,8 +194,9 @@
 ;; A few primitives a program compiled ahead of time cannot have as they are.
 ;; `%read` is a door into a library the library system's seed loads for
 ;; itself, on its own interpreter -- the reader -- and such a program has no
-;; seed; `dynamic-wind` keeps its winds as frames of the interpreter's, and
-;; such a program has no interpreter. Such a primitive is a library's
+;; seed; `dynamic-wind` keeps its winds, and `with-exception-handler` its
+;; handlers, as frames of the interpreter's, and such a program has no
+;; interpreter. Such a primitive is a library's
 ;; procedure, compiled with the program instead: a program that reaches one
 ;; has the library loaded and compiled as its imports are, and the runtime
 ;; binds the primitive's name to the procedure, among the primitives, once the
@@ -205,13 +206,20 @@
 
 ;; /**
 ;;  * Each such primitive, the library whose procedure does its whole work, and
-;;  * the procedure: `%read` is `read-from-port`, which checks the port too,
-;;  * and `dynamic-wind` is (scheme-js winds)'s, which keeps the winds in the
-;;  * runtime's list (src/core/scheme/winds.scm).
+;;  * the procedure: `%read` is `read-from-port`, which checks the port too;
+;;  * `dynamic-wind` is (scheme-js winds)'s, which keeps the winds in the
+;;  * runtime's list (src/core/scheme/winds.scm); and the handlers and the
+;;  * raises that call them are (scheme-js handlers)'s, which keep the
+;;  * handlers so (src/core/scheme/handlers.scm). `error`, whose raise reaches
+;;  * compiled code as a JavaScript throw, as a primitive's error does, needs
+;;  * none: the driver hands it to that `raise`.
 ;;  */
 (define library-primitives
   '((%read ("scheme-js" "reader") read-from-port)
-    (dynamic-wind ("scheme-js" "winds") dynamic-wind)))
+    (dynamic-wind ("scheme-js" "winds") dynamic-wind)
+    (with-exception-handler ("scheme-js" "handlers") with-exception-handler)
+    (raise ("scheme-js" "handlers") raise)
+    (raise-continuable ("scheme-js" "handlers") raise-continuable)))
 
 ;; ---------------------------------------------------------------------------
 ;; Where a name is bound

@@ -884,36 +884,6 @@ export class ExceptionHandlerFrame extends Executable {
 }
 
 /**
- * Frame for resuming after a continuable exception.
- * If the handler returns, this frame restores the saved frames
- * and continues with the handler's return value.
- */
-export class RaiseContinuableResumeFrame extends Executable {
-    /**
-     * @param {Array} savedFrames - Frames to restore on resumption
-     * @param {Environment} env - The captured environment
-     */
-    constructor(savedFrames, env) {
-        super();
-        this.savedFrames = savedFrames;
-        this.env = env;
-    }
-
-    step(registers, interpreter) {
-        // Handler returned with a value - resume with that value
-        // The saved frames expect the handler's return value in ANS
-        // Push them back onto the stack
-        for (const frame of this.savedFrames) {
-            registers[FSTACK].push(frame);
-        }
-
-        // ANS already contains the handler's return value
-        // Pop the next frame to continue execution
-        return false;
-    }
-}
-
-/**
  * Frame for handling return from a non-continuable exception.
  * If the handler returns, this frame re-raises the exception to outer handlers,
  * as per R7RS which states returning from a non-continuable exception handler
@@ -1125,7 +1095,6 @@ registerFrames({
     RestoreValueFrame,
     CallWithValuesFrame,
     ExceptionHandlerFrame,
-    RaiseContinuableResumeFrame,
     RaiseNonContinuableResumeFrame,
     continueApplication
 });

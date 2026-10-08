@@ -193,6 +193,22 @@
          (or (symbol? value) (boolean? value) (null? value)))))
 
 ;; /**
+;;  * An operand as what a property is read of: in parentheses if it is a
+;;  * number written out, since JavaScript reads `1.car` as a malformed number
+;;  * and `-2.cdr` as the negation of a property of 2.
+;;  * @param {list} op - The operand's expression.
+;;  * @returns {list} An expression.
+;;  */
+(define (property-object op)
+  (let ((first (and (pair? op) (car op))))
+    (if (and (string? first)
+             (> (string-length first) 0)
+             (let ((c (string-ref first 0)))
+               (or (char-numeric? c) (char=? c #\-))))
+        (js "(" op ")")
+        op)))
+
+;; /**
 ;;  * Every primitive with an inline expansion.
 ;;  */
 (define inline-expansions
@@ -210,10 +226,10 @@
     ;; Pairs: the representation is a plain class, so these are direct.
     (list 'car 1
           (lambda (ops) (js (car ops) " instanceof R.Cons"))
-          (lambda (ops) (js (car ops) ".car")))
+          (lambda (ops) (js (property-object (car ops)) ".car")))
     (list 'cdr 1
           (lambda (ops) (js (car ops) " instanceof R.Cons"))
-          (lambda (ops) (js (car ops) ".cdr")))
+          (lambda (ops) (js (property-object (car ops)) ".cdr")))
     (total 'cons 2 (lambda (ops) (js "new R.Cons(" (car ops) ", " (cadr ops) ")")))
     (total 'pair? 1 (lambda (ops) (js (car ops) " instanceof R.Cons")))
     (total 'null? 1 (lambda (ops) (js (car ops) " === null")))
@@ -228,7 +244,7 @@
     (helper 'vector-set! 3 '$vectorSet)
     (list 'vector-length 1
           (lambda (ops) (js "Array.isArray(" (car ops) ")"))
-          (lambda (ops) (js (car ops) ".length")))
+          (lambda (ops) (js (property-object (car ops)) ".length")))
     ;; Exact division, inline on two integers and a divisor that is not zero,
     ;; as the primitives' own fast paths are (`dividingIntegers` in
     ;; src/core/primitives/math.js), the primitive otherwise: V8 in Node inlines

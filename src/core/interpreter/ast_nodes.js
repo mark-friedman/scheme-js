@@ -816,15 +816,7 @@ export class RaiseNode extends Executable {
             // The exception handling will proceed normally
         }
 
-        // Search for the nearest ExceptionHandlerFrame
-        const ExceptionHandlerFrame = FrameRegistry.getExceptionHandlerFrameClass();
-        let handlerIndex = -1;
-        for (let i = fstack.length - 1; i >= 0; i--) {
-            if (fstack[i] instanceof ExceptionHandlerFrame) {
-                handlerIndex = i;
-                break;
-            }
-        }
+        const handlerIndex = handlerInForce(fstack);
 
         if (handlerIndex === -1) {
             // No handler found - propagate as JS error
@@ -834,6 +826,16 @@ export class RaiseNode extends Executable {
         // Get the handler
         const handlerFrame = fstack[handlerIndex];
         const handler = handlerFrame.handler;
+
+        // A continuable raise calls its handler where it is (R7RS 6.11): in
+        // the raise's dynamic environment, leaving no extent, but for the
+        // handler in force, which is the one outside this one until the
+        // handler returns, its value the raise's.
+        if (this.continuable) {
+            fstack.push(new HandlerCallFrame(handlerFrame));
+            registers[CTL] = new TailAppNode(ensureExecutable(handler), [new LiteralNode(this.exception)]);
+            return true;
+        }
 
         // Find WindFrames between current position and handler that need unwinding
         const WindFrameClass = FrameRegistry.getWindFrameClass();
@@ -851,13 +853,7 @@ export class RaiseNode extends Executable {
         // The final action is to invoke the handler
         // We create an InvokeExceptionHandler to handle the actual invocation
         // after unwinding is complete
-        actions.push(new InvokeExceptionHandler(
-            handler,
-            this.exception,
-            handlerIndex,
-            this.continuable,
-            fstack.slice(handlerIndex + 1) // Save frames for continuable
-        ));
+        actions.push(new InvokeExceptionHandler(handler, this.exception));
 
         // Truncate stack to handler (keeping handler for now, InvokeExceptionHandler will remove it)
         fstack.length = handlerIndex + 1;
@@ -878,12 +874,50 @@ export class RaiseNode extends Executable {
 }
 
 /**
+ * The frame a continuable raise pushes as it calls its handler: while the
+ * handler runs, the handlers from its own up are not in force
+ * (`handlerInForce`), and what it returns is the raise's value.
+ */
+class HandlerCallFrame {
+    /**
+     * @param {Object} handlerFrame - The frame of the handler called.
+     */
+    constructor(handlerFrame) {
+        this.handlerFrame = handlerFrame;
+    }
+
+    step() {
+        return false;
+    }
+}
+
+/**
+ * Where on a frame stack the handler in force is: the innermost handler's
+ * frame, but for the handlers a continuable raise is calling the innermost of,
+ * and those inside it.
+ * @param {Array} fstack - The frame stack.
+ * @returns {number} The frame's index, or -1 if no handler is in force.
+ */
+export function handlerInForce(fstack) {
+    const ExceptionHandlerFrame = FrameRegistry.getExceptionHandlerFrameClass();
+    for (let i = fstack.length - 1; i >= 0; i--) {
+        const frame = fstack[i];
+        if (frame instanceof HandlerCallFrame) {
+            while (i > 0 && fstack[i] !== frame.handlerFrame) i--;
+        } else if (frame instanceof ExceptionHandlerFrame) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/**
  * What a raise nobody handles throws: the raised value itself when it is an
  * error, and otherwise an error describing it.
  * @param {*} exception - The raised value.
  * @returns {Error} The value to throw.
  */
-function unhandled(exception) {
+export function unhandled(exception) {
     if (exception instanceof Error) return exception;
     return new SchemeError(`Unhandled exception: ${exception}`, [exception]);
 }
@@ -980,17 +1014,19 @@ export function takeCompiledRaise(thrown) {
 }
 
 /**
- * AST node to invoke exception handler after unwinding is complete.
- * This is the final step after all 'after' thunks have run.
+ * AST node to invoke the handler of a non-continuable raise once the extents
+ * between the raise and the handler have been left: the last step of
+ * `RaiseNode`'s.
  */
 export class InvokeExceptionHandler extends Executable {
-    constructor(handler, exception, handlerIndex, continuable, savedFrames) {
+    /**
+     * @param {Procedure} handler - The handler.
+     * @param {*} exception - What was raised.
+     */
+    constructor(handler, exception) {
         super();
         this.handler = handler;
         this.exception = exception;
-        this.handlerIndex = handlerIndex;
-        this.continuable = continuable;
-        this.savedFrames = savedFrames;
     }
 
     step(registers, interpreter) {
@@ -999,16 +1035,8 @@ export class InvokeExceptionHandler extends Executable {
         // Remove the handler frame
         fstack.pop(); // Pop the ExceptionHandlerFrame
 
-        // For continuable: push a resume frame that allows handler return value
-        if (this.continuable) {
-            fstack.push(FrameRegistry.createRaiseContinuableResumeFrame(
-                this.savedFrames,
-                registers[ENV]
-            ));
-        } else {
-            // For non-continuable: if handler returns, R7RS requires raising a secondary exception.
-            fstack.push(new NonContinuableFrame());
-        }
+        // If the handler returns, R7RS requires raising a secondary exception.
+        fstack.push(new NonContinuableFrame());
 
         // Invoke handler with the exception
         registers[CTL] = new TailAppNode(ensureExecutable(this.handler), [new LiteralNode(this.exception)]);

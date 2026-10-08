@@ -9,7 +9,7 @@
 // Frame classes are registered here by stepables.js
 let LetFrame, LetRecFrame, IfFrame, SetFrame, DefineFrame;
 let AppFrame, BeginFrame, DynamicWindSetupFrame, WindFrame, RestoreValueFrame;
-let CallWithValuesFrame, ExceptionHandlerFrame, RaiseContinuableResumeFrame;
+let CallWithValuesFrame, ExceptionHandlerFrame;
 let RaiseNonContinuableResumeFrame;
 
 /**
@@ -43,7 +43,6 @@ export function registerFrames(frames) {
     RestoreValueFrame = frames.RestoreValueFrame;
     CallWithValuesFrame = frames.CallWithValuesFrame;
     ExceptionHandlerFrame = frames.ExceptionHandlerFrame;
-    RaiseContinuableResumeFrame = frames.RaiseContinuableResumeFrame;
     RaiseNonContinuableResumeFrame = frames.RaiseNonContinuableResumeFrame;
     continueApplication = frames.continueApplication;
 }
@@ -144,13 +143,6 @@ export function createCallWithValuesFrame(consumer, env) {
  */
 export function createExceptionHandlerFrame(handler, env) {
     return new ExceptionHandlerFrame(handler, env);
-}
-
-/**
- * Creates a RaiseContinuableResumeFrame instance.
- */
-export function createRaiseContinuableResumeFrame(savedFrames, env) {
-    return new RaiseContinuableResumeFrame(savedFrames, env);
 }
 
 /**

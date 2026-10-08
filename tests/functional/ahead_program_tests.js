@@ -170,6 +170,40 @@ const WINDS = `(import (scheme base) (scheme write))
 (write (list r escaped two count seen after-p escaped-p (p) (get-output-string out) (reverse log)))
 `;
 
+// Exception handlers, which the runtime keeps a list of ahead of time: what
+// guard catches -- a raise, an error, a primitive's error -- re-raising,
+// a continuable raise and a handler's return, the extents a raise leaves, and
+// errors and escapes in and out of a procedure JavaScript calls back.
+const HANDLERS = `(import (scheme base) (scheme write) (scheme-js interop))
+(define log '())
+(define (note x) (set! log (cons x log)))
+(define (out-of-range v) (guard (e ((error-object? e) 'caught-primitive)) (vector-ref v 5)))
+(write (list
+  (guard (e ((symbol? e) (list 'symbol e))) (raise 'boom))
+  (guard (e ((error-object? e) (list (error-object-message e) (error-object-irritants e))))
+    (error "bad thing:" 1 2))
+  (out-of-range (vector 1 2))
+  (guard (e ((error-object? e) 'car-error)) (car 1))
+  (guard (e ((string? e) 'outer)) (guard (e2 ((number? e2) 'inner)) (raise "s")))
+  (with-exception-handler (lambda (c) (* c 10)) (lambda () (+ (raise-continuable 1) (raise-continuable 2))))
+  (guard (e (#t (error-object-message e)))
+    (with-exception-handler (lambda (c) 'returned) (lambda () (raise 'nc))))
+  (guard (e (#t (list 'outer-got e)))
+    (with-exception-handler (lambda (c) (raise (list 'wrapped c))) (lambda () (raise 'x))))
+  (begin (guard (e (#t (note (list 'clause e))))
+           (dynamic-wind (lambda () (note 'in)) (lambda () (raise 'boom)) (lambda () (note 'out))))
+         'wound)
+  (with-exception-handler (lambda (c) (note (list 'handler c)) 5)
+    (lambda () (dynamic-wind (lambda () (note 'in2)) (lambda () (+ 1 (raise-continuable 'x))) (lambda () (note 'out2)))))
+  (guard (e (#t 'handled-again)) (raise 'after-all-that))
+  (guard (e ((error-object? e) 'caught-from-a-callback))
+    (js-invoke (vector 1 2) "forEach" (lambda (x . rest) (car x))))
+  (js-invoke (vector 1 2) "map" (lambda (x . rest) (guard (e (#t 'inside)) (car x))))
+  (guard (e (#t (list 'escaped e))) (js-invoke (vector 1 2) "forEach" (lambda (x . rest) (raise 'oops))))
+  (call/cc (lambda (k) (js-invoke (vector 1 2) "forEach" (lambda (x . rest) (k 'left))) 'not-left))))
+(write (reverse log))
+`;
+
 const RAISES = `(import (scheme base) (scheme write))
 (display "before")
 (newline)
@@ -228,6 +262,14 @@ export async function runAheadProgramTests(logger) {
       winds.file === null ? winds.refusals : run(winds.file),
       ['(42 escaped (1 2) 2 2 1 3 1 "captured" (in body out in2 out2 in3 out3 in3 out3))', '', 0]);
 
+    const handlers = build(dir, 'handling', HANDLERS);
+    assert(logger, 'guard, with-exception-handler, raise, raise-continuable and the errors primitives throw',
+      handlers.file === null ? handlers.refusals : run(handlers.file),
+      ['((symbol boom) ("bad thing:" (1 2)) caught-primitive car-error outer 30 '
+        + '"non-continuable exception: handler returned" (outer-got (wrapped x)) wound 6 handled-again '
+        + 'caught-from-a-callback #(inside inside) (escaped oops) left)'
+        + '(in out (clause boom) in2 (handler x) out2)', '', 0]);
+
     // The file procedures that parameterize the current ports.
     const written = JSON.stringify(path.join(dir, 'written.txt'));
     const files = build(dir, 'redirected', `(import (scheme base) (scheme write) (scheme file))
@@ -248,9 +290,6 @@ export async function runAheadProgramTests(logger) {
     assert(logger, 'one with no import declarations',
       refusalOf('bare', '(define (f x) x)\n(f 1)\n'),
       ['a program compiled ahead of time begins with the import declarations of the libraries it uses']);
-    assert(logger, 'one handling an exception with guard, by the procedure that does',
-      refusalOf('guard', '(import (scheme base))\n(define (safe-div a b) (guard (e (#t 0)) (/ a b)))\n(safe-div 1 0)\n')
-        .some((line) => line.startsWith('safe-div in the program is not compiled')), true);
     assert(logger, 'one that cannot be expanded, as running it would say',
       refusalOf('malformed', '(import (scheme base))\n(if)\n')[0].startsWith('Error building'), true);
     assert(logger, 'one evaluating, which needs the expander and an interpreter, by the form',
