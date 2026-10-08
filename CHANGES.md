@@ -14017,3 +14017,89 @@ registry or seed, the tables, `control.js` or `exception.js` comes with them, th
 under 1 MB (about 430 KB unminified with every comment), and that nothing in it waits at load. Node
 suite and browser suite pass; the CLI reads and writes files, standard output and standard input as
 before. JavaScript under `src/`: primitives moved and grouped, imports fixed.
+
+# Task 98 done: a whole program compiled ahead of time (2026-10-07)
+
+A program can now be compiled ahead of time and run with no interpreter, expander, reader or library
+system:
+
+    node repl.js -I scripts/lib scripts/build_ahead.scm PROGRAM OUTPUT
+
+writes a JavaScript module, a table, which `runProgram` in `src/compiler/ahead.js` runs. The command
+is a build script's for now; how users will spell it is task 99's, and the user's.
+
+**The build** is Scheme, `(scheme-js ahead)` in `scripts/lib/ahead.scm`. It loads the libraries the
+program imports from their source, in a registry of its own, noting each top-level form loading runs
+with the core form it expanded into, as the prebuilt tables' build does, and expands the program's
+forms where its imports put them, without running them (two new doors in `build_host.js`:
+`expand-program`, and `library-variables`, which reads a library's exports through the library
+system's own procedures, since a program's copy of the library system has record types of its own).
+Each core form is items -- a procedure's definition, a value's, a form run for its effect -- and each
+is compiled. A macro's definition expands into nothing and an expanded program uses no macro, so no
+expander is carried.
+
+It then follows the code from every item that runs as its unit loads, depth first in load order,
+finding each name a piece of code reads where the program would find it at that point in the load:
+the unit's own definition once it has run, before it an import, through every library that
+re-exported it, or a primitive. A program can so read an import before defining its own of the same
+name, as the interpreter lets it -- the benchmark harness's `read` shim does. Only what is reached is
+kept: of `(scheme core)`'s procedures, a program that prints keeps the forty-odd of the printer and
+what it calls. An import is written from the unit that defined the binding, by value, and a primitive
+under its own name not at all.
+
+What could not run is refused, by name, at build time: a reached procedure the compiler declined --
+one naming `guard`, `parameterize`, `dynamic-wind`, `with-exception-handler`, until 37(c) -- a constant
+that cannot be written down, a primitive the runtime does not carry (`read`, whose reader is a
+library, and `eval`), and a program with no import declarations. A procedure nothing reaches costs
+nothing, compiled or not.
+
+**The runtime** is `src/compiler/ahead.js`: the primitives that need nothing of the interpreter or the
+library system (`AHEAD_PRIMITIVES`), an environment of them inside which each unit's is made, and the
+items run in order on 77's driver with no interpreter beneath (`runAhead`), which finishes captures and
+moves of frames to the heap itself. A raise nobody handles is thrown to whoever ran the program, with
+its irritants. To carry them, `raise`, `raise-continuable` and `error` moved from `exception.js` to
+`raise.js`, `values` and `%values->list` from `control.js` to `apply.js`, and the runtime carries the
+reader's scans of a whole text, which the printer uses, and the time primitives. The table imports
+nothing: its constant pools are built from the constructors the loader gives them.
+
+Found and fixed on the way, each with a test:
+
+- `define-values` was declined everywhere, in the tier too: `(scheme control)`'s macro refers to
+  `call-with-values` as the library's own binding, and the lowering rewrote `(call-with-values p c)`
+  only where it was a variable.
+- `make-parameter` was a control global, though it is a procedure of `(scheme core)`'s making a
+  closure over a cell, and transfers no control; a program making a parameter was declined.
+- Exact ratios and complex numbers could not be written as constants, so a library procedure holding
+  one was left out of the prebuilt tables, and `mbrotZ` was refused.
+
+**Measured** with `benchmarks/run_ahead.js`: each canonical benchmark calibrated under the compiled
+tier, then built ahead of time with its input written in as data and run at the same count, in a
+process that loads nothing but the runtime.
+
+| per iteration, ahead / tier | |
+|---|---|
+| `takl` | 0.52 |
+| `sum` | 0.64 |
+| `ctak`, `mazefun` | 0.67 |
+| `browse` | 0.72 |
+| `fibc` | 0.73 |
+| `puzzle` | 0.73-0.77 |
+| median of 43 | 0.93 |
+| `pi`, `cpstak`, `chudnovsky`, `parsing` | 1.01-1.02 |
+| `earley` | 1.19-1.21 |
+
+43 of the default profile's 45 run; `read1` and `dynamic` read data files with `read`, and there is no reader. `earley`
+is slower for the reason R140 found under the tier, when moves to the heap were finished in the driver:
+at 200 iterations it spends 1.05 s of 3.6 s collecting garbage ahead of time, against 0.55 s under the
+tier, where the interpreter finishes the moves. `puzzle` collects less ahead of time, 0.18 s against
+0.33. Why the others are faster was not
+looked into. A table is 650 KB for `fib`, most of it the printer, and 15 MB for
+`benchmarks/r7rs/src/compiler.scm`, nearly all generated code, one procedure 900 KB (task 41).
+
+Tested in `tests/functional/ahead_program_tests.js` (Node only): programs built with the CLI and run
+-- records, a macro, `begin`, `define-values`, a parameter, import filters, a read of an import before
+the program's own definition, escapes, re-entries, recursions 100,000 deep, an uncaught `error` -- and
+refused, by what they reach. `runtime_separation_tests.js` bundles the loader with the runtime and
+still finds none of the interpreter in it. JavaScript under `src/`: the loader, as the runtime compiled
+code starts on (`src/compiler/runtime.js`'s item); two build-host doors, into the library system and
+the expander; primitives moved.

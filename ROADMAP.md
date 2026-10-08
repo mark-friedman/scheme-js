@@ -132,8 +132,9 @@ among -- with and without the compiler, with and without the code that lets a co
 suspended and resumed. Later that day a hand-built trial of a small program compiled ahead of time
 came to a twentieth of today's download and answered in 16.5 ms on a page against 195, and the user
 chose to go ahead: compiled code now finishes its own continuation captures, and a whole program
-compiled ahead of time, run as one file with no interpreter, is next. The work is in
-[docs/compiler_plan.md](docs/compiler_plan.md).
+compiles ahead of time and runs with no interpreter -- 43 of the 45 programs of the canonical
+suite's default profile, most of them faster than under the tier. Running it as one file, with a
+command for users, is next. The work is in [docs/compiler_plan.md](docs/compiler_plan.md).
 
 ### High-Precision Inexact Numbers (Future)
 

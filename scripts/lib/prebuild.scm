@@ -91,6 +91,16 @@
   (requirement-met? requirement (features) (lambda (name) #f)))
 
 ;; /**
+;;  * A library's `define-library` form taken apart, its `cond-expand`
+;;  * declarations decided against this run's features.
+;;  * @param {procedure} read-source - A `source-reader`.
+;;  * @param {list} name - The library's name, as strings.
+;;  * @returns {library-definition}
+;;  */
+(define (library-definition read-source name)
+  (parse-define-library (library-declaration read-source name) feature-met?))
+
+;; /**
 ;;  * The files a library is made of, in the order its fingerprint covers them:
 ;;  * its `.sld`, then what it includes and the files of declarations it
 ;;  * includes.
@@ -99,7 +109,7 @@
 ;;  * @returns {list} The files' names.
 ;;  */
 (define (library-files read-source name)
-  (let ((definition (parse-define-library (library-declaration read-source name) feature-met?)))
+  (let ((definition (library-definition read-source name)))
     (cons (string-append (last name) ".sld")
           (append (library-definition-includes definition)
                   (library-definition-includes-ci definition)

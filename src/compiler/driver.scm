@@ -37,9 +37,13 @@
 ;;  * @property {list} globals - The globals it references, as symbols.
 ;;  * @property {list} spans - The span of each of the source's lines, or #f,
 ;;  *   which its source map is written from (`sourcemap.scm`).
+;;  * @property {list} library-globals - Those of its globals that are a
+;;  *   library's own bindings, as (key name . env) (`library-global-key` in
+;;  *   `ir.scm`): what a build that follows the code's references reads them
+;;  *   by.
 ;;  */
 (define-record-type generated
-  (make-generated name closure env span source constants globals spans)
+  (make-generated name closure env span source constants globals spans library-globals)
   generated?
   (name generated-name)
   (closure generated-closure)
@@ -48,7 +52,8 @@
   (source generated-source)
   (constants generated-constants)
   (globals generated-globals)
-  (spans generated-spans))
+  (spans generated-spans)
+  (library-globals generated-library-globals))
 
 ;; /**
 ;;  * A procedure compiled.
@@ -274,7 +279,8 @@
                               (guarded-globals globals library-globals env)))
          (source (car unit)))
     (cond ((source-too-large source) => (lambda (reason) (make-declined name reason #f)))
-          (else (make-generated name closure env span source (cadr unit) globals (caddr unit))))))
+          (else (make-generated name closure env span source (cadr unit) globals (caddr unit)
+                                library-globals)))))
 
 ;; ---------------------------------------------------------------------------
 ;; When the compiler fails

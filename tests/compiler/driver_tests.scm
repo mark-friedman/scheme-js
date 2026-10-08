@@ -54,6 +54,10 @@
   (test "one naming a control global is, saying which"
         "references control global 'dynamic-wind'"
         (lowering-decline (lower-lambda (analyze-lambda '(define (f g) (dynamic-wind g g g)))) #f))
+  ;; `make-parameter` is a procedure of (scheme core)'s that makes a closure
+  ;; over a cell (parameter.scm); it transfers no control.
+  (test "one making a parameter is not" #f
+        (lowering-decline (lower-lambda (analyze-lambda '(define (f) (make-parameter 1)))) #f))
   (let ((captures (lower-lambda (analyze-lambda '(define (f) (call/cc (lambda (k) (k 1))))))))
     (test "one that captures is compiled by default" #f (lowering-decline captures #f))
     (test "and declined when captures are"
@@ -178,4 +182,11 @@
   (test "a control global reached so is one, by its name"
         "references control global 'call/cc'"
         (lowering-decline
-          (lower-lambda `(lambda (f) #f "f" (app (library-var call/cc ,library) ((var f))) (f) #f)) #f)))
+          (lower-lambda `(lambda (f) #f "f" (app (library-var call/cc ,library) ((var f))) (f) #f)) #f))
+  ;; As (scheme control)'s `define-values` writes it, wherever it is used.
+  (test "but call-with-values called so is rewritten, as a variable's call is, and not declined"
+        '(#f (list))
+        (let ((rewritten (lower-lambda `(lambda (p) #f "f"
+                                          (app (library-var call-with-values ,library) ((var p) (var list)))
+                                          (p) #f))))
+          (list (lowering-decline rewritten #f) (lowered-globals rewritten)))))

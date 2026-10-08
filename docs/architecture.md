@@ -117,6 +117,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── run_macro.js                # Transfer test: the project's own .scm test files
 │   ├── compare_macro.js            # That workload under Gambit and Racket
 │   ├── run_r7rs.js                 # Canonical suite, both tiers, by workload class
+│   ├── run_ahead.js                # Canonical suite compiled ahead of time, beside the tier at its calibrated counts
 │   ├── compare_r7rs.js             # Canonical suite: both tiers vs Gambit (gsi, C, JS), Racket, plain JS
 │   ├── decline_reasons.js          # Why the tier declines procedures: this repository's Scheme, or --corpus
 │   ├── run_escapes.js              # The capture policy on escapes: interpreted, default, captures compiled
@@ -143,6 +144,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── harness.js              # A run as the REPL runs a program, the standard libraries imported, each in a registry of its own; timing
 │   │   ├── r7rs_harness.js         # Canonical-suite protocol, sizing, calibration
 │   │   ├── r7rs_worker.js          # One measurement per child process, under a budget
+│   │   ├── ahead_worker.js         # One program compiled ahead of time, run in a process that loads only its runtime
 │   │   ├── r7rs_compare.js         # Cross-implementation arithmetic: per-class ratios, reading a saved run
 │   │   ├── corpus_libraries.js     # The corpus's libraries and test programs, and a resolver over them and the bundle
 │   │   ├── coverage.js             # Calls counted by name, the share inlined, and the test runner's environment
@@ -176,6 +178,9 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── generate_compiled_libraries.scm # Compiles every shipped library at build time: a Scheme program, run from the CLI
 │   ├── generate_compiled_compiler.scm # Compiles the compiler's own library at build time: a Scheme program
 │   ├── pin_seed.scm                # Writes the pinned seed: the reader's and the expander's libraries as core forms (npm run pin:seed)
+│   ├── build_ahead.scm             # Compiles a program ahead of time, with what it uses of each library, for src/compiler/ahead.js to run
+│   ├── lib/ahead.sld               # (scheme-js ahead): the build of a program compiled ahead of time
+│   ├── lib/ahead.scm               # Its procedures: top-level forms as items, where each name is bound, what is reached, refusals, the table
 │   ├── lib/prebuild.sld            # (scheme-js prebuild): what those build steps share, found with -I scripts/lib
 │   ├── lib/prebuild.scm            # Its procedures: the libraries' files, the forms loading runs, a library's table, reports
 │   ├── lib/table-writer.sld        # (scheme-js table-writer): writes a module of prebuilt tables, one per library
@@ -260,7 +265,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   │   └── printer_primitives.js # What only JavaScript can say of a value, for the printer's Scheme, without the doors
 │       │   ├── eq.js               # Equality predicates (eq?, eqv?, boolean=?)
 │       │   ├── record.js           # define-record-type support, and a record's type and fields for Scheme that looks inside any record
-│       │   ├── exception.js        # Raising, and handlers: what the interpreter performs
+│       │   ├── exception.js        # Handlers: what the interpreter performs
+│       │   ├── raise.js            # raise, raise-continuable and error: pending raises, without the interpreter
 │       │   ├── error_object.js     # What an error object is: error-object? and the rest, without the interpreter
 │       │   ├── interop.js          # JavaScript interop utilities
 │       │   ├── async.js            # Async primitives (delay-resolve, etc.)
@@ -320,7 +326,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │      ├── safety.scm         # The opt-in rule declining what a capture could unwind through
 │      ├── tier.scm           # A program's own code compiled as it runs: when, installing it, switching re-entered ones back
 │      ├── host.js            # (scheme-js compiler host): new Function, the interpreter's structures, weak tables
-│      ├── build_host.js      # (scheme-js compiler build), the CLI's only: private registries, loading, expanding, installing generated code
+│      ├── ahead.js           # Running a program compiled ahead of time: the primitives it carries, its units' environments, its items
+│      ├── build_host.js      # (scheme-js compiler build), the CLI's only: private registries, loading, expanding a library or a program, installing generated code
 │      ├── lowering.js        # Door into the compiler's Scheme: starts its library, hands out its entry points
 │      ├── prebuilt.js        # Installing each library's code compiled at build time, fingerprinted; restoring it, its data decoded from JSON
 │      ├── tiering.js         # Attaching the tier: makes its record, whose Scheme procedures the interpreter calls
@@ -461,6 +468,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── capture_policy_tests.js # Captures compiled; re-entered procedures switched back to closures
 │   │   ├── native_unwind_tests.js  # Which unwinds the driver finishes, which it takes by a jump, which go to the interpreter
 │   │   ├── runtime_separation_tests.js # What compiled code needs as it runs, bundled with none of the interpreter or library system (Node only)
+│   │   ├── ahead_program_tests.js  # Programs built ahead of time with the CLI and run with no interpreter, and those refused (Node only)
 │   │   └── ...
 │   │
 │   ├── integration/                # Library system tests

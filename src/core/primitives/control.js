@@ -4,12 +4,11 @@
  * Provides control flow operations including apply, eval, dynamic-wind, and values.
  */
 
-import { TailCall, Values, NO_VALUES, isSchemeClosure, isSchemeContinuation } from '../interpreter/values.js';
+import { TailCall } from '../interpreter/values.js';
 import { TailAppNode, LiteralNode, DynamicWindInit, CallWithValuesNode, CallCCNode } from '../interpreter/ast.js';
 import { analyze } from '../interpreter/expand.js';
 import { assertProcedure, assertArity, assertList } from '../interpreter/type_check.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
-import { valuesToList } from './apply.js';
 import { globalContext } from '../interpreter/context.js';
 import { importEnvironment } from '../interpreter/library_loader.js';
 
@@ -32,28 +31,11 @@ export function getControlPrimitives(interpreter) {
         );
     };
 
-    // `apply` and `procedure?` are in apply.js, which compiled code needs
-    // without the interpreter.
+    // `apply`, `procedure?`, `values` and `%values->list` are in apply.js,
+    // which compiled code needs without the interpreter.
     const controlPrimitives = {
 
-        /**
-         * values: Return multiple values.
-         */
-        'values': (...args) => {
-            if (args.length === 0) {
-                // No values, which a consumer receives as no arguments: not
-                // the unspecified value, which is one.
-                return NO_VALUES;
-            } else if (args.length === 1) {
-                return args[0];
-            } else {
-                return new Values(args);
-            }
-        },
-
         'call-with-values': callWithValuesPrimitive,
-
-        '%values->list': valuesToList,
 
         /**
          * eval: Evaluate an expression in an environment. One that has a

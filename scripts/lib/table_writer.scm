@@ -52,7 +52,8 @@
 ;; ---------------------------------------------------------------------------
 ;;
 ;; The emitter writes immediates straight into the code it generates, and
-;; pools everything else -- symbols, pairs, characters -- since those have
+;; pools everything else -- symbols, pairs, characters, exact ratios, complex
+;; numbers -- since those have
 ;; identity that `eq?` can observe: the pool is built once and handed to the
 ;; procedure's factory. A symbol written as `intern("lambda")` is the same
 ;; object read back. A pair, a character, and what is inside them are made
@@ -60,7 +61,7 @@
 ;; every call sees, which is all a literal promises; what cannot be kept is
 ;; identity with the interpreted procedure's literal, which nothing could see
 ;; unless the literal escaped before the compiled procedure was installed.
-;; Anything else -- a vector, a record -- cannot be written down, and the
+;; Anything else -- a record, a procedure -- cannot be written down, and the
 ;; procedure holding it is left out of the table, interpreted.
 
 ;; /**
@@ -80,6 +81,16 @@
              (number->string value)
              (string-append (number->string value) "n")))
         ((inexact-integer? value) (string-append "new Flonum(" (number->string value) ")"))
+        ;; An exact ratio is a `Rational` of two BigInts
+        ;; (src/core/primitives/rational.js).
+        ((exact-ratio? value)
+         (string-append "new Rational(" (number->string (numerator value)) "n, "
+                        (number->string (denominator value)) "n)"))
+        ;; A complex number is a `Complex` of its parts, exact or not as it is
+        ;; (src/core/primitives/complex.js).
+        ((nonreal? value)
+         (string-append "new Complex(" (complex-part (real-part value)) ", "
+                        (complex-part (imag-part value)) ", " (if (exact? value) "true" "false") ")"))
         ((and (real? value) (inexact? value))
          (cond ((finite? value) (number->string value))
                ((nan? value) "NaN")
@@ -388,7 +399,45 @@
             (if (used? char?) '("import { Char } from '../core/primitives/char_class.js';") '())
             (if (used? inexact-integer?)
                 '("import { Flonum } from '../core/interpreter/number_representation.js';")
-                '()))))
+                '())
+            (if (used? (lambda (v) (or (exact-ratio? v)
+                                       (and (nonreal? v) (or (exact-ratio? (real-part v))
+                                                             (exact-ratio? (imag-part v)))))))
+                '("import { Rational } from '../core/primitives/rational.js';")
+                '())
+            (if (used? nonreal?) '("import { Complex } from '../core/primitives/complex.js';") '()))))
+
+;; /**
+;;  * Whether a value is a number that is not real.
+;;  * @param {*} value - The value.
+;;  * @returns {boolean}
+;;  */
+(define (nonreal? value)
+  (and (number? value) (not (real? value))))
+
+;; /**
+;;  * A part of a complex number as the `Complex` constructor takes it: an
+;;  * exact integer a BigInt, an exact ratio a `Rational`, an inexact real a
+;;  * number.
+;;  * @param {real} part - The part.
+;;  * @returns {string}
+;;  */
+(define (complex-part part)
+  (cond ((exact-integer? part) (string-append (number->string part) "n"))
+        ((exact? part)
+         (string-append "new Rational(" (number->string (numerator part)) "n, "
+                        (number->string (denominator part)) "n)"))
+        ((nan? part) "NaN")
+        ((infinite? part) (if (positive? part) "Infinity" "-Infinity"))
+        (else (number->string part))))
+
+;; /**
+;;  * Whether a value is an exact rational that is not an integer.
+;;  * @param {*} value - The value.
+;;  * @returns {boolean}
+;;  */
+(define (exact-ratio? value)
+  (and (rational? value) (exact? value) (not (integer? value))))
 
 ;; /**
 ;;  * Whether a value is an inexact real whose value is an integer, which

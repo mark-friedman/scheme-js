@@ -1,6 +1,6 @@
 /**
- * @fileoverview `apply` and `procedure?`, and `%values->list`, which compiled
- * code makes `call-with-values` of.
+ * @fileoverview `apply`, `procedure?` and `values`, and `%values->list`, which
+ * compiled code makes `call-with-values` of.
  *
  * Primitives like the others in control.js, kept in a module of their own so
  * that generated code can reach them through the runtime (src/compiler/
@@ -11,7 +11,7 @@
  * and need not import `apply` to use `call-with-values`.
  */
 
-import { TailCall, Values, SCHEME_PRIMITIVE, Closure, Continuation } from '../interpreter/values.js';
+import { TailCall, Values, NO_VALUES, SCHEME_PRIMITIVE, Closure, Continuation } from '../interpreter/values.js';
 import { Cons, toArray } from '../interpreter/cons.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
 
@@ -78,12 +78,30 @@ export function valuesToList(result) {
 valuesToList[SCHEME_PRIMITIVE] = true;
 
 /**
- * The primitives about procedures that need nothing of the interpreter, so
- * that compiled code has them without it: `apply`, and `procedure?`, true of
- * Scheme closures, continuations and JavaScript functions alike.
+ * The primitives about procedures and their values that need nothing of the
+ * interpreter, so that compiled code has them without it: `apply`;
+ * `procedure?`, true of Scheme closures, continuations and JavaScript
+ * functions alike; `values`; and `%values->list`.
  * @type {Object<string, Function>}
  */
 export const procedurePrimitives = {
     'apply': applyProcedure,
-    'procedure?': (obj) => typeof obj === 'function' || obj instanceof Closure || obj instanceof Continuation
+    'procedure?': (obj) => typeof obj === 'function' || obj instanceof Closure || obj instanceof Continuation,
+
+    /**
+     * values: Return multiple values.
+     */
+    'values': (...args) => {
+        if (args.length === 0) {
+            // No values, which a consumer receives as no arguments: not
+            // the unspecified value, which is one.
+            return NO_VALUES;
+        } else if (args.length === 1) {
+            return args[0];
+        } else {
+            return new Values(args);
+        }
+    },
+
+    '%values->list': valuesToList
 };

@@ -769,6 +769,54 @@ handler stack and the wind list to be runtime state compiled code can call throu
 these names are on the list for how they are implemented, not for what they do: `raise`'s primitive
 returns a node for the interpreter to run, and `guard` expands through `call/cc`.
 
+## A program compiled ahead of time
+
+A program can be built so that it runs with no interpreter, expander, reader or library system
+(task 98): `scripts/build_ahead.scm`, over `scripts/lib/ahead.scm`, writes a table, and
+`runProgram` in `src/compiler/ahead.js` runs it. Three things make that possible, and each is a
+choice the rest of the system has to keep true.
+
+**Every form that runs is compiled, and nothing else is needed.** The build loads the program's
+libraries from their source in a registry of its own, noting each top-level form with the core form
+it expanded into, as the prebuilt tables' build does, and expands the program's own forms without
+running them. Each core form is items, in order: a procedure's definition, bound to compiled code; a
+value's, computed by a compiled thunk; a form run for its effect, the same. A macro's definition
+expands into nothing, and an expanded program uses no macro, so neither the expander nor the macros'
+transformers are carried. A library's few values -- the current ports' cells, `equal-tree-budget`
+-- are items like the program's.
+
+**A name is bound where the program would find it, and only what is reached is kept.** Each unit's
+imports are replayed as `import-into!` binds them, and each name a piece of code reads is followed
+to the item that defined it, through every library that re-exported it, or to a primitive
+(`binding-of`). The build follows the code from every item that runs as its unit loads, and keeps
+the procedures it reaches: of `(scheme core)`'s 140-odd procedures, a program that prints keeps
+about 40, most of them the printer. An import is written from the unit that defined the binding,
+by value, as the library system binds one; a primitive imported under its own name is not written
+at all, since every unit's environment is inside the runtime's environment of primitives.
+
+**What cannot run is refused by name, at build time, rather than failing as it runs.** Code the
+compiler declined, reached from anything that runs -- a procedure naming `dynamic-wind`,
+`with-exception-handler`, `guard` or `parameterize`, for which there is no compiled code yet --
+refuses the program, saying which procedure and why; so does a constant that cannot be written
+down, and a primitive the runtime does not carry (`AHEAD_PRIMITIVES`: those that need nothing of
+the interpreter or the library system -- not `read`, whose reader is a library of its own, nor
+`eval`). Unreached, a procedure that could not be compiled costs nothing.
+
+The program runs on the driver that needs no interpreter beneath it (`runAhead`), which finishes
+its captures and its moves to the heap itself. Where the compiled tier hands a move to the
+interpreter, finishing it in the driver made `earley` a fifth slower, all of it garbage collection
+(R140); with no interpreter there is nothing to hand it to, and `earley` compiled ahead of time is
+1.2 times slower than under the tier, and the difference is garbage collection: at 200 iterations,
+1.05 s of its 3.6 s, against 0.55 s under the tier. Nearly everything else runs as fast or faster
+ahead of time: of the 45 programs of the canonical suite's default profile, 43 run, at 0.52 to 1.02
+times the tier's time per iteration, median 0.93 -- `takl` 0.52, `sum` 0.64, `ctak` and `mazefun`
+0.67 (`benchmarks/run_ahead.js`) -- and the two that read data files with `read` have no reader.
+Why those are faster was not looked into.
+
+A table is large: 650 KB for `fib`, most of it `(scheme core)`'s printer, which every program that
+writes reaches, and 15 MB for `benchmarks/r7rs/src/compiler.scm`, nearly all of it generated code
+(task 41).
+
 ## Tiering
 
 **The interpreter is permanent**, not transitional. It is four things at once, all of which are still

@@ -29,17 +29,21 @@
  * Registered by the CLI only (`repl.js`): no page builds anything.
  */
 
-import { list, toArray } from '../core/interpreter/cons.js';
+import { Cons, list, toArray } from '../core/interpreter/cons.js';
+import { globalContext } from '../core/interpreter/context.js';
 import { intern } from '../core/interpreter/symbol.js';
 import { SCHEME_PRIMITIVE, SCHEME_RAW_CALL, callSchemeProcedure } from '../core/interpreter/values.js';
 import { createInterpreter } from '../core/interpreter/index.js';
 import { expandToCore, analyze } from '../core/interpreter/expand.js';
 import { assemble } from '../core/interpreter/assembler.js';
-import { loadLibrarySync } from '../core/interpreter/library_loader.js';
-import { registerBuiltinLibrary, withPrivateLibraries } from '../core/interpreter/library_registry.js';
+import { loadLibrarySync, programEnvironment } from '../core/interpreter/library_loader.js';
+import {
+  registerBuiltinLibrary, withPrivateLibraries, currentLibraryRegistry, callLibrarySystem
+} from '../core/interpreter/library_registry.js';
 import { stringValue } from '../core/primitives/string_class.js';
 import { installPrebuilt, installLibraryTable, fingerprintSources, RUNTIME_INTERFACE } from './prebuilt.js';
 import { registerCompilerHost } from './host.js';
+import { AHEAD_PRIMITIVES } from './ahead.js';
 import prebuiltLibraries from '../packaging/compiled_libraries.js';
 
 /**
@@ -112,6 +116,47 @@ const buildProcedures = {
   },
 
   /**
+   * The variables a library loaded in the current registry exports, by its
+   * key: its exports that are not syntactic keywords. Read through the
+   * library system's own procedures, whose records the registry and its
+   * exports are; a program that imports the library system has a copy of its
+   * own, whose record types are not those.
+   * @param {string} key - The library's key, `scheme.base`.
+   * @returns {list} Each `(name . value)`.
+   */
+  'library-variables': (key) => {
+    const exports = callLibrarySystem('registered-exports', currentLibraryRegistry(), key);
+    if (exports === false) throw new Error(`library-variables: no library ${stringValue(key)} is loaded`);
+    return list(...toArray(exports).filter((entry) => callLibrarySystem('syntactic-keyword?', entry.cdr) === false));
+  },
+
+  /**
+   * A program's environment, made in the current private registry from the
+   * import declarations it begins with, and each of its other forms expanded
+   * there into its core form, as it would be to run, but not run: what a
+   * build that compiles the program ahead of time compiles. A macro the
+   * program defines is defined as its definition expands, for the forms
+   * after it.
+   * @param {list} forms - The program's forms, as read.
+   * @returns {pair} `(env . core-forms)`.
+   */
+  'expand-program': (forms) => {
+    const { interpreter, env } = loading[loading.length - 1];
+    const program = programEnvironment(toArray(forms), analyze, interpreter, env);
+    const scope = program.env.libraryScope;
+    const cores = program.forms.map((form) => {
+      if (scope === undefined) return expandToCore(form, program.env);
+      globalContext.pushDefiningScope(scope);
+      try {
+        return expandToCore(form, program.env);
+      } finally {
+        globalContext.popDefiningScope();
+      }
+    });
+    return new Cons(program.env, list(...cores));
+  },
+
+  /**
    * A form expanded into its core form by the system's expander, at the top
    * level of the process, as the evaluator expands one before running it:
    * the input the compiler's lowering takes, for a harness that lowers code
@@ -137,6 +182,14 @@ const buildProcedures = {
     });
     return outcome !== null && outcome.stale;
   },
+
+  /**
+   * The names of the primitives a program compiled ahead of time runs with
+   * (`AHEAD_PRIMITIVES` in ahead.js), which the build refuses a program for
+   * reaching any other of.
+   * @returns {list} The names, as symbols.
+   */
+  'ahead-primitive-names': () => list(...Object.keys(AHEAD_PRIMITIVES).map(intern)),
 
   /**
    * The fingerprint of the runtime's interface, which a table records as the

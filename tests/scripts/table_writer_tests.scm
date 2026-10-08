@@ -28,6 +28,14 @@
   (test "an inexact integer, boxed" '("new Flonum(2.0)" "new Flonum(-0.0)")
         (list (constant-expression 2.) (constant-expression -0.)))
   (test "a big one" "123456789012345678901234567890n" (constant-expression 123456789012345678901234567890))
+  ;; An exact ratio is a `Rational` of two BigInts (src/core/primitives/rational.js).
+  (test "an exact ratio" '("new Rational(1n, 3n)" "new Rational(-7n, 2n)")
+        (list (constant-expression 1/3) (constant-expression -7/2)))
+  ;; A complex number is a `Complex` of its parts, exact or not as it is
+  ;; (src/core/primitives/complex.js).
+  (test "a complex number" '("new Complex(-1.0, -0.5, false)" "new Complex(1n, 2n, true)"
+                             "new Complex(new Rational(1n, 2n), -3n, true)" "new Complex(0.0, Infinity, false)")
+        (map constant-expression (list -1.0-0.5i 1+2i 1/2-3i +inf.0i)))
   (test "an inexact real" "1.5" (constant-expression 1.5))
   (test "a string" "\"hi\"" (constant-expression "hi"))
   (test "a symbol, interned" "intern(\"car\")" (constant-expression 'car))

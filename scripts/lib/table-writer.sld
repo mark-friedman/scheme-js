@@ -8,6 +8,8 @@
 
 (define-library (scheme-js table-writer)
   (import (scheme base)
+          (only (scheme complex) real-part imag-part)
+          (only (scheme inexact) nan? infinite?)
           (only (srfi 152) string-split string-join)
           (only (scheme-js interop) js-undefined? js-ref))
   (export render-tables constants-expression constant-expression json-datum

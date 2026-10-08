@@ -191,6 +191,41 @@ export function assembleParts(name, params, count, implName, dir = R7RS_DIR) {
 }
 
 /**
+ * Assembles a benchmark to be compiled ahead of time (`benchmarks/run_ahead.js`):
+ * the program's own import declarations, its input as data, the program and
+ * the shared postlude, as one program.
+ *
+ * A program compiled ahead of time has no reader, so its input cannot arrive
+ * as text: it is written into the program as a quoted list, and `read` with
+ * no port takes the next datum of it. `read` from a port -- `dynamic` and
+ * `read1` read data files -- raises, saying so.
+ *
+ * @param {string} name - Program name.
+ * @param {string|null} params - Replacement parameters, or null for canonical.
+ * @param {number} count - Repetitions.
+ * @param {string} implName - Implementation name for the CSV line.
+ * @param {string} [dir] - Suite directory.
+ * @returns {string} Complete Scheme source, a program with import declarations.
+ */
+export function assembleAhead(name, params, count, implName, dir = R7RS_DIR) {
+  const source = fs.readFileSync(path.join(dir, 'src', `${name}.scm`), 'utf8');
+  const imports = source.match(/^\(import[\s\S]*?\)\s*$/m)[0];
+  const common = fs.readFileSync(path.join(dir, 'src', 'common.scm'), 'utf8');
+  return [
+    imports,
+    `(define %bench-input '(${buildInput(name, params, count, dir)}\n))`,
+    `(define (read . port)
+  (if (pair? port)
+      (error "read: a benchmark compiled ahead of time has no reader, and reads only its input")
+      (let ((datum (car %bench-input)))
+        (set! %bench-input (cdr %bench-input))
+        datum)))`,
+    `(define (this-scheme-implementation-name) ${schemeStringLiteral(implName)})`,
+    readProgram(name, dir), common, '(run-benchmark)'
+  ].join('\n');
+}
+
+/**
  * Parses the elapsed time out of `run-r7rs-benchmark`'s output.
  *
  * The program prints a line beginning `+!CSVLINE!+` carrying

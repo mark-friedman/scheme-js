@@ -93,7 +93,7 @@
     call-with-values eval
     with-exception-handler raise raise-continuable guard
     call-with-escape-continuation exit emergency-exit
-    make-parameter parameterize))
+    parameterize))
 
 ;; `values` is not here. It builds a multiple-values object and returns it,
 ;; which is an ordinary value; it never transfers control. `apply` is not here
@@ -108,6 +108,11 @@
 ;; expression to evaluate. A direct two-argument call to it is rewritten during
 ;; lowering into calls the compiler can already make, and that rewrite records
 ;; no name, so reaching it by any other route still declines.
+;;
+;; `make-parameter` is not here: it is a procedure of (scheme core)'s that makes
+;; a closure over a cell (parameter.scm), and calling it transfers no control.
+;; What binds a parameter for a dynamic extent, `parameterize`, does, through
+;; `dynamic-wind`.
 
 ;; ---------------------------------------------------------------------------
 ;; Lexical scope
@@ -841,43 +846,38 @@
 ;;  */
 (define (lower-call-with-values node scope tail st)
   (let ((fn (ast-1 node)))
-    (if (not (eq? (ast-tag fn) 'var))
+    (if (not (and (memq (ast-tag fn) '(var library-var))
+                  (eq? (ast-1 fn) 'call-with-values)
+                  ;; A local of the same name is not the primitive at all. A
+                  ;; library's binding, which a library's macro refers to --
+                  ;; `define-values` in (scheme control) -- is never a local.
+                  (not (and (eq? (ast-tag fn) 'var) (scope-has? scope (ast-1 fn))))
+                  (= (length (ast-2 node)) 2)))
         'not-this-shape
-        (if (not (eq? (ast-1 fn) 'call-with-values))
-            'not-this-shape
-            ;; A local of the same name is not the primitive at all.
-            (if (scope-has? scope (ast-1 fn))
-                'not-this-shape
-                (if (not (= (length (ast-2 node)) 2))
-                    'not-this-shape
-                    (let ((producer (lower-node (car (ast-2 node)) scope #f st)))
-                      (if (not producer)
-                          #f
-                          (let ((consumer (lower-node (cadr (ast-2 node)) scope #f st)))
-                            (if (not consumer)
-                                #f
-                                (begin
-                                  ;; Neither `call-with-values`, which would
-                                  ;; decline the procedure for mentioning
-                                  ;; what it no longer mentions, nor the two
-                                  ;; primitives is recorded as a global: the
-                                  ;; primitives are read from the runtime.
-                                  ;; The producer is whatever the caller was
-                                  ;; handed, so calling it is calling something
-                                  ;; this pass cannot name.
-                                  (state-calls-unknown! st)
-                                  (let ((nm (synthesized-name! st)))
-                                    (list 'let nm producer
-                                          (list 'call (list 'global '%apply #f #t)
-                                                (list consumer
-                                                      (list 'call
-                                                            (list 'global '%values->list #f #t)
-                                                            (list (list 'call
-                                                                        (list 'local nm #f #f)
-                                                                        '() #f))
-                                                            #f))
-                                                tail)
-                                          tail #f)))))))))))))
+        (let ((producer (lower-node (car (ast-2 node)) scope #f st)))
+          (if (not producer)
+              #f
+              (let ((consumer (lower-node (cadr (ast-2 node)) scope #f st)))
+                (if (not consumer)
+                    #f
+                    (begin
+                      ;; Neither `call-with-values`, which would decline the
+                      ;; procedure for mentioning what it no longer mentions,
+                      ;; nor the two primitives is recorded as a global: the
+                      ;; primitives are read from the runtime. The producer is
+                      ;; whatever the caller was handed, so calling it is
+                      ;; calling something this pass cannot name.
+                      (state-calls-unknown! st)
+                      (let ((nm (synthesized-name! st)))
+                        (list 'let nm producer
+                              (list 'call (list 'global '%apply #f #t)
+                                    (list consumer
+                                          (list 'call
+                                                (list 'global '%values->list #f #t)
+                                                (list (list 'call (list 'local nm #f #f) '() #f))
+                                                #f))
+                                    tail)
+                              tail #f))))))))))
 
 ;; /**
 ;;  * A name this pass invents, distinct from anything the expander produces.

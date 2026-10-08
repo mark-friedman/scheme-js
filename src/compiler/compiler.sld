@@ -40,9 +40,11 @@
     ;; What to compile
     compile-definition compile-expression compile-closure
     generate-environment compile-environment compile-program
+    generate-lambda expression-thunk
     program-unsafe-definitions
     ;; What they answer with
     generated? generated-name generated-closure generated-source generated-constants generated-globals
+    generated-env generated-library-globals
     compiled? compiled-name compiled-procedure compiled-source
     declined? declined-name declined-reason
     program-run-compiled program-run-declined program-run-unsafe program-run-expressions
