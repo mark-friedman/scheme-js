@@ -14339,3 +14339,53 @@ corpus's 2,422 top-level definitions (`benchmarks/decline_reasons.js --corpus`) 
 `dynamic-wind`, 1 `exit`, 1 `raise`. The 124 made inside a procedure are compiled with it by the tier.
 The count on local closures 58 needed, a cost on every interpreted call, would buy inner loops in
 nine procedures.
+
+# Task 106 done: winds and `parameterize` ahead of time (2026-10-08)
+
+The first stage of 37(c). A program compiled ahead of time that used `dynamic-wind` or
+`parameterize` was refused, since the interpreter keeps a `dynamic-wind`'s extent as a frame on its
+stack and such a program has no interpreter. Now the runtime keeps the winds in force as a list of
+`(before . after)`, innermost first (`windList` in `src/core/interpreter/unwind.js`), as most Schemes
+do, and `dynamic-wind` is Scheme over it: `(scheme-js winds)`, `src/core/scheme/winds.scm`, reading
+and setting the list through two primitives, `%winds` and `%set-winds!`. A continuation records the
+list as it is captured; invoking one, with no interpreter beneath, goes from the list in force to its
+own, running the after-thunk of each wind it leaves, innermost first, and the before-thunk of each
+it enters, outermost first, each with the list of the extent it is called from in force (`travelTo`).
+
+The build supplies the Scheme `dynamic-wind` in the primitive's place, as it supplies the reader's
+`read-from-port` for `%read` (`library-primitives` in `scripts/lib/ahead.scm`), and compiles code
+naming it as a call of an ordinary procedure: `lowering-decline`, `lower-and-emit` and
+`generate-lambda` in `src/compiler/driver.scm` take the control globals that are ordinary procedures
+where the code will run, which only the build passes. The tier still declines them, the interpreter
+keeping its frames. `parameterize` is `dynamic-wind` around a change to the parameters' environment,
+so it comes with it, and with it `with-output-to-file` and `with-input-from-file`, which
+parameterize the current ports.
+
+Ahead of time a `parameterize` costs about 1 µs and a `dynamic-wind` 0.6, against 20 and 4.4 under
+the tier, each a loop of 100,000 in a program built both ways.
+
+Tested by building and running a program that winds and returns, escapes through a wind, returns
+several values through one, re-enters one from outside it twice, parameterizes a parameter and
+the current output port, returning and escaping, and writes and reads a file through
+`with-output-to-file` and `with-input-from-file` (`tests/functional/ahead_program_tests.js`); the
+Scheme `dynamic-wind`'s order of calls, values, winds in force and checks, interpreted
+(`tests/core/scheme/winds_tests.scm`); and the decline with and without the ordinary globals
+(`tests/compiler/driver_tests.scm`).
+
+Found: the build looks for a library's file, and for every file one includes, by bare name in the
+program's directory first. The test's program, written as `winds.scm`, was read in place of the
+library's own `winds.scm`; any program beside a file named like a system library's include fails
+to build. Added to the plan as 107.
+
+Found too, R143: `tests/functional/library_release_tests.js`, which checks that a dropped
+registry's libraries go in the job that dropped them, failed in the suite once one more library was
+among the prebuilt tables -- any library, a trivial one added to the committed code as well. The
+libraries outlived every collection forced in the job, though a heap snapshot found nothing reaching
+them, and went at any collection in a later job, or after the job had allocated some megabytes. The
+test now allocates before it collects; it still fails for a library a `WeakRef` holds, or anything
+holds strongly, both checked.
+
+JavaScript under `src/`: `windList`, `commonWinds` and `travelTo` in `unwind.js`, and the winds a
+continuation records in `values.js`, are the save-and-resume protocol's -- what invoking a
+continuation does; `%winds` and `%set-winds!` (`src/core/primitives/winds.js`) are primitives over
+the runtime's cell. `dynamic-wind` itself is Scheme.

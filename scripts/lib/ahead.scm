@@ -69,7 +69,8 @@
   (code item-code))
 
 ;; /**
-;;  * Compiles an item in the environment it will run in.
+;;  * Compiles an item in the environment it will run in, where a primitive a
+;;  * library supplies (`library-primitives`) is an ordinary procedure.
 ;;  * @param {list} spec - `(kind name form)` (`top-level-items`).
 ;;  * @param {object} env - The environment.
 ;;  * @returns {item}
@@ -81,7 +82,7 @@
     (make-item kind name
                (generate-lambda (if (eq? kind 'procedure) form (expression-thunk form))
                                 (if name (symbol->string name) "top-level")
-                                #f env #f #f))))
+                                #f env #f #f (map car library-primitives)))))
 
 ;; ---------------------------------------------------------------------------
 ;; Units
@@ -190,20 +191,27 @@
 ;; Primitives a library of the system's does the work of
 ;; ---------------------------------------------------------------------------
 ;;
-;; A few primitives are doors into a library the library system's seed loads
-;; for itself, on its own interpreter -- `%read`, into the reader -- and a
-;; program compiled ahead of time has no seed. Such a primitive is the
-;; library's procedure, compiled with the program instead: a program that
-;; reaches one has the library loaded and compiled as its imports are, and the
-;; runtime binds the primitive's name to the procedure, among the primitives,
-;; once the library has loaded.
+;; A few primitives a program compiled ahead of time cannot have as they are.
+;; `%read` is a door into a library the library system's seed loads for
+;; itself, on its own interpreter -- the reader -- and such a program has no
+;; seed; `dynamic-wind` keeps its winds as frames of the interpreter's, and
+;; such a program has no interpreter. Such a primitive is a library's
+;; procedure, compiled with the program instead: a program that reaches one
+;; has the library loaded and compiled as its imports are, and the runtime
+;; binds the primitive's name to the procedure, among the primitives, once the
+;; library has loaded. A control global among them is an ordinary procedure
+;; there, which the program's code calls as it calls any other
+;; (`compile-item`).
 
 ;; /**
 ;;  * Each such primitive, the library whose procedure does its whole work, and
-;;  * the procedure: `%read` is `read-from-port`, which checks the port too.
+;;  * the procedure: `%read` is `read-from-port`, which checks the port too,
+;;  * and `dynamic-wind` is (scheme-js winds)'s, which keeps the winds in the
+;;  * runtime's list (src/core/scheme/winds.scm).
 ;;  */
 (define library-primitives
-  '((%read ("scheme-js" "reader") read-from-port)))
+  '((%read ("scheme-js" "reader") read-from-port)
+    (dynamic-wind ("scheme-js" "winds") dynamic-wind)))
 
 ;; ---------------------------------------------------------------------------
 ;; Where a name is bound

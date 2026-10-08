@@ -67,6 +67,15 @@
   ;; look into: `(var)` is one parameter, named `var`.
   (test "nor one making a lambda whose only parameter is named var" #f
         (lowering-decline (lower-lambda (analyze-lambda '(define (f) (lambda (var) var)))) #f))
+  ;; A program built ahead of time has `dynamic-wind` as a procedure of
+  ;; (scheme-js winds) in the primitive's place (`library-primitives` in
+  ;; scripts/lib/ahead.scm), and its build says so.
+  (test "nor one naming a control global that is an ordinary procedure where it runs" #f
+        (lowering-decline (lower-lambda (analyze-lambda '(define (f g) (dynamic-wind g g g)))) #f
+                          '(dynamic-wind)))
+  (test "though one naming another still is" "references control global 'eval'"
+        (lowering-decline (lower-lambda (analyze-lambda '(define (f g) (dynamic-wind g g g) (eval g))))
+                          #f '(dynamic-wind)))
   (let ((captures (lower-lambda (analyze-lambda '(define (f) (call/cc (lambda (k) (k 1))))))))
     (test "one that captures is compiled by default" #f (lowering-decline captures #f))
     (test "and declined when captures are"

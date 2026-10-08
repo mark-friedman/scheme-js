@@ -99,12 +99,21 @@
 ;;  * @returns {symbol|boolean}
 ;;  */
 (define (control-global-in globals . library-globals)
-  (let ((written (if (pair? library-globals) (car library-globals) '())))
-    (let loop ((globals globals))
-      (cond ((null? globals) #f)
-            ((memq (global-written-name written (car globals)) control-globals)
-             (global-written-name written (car globals)))
-            (else (loop (cdr globals)))))))
+  (control-global-among control-globals globals
+                        (if (pair? library-globals) (car library-globals) '())))
+
+;; /**
+;;  * The first of some globals, by the name the code writes, that is among
+;;  * some control globals, or #f.
+;;  * @param {list} controls - The control globals, as symbols.
+;;  * @param {list} globals - Global names, as symbols.
+;;  * @param {list} library-globals - (key name . env) for each that is a
+;;  *   library's binding.
+;;  * @returns {symbol|boolean}
+;;  */
+(define (control-global-among controls globals library-globals)
+  (find (lambda (name) (memq name controls))
+        (map (lambda (global) (global-written-name library-globals global)) globals)))
 
 ;; /**
 ;;  * Why a lowered procedure is not to be compiled, or #f if it is.
@@ -117,15 +126,25 @@
 ;;  * switched back to its closure as the program runs (`note-resume` in
 ;;  * `tier.scm`).
 ;;  *
+;;  * A control global where the code runs may be an ordinary procedure: a
+;;  * program built ahead of time has `dynamic-wind` as a procedure of
+;;  * (scheme-js winds), which keeps the winds itself, in the primitive's place
+;;  * (`library-primitives` in scripts/lib/ahead.scm).
+;;  *
 ;;  * @param {lowered-lambda|lowering-failure} lowered - What `lower-lambda`
 ;;  *   answered.
 ;;  * @param {boolean} decline-captures? - Whether to decline a capture.
+;;  * @param {list} [ordinary] - The control globals that are ordinary
+;;  *   procedures where the code runs.
 ;;  * @returns {string|boolean} The reason, or #f.
 ;;  */
-(define (lowering-decline lowered decline-captures?)
+(define (lowering-decline lowered decline-captures? . ordinary)
   (cond
     ((lowering-failure? lowered) (lowering-failure-reason lowered))
-    ((control-global-in (lowered-globals lowered) (lowered-library-globals lowered))
+    ((control-global-among (if (pair? ordinary)
+                               (lset-difference eq? control-globals (car ordinary))
+                               control-globals)
+                           (lowered-globals lowered) (lowered-library-globals lowered))
      => (lambda (g) (string-append "references control global '" (symbol->string g) "'")))
     ((and decline-captures? (lowered-captures? lowered))
      "captures a continuation, and captures are declined")
@@ -355,11 +374,13 @@
 ;;  * @param {object} env - The environment its globals resolve in.
 ;;  * @param {object|boolean} span - Its source span, or #f.
 ;;  * @param {boolean} decline-captures? - Whether to decline a capture.
+;;  * @param {list} [ordinary] - The control globals that are ordinary
+;;  *   procedures where the code runs (`lowering-decline`).
 ;;  * @returns {generated|declined}
 ;;  */
-(define (lower-and-emit node name closure env span decline-captures?)
+(define (lower-and-emit node name closure env span decline-captures? . ordinary)
   (let* ((lowered (lower-lambda node))
-         (reason (lowering-decline lowered decline-captures?)))
+         (reason (apply lowering-decline lowered decline-captures? ordinary)))
     (if reason
         (make-declined name reason #f)
         (emit-lowered lowered name closure env span))))
@@ -368,8 +389,9 @@
 ;;  * `lower-and-emit`, declining the procedure if the compiler fails.
 ;;  * @returns {generated|declined}
 ;;  */
-(define (generate-lambda node name closure env span decline-captures?)
-  (unless-failing name (lambda () (lower-and-emit node name closure env span decline-captures?))))
+(define (generate-lambda node name closure env span decline-captures? . ordinary)
+  (unless-failing name
+    (lambda () (apply lower-and-emit node name closure env span decline-captures? ordinary))))
 
 ;; /**
 ;;  * A file's name as a place in a `scheme:///` URL: a name that is itself a

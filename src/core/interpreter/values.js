@@ -10,7 +10,7 @@
  * anywhere they appear (in variables, arrays, objects, Maps, etc.).
  */
 
-import { suspendFlush, restoreFlush, jumpIfDriving } from './unwind.js';
+import { suspendFlush, restoreFlush, jumpIfDriving, travelTo, windList } from './unwind.js';
 import { LiteralNode, TailAppNode } from './ast_nodes.js';
 import { Cons } from './cons.js';
 import { SchemeError } from './errors.js';
@@ -453,18 +453,23 @@ export function createContinuation(fstack, interpreter) {
 export function createNativeContinuation(driver, frames, interpreter) {
     const continuation = function (...jsArgs) {
         const value = continuationValue(jsArgs.map(jsToScheme));
-        return interpreter === null
-            ? driver.reenter(continuation, value)
-            : interpreter.invokeContinuation(continuation, value, this);
+        if (interpreter !== null) return interpreter.invokeContinuation(continuation, value, this);
+        travelTo(continuation);
+        return driver.reenter(continuation, value);
     };
     continuation[SCHEME_CONTINUATION] = true;
     continuation.fstack = null;
     continuation.driver = driver;
     continuation.frames = frames;
     continuation.interpreter = interpreter;
+    // The winds in force as it was captured, which invoking it goes back to
+    // (`travelTo`): with no interpreter, the runtime's; under one, none, its
+    // winds being frames on the interpreter's stack.
+    continuation.winds = windList.v;
     continuation.toString = continuationText;
     continuation[SCHEME_RAW_CALL] = (...args) => {
         const value = continuationValue(args);
+        travelTo(continuation);
         jumpIfDriving(continuation, value);
         return interpreter === null ? driver.reenter(continuation, value) : invokeWithSchemeValues(continuation, args);
     };

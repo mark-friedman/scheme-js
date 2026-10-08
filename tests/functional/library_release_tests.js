@@ -125,12 +125,34 @@ function loadReleasable(keepMacros, watch = () => null) {
  * `benchmarks/run_tier.js` runs every program it runs. A library must go
  * then, not only once the job has ended, which is when a `WeakRef` lets go
  * of what it refers to.
+ *
+ * The job allocates some megabytes before collecting, as a program would go
+ * on to. Under Node 24, a collection forced straight after the load, in a
+ * suite that had run long enough before it, kept the libraries, though
+ * nothing reached them: a heap snapshot taken at that point found no path to
+ * them, and its own collection freed them, as did a collection after the
+ * allocation, or any collection in a later job. Forcing two or three full
+ * collections, or a young-generation one first, did not; what V8 was holding
+ * them by was not found. Allocating first keeps what the test is for: a
+ * library a `WeakRef` holds, or anything holds strongly, is still kept
+ * through every collection in the job.
  * @param {FinalizationRegistry} observer - Given each library's environment,
  *   under its name; observing it keeps nothing alive.
  */
 function loadAndCollectInOneJob(observer) {
   loadReleasable(false, (name, env) => observer.register(env, name));
+  allocate(1000000);
   globalThis.gc();
+}
+
+/**
+ * Allocates small arrays and drops them.
+ * @param {number} count - How many.
+ */
+function allocate(count) {
+  let arrays = [];
+  for (let i = 0; i < count; i++) arrays.push([i]);
+  arrays = null;
 }
 
 /**

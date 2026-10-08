@@ -24,6 +24,7 @@
  */
 
 import * as R from './runtime.js';
+import { windList } from '../core/interpreter/unwind.js';
 import { RUNTIME } from './runtime_object.js';
 import { Environment } from '../core/interpreter/environment.js';
 import { registerPrimitive } from '../core/interpreter/primitive_bindings.js';
@@ -56,6 +57,7 @@ import { jsInteropPrimitives } from '../core/primitives/js_interop_primitives.js
 import { classPrimitives } from '../core/primitives/class.js';
 import { promisePrimitives } from '../extras/primitives/promise.js';
 import { processContextPrimitives } from '../core/primitives/process_context.js';
+import { windPrimitives } from '../core/primitives/winds.js';
 
 /**
  * The primitives a program compiled ahead of time has: those that need
@@ -89,6 +91,7 @@ export const AHEAD_PRIMITIVES = {
   ...bitwisePrimitives,
   ...jsInteropPrimitives,
   ...classPrimitives,
+  ...windPrimitives,
   // The reader's scans of a whole text, which the printer uses too.
   ...readerPrimitives
 };
@@ -142,6 +145,8 @@ function primitiveEnvironment(primitives) {
  */
 export function runProgram(program, primitives = AHEAD_PRIMITIVES) {
   const base = primitiveEnvironment(primitives);
+  // No wind is in force as a program begins, whatever one before it left.
+  windList.v = null;
   const libraries = new Map();
   const supplied = program.supplied ?? [];
   let value;

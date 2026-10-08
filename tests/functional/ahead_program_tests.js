@@ -141,6 +141,35 @@ const CLASSES = `(import (scheme base) (scheme write) (scheme-js interop))
 (write (list (counter? c) (counter-count c) (c.bump! 1)))
 `;
 
+// `dynamic-wind`, which the runtime keeps a wind list for ahead of time, and
+// `parameterize` over it: on returning, on an escape and on re-entering.
+const WINDS = `(import (scheme base) (scheme write))
+(define log '())
+(define (note x) (set! log (cons x log)))
+(define r (dynamic-wind (lambda () (note 'in)) (lambda () (note 'body) 42) (lambda () (note 'out))))
+(define escaped
+  (call/cc (lambda (k)
+             (dynamic-wind (lambda () (note 'in2))
+                           (lambda () (k 'escaped) (note 'not-here))
+                           (lambda () (note 'out2))))))
+(define two (call-with-values (lambda () (dynamic-wind (lambda () #f) (lambda () (values 1 2)) (lambda () #f))) list))
+(define reenter #f)
+(define count 0)
+(define (once-more)
+  (dynamic-wind (lambda () (note 'in3))
+                (lambda () (call/cc (lambda (k) (set! reenter k))) (set! count (+ count 1)))
+                (lambda () (note 'out3)))
+  (if (< count 2) (reenter #f)))
+(once-more)
+(define p (make-parameter 1))
+(define seen (parameterize ((p 2)) (p)))
+(define after-p (p))
+(define escaped-p (call/cc (lambda (k) (parameterize ((p 3)) (k (p))))))
+(define out (open-output-string))
+(parameterize ((current-output-port out)) (display "captured"))
+(write (list r escaped two count seen after-p escaped-p (p) (get-output-string out) (reverse log)))
+`;
+
 const RAISES = `(import (scheme base) (scheme write))
 (display "before")
 (newline)
@@ -194,6 +223,20 @@ export async function runAheadProgramTests(logger) {
     assert(logger, 'a class whose constructor and methods read this',
       classes.file === null ? classes.refusals : run(classes.file), ['(#t 15 16)', '', 0]);
 
+    const winds = build(dir, 'unwinding', WINDS);
+    assert(logger, 'dynamic-wind and parameterize, on returning, on an escape and on re-entering',
+      winds.file === null ? winds.refusals : run(winds.file),
+      ['(42 escaped (1 2) 2 2 1 3 1 "captured" (in body out in2 out2 in3 out3 in3 out3))', '', 0]);
+
+    // The file procedures that parameterize the current ports.
+    const written = JSON.stringify(path.join(dir, 'written.txt'));
+    const files = build(dir, 'redirected', `(import (scheme base) (scheme write) (scheme file))
+(with-output-to-file ${written} (lambda () (display "written")))
+(write (with-input-from-file ${written} read-line))
+`);
+    assert(logger, 'with-output-to-file and with-input-from-file, which parameterize the current ports',
+      files.file === null ? files.refusals : run(files.file), ['"written"', '', 0]);
+
     const raises = build(dir, 'raises', RAISES);
     assert(logger, 'an error nobody handles is reported as the CLI reports it, after what the program printed',
       raises.file === null ? raises.refusals : run(raises.file),
@@ -208,9 +251,6 @@ export async function runAheadProgramTests(logger) {
     assert(logger, 'one handling an exception with guard, by the procedure that does',
       refusalOf('guard', '(import (scheme base))\n(define (safe-div a b) (guard (e (#t 0)) (/ a b)))\n(safe-div 1 0)\n')
         .some((line) => line.startsWith('safe-div in the program is not compiled')), true);
-    assert(logger, 'one using parameterize, by the library procedure that winds',
-      refusalOf('parameterize', '(import (scheme base))\n(define p (make-parameter 1))\n(parameterize ((p 2)) (p))\n')
-        .some((line) => line.startsWith('param-dynamic-bind in (scheme core) is not compiled')), true);
     assert(logger, 'one that cannot be expanded, as running it would say',
       refusalOf('malformed', '(import (scheme base))\n(if)\n')[0].startsWith('Error building'), true);
     assert(logger, 'one evaluating, which needs the expander and an interpreter, by the form',

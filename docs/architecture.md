@@ -210,7 +210,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── stepables_base.js   # Base class + register constants
 │       │   ├── ast_nodes.js        # AST node classes (Literal, If, Lambda...)
 │       │   ├── frames.js           # Continuation frame classes, incl. CompiledFrame
-│       │   ├── unwind.js           # Capturing a continuation across compiled code, and moving deep compiled frames to the heap, through nested runs; the driver that finishes compiled code's captures itself
+│       │   ├── unwind.js           # Capturing a continuation across compiled code, and moving deep compiled frames to the heap, through nested runs; the driver that finishes compiled code's captures itself; the winds a program compiled ahead of time keeps, and travelling them as a continuation is invoked
 │       │   ├── ast.js              # Legacy barrel file
 │       │   ├── frame_registry.js   # Frame factory functions
 │       │   ├── winders.js          # Dynamic-wind utilities
@@ -252,6 +252,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── time.js             # current-second, current-jiffy
 │       │   ├── bytevector.js       # Bytevector operations (R7RS §6.9)
 │       │   ├── class.js            # define-class support
+│       │   ├── winds.js            # %winds, %set-winds!: the winds the runtime keeps, which (scheme-js winds) reads and sets
 │       │   ├── io/                 # Port system and I/O primitives
 │       │   │   ├── index.js        # Barrel export
 │       │   │   ├── ports.js        # Port base classes
@@ -311,6 +312,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │           ├── special-forms.sld   # (scheme-js special-forms): the special forms, as keywords a library imports
 │           ├── control.scm         # when, unless, or, let*, do, case, guard
 │           ├── parameter.scm       # make-parameter, parameterize
+│           ├── winds.sld           # (scheme-js winds): dynamic-wind for a program compiled ahead of time
+│           ├── winds.scm           # dynamic-wind over the runtime's list of winds
 │           ├── ports.scm           # The current ports, reading and writing them, call-with-port, the file procedures
 │           ├── printer.scm         # write, display, write-shared, write-simple: a datum's text, datum labels; the REPLs' text
 │           └── repl.scm            # REPL utilities

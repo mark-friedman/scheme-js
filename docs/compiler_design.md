@@ -817,9 +817,9 @@ by value, as the library system binds one; a primitive imported under its own na
 at all, since every unit's environment is inside the runtime's environment of primitives.
 
 **What cannot run is refused by name, at build time, rather than failing as it runs.** Code the
-compiler declined, reached from anything that runs -- a procedure naming `dynamic-wind`,
-`with-exception-handler`, `guard` or `parameterize`, for which there is no compiled code yet --
-refuses the program, saying which procedure and why;
+compiler declined, reached from anything that runs -- a procedure naming `with-exception-handler`,
+`raise` or `guard`, for which there is no compiled code yet -- refuses the program, saying which
+procedure and why;
 so does a constant that cannot be written down, and a primitive the runtime does not carry
 (`AHEAD_PRIMITIVES`: those that need nothing of the interpreter or the library system, JavaScript
 interop, classes, promises and the command line among them). Unreached, a procedure that could not
@@ -830,6 +830,19 @@ that library's procedure instead, compiled with the program (`library-primitives
 `read` calls, is the reader's `read-from-port`, which checks its port as `read` must, so a program
 that reads has the reader compiled in -- about a megabyte more. Under Node the current ports are
 the process's standard ones, as the CLI makes them.
+
+**Winds are a list the runtime keeps.** The interpreter keeps `dynamic-wind`'s winds as frames on
+its stack, and a program compiled ahead of time has no interpreter. So the runtime keeps them as a
+list of `(before . after)`, innermost first (`windList` in `src/core/interpreter/unwind.js`), and
+`dynamic-wind` is a procedure of Scheme's over it, `(scheme-js winds)`, supplied in the primitive's
+place as `%read` is. A continuation records the list as it is captured; invoking one runs the
+after-thunks of the winds it leaves, innermost first, and the before-thunks of those it enters,
+outermost first, each with the list set to that wind's outer list, as R7RS 6.10 requires
+(`travelTo`). Since the build supplies it, `dynamic-wind` is no control global there: code naming
+it is compiled, as a call of an ordinary procedure (`lowering-decline`'s `ordinary`).
+`parameterize` is `dynamic-wind` around a change to the parameters' environment (`parameter.scm`),
+so it comes with it. Under the interpreter, continuations are the interpreter's, and the list
+stays empty.
 
 The program runs on the driver that needs no interpreter beneath it (`runAhead`), which finishes
 its captures and its moves to the heap itself. Where the compiled tier hands a move to the

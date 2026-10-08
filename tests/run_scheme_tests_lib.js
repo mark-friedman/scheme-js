@@ -73,6 +73,7 @@ export async function runSchemeTests(interpreter, logger, testFiles, fileLoader)
     await loadLibrary(['scheme-js', 'library-system'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme-js', 'debugger'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme-js', 'reader'], analyze, interpreter, interpreter.globalEnv);
+    await loadLibrary(['scheme-js', 'winds'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme-js', 'expander'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme-js', 'table-writer'], analyze, interpreter, interpreter.globalEnv);
     await loadLibrary(['scheme', 'inexact'], analyze, interpreter, interpreter.globalEnv);

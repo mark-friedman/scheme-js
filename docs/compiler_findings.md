@@ -3841,3 +3841,23 @@ held: `nboyer` 1.62 to 0.84 s through the page bundle, `browse` 1.75 to 0.99.
 
 *Consequence:* before and after are two copies side by side, alike but for the change, never a copy
 against the repository (*Code-generation decisions are measured twice*, in compiler_plan.md).
+
+**R143. A collection forced in the job did not free everything nothing reached.**
+
+`tests/functional/library_release_tests.js` checks that a library registry's libraries go in the job
+that dropped them, by forcing a collection straight after loading them and watching for their
+finalization. It rested on the belief that a forced full collection frees whatever nothing reaches.
+Under Node 24 (V8 13.6) it did not: once the suite had run far enough before it, and once one more
+library was among the prebuilt tables -- `(scheme-js winds)`, or a trivial one added to the
+committed code to check -- the two libraries outlived the collection, and every forced collection
+after it in the job, two or three full ones or a young-generation one first, and were freed by any
+collection in a later job. Nothing reached them: a heap snapshot taken at that point, with them held
+by a marked object of the test's own, found no path to them but through it, and a snapshot's own
+collection freed them. No `WeakRef` was the cause: none is made, and a snapshot does not free what
+one keeps. Overwriting the stack with a JavaScript recursion 8,000 deep did not free them; a native
+one, `JSON.stringify` of arrays nested 2,000 deep, did, but so did allocating some megabytes before
+the forced collection, with no deep call at all. What V8 held them by was not found.
+
+*Consequence:* the test allocates before collecting, which still fails it for a library held by a
+`WeakRef` or held strongly, both checked. A test that observes collection in one job allocates
+before it collects.

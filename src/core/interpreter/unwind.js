@@ -882,3 +882,69 @@ export function nativeFrameStack(continuation) {
   hooks.pushMoved(fstack, frames.reverse());
   return fstack;
 }
+
+// =============================================================================
+// Winds, for a program compiled ahead of time
+// =============================================================================
+//
+// The interpreter keeps a `dynamic-wind`'s extent as a frame on its stack, and
+// a continuation's frames carry it. A program compiled ahead of time has no
+// such stack, so there the winds are a list the runtime keeps, as most Schemes
+// keep them: `dynamic-wind` written in Scheme over it ((scheme-js winds),
+// src/core/scheme/winds.scm), each continuation recording the list as it is
+// captured (`createNativeContinuation` in values.js), and invoking one going
+// from the list in force to its own, running the thunks between.
+
+/**
+ * The winds in force: a Scheme list of `(before . after)`, innermost first.
+ * Empty under the interpreter, whose winds are frames.
+ * @type {{v: (Cons|null)}}
+ */
+export const windList = { v: null };
+
+/**
+ * The longest list two lists of winds end with, as the same pairs.
+ * @param {Cons|null} a - A list.
+ * @param {Cons|null} b - Another.
+ * @returns {Cons|null}
+ */
+function commonWinds(a, b) {
+  let la = 0;
+  let lb = 0;
+  for (let w = a; w !== null; w = w.cdr) la++;
+  for (let w = b; w !== null; w = w.cdr) lb++;
+  for (; la > lb; la--) a = a.cdr;
+  for (; lb > la; lb--) b = b.cdr;
+  while (a !== b) {
+    a = a.cdr;
+    b = b.cdr;
+  }
+  return a;
+}
+
+/**
+ * Goes from the winds in force to a continuation's, as invoking it must
+ * (R7RS 6.10): the after-thunk of each wind it leaves, innermost first, then
+ * the before-thunk of each it enters, outermost first, each called with the
+ * winds of the extent it is called from in force.
+ * @param {Function} continuation - The continuation, with its `winds`.
+ * @returns {void}
+ */
+export function travelTo(continuation) {
+  const target = continuation.winds;
+  const from = windList.v;
+  if (from === target) return;
+  const hooks = continuation.driver.hooks;
+  const common = commonWinds(from, target);
+  for (let w = from; w !== common; w = w.cdr) {
+    windList.v = w.cdr;
+    runAhead(w.car.cdr, [], hooks);
+  }
+  const entered = [];
+  for (let w = target; w !== common; w = w.cdr) entered.push(w);
+  for (let i = entered.length - 1; i >= 0; i--) {
+    windList.v = entered[i].cdr;
+    runAhead(entered[i].car.car, [], hooks);
+    windList.v = entered[i];
+  }
+}
