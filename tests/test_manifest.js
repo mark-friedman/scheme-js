@@ -89,6 +89,7 @@ export const functionalTests = [
     { path: 'functional/string_interop_tests.js', fn: 'runStringInteropTests', needsInterpreter: false },
     { path: 'functional/capture_policy_tests.js', fn: 'runCapturePolicyTests', async: true, needsInterpreter: false },
     { path: 'functional/native_unwind_tests.js', fn: 'runNativeUnwindTests', async: true, needsInterpreter: false },
+    { path: 'functional/runtime_separation_tests.js', fn: 'runRuntimeSeparationTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/primitive_binding_tests.js', fn: 'runPrimitiveBindingTests', async: true, needsInterpreter: false },
     { path: 'debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
     { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },

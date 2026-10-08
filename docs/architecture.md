@@ -237,7 +237,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── string_class.js     # SchemeString: a string that may be changed, holding a JS string until it is
 │       │   ├── vector.js           # Vector operations
 │       │   ├── control.js          # map, call/cc, eval, dynamic-wind
-│       │   ├── apply.js            # apply and %values->list, which compiled call-with-values calls through the runtime
+│       │   ├── apply.js            # apply, procedure? and %values->list, which compiled code needs without the interpreter
 │       │   ├── char.js             # Character predicates and operations
 │       │   ├── complex.js          # Complex number support
 │       │   ├── rational.js         # Rational number support
@@ -258,7 +258,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   │   └── printer.js      # The printer's door: its text for JavaScript (writeString, the REPLs'), and what only JavaScript can say of a value
 │       │   ├── eq.js               # Equality predicates (eq?, eqv?, boolean=?)
 │       │   ├── record.js           # define-record-type support, and a record's type and fields for Scheme that looks inside any record
-│       │   ├── exception.js        # Exception handling primitives
+│       │   ├── exception.js        # Raising, and handlers: what the interpreter performs
+│       │   ├── error_object.js     # What an error object is: error-object? and the rest, without the interpreter
 │       │   ├── interop.js          # JavaScript interop utilities
 │       │   ├── async.js            # Async primitives (delay-resolve, etc.)
 │       │   ├── library.js          # What the library system needs of the host: resolver, reader, environments, keyword tables
@@ -457,6 +458,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── tiered_interop_tests.js # The interop suites the tier compiles code from, again with it attached
 │   │   ├── capture_policy_tests.js # Captures compiled; re-entered procedures switched back to closures
 │   │   ├── native_unwind_tests.js  # Which unwinds the driver finishes, which it takes by a jump, which go to the interpreter
+│   │   ├── runtime_separation_tests.js # What compiled code needs as it runs, bundled with none of the interpreter or library system (Node only)
 │   │   └── ...
 │   │
 │   ├── integration/                # Library system tests

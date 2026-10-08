@@ -13991,3 +13991,29 @@ captures beneath frames moved to the heap, several values -- and in
 went. The increments that remain, toward a program compiled ahead of time and run as one file, are
 tasks 97 to 99. JavaScript under `src/`: the save-and-resume protocol, and the continuation it
 makes, a value.
+
+# Task 97 done: what compiled code needs as it runs, apart from the interpreter (2026-10-07)
+
+The first of the increments toward a program compiled ahead of time. Task 77's trial found four
+things tying what compiled code needs as it runs to the interpreter and the library system; each is
+untied:
+
+- `string.js` imported `parseNumber` through `reader.js`, whose module starts the library system's
+  seed, which imports every library's table: 3.4 MB from one import. It imports
+  `reader/number_parser.js` directly.
+- `procedure?` and `apply` were registered from `control.js`, which imports the interpreter's nodes,
+  the expander and the library loader. They are `procedurePrimitives` in `apply.js`, beside
+  `applyProcedure`.
+- `error-object?`, `error-object-message`, `error-object-irritants`, `file-error?` and `read-error?`
+  were beside raising in `exception.js`, which imports the interpreter's frames. They are
+  `error_object.js`. Raising and handlers stay with the interpreter, for task 98.
+- The console and file ports loaded `node:fs` with a top-level `await`, which a bundler that wraps
+  modules in functions cannot keep. They get it with `process.getBuiltinModule`.
+
+`tests/functional/runtime_separation_tests.js` (Node only) bundles the runtime, the values, the
+environment, the stand-alone primitive groups and the ports with rollup, and checks that none of the
+interpreter's run loop and frames, the expander, the assembler, the reader, the library loader,
+registry or seed, the tables, `control.js` or `exception.js` comes with them, that the bundle stays
+under 1 MB (about 430 KB unminified with every comment), and that nothing in it waits at load. Node
+suite and browser suite pass; the CLI reads and writes files, standard output and standard input as
+before. JavaScript under `src/`: primitives moved and grouped, imports fixed.

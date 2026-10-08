@@ -6,7 +6,9 @@
  * - raise-continuable: Raise a continuable exception
  * - with-exception-handler: Install an exception handler
  * - error: Raise a SchemeError with message and irritants
- * - error-object?, error-object-message, error-object-irritants
+ *
+ * What error objects are -- error-object? and the rest -- is in
+ * error_object.js, which compiled code needs without the interpreter.
  */
 
 import { TailCall } from '../interpreter/values.js';
@@ -14,7 +16,6 @@ import { WithExceptionHandlerInit } from '../interpreter/ast.js';
 import { pendingRaise } from '../interpreter/ast_nodes.js';
 import { SchemeError, SchemeSyntaxError } from '../interpreter/errors.js';
 import { unwrapSyntax } from '../interpreter/syntax_object.js';
-import { list } from '../interpreter/cons.js';
 
 /**
  * Returns exception primitives.
@@ -75,57 +76,5 @@ export function getExceptionPrimitives(interpreter) {
             error.irritants = irritants.map(unwrapSyntax);
             return pendingRaise(error, false);
         },
-
-        /**
-         * error-object?: Check if value is a SchemeError.
-         */
-        'error-object?': (obj) => obj instanceof SchemeError,
-
-        /**
-         * error-object-message: Get the error message.
-         */
-        'error-object-message': (obj) => {
-            if (!(obj instanceof SchemeError)) {
-                throw new SchemeError('error-object-message: expected error object', [obj]);
-            }
-            return obj.message;
-        },
-
-        /**
-         * error-object-irritants: Get the error irritants as a list.
-         */
-        'error-object-irritants': (obj) => {
-            if (!(obj instanceof SchemeError)) {
-                throw new SchemeError('error-object-irritants: expected error object', [obj]);
-            }
-            return list(...obj.irritants);
-        },
-
-        /**
-         * file-error?: Check if exception is a file-related error.
-         * Returns #t for I/O errors like ENOENT, EACCES, etc.
-         */
-        'file-error?': (obj) => {
-            if (obj instanceof SchemeError || obj instanceof Error) {
-                const msg = obj.message || '';
-                // Check for common Node.js file error codes
-                return /ENOENT|EACCES|EEXIST|EISDIR|ENOTDIR|EMFILE|ENFILE|EBADF|EROFS|ENOSPC/.test(msg) ||
-                    /no such file|permission denied|file exists|is a directory|not a directory/.test(msg.toLowerCase()) ||
-                    /open|read|write|delete|rename|file/i.test(msg);
-            }
-            return false;
-        },
-
-        /**
-         * read-error?: Check if exception is a read/parse error.
-         * Returns #t for syntax errors, parse errors, etc.
-         */
-        'read-error?': (obj) => {
-            if (obj instanceof SchemeError || obj instanceof Error) {
-                const msg = obj.message || '';
-                return /parse|syntax|unexpected|read|token|end of input/i.test(msg);
-            }
-            return false;
-        }
     };
 }

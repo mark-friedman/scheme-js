@@ -1,6 +1,6 @@
 /**
- * @fileoverview `apply`, and `%values->list`, which compiled code makes
- * `call-with-values` of.
+ * @fileoverview `apply` and `procedure?`, and `%values->list`, which compiled
+ * code makes `call-with-values` of.
  *
  * Primitives like the others in control.js, kept in a module of their own so
  * that generated code can reach them through the runtime (src/compiler/
@@ -11,7 +11,7 @@
  * and need not import `apply` to use `call-with-values`.
  */
 
-import { TailCall, Values, SCHEME_PRIMITIVE } from '../interpreter/values.js';
+import { TailCall, Values, SCHEME_PRIMITIVE, Closure, Continuation } from '../interpreter/values.js';
 import { Cons, toArray } from '../interpreter/cons.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
 
@@ -76,3 +76,14 @@ export function valuesToList(result) {
     return list;
 }
 valuesToList[SCHEME_PRIMITIVE] = true;
+
+/**
+ * The primitives about procedures that need nothing of the interpreter, so
+ * that compiled code has them without it: `apply`, and `procedure?`, true of
+ * Scheme closures, continuations and JavaScript functions alike.
+ * @type {Object<string, Function>}
+ */
+export const procedurePrimitives = {
+    'apply': applyProcedure,
+    'procedure?': (obj) => typeof obj === 'function' || obj instanceof Closure || obj instanceof Continuation
+};

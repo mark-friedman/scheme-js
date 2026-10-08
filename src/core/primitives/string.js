@@ -12,7 +12,8 @@
 import { intern, Symbol } from '../interpreter/symbol.js';
 import { Cons, toArray } from '../interpreter/cons.js';
 import { Values } from '../interpreter/values.js';
-import { parseNumber } from '../interpreter/reader.js';
+// From its own module: the reader's starts the library system's seed.
+import { parseNumber } from '../interpreter/reader/number_parser.js';
 import { Char } from './char_class.js';
 import { foldString } from './char.js';
 import { SchemeString, stringValue, freshString } from './string_class.js';

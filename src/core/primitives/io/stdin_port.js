@@ -7,11 +7,13 @@ import { flushStandardOutput } from './stdout_port.js';
 // ============================================================================
 
 /**
- * Node.js's `fs`, or null in a browser, which has no standard input.
+ * Node.js's `fs`, or null in a browser, which has no standard input. Got
+ * synchronously, not by a top-level `await`, which a bundler that wraps
+ * modules in functions cannot keep.
  * @type {Object|null}
  */
 const fs = typeof process !== 'undefined' && process.versions?.node != null
-    ? await import('node:fs')
+    ? process.getBuiltinModule('node:fs')
     : null;
 
 /**

@@ -4,12 +4,12 @@
  * Provides control flow operations including apply, eval, dynamic-wind, and values.
  */
 
-import { TailCall, Values, NO_VALUES, isSchemeClosure, isSchemeContinuation, Closure, Continuation } from '../interpreter/values.js';
+import { TailCall, Values, NO_VALUES, isSchemeClosure, isSchemeContinuation } from '../interpreter/values.js';
 import { TailAppNode, LiteralNode, DynamicWindInit, CallWithValuesNode, CallCCNode } from '../interpreter/ast.js';
 import { analyze } from '../interpreter/expand.js';
 import { assertProcedure, assertArity, assertList } from '../interpreter/type_check.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
-import { applyProcedure, valuesToList } from './apply.js';
+import { valuesToList } from './apply.js';
 import { globalContext } from '../interpreter/context.js';
 import { importEnvironment } from '../interpreter/library_loader.js';
 
@@ -32,8 +32,9 @@ export function getControlPrimitives(interpreter) {
         );
     };
 
+    // `apply` and `procedure?` are in apply.js, which compiled code needs
+    // without the interpreter.
     const controlPrimitives = {
-        'apply': applyProcedure,
 
         /**
          * values: Return multiple values.
@@ -131,18 +132,6 @@ export function getControlPrimitives(interpreter) {
         'call/cc': (proc) => {
             assertProcedure('call/cc', 1, proc);
             return new TailCall(new CallCCNode(new LiteralNode(proc)), null);
-        },
-
-        /**
-         * procedure?: Type predicate for procedures.
-         * Returns #t for Scheme closures, continuations, and JS functions.
-         */
-        'procedure?': (obj) => {
-            // All callable functions are procedures
-            // Scheme closures/continuations are now functions with markers
-            return typeof obj === 'function' ||
-                obj instanceof Closure ||
-                obj instanceof Continuation;
         }
     };
 

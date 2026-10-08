@@ -14,23 +14,11 @@ const isNode = typeof process !== 'undefined' &&
     process.versions.node != null;
 
 /**
- * Node.js fs module (loaded dynamically to avoid browser errors).
+ * Node.js's `fs`, or null in a browser. Got synchronously, not by a top-level
+ * `await`, which a bundler that wraps modules in functions cannot keep.
  * @type {Object|null}
  */
-let fs = null;
-if (isNode) {
-    // Dynamic import for Node.js only
-    try {
-        fs = await import('node:fs');
-    } catch (e) {
-        // Fallback for older Node versions
-        try {
-            fs = await import('fs');
-        } catch (e2) {
-            console.warn('Failed to load fs module in Node.js environment');
-        }
-    }
-}
+const fs = isNode ? process.getBuiltinModule('node:fs') : null;
 
 // ============================================================================
 // File Port Classes (Node.js Only)

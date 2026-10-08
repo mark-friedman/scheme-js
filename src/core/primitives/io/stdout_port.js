@@ -5,11 +5,13 @@ import { Port } from './ports.js';
 // ============================================================================
 
 /**
- * Node.js's `fs`, or null in a browser, which has no standard output.
+ * Node.js's `fs`, or null in a browser, which has no standard output. Got
+ * synchronously, not by a top-level `await`, which a bundler that wraps
+ * modules in functions cannot keep.
  * @type {Object|null}
  */
 const fs = typeof process !== 'undefined' && process.versions?.node != null
-    ? await import('node:fs')
+    ? process.getBuiltinModule('node:fs')
     : null;
 
 /**
