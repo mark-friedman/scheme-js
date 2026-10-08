@@ -932,11 +932,16 @@
 ;; /**
 ;;  * Reads a datum from a port, as `read` does, or gives the end-of-file
 ;;  * object at the end of it: R7RS's data, dot notation off. The directives
-;;  * it reads hold for the port's next reads, kept on the port.
+;;  * it reads hold for the port's next reads, kept on the port. The whole of
+;;  * `read`'s work on a port, its check of the port included: the runtime's
+;;  * `%read` calls it, and a program compiled ahead of time has it compiled
+;;  * in `%read`'s place.
 ;;  * @param {port} port - The port.
 ;;  * @returns {*}
 ;;  */
 (define (read-from-port port)
+  (cond ((not (input-port? port)) (error "read: expected input port" port))
+        ((not (input-port-open? port)) (error "read: port is closed" port)))
   (let* ((fold-case (js-ref port "schemeReaderFoldCase"))
          (dot-notation (js-ref port "schemeReaderDotNotation"))
          (r (make-port-reader port (eq? fold-case #t) (eq? dot-notation #t)))

@@ -195,10 +195,10 @@ export function assembleParts(name, params, count, implName, dir = R7RS_DIR) {
  * the program's own import declarations, its input as data, the program and
  * the shared postlude, as one program.
  *
- * A program compiled ahead of time has no reader, so its input cannot arrive
- * as text: it is written into the program as a quoted list, and `read` with
- * no port takes the next datum of it. `read` from a port -- `dynamic` and
- * `read1` read data files -- raises, saying so.
+ * Its input is written into the program as a quoted list, and `read` with no
+ * port takes the next datum of it, as the canonical harness's `read` takes it
+ * from a string port; `read` from a port -- `dynamic` and `read1` read data
+ * files -- is the reader's, compiled with the program.
  *
  * @param {string} name - Program name.
  * @param {string|null} params - Replacement parameters, or null for canonical.
@@ -214,9 +214,10 @@ export function assembleAhead(name, params, count, implName, dir = R7RS_DIR) {
   return [
     imports,
     `(define %bench-input '(${buildInput(name, params, count, dir)}\n))`,
-    `(define (read . port)
+    `(define %bench-read read)
+(define (read . port)
   (if (pair? port)
-      (error "read: a benchmark compiled ahead of time has no reader, and reads only its input")
+      (%bench-read (car port))
       (let ((datum (car %bench-input)))
         (set! %bench-input (cdr %bench-input))
         datum)))`,

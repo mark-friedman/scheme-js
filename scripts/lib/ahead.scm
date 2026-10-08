@@ -187,6 +187,25 @@
   (any (lambda (item) (eq? (item-name item) name)) (unit-items unit)))
 
 ;; ---------------------------------------------------------------------------
+;; Primitives a library of the system's does the work of
+;; ---------------------------------------------------------------------------
+;;
+;; A few primitives are doors into a library the library system's seed loads
+;; for itself, on its own interpreter -- `%read`, into the reader -- and a
+;; program compiled ahead of time has no seed. Such a primitive is the
+;; library's procedure, compiled with the program instead: a program that
+;; reaches one has the library loaded and compiled as its imports are, and the
+;; runtime binds the primitive's name to the procedure, among the primitives,
+;; once the library has loaded.
+
+;; /**
+;;  * Each such primitive, the library whose procedure does its whole work, and
+;;  * the procedure: `%read` is `read-from-port`, which checks the port too.
+;;  */
+(define library-primitives
+  '((%read ("scheme-js" "reader") read-from-port)))
+
+;; ---------------------------------------------------------------------------
 ;; Where a name is bound
 ;; ---------------------------------------------------------------------------
 
@@ -255,13 +274,28 @@
   (find (lambda (unit) (eq? (unit-env unit) env)) (world-units world)))
 
 ;; /**
+;;  * What binds a primitive's name: `(supplied name key procedure)`, where a
+;;  * library of the system's does the primitive's work and the build has
+;;  * loaded it (`library-primitives`); else `(primitive name)`.
+;;  * @param {world} world - The build's units.
+;;  * @param {symbol} name - The primitive's name.
+;;  * @returns {list}
+;;  */
+(define (primitive-binding world name)
+  (let* ((supplier (assq name library-primitives))
+         (key (and supplier (library-key (cadr supplier)))))
+    (if (and key (unit-by-key world key))
+        (list 'supplied name key (caddr supplier))
+        (list 'primitive name))))
+
+;; /**
 ;;  * What binds a name in a unit where the unit's own definitions do not: an
 ;;  * import, as `(item key name)`, the item of the unit of that key that
 ;;  * defined what it imported, through every library that re-exported it, or
-;;  * `(primitive name)`; else, the name not imported, the primitive of that
-;;  * name, which the runtime's environment of primitives, inside which every
-;;  * unit's is, binds; or #f, nowhere the build can see, as a JavaScript global
-;;  * is.
+;;  * `(primitive name)` or `(supplied ...)` (`primitive-binding`); else, the
+;;  * name not imported, the primitive of that name, which the runtime's
+;;  * environment of primitives, inside which every unit's is, binds; or #f,
+;;  * nowhere the build can see, as a JavaScript global is.
 ;;  * @param {world} world - The build's units.
 ;;  * @param {unit} unit - The unit.
 ;;  * @param {symbol} name - The name.
@@ -273,11 +307,11 @@
               (let ((from (cadr entry))
                     (external (cddr entry)))
                 (if (string=? from primitives-key)
-                    (list 'primitive external)
+                    (primitive-binding world external)
                     (let* ((exporter (unit-by-key world from))
                            (internal (assq external (unit-exports exporter))))
                       (and internal (binding-of world exporter (cdr internal))))))))
-        ((memq name (world-primitive-names world)) (list 'primitive name))
+        ((memq name (world-primitive-names world)) (primitive-binding world name))
         (else #f)))
 
 ;; /**
@@ -356,21 +390,25 @@
 ;; /**
 ;;  * The items a binding is made by, other than those already reached: each
 ;;  * of the defining unit's items that defines the name, a later one
-;;  * redefining it too.
+;;  * redefining it too -- for a primitive a library's procedure supplies, the
+;;  * procedure's.
 ;;  * @param {world} world - The build's units.
 ;;  * @param {list} binding - The binding (`bindings-at`).
 ;;  * @param {list} reached - The items reached so far, each `(unit . item)`.
 ;;  * @returns {list} Each `(unit . item)`.
 ;;  */
 (define (items-making world binding reached)
-  (if (eq? (car binding) 'item)
-      (let ((defining (unit-by-key world (cadr binding))))
-        (filter-map (lambda (item)
-                      (and (eq? (item-name item) (caddr binding))
-                           (not (any (lambda (entry) (eq? (cdr entry) item)) reached))
-                           (cons defining item)))
-                    (unit-items defining)))
-      '()))
+  (define (defining key name)
+    (let ((unit (unit-by-key world key)))
+      (filter-map (lambda (item)
+                    (and (eq? (item-name item) name)
+                         (not (any (lambda (entry) (eq? (cdr entry) item)) reached))
+                         (cons unit item)))
+                  (unit-items unit))))
+  (case (car binding)
+    ((item) (defining (cadr binding) (caddr binding)))
+    ((supplied) (defining (caddr binding) (cadddr binding)))
+    (else '())))
 
 ;; /**
 ;;  * Whether two needs are the same: the same binding of the same name in the
@@ -501,6 +539,12 @@
 (define (build-program forms read-source)
   (let ((imports (map parse-import-set (car (program-parts forms))))
         (loaded '()))
+    ;; The libraries loaded since this was last asked, in the order they
+    ;; loaded, which it forgets.
+    (define (take-loaded!)
+      (let ((taken (reverse loaded)))
+        (set! loaded '())
+        taken))
     (if (null? imports)
         (make-program-build #f #f
                             '("a program compiled ahead of time begins with the import declarations of the libraries it uses"))
@@ -509,12 +553,39 @@
          (lambda (name env) (set! loaded (cons (list name env (take-noted!)) loaded)))
          (lambda ()
            (for-each (lambda (spec) (load-library (import-set-library-name spec) note!)) imports)
-           (let* ((expanded (expand-program forms))
-                  (libraries (map (lambda (l) (library-unit read-source l)) (reverse loaded)))
-                  (units (append libraries (list (program-unit imports (car expanded) (cdr expanded)))))
-                  (world (make-world units (map car (library-variables primitives-key)) (item-positions units)))
-                  (reach (follow world)))
-             (make-program-build world reach (refusals reach (ahead-primitive-names)))))))))
+           (let ((expanded (expand-program forms))
+                 (primitive-names (map car (library-variables primitives-key))))
+             (let ((program (program-unit imports (car expanded) (cdr expanded))))
+               ;; Followed again with each library of the system's the program
+               ;; is found to reach through a primitive, loaded and compiled
+               ;; as its imports are, until it reaches no other.
+               (let grow ((libraries '()))
+                 (let* ((libraries (append libraries
+                                           (map (lambda (l) (library-unit read-source l)) (take-loaded!))))
+                        (units (append libraries (list program)))
+                        (world (make-world units primitive-names (item-positions units)))
+                        (reach (follow world))
+                        (wanted (supplying-libraries reach)))
+                   (if (null? wanted)
+                       (make-program-build world reach (refusals reach (ahead-primitive-names)))
+                       (begin
+                         (for-each (lambda (name) (load-library (map string->symbol name) note!)) wanted)
+                         (grow libraries))))))))))))
+
+;; /**
+;;  * The libraries of the system's that do the work of primitives a program
+;;  * reaches and that the build has not loaded (`library-primitives`).
+;;  * @param {reach} reach - What the program reaches.
+;;  * @returns {list} Their names, as strings.
+;;  */
+(define (supplying-libraries reach)
+  (delete-duplicates
+   (filter-map (lambda (need)
+                 (let ((binding (cddr need)))
+                   (and (eq? (car binding) 'primitive)
+                        (let ((supplier (assq (cadr binding) library-primitives)))
+                          (and supplier (cadr supplier))))))
+               (reach-needs reach))))
 
 ;; ---------------------------------------------------------------------------
 ;; Writing it down
@@ -551,6 +622,30 @@
                                 (else #f)))))
                      (reach-needs reach))))
     (string-append "[" (string-join imports ", ") "]")))
+
+;; /**
+;;  * The primitives a library of the system's supplies that the program
+;;  * reaches, as the text of an array of `[name, key, procedure]`: the runtime
+;;  * binds each name, among the primitives, to the procedure of the library of
+;;  * that key once the library has loaded.
+;;  * @param {reach} reach - What the program reaches.
+;;  * @returns {string}
+;;  */
+(define (supplied-text reach)
+  (let ((supplied (delete-duplicates
+                   (filter-map (lambda (need)
+                                 (let ((binding (cddr need)))
+                                   (and (eq? (car binding) 'supplied) (cdr binding))))
+                               (reach-needs reach)))))
+    (string-append
+     "["
+     (string-join (map (lambda (entry)
+                         (string-append "[" (json-string (symbol->string (car entry))) ", "
+                                        (json-string (cadr entry)) ", "
+                                        (json-string (symbol->string (caddr entry))) "]"))
+                       supplied)
+                  ", ")
+     "]")))
 
 ;; /**
 ;;  * An item as the text of an object: what it is, the function building its
@@ -611,6 +706,7 @@
    "\n"
    "export default {\n"
    "  source: " (json-string source) ",\n"
+   "  supplied: " (supplied-text (program-build-reach build)) ",\n"
    "  units: [\n"
    (string-join (map (lambda (unit)
                        (unit-text (program-build-world build) (program-build-reach build) unit))

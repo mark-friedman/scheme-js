@@ -804,10 +804,14 @@ reading `this`, the receiver the interpreter binds as JavaScript calls a procedu
 which compiled code has none of (task 103) -- refuses the program, saying which procedure and why;
 so does a constant that cannot be written down, and a primitive the runtime does not carry
 (`AHEAD_PRIMITIVES`: those that need nothing of the interpreter or the library system, JavaScript
-interop, classes, promises and the command line among them -- not `read`, whose reader is a library
-of its own, nor `eval`). Unreached, a procedure that could not be compiled costs nothing. A
-procedure JavaScript calls back -- a callback, a promise's handler -- runs on the driver, which
-stands for the interpreter the environment of primitives would otherwise belong to.
+interop, classes, promises and the command line among them). Unreached, a procedure that could not
+be compiled costs nothing. A procedure JavaScript calls back -- a callback, a promise's handler --
+runs on the driver, which stands for the interpreter the environment of primitives would otherwise
+belong to. A primitive that is a door into a library the library system's seed loads for itself is
+that library's procedure instead, compiled with the program (`library-primitives`): `%read`, which
+`read` calls, is the reader's `read-from-port`, which checks its port as `read` must, so a program
+that reads has the reader compiled in -- about a megabyte more. Under Node the current ports are
+the process's standard ones, as the CLI makes them.
 
 The program runs on the driver that needs no interpreter beneath it (`runAhead`), which finishes
 its captures and its moves to the heap itself. Where the compiled tier hands a move to the
@@ -815,10 +819,10 @@ interpreter, finishing it in the driver made `earley` a fifth slower, all of it 
 (R140); with no interpreter there is nothing to hand it to, and `earley` compiled ahead of time is
 1.2 times slower than under the tier, and the difference is garbage collection: at 200 iterations,
 1.05 s of its 3.6 s, against 0.55 s under the tier. Nearly everything else runs as fast or faster
-ahead of time: of the 45 programs of the canonical suite's default profile, 43 run, at 0.52 to 1.02
-times the tier's time per iteration, median 0.93 -- `takl` 0.52, `sum` 0.64, `ctak` and `mazefun`
-0.67 (`benchmarks/run_ahead.js`) -- and the two that read data files with `read` have no reader.
-Why those are faster was not looked into.
+ahead of time: every one of the 45 programs of the canonical suite's default profile runs, at 0.52
+to 1.02 times the tier's time per iteration, median 0.93 -- `takl` 0.52, `sum` 0.64, `ctak` and
+`mazefun` 0.67 (`benchmarks/run_ahead.js`); `read1` and `dynamic`, which read data files with
+`read`, 0.86 and 0.97. Why those are faster was not looked into.
 
 The one file a small program makes is about 1 MB, 160 KB gzipped, against the 8.4 MB, 920 KB
 gzipped, a page loads today before its Scheme runs; a program that writes reaches `(scheme core)`'s

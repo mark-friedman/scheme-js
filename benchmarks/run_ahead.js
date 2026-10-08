@@ -88,7 +88,7 @@ function ahead(bench, count, dir) {
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scheme-ahead-bench-'));
 const only = ONLY === null ? null : ONLY.split(',');
-console.log('per iteration       tier         ahead     ahead/tier   table');
+console.log('per iteration       tier         ahead     ahead/tier   file');
 try {
   for (const bench of selectBenchmarks(PROFILE)) {
     if (only !== null && !only.includes(bench.name)) continue;

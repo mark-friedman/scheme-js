@@ -148,6 +148,17 @@
     "current-input-port: expected input port"
     (current-input-port (open-output-string))))
 
+(test-group "read checks its port"
+  ;; Checked by the reader's own `read-from-port` (reader.scm), which a program
+  ;; compiled ahead of time has compiled with it.
+  (test-error "rejects what is not a port" "read: expected input port" (read 5))
+  (test-error "rejects an output port" "read: expected input port" (read (open-output-string)))
+  (test-error "rejects a closed port" "read: port is closed"
+    (let ((p (open-input-string "1")))
+      (close-port p)
+      (read p)))
+  (test "reads from an open one" '(1 2) (read (open-input-string "(1 2) 3"))))
+
 (test-group "current-output-port given a port"
 
   (test "the port given becomes the current output port"

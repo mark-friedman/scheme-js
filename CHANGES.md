@@ -14190,3 +14190,33 @@ imports, `guard`, `parameterize`, a method reading `this`, a form that cannot be
 interpreter. JavaScript under `src/`: the bundling, rollup's; `runMain`, the runtime's start; a
 build-host door that reads a program as the CLI does; the CLI's `--build`, which calls the build and
 then the bundling; primitive groups imported.
+
+# Task 100 done: a program compiled ahead of time that reads (2026-10-08)
+
+`read` calls `%read`, a JavaScript primitive that is a door into the reader, `(scheme-js reader)`,
+which the library system's seed loads for itself; a program compiled ahead of time has no seed.
+The reader is Scheme over primitives the runtime already carries, so a program that reaches `%read`
+now has the reader compiled with it: the build keeps a table of such primitives
+(`library-primitives` in `scripts/lib/ahead.scm`) -- `%read` is the reader's `read-from-port` --
+loads the library as it loads the program's imports when the program is found to reach one,
+follows the program again, and writes `supplied: [["%read", "scheme-js.reader",
+"read-from-port"]]`, which the runtime binds among the primitives once the reader has loaded.
+`(scheme read)` is unchanged, and nothing loads a second reader where there is a seed.
+
+`%read` checked its port before calling the reader; the check is the reader's now, in Scheme, so that
+the procedure a program compiled ahead of time has in `%read`'s place does the whole of its work,
+with the same messages (`read: expected input port`, `read: port is closed`), tested in
+`tests/core/scheme/port_tests.scm`.
+
+Under Node, a program compiled ahead of time now has the process's standard input, output and error
+as its current ports, as the CLI gives a program (`hostPrimitives` in `src/compiler/ahead.js`), so it
+reads what is piped to it and writes a line at a time; what it leaves unfinished on either is written
+out as it ends.
+
+`read1` and `dynamic`, which read data files, run ahead of time at 0.86 and 0.97 of the tier's time
+(`benchmarks/run_ahead.js`, whose `read` shim now hands a read from a port to the real one), so every
+program of the canonical suite's default profile runs so. A program that reads carries the reader,
+about a megabyte more as written. Tested in `tests/functional/ahead_program_tests.js`: reading from
+a string port and from standard input, as the CLI gives it; `eval` refused. JavaScript under `src/`:
+`%read` lost its check; the runtime binds supplied primitives and gives a Node program the standard
+ports, for `runtime.js`'s item.

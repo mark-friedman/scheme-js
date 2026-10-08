@@ -125,13 +125,16 @@ function primitiveEnvironment(primitives) {
 
 /**
  * Runs a program compiled ahead of time.
- * @param {{units: Array<Object>}} program - The table the build wrote: each
- *   unit `{library?: string[], imports: Array<[string, (string|null), string]>,
- *   items: Array<Object>}`, an import `[local, unit, name]` binding `local` to
- *   the value `name` has in the library whose key is `unit` now, or, where
- *   `unit` is null, to the primitive `name`; an item `{procedure: name}`,
- *   `{define: name}` or `{run: true}`, with its code's `make` and the
- *   function building its constant pool, `constants`.
+ * @param {{supplied?: Array<[string, string, string]>, units: Array<Object>}}
+ *   program - The table the build wrote: each unit `{library?: string[],
+ *   imports: Array<[string, (string|null), string]>, items: Array<Object>}`,
+ *   an import `[local, unit, name]` binding `local` to the value `name` has in
+ *   the library whose key is `unit` now, or, where `unit` is null, to the
+ *   primitive `name`; an item `{procedure: name}`, `{define: name}` or `{run:
+ *   true}`, with its code's `make` and the function building its constant
+ *   pool, `constants`. Each of `supplied`, `[name, unit, procedure]`, a
+ *   primitive a library of the system's does the work of, bound among the
+ *   primitives to the library's procedure once the library has loaded.
  * @param {Object<string, Function>} [primitives] - The primitives it runs
  *   with.
  * @returns {*} The value of the program's last form that was run for its
@@ -140,10 +143,12 @@ function primitiveEnvironment(primitives) {
 export function runProgram(program, primitives = AHEAD_PRIMITIVES) {
   const base = primitiveEnvironment(primitives);
   const libraries = new Map();
+  const supplied = program.supplied ?? [];
   let value;
   for (const unit of program.units) {
     const env = new Environment(base);
-    if (unit.library !== undefined) libraries.set(unit.library.join('.'), env);
+    const key = unit.library === undefined ? null : unit.library.join('.');
+    if (key !== null) libraries.set(key, env);
     for (const [local, from, name] of unit.imports) {
       env.define(local, (from === null ? base : libraries.get(from)).lookup(name));
     }
@@ -161,27 +166,54 @@ export function runProgram(program, primitives = AHEAD_PRIMITIVES) {
         value = R.runAhead(made, []);
       }
     }
+    for (const [name, from, procedure] of supplied) {
+      if (from === key) base.define(name, env.lookup(procedure));
+    }
   }
   return value;
 }
 
 /**
+ * The primitives a program compiled ahead of time runs with where it runs.
+ * Under Node its current ports are the process's standard input, output and
+ * error, as the CLI makes them (repl.js), so that it stands in a pipeline as
+ * it would run from the CLI, reading what is piped in and writing a line at a
+ * time; on a page, the console.
+ * @returns {Object<string, Function>}
+ */
+function hostPrimitives() {
+  if (typeof process === 'undefined' || process.versions?.node == null) return AHEAD_PRIMITIVES;
+  return {
+    ...AHEAD_PRIMITIVES,
+    '%console-input-port': AHEAD_PRIMITIVES['standard-input-port'],
+    '%console-output-port': AHEAD_PRIMITIVES['standard-output-port'],
+    '%console-error-port': AHEAD_PRIMITIVES['standard-error-port']
+  };
+}
+
+/**
  * Runs a program compiled ahead of time as the whole of what a process or a
- * page does, as the CLI runs a program's file: what it wrote to the console
- * output port and had not ended with a newline written out as it ends, and a
- * raise nobody handled reported as the CLI reports one, on the console's
- * error stream, with the process's exit status 1 under Node. The module the
- * build writes calls this as it loads (src/packaging/ahead_bundle.js).
+ * page does, as the CLI runs a program's file: with the current ports the
+ * CLI gives one under Node (`hostPrimitives`); what it wrote to its output
+ * and error ports and had not ended with a newline written out as it ends;
+ * and a raise nobody handled reported as the CLI reports one, on the
+ * console's error stream, with the process's exit status 1 under Node. The
+ * module the build writes calls this as it loads
+ * (src/packaging/ahead_bundle.js).
  * @param {{source: string, units: Array<Object>}} program - The table, and
  *   the program's file, which the report names.
  */
 export function runMain(program) {
-  const output = AHEAD_PRIMITIVES['%console-output-port']();
+  const primitives = hostPrimitives();
+  const finish = () => {
+    primitives['%console-output-port']().flush();
+    primitives['%console-error-port']().flush();
+  };
   try {
-    runProgram(program);
-    output.flush();
+    runProgram(program, primitives);
+    finish();
   } catch (e) {
-    output.flush();
+    finish();
     console.error(`Error executing ${program.source}: ${e?.message ?? e}`);
     if (typeof process !== 'undefined') process.exitCode = 1;
   }

@@ -4,7 +4,6 @@
  * `read`, the reader's.
  */
 
-import { requireOpenInputPort } from './ports.js';
 import { portPrimitives } from './port_primitives.js';
 import { systemLibrary } from '../../interpreter/library_seed.js';
 import { callSchemeProcedure } from '../../interpreter/values.js';
@@ -25,9 +24,7 @@ export const ioPrimitives = {
     },
 
     // The reader's door for `read`: a datum from a port, read by
-    // `(scheme-js reader)` (`read-from-port` in reader.scm).
-    '%read': (port) => {
-        requireOpenInputPort(port, 'read');
-        return callSchemeProcedure(systemLibrary(['scheme-js', 'reader']).get('read-from-port'), [port]);
-    }
+    // `(scheme-js reader)` (`read-from-port` in reader.scm), which checks the
+    // port too.
+    '%read': (port) => callSchemeProcedure(systemLibrary(['scheme-js', 'reader']).get('read-from-port'), [port])
 };

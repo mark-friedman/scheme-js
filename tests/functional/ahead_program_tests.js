@@ -45,11 +45,12 @@ function build(dir, name, source) {
 /**
  * Runs a program built ahead of time, as `node OUTPUT`.
  * @param {string} file - The module.
+ * @param {string} [input] - What is piped to its standard input.
  * @returns {Array<string|number>} What it wrote to standard output, less its
  *   last newline, and to standard error, and its exit status.
  */
-function run(file) {
-  const ran = spawnSync(process.execPath, [file], { encoding: 'utf8' });
+function run(file, input = '') {
+  const ran = spawnSync(process.execPath, [file], { encoding: 'utf8', input });
   return [ran.stdout.replace(/\n$/, ''), ran.stderr, ran.status];
 }
 
@@ -118,6 +119,15 @@ const INTEROP = `(import (scheme base) (scheme write) (scheme process-context) (
              (string? (car (command-line)))))
 `;
 
+// `read`, whose reader is a library the library system's seed loads for
+// itself: compiled with the program instead.
+const READS = `(import (scheme base) (scheme read) (scheme write))
+(define port (open-input-string "(1 (2 . 3) #(4 \\"five\\") six) 7"))
+(define first (read port))
+(define second (read port))
+(write (list first second (eof-object? (read port)) (read)))
+`;
+
 const RAISES = `(import (scheme base) (scheme write))
 (display "before")
 (newline)
@@ -162,6 +172,11 @@ export async function runAheadProgramTests(logger) {
       interop.file === null ? interop.refusals : run(interop.file),
       ['(#t 30 4 "scheme" 4 (1 4 9) "object" #t #t)', '', 0]);
 
+    const reads = build(dir, 'reads', READS);
+    assert(logger, 'read, from a string port and from standard input, as the CLI gives it',
+      reads.file === null ? reads.refusals : run(reads.file, '(piped in)'),
+      ['((1 (2 . 3) #(4 "five") six) 7 #t (piped in))', '', 0]);
+
     const raises = build(dir, 'raises', RAISES);
     assert(logger, 'an error nobody handles is reported as the CLI reports it, after what the program printed',
       raises.file === null ? raises.refusals : run(raises.file),
@@ -185,9 +200,9 @@ export async function runAheadProgramTests(logger) {
         .some((line) => line.startsWith('<C> in the program is not compiled: reads this')), true);
     assert(logger, 'one that cannot be expanded, as running it would say',
       refusalOf('malformed', '(import (scheme base))\n(if)\n')[0].startsWith('Error building'), true);
-    assert(logger, 'one reading, by the primitive the runtime does not carry',
-      refusalOf('read', '(import (scheme base) (scheme read))\n(read)\n'),
-      ['the primitive %read is not carried by the runtime of a program compiled ahead of time']);
+    assert(logger, 'one evaluating, which needs the expander and an interpreter, by the form',
+      refusalOf('eval', '(import (scheme base) (scheme eval))\n(eval 1 (environment (quote (scheme base))))\n'),
+      ['a top-level form in the program is not compiled: references control global \'eval\'']);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
