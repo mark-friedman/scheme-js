@@ -13884,3 +13884,32 @@ procedures (37(b)); they now run compiled 1.8 and 4.3 times faster than interpre
 Measured while other work loaded the machine, so each figure is one of three that agreed. Tested in
 `interop_tests.js`: the unwind is no `Error` and carries no stack trace. JavaScript under `src/`:
 the evaluator's signal, fixed in place.
+
+# Task 77, first check: a native capture path is faster even with the interpreter present (2026-10-07)
+
+Chosen with the user before deciding on task 77: does compiled code finishing its own captures,
+resumes and moves of frames to the heap pay for itself in speed, apart from any ahead-of-time
+build? In steady state the interpreter's part of the protocol -- its run loop,
+`invokeContinuationFrom`, `CompiledFrame.step`, `continueApplication` -- was about two thirds of
+compiled `ctak` and `fibc`, their own generated code 6-7%. `invokeContinuationFrom` does work in
+proportion to the stack's depth at every invocation: it compares the two stacks frame by frame,
+scans for a sentinel, slices and filters both for wind frames, and copies the target twice.
+
+A prototype driver, in a scratch file, ran the same compiled procedures with no interpreter beneath
+them: the frames that unwind saves kept on a persistent linked list, so taking a continuation keeps
+a pointer; a resume calling the frame's resumable form with a copy of its slots, so continuations
+stay multi-shot; a continuation invoked by a throw the driver catches; a move to the heap handled as
+a call made again from the driver. Same answers, best of ten:
+
+| compiled | interpreter beneath | native driver | |
+|---|---|---|---|
+| `(ctak 18 12 6)` | 63-86 ms | 26-36 ms | 2.4x |
+| `(fibc 20 identity)` | 32 ms | 12.5 ms | 2.6x |
+| 100,000 escapes from a loop through `call/cc` | 155 ms | 54 ms | 2.85x |
+| a recursion a million deep | 125-144 ms | 73-76 ms | 1.7-1.9x |
+
+It covered only frames all compiled, no `dynamic-wind`, and continuations used within the run that
+made them. A real increment (1) would keep that path where it holds and fall back to today's
+protocol for interpreter frames beneath, winds and parameters, and continuations used after their
+run returned or from interpreted code. Recorded in task 77's row; the second check, what an
+ahead-of-time build saves, follows.
