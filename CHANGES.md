@@ -14485,3 +14485,15 @@ for the expander's numbering of names. `generate-environment` still returns a pa
 JavaScript callers read.
 
 No JavaScript was added or grown.
+
+# Task 53 closed: `source` on every pair (2026-10-08)
+
+Measured, and not done. Every `Cons` carries a third field, the span the reader gives a list it reads,
+null for every pair a program makes. The ceiling of dropping it, measured from two copies side by
+side, the field simply removed in one, over the canonical suite's list programs, compiled, two runs
+each: `earley`, which spends a fifth of its time collecting garbage (R140), 15.2 and 15.5 ms against
+16.3 and 16.2; `sboyer` 212.5 and 213.3 against 205.0 and 206.4; `nboyer`, `browse`, `destruc`,
+`deriv`, `graphs`, `lattice`, `mazefun`, `paraffins` and `peval` level. Keeping read data's spans
+elsewhere would cost what that ceiling does not repay: a `WeakMap` the reader and the expander pay
+for on every span, or a subclass of `Cons` for read data, which would make every `car` and `cdr`
+site in compiled code see two shapes.
