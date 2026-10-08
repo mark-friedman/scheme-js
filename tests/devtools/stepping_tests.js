@@ -1,0 +1,166 @@
+/**
+ * @fileoverview Stepping between Scheme and JavaScript in DevTools.
+ *
+ * Drives DevTools' own front end, in the DevTools window of a headless Chrome
+ * tab (devtools_driver.js), over a page whose Scheme and JavaScript call each
+ * other (fixtures/boundary.*): breakpoints at Scheme lines and JavaScript
+ * lines, steps into, over and out across the boundary both ways, and where
+ * DevTools shows each pause. A step stops at the user's code on the other
+ * side, never in what is between -- the conversions at the boundary, the
+ * interpreter, the primitives, the libraries -- which DevTools skips as
+ * ignore-listed: the bundle's source map lists the system's sources, and
+ * served as modules, as here, the system's files are listed by their URLs, as
+ * a user would list them.
+ *
+ * Node only: it launches Chrome, through Puppeteer, and serves the
+ * repository's files to it.
+ */
+
+import fs from 'fs';
+import http from 'http';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { assert, skip } from '../harness/helpers.js';
+import { DevTools } from './devtools_driver.js';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+
+/** What each kind of file served is. */
+const TYPES = {
+  '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json',
+  '.scm': 'text/plain', '.sld': 'text/plain'
+};
+
+/**
+ * Serves the repository's files.
+ * @returns {Promise<{server: http.Server, port: number}>}
+ */
+function serve() {
+  const server = http.createServer((request, response) => {
+    const file = path.join(ROOT, decodeURIComponent(new URL(request.url, 'http://x').pathname));
+    if (!file.startsWith(ROOT) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+      response.writeHead(404);
+      response.end();
+      return;
+    }
+    response.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream' });
+    fs.createReadStream(file).pipe(response);
+  });
+  return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve({ server, port: server.address().port })));
+}
+
+/**
+ * A pause's place as a test compares it: the file's name and the line, and
+ * whether DevTools ignore-lists it.
+ * @param {{url: string, line: number, ignored: boolean}|null} place - Where.
+ * @returns {string|null}
+ */
+function shown(place) {
+  if (place === null) return null;
+  return `${place.url.slice(place.url.lastIndexOf('/') + 1)}:${place.line}${place.ignored ? ' (ignored)' : ''}`;
+}
+
+/**
+ * Sets a breakpoint, starts a call on the page, and takes steps from where it
+ * pauses, as a user of DevTools would, then removes the breakpoint and lets
+ * the call finish.
+ * @param {DevTools} devTools - The front end.
+ * @param {Object} page - The tab.
+ * @param {string} url - The breakpoint's source.
+ * @param {number} line - Its line.
+ * @param {string} expression - The call, as JavaScript.
+ * @param {Array<string>} kinds - The steps.
+ * @returns {Promise<{bound: number, at: (string|null), places: Array<string|null>}>}
+ *   How many places the breakpoint was bound to, where the call paused, and
+ *   where each step paused, while each did.
+ */
+async function session(devTools, page, url, line, expression, kinds) {
+  const bound = await devTools.breakpoint(url, line);
+  const seen = await devTools.pauses();
+  const running = page.evaluate(expression).catch(() => null);
+  const at = bound > 0 ? await devTools.pauseAfter(seen) : null;
+  const places = [];
+  for (const kind of at === null ? [] : kinds) {
+    const place = await devTools.step(kind);
+    places.push(shown(place));
+    if (place === null) break;
+  }
+  await devTools.resume();
+  await running;
+  return { bound, at: shown(at), places };
+}
+
+/**
+ * Runs the stepping tests.
+ * @param {Object} logger - Test logger.
+ * @returns {Promise<void>}
+ */
+export async function runDevToolsSteppingTests(logger) {
+  let puppeteer;
+  try {
+    ({ default: puppeteer } = await import('puppeteer'));
+  } catch (e) {
+    skip(logger, 'DevTools - stepping between Scheme and JavaScript', 'needs Puppeteer, to drive Chrome');
+    return;
+  }
+  const { server, port } = await serve();
+  const browser = await puppeteer.launch({ headless: true, devtools: true });
+  try {
+    const page = (await browser.pages())[0];
+    const fixtures = `http://127.0.0.1:${port}/tests/devtools/fixtures/`;
+    await page.goto(`${fixtures}boundary.html`);
+    await page.waitForFunction('window.ready === true', { timeout: 60000, polling: 100 });
+    const devTools = await DevTools.open(browser, page);
+    await devTools.ignore(`^http://127\\.0\\.0\\.1:${port}/src/`);
+    const scm = `${fixtures}boundary.scm`;
+    const js = `${fixtures}boundary.js`;
+
+    logger.title('DevTools - the page');
+    assert(logger, 'the procedures stepped into are compiled',
+      await page.evaluate('JSON.stringify(window.compiled)'),
+      JSON.stringify({ 'scheme-calls-js': true, 'scheme-called-from-js': true, 'scheme-round-trip': true }));
+    assert(logger, 'DevTools lists the Scheme file the compiled code is mapped to', await devTools.source(scm), true);
+
+    logger.title('DevTools - from Scheme into JavaScript, and back');
+    {
+      const { bound, at, places } = await session(devTools, page, scm, 8, "window.call('scheme-calls-js', 3)",
+        ['stepInto', 'stepOut', 'stepOver']);
+      assert(logger, 'a breakpoint at a Scheme call is bound', bound > 0, true);
+      assert(logger, 'the program pauses at it', at, 'boundary.scm:8');
+      // A step out comes back after the call: DevTools stepped into it skipping
+      // what is mapped to the call's expression, and the engine skips the same
+      // on the way out, as it does for any code a source map places.
+      assert(logger, 'a step into goes to the JavaScript the Scheme calls; a step out comes back to the Scheme, '
+        + 'after the call; a step over goes out of it, to the JavaScript that called it',
+        places, ['boundary.js:13', 'boundary.scm:9', 'boundary.html:24']);
+    }
+
+    logger.title('DevTools - from JavaScript into Scheme, and back');
+    {
+      const { bound, at, places } = await session(devTools, page, js, 24, "window.call('scheme-round-trip', 5)",
+        ['stepInto', 'stepOut']);
+      assert(logger, 'a breakpoint at a JavaScript call is bound', bound > 0, true);
+      assert(logger, 'the program pauses at it', at, 'boundary.js:24');
+      assert(logger, 'a step into goes to the Scheme the JavaScript calls, and a step out comes back to the JavaScript',
+        places, ['boundary.scm:12', 'boundary.js:25']);
+    }
+
+    logger.title('DevTools - within Scheme');
+    {
+      const { bound, at, places } = await session(devTools, page, scm, 7, "window.call('scheme-calls-js', 3)",
+        ['stepOver']);
+      assert(logger, 'a breakpoint at a Scheme expression that calls no procedure is bound', bound > 0, true);
+      assert(logger, 'the program pauses at it', at, 'boundary.scm:7');
+      assert(logger, 'a step over goes to the next expression', places, ['boundary.scm:8']);
+    }
+
+    logger.title('DevTools - never in the system');
+    assert(logger, "no pause was in the system's code, nor in code DevTools could not place in a source",
+      (await devTools.all()).filter((place) => place === null || place.ignored || place.url.startsWith('scheme:')
+        || place.url.includes('/src/')).map(shown),
+      []);
+  } finally {
+    await browser.close();
+    server.close();
+  }
+}

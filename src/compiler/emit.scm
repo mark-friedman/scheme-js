@@ -2129,8 +2129,56 @@
 ;;  */
 (define (named-function binding key header body)
   (list (string-append "const " binding " = { " key ": " header " {")
-        (vector "  " body)
+        (vector "  " (with-entry-placed body))
         (string-append "} }[" key "];")))
+
+;; /**
+;;  * A function's body, with the lines before its first placed line -- its
+;;  * entry: the declarations, the checks of its arguments and the stack, the
+;;  * resumable form's restoring of its frame, a loop's head -- placed where
+;;  * that line is. A debugger then stops at a procedure's entry showing its
+;;  * first expression, and steps over the two as one, where the entry would
+;;  * otherwise be shown as the compiled code, which no Scheme line maps to.
+;;  * @param {list} items - The body's items.
+;;  * @returns {list} Them, the entry placed.
+;;  */
+(define (with-entry-placed items)
+  (let ((first (first-span items)))
+    (if first (car (place-until-span items first)) items)))
+
+;; /**
+;;  * The span of the first placed line among items, in order, or #f.
+;;  * @param {list} items - Items.
+;;  * @returns {object|boolean}
+;;  */
+(define (first-span items)
+  (any (lambda (item)
+         (cond ((pair? item) (cdr item))
+               ((vector? item) (first-span (vector-ref item 1)))
+               (else #f)))
+       items))
+
+;; /**
+;;  * Items with every line before the first placed one placed at a span.
+;;  * @param {list} items - Items.
+;;  * @param {object} span - The span.
+;;  * @returns {pair} (items . reached?), whether the first placed line was
+;;  *   among them, after which nothing more is placed.
+;;  */
+(define (place-until-span items span)
+  (if (null? items)
+      (cons '() #f)
+      (let ((item (car items)))
+        (cond ((pair? item) (cons items #t))
+              ((vector? item)
+               (let ((inner (place-until-span (vector-ref item 1) span)))
+                 (if (cdr inner)
+                     (cons (cons (vector (vector-ref item 0) (car inner)) (cdr items)) #t)
+                     (let ((rest (place-until-span (cdr items) span)))
+                       (cons (cons (vector (vector-ref item 0) (car inner)) (car rest)) (cdr rest))))))
+              (else
+               (let ((rest (place-until-span (cdr items) span)))
+                 (cons (cons (cons item span) (car rest)) (cdr rest))))))))
 
 ;; /**
 ;;  * The fast form of a procedure, as a JavaScript function bound to a name.

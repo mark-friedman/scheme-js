@@ -452,6 +452,11 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │           └── chibi_revised/          # Chibi's tests by section, as Chibi wrote them; test-equal.scm gives Chibi's test forms
 │   │               └── sections/           # Individual section files
 │   │
+│   ├── devtools/                   # Debugging Scheme and JavaScript together in DevTools, by driving its own front end in a headless Chrome (Node only, through Puppeteer)
+│   │   ├── devtools_driver.js      # What the tests ask of DevTools' front end: breakpoints in a source, steps, where a pause is shown, what is ignore-listed
+│   │   ├── stepping_tests.js       # Stepping between Scheme and JavaScript, never pausing in the system's code
+│   │   └── fixtures/               # A page whose Scheme and JavaScript call each other
+│   │
 │   ├── fuzz/                       # Differential fuzzer: generated programs, both tiers
 │   │   ├── program_generator.scm       # Builds a program, and what to compile, from a seed
 │   │   ├── fuzz_harness.js             # Runs a program interpreted and compiled

@@ -91,6 +91,7 @@ export const functionalTests = [
     { path: 'functional/native_unwind_tests.js', fn: 'runNativeUnwindTests', async: true, needsInterpreter: false },
     { path: 'functional/runtime_separation_tests.js', fn: 'runRuntimeSeparationTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/ahead_program_tests.js', fn: 'runAheadProgramTests', async: true, needsInterpreter: false, nodeOnly: true },
+    { path: 'devtools/stepping_tests.js', fn: 'runDevToolsSteppingTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/primitive_binding_tests.js', fn: 'runPrimitiveBindingTests', async: true, needsInterpreter: false },
     { path: 'debug/async_trampoline_tests.js', fn: 'runAsyncTrampolineTests', async: true },
     { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },

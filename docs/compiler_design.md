@@ -99,7 +99,15 @@ it. A procedure renders as items, each a line, a line with its span, or an inden
 so the function, the factory and the unit around it wrap what is inside rather than copying it, and
 the unit's text is written once, listing each line's span (`render-items` in `emit.scm`). Each line
 with a span maps, from its start, to the start of the span (`sourcemap.scm`): a frame shows at the
-Scheme expression whose code holds its call. The map goes into the script as a `data:` URL holding
+Scheme expression whose code holds its call. A function's entry -- its declarations, its checks of
+its arguments and the stack, the resumable form's restoring of its frame -- comes before its first
+expression and is placed with it (`with-entry-placed`), so a step into a procedure stops showing its
+first expression, and a step over goes past the two as one. A line with no span after an expression
+is part of that expression's code, and a debugger, given no place for it, takes it as the line
+before. The factory's lines are not placed. What DevTools makes of it -- breakpoints in a Scheme file,
+steps into JavaScript from Scheme and back and into Scheme from JavaScript and back, never pausing
+in the system's code, which it skips as ignore-listed -- is tested by driving DevTools' own front end
+in a headless Chrome (`tests/devtools/`). The map goes into the script as a `data:` URL holding
 the JSON as it is: a URL's parser percent-encodes what it must and the URL's body is
 percent-decoded, so only `%`, `#`, `?` and spaces in a file's name are escaped. Only code read under
 a name is mapped. A page's scripts are read under names (`html_adapter.js`): one with a `src` under

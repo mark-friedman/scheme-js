@@ -467,3 +467,36 @@
   (test "ones named app and var" #t (lowers? '(define (f app var) (list app var))))
   (test "an internal definition named set" #t (lowers? '(define (f x) (define (set) x) (set))))
   (test "a set named set, assigned" #t (lowers? '(define (f set) (set! set 1) set))))
+
+;; Where a debugger places the lines of a procedure's code (sourcemap.scm maps
+;; each line to its span). A function's entry -- its declarations, its
+;; checks of the arguments and the stack, a loop's head -- comes before its
+;; first expression, and is placed with it: a step into the procedure stops
+;; there, shown at the first expression, and a step over goes past both, as
+;; one. A line with no span after an expression is part of that expression's
+;; code, and stays unplaced, which a debugger takes as the line before.
+(test-group "emit - where a procedure's lines are placed"
+  (define call-span (js-obj "filename" "a.scm" "line" 3 "column" 5))
+  (define (spanned-app fn args)
+    (let ((app (list 'app fn args)))
+      (js-set! app "source" call-span)
+      app))
+  (define unit (generate-unit (lowered-ir (lower-lambda `(lambda (x) #f "f" ,(spanned-app '(var g) '((var x))))))
+                              '(g) '() "f" '()))
+  (define lines (list->vector (string-split (car unit) "\n")))
+  (define spans (list->vector (caddr unit)))
+  (define (line-index prefix)
+    (let loop ((i 0))
+      (cond ((= i (vector-length lines)) #f)
+            ((string-prefix? prefix (string-trim (vector-ref lines i))) i)
+            (else (loop (+ i 1))))))
+  (let ((entry (line-index "if (arguments.length !== 1)")))
+    (test "the fast form's check of its arguments is placed at its first expression" #t
+          (and entry (eq? (vector-ref spans entry) call-span)))
+    (test "and so are its declarations, before it" #t
+          (and entry (eq? (vector-ref spans (- entry 1)) call-span))))
+  (let ((resume (line-index "({")))
+    (test "the resumable form's entry is placed at its first expression too" #t
+          (and resume (eq? (vector-ref spans resume) call-span))))
+  (test "the factory's lines are not placed" #f
+        (vector-ref spans (line-index "let C0"))))

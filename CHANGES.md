@@ -14497,3 +14497,48 @@ each: `earley`, which spends a fifth of its time collecting garbage (R140), 15.2
 elsewhere would cost what that ceiling does not repay: a `WeakMap` the reader and the expander pay
 for on every span, or a subclass of `Cons` for read data, which would make every `car` and `cdr`
 site in compiled code see two shapes.
+
+# Task 84, first steps: stepping between Scheme and JavaScript in DevTools (2026-10-08)
+
+Task 84 was widened with the user to debugging Scheme and JavaScript together in DevTools: a step
+from Scheme into the JavaScript it calls, or from JavaScript into the Scheme it calls, stops at the
+user's code on the other side and never in the system's between; values and names shown as each
+language's; a policy for macros -- decided with the user: a system macro's scaffolding placed at its
+use, a step into a macro the user wrote reaching its template; and all of it tested by driving
+Chrome.
+
+The tests drive DevTools' own front end (`tests/devtools/`). Launched by Puppeteer with `devtools`,
+headless Chrome opens DevTools for each tab, and Puppeteer reaches that window as a page whose
+modules a test can import and call: set a breakpoint in a source as a user does in its view, step
+as its buttons do, and read where it shows each pause. A stand-in for the front end, written first,
+was dropped once the real one could be driven: what a user gets is the front end's own handling of
+source maps, of the skip lists it sends with a step so that a step covers one original expression,
+and of ignore lists, and a stand-in could only guess at it. The page (`tests/devtools/fixtures/`)
+loads the system from its modules, with the compiler, and a Scheme file and a JavaScript module that
+call each other; the system's modules are ignore-listed by their URLs, as a user would list them,
+standing in for the bundle's own source map, which is to list its sources.
+
+What it found, of DevTools' and the engine's behaviour:
+
+- A step into a JavaScript function Scheme calls stops in it; a step out then comes back to the
+  Scheme, after the call: the engine keeps the skip list the front end sent with the step into,
+  which covered the call's expression.
+- The engine ignore-lists whole functions, never a stretch of one: code mapped to an ignore-listed
+  source inside a function is paused in like any other. So the compiler's own lines inside a
+  procedure cannot be skipped by ignore-listing them, and are placed instead.
+- A file a page fetched, which source maps also name, is listed twice, as fetched and as authored,
+  and only the authored copy has code mapped to it: a breakpoint is set in that one, as a user does.
+- Puppeteer's default wait polls on animation frames, which a headless tab being debugged did not
+  run; it polls on an interval.
+
+And one change to the compiler: a step into a Scheme procedure from JavaScript stopped at its entry
+-- its declarations, its checks of its arguments and the stack -- which no line of Scheme maps to,
+and DevTools showed the generated code. A function's entry is now placed at its first expression
+(`with-entry-placed` in `src/compiler/emit.scm`), so the step stops there, shown at that expression,
+and a step over goes past the two as one. Tested in `tests/compiler/emit_tests.scm` and by the DevTools
+tests.
+
+The tests take about two seconds, and are skipped where Puppeteer is not installed: it is in this
+checkout's `node_modules`, as the benchmarks that drive Chrome use it, but not in `package.json`.
+
+No JavaScript under `src/` was added or grown.
