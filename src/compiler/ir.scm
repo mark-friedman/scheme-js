@@ -35,10 +35,11 @@
 ;;;     scanning, because each call and each step of its loop goes through the
 ;;;     tier's trampoline. That is 39% of lowering time, and a matter for the
 ;;;     code the tier generates for loops, not for this file.
-;;;   - Nothing here calls `apply`, `values`, or anything else that transfers
-;;;     control, because a procedure that does is declined by the compiler
-;;;     tier. Self-hosting means writing in the subset the tier accepts, and
-;;;     this file is the first evidence of what that subset costs to work in.
+;;;   - Nothing here names a form the tier declines -- an exception handler,
+;;;     `dynamic-wind`, `parameterize` -- since the tier would leave the
+;;;     procedure that names it interpreted. `apply`, `values` and `call/cc`
+;;;     it compiles, and a lowering that fails escapes through a continuation
+;;;     (`fail!`) rather than returning a sentinel every caller checks.
 ;;;
 ;;; ## Representation
 ;;;
@@ -81,8 +82,9 @@
 ;;; JavaScript version compares strings, which V8 also makes a pointer
 ;;; comparison for interned strings, so neither side is favoured.
 ;;;
-;;; Lowering failure is `#f`. No IR node is `#f` -- every one is a pair -- so
-;;; the sentinel cannot be confused with a result.
+;;; A lowering that fails escapes, out of the whole lambda, with why
+;;; (`fail!`): nothing a failed lowering made is kept, so there is nothing to
+;;; undo, and no step need check what the step before it answered.
 
 ;; /**
 ;;  * Globals whose primitives transfer control, or whose semantics involve the
@@ -242,7 +244,8 @@
 ;;   1  calls-unknown?    whether any call has a callee this pass cannot name
 ;;   2  called-locals     locals that were called, having been bound to a lambda
 ;;   3  assigned-locals   locals that are the target of a set!
-;;   4  reason            why lowering failed, or #f
+;;   4  abort             the escape a failure takes out of the lowering
+;;                        (`fail!`), set as the lowering starts
 ;;   5  synthesized       counter for names this pass invents rather than reads
 ;;   6  captures?         whether the form captures a continuation itself
 ;;   7  suspends?         whether it has a point it can be suspended at
@@ -266,7 +269,6 @@
 
 (define (state-globals st) (vector-ref st 0))
 (define (state-calls-unknown? st) (vector-ref st 1))
-(define (state-reason st) (vector-ref st 4))
 (define (state-captures? st) (vector-ref st 6))
 
 ;; /**
@@ -361,15 +363,15 @@
       (vector-set! st 3 (cons name (vector-ref st 3)))))
 
 ;; /**
-;;  * Records why lowering failed and yields the failure sentinel. The first
-;;  * reason is kept, since it is the innermost and most specific one.
+;;  * Fails the lowering: escapes out of it, with why, which is what
+;;  * `lower-lambda` answers. Nothing is undone on the way out, since a failed
+;;  * lowering's state is dropped whole.
 ;;  * @param {vector} st - The lowering state.
 ;;  * @param {string} reason - Human-readable cause.
-;;  * @returns {boolean} #f, the failure sentinel.
+;;  * @returns {never}
 ;;  */
 (define (fail! st reason)
-  (if (vector-ref st 4) #f (vector-set! st 4 reason))
-  #f)
+  ((vector-ref st 4) (make-lowering-failure reason)))
 
 ;; ---------------------------------------------------------------------------
 ;; Loops
@@ -631,7 +633,8 @@
 ;;  * @param {list} scope - The enclosing lexical scope.
 ;;  * @param {boolean} tail - Whether the node is in tail position.
 ;;  * @param {vector} st - Lowering state.
-;;  * @returns {list|boolean} An IR node, or #f if the form is unsupported.
+;;  * @returns {list} An IR node; a form it cannot lower fails the lowering
+;;  *   (`fail!`).
 ;;  */
 (define (lower-node node scope tail st)
   (let ((tag (ast-tag node)))
@@ -660,24 +663,16 @@
              (else (list 'local name tail (eq? (cdr hit) #t)))))))
 
       ((eq? tag 'if)
-       (let ((test (lower-node (ast-1 node) scope #f st)))
-         (if (not test)
-             #f
-             (let ((then (lower-node (ast-2 node) scope tail st)))
-               (if (not then)
-                   #f
-                   (let ((other (lower-node (ast-3 node) scope tail st)))
-                     (if (not other)
-                         #f
-                         (list 'if test then other tail
-                               (if (ir-callable? then) (if (ir-callable? other) #t #f) #f)))))))))
+       (let* ((test (lower-node (ast-1 node) scope #f st))
+              (then (lower-node (ast-2 node) scope tail st))
+              (other (lower-node (ast-3 node) scope tail st)))
+         (list 'if test then other tail
+               (if (ir-callable? then) (if (ir-callable? other) #t #f) #f))))
 
       ((eq? tag 'seq)
        (let ((body (lower-sequence (ast-1 node) scope tail st)))
-         (if (not body)
-             #f
-             (list 'seq body tail
-                   (if (null? body) #f (if (ir-callable? (last-of body)) #t #f))))))
+         (list 'seq body tail
+               (if (null? body) #f (if (ir-callable? (last-of body)) #t #f)))))
 
       ((eq? tag 'lambda)
        (let ((inner (make-scope scope))
@@ -695,23 +690,17 @@
          (let ((body (lower-body (ast-4 node) inner st)))
            (vector-set! st 8 outer-self)
            (vector-set! st 14 outer-receiver)
-           (if (not body)
-               #f
-               (list 'lambda (ast-1 node) (ast-2 node) (ast-3 node)
-                     (if receiver (receiver-binding receiver outer-receiver body) body)
-                     tail #t)))))
+           (list 'lambda (ast-1 node) (ast-2 node) (ast-3 node)
+                 (if receiver (receiver-binding receiver outer-receiver body) body)
+                 tail #t))))
 
       ((eq? tag 'let)
-       (let ((init (lower-node (ast-2 node) scope #f st)))
-         (if (not init)
-             #f
-             (let ((inner (make-scope scope)))
-               (scope-declare! inner (ast-1 node) (constant-binding (ast-1 node) init st))
-               (let ((body (lower-node (ast-3 node) inner tail st)))
-                 (if (not body)
-                     #f
-                     (list 'let (ast-1 node) init body tail
-                           (if (ir-callable? body) #t #f))))))))
+       (let* ((init (lower-node (ast-2 node) scope #f st))
+              (inner (make-scope scope)))
+         (scope-declare! inner (ast-1 node) (constant-binding (ast-1 node) init st))
+         (let ((body (lower-node (ast-3 node) inner tail st)))
+           (list 'let (ast-1 node) init body tail
+                 (if (ir-callable? body) #t #f)))))
 
       ((eq? tag 'letrec)
        ;; Every name is in scope in every initializer, which is what makes the
@@ -721,15 +710,11 @@
        ;; call be recognised as a callee this pass can name.
        (let ((inner (make-scope scope)))
          (declare-all-callable! inner (ast-1 node))
-         (let ((inits (lower-letrec-inits (ast-1 node) (ast-2 node) inner st)))
-           (if (not inits)
-               #f
-               (let ((body (lower-node (ast-3 node) inner tail st)))
-                 (if (not body)
-                     #f
-                     (list 'letrec (ast-1 node) inits body tail
-                           (if (ir-callable? body) #t #f)
-                           (inline-loop? (ast-1 node) inits body tail st))))))))
+         (let* ((inits (lower-letrec-inits (ast-1 node) (ast-2 node) inner st))
+                (body (lower-node (ast-3 node) inner tail st)))
+           (list 'letrec (ast-1 node) inits body tail
+                 (if (ir-callable? body) #t #f)
+                 (inline-loop? (ast-1 node) inits body tail st)))))
 
       ((eq? tag 'library-var)
        (let ((key (library-global-key st (ast-1 node) (ast-2 node))))
@@ -737,23 +722,19 @@
          (list 'global key tail #t)))
 
       ((eq? tag 'library-set)
-       (let ((value (lower-node (ast-3 node) scope #f st)))
-         (if (not value)
-             #f
-             (let ((key (library-global-key st (ast-1 node) (ast-2 node))))
-               (state-add-global! st key)
-               (list 'set key #f value tail)))))
+       (let* ((value (lower-node (ast-3 node) scope #f st))
+              (key (library-global-key st (ast-1 node) (ast-2 node))))
+         (state-add-global! st key)
+         (list 'set key #f value tail)))
 
       ((eq? tag 'set)
-       (let ((value (lower-node (ast-2 node) scope #f st)))
-         (if (not value)
-             #f
-             (let* ((name (ast-1 node))
-                    (local (scope-has? scope name)))
-               (if local
-                   (state-assigned-local! st name)
-                   (state-add-global! st name))
-               (list 'set name local value tail)))))
+       (let* ((value (lower-node (ast-2 node) scope #f st))
+              (name (ast-1 node))
+              (local (scope-has? scope name)))
+         (if local
+             (state-assigned-local! st name)
+             (state-add-global! st name))
+         (list 'set name local value tail)))
 
       ((eq? tag 'define)
        ;; Only reachable for an internal definition; the top-level case is
@@ -764,11 +745,8 @@
              (state-pending-self! st 'local (ast-1 node))
              #f)
          (let ((value (lower-node (ast-2 node) scope #f st)))
-           (if (not value)
-               #f
-               (begin
-                 (scope-declare! scope (ast-1 node) (eq? (car value) 'lambda))
-                 (list 'define (ast-1 node) value tail))))))
+           (scope-declare! scope (ast-1 node) (eq? (car value) 'lambda))
+           (list 'define (ast-1 node) value tail))))
 
       ((eq? tag 'app)
        (let ((direct (lower-direct-application node scope tail st)))
@@ -809,7 +787,7 @@
 ;;  * @param {list} scope - The enclosing lexical scope.
 ;;  * @param {boolean} tail - Whether the application is in tail position.
 ;;  * @param {vector} st - Lowering state.
-;;  * @returns {list|boolean|symbol} IR, #f if unsupported, or 'not-this-shape.
+;;  * @returns {list|symbol} IR, or 'not-this-shape.
 ;;  */
 (define (lower-call-cc node scope tail st)
   (let ((fn (ast-1 node)))
@@ -827,15 +805,12 @@
                 (if (not (= (length (ast-2 node)) 1))
                     'not-this-shape
                     (let ((receiver (lower-node (car (ast-2 node)) scope #f st)))
-                      (if (not receiver)
-                          #f
-                          (begin
-                            ;; The receiver is handed the continuation and
-                            ;; called, so it is a callee this pass cannot name.
-                            (state-calls-unknown! st)
-                            (state-captures! st)
-                            (state-suspends! st)
-                            (list 'capture receiver tail))))))))))
+                      ;; The receiver is handed the continuation and called,
+                      ;; so it is a callee this pass cannot name.
+                      (state-calls-unknown! st)
+                      (state-captures! st)
+                      (state-suspends! st)
+                      (list 'capture receiver tail))))))))
 
 ;; /**
 ;;  * Lowers `(call-with-values producer consumer)` without the primitive.
@@ -860,7 +835,7 @@
 ;;  * @param {list} scope - The enclosing lexical scope.
 ;;  * @param {boolean} tail - Whether the application is in tail position.
 ;;  * @param {vector} st - Lowering state.
-;;  * @returns {list|boolean|symbol} IR, #f if unsupported, or 'not-this-shape.
+;;  * @returns {list|symbol} IR, or 'not-this-shape.
 ;;  */
 (define (lower-call-with-values node scope tail st)
   (let ((fn (ast-1 node)))
@@ -872,30 +847,24 @@
                   (not (and (eq? (ast-tag fn) 'var) (scope-has? scope (ast-1 fn))))
                   (= (length (ast-2 node)) 2)))
         'not-this-shape
-        (let ((producer (lower-node (car (ast-2 node)) scope #f st)))
-          (if (not producer)
-              #f
-              (let ((consumer (lower-node (cadr (ast-2 node)) scope #f st)))
-                (if (not consumer)
-                    #f
-                    (begin
-                      ;; Neither `call-with-values`, which would decline the
-                      ;; procedure for mentioning what it no longer mentions,
-                      ;; nor the two primitives is recorded as a global: the
-                      ;; primitives are read from the runtime. The producer is
-                      ;; whatever the caller was handed, so calling it is
-                      ;; calling something this pass cannot name.
-                      (state-calls-unknown! st)
-                      (let ((nm (synthesized-name! st)))
-                        (list 'let nm producer
-                              (list 'call (list 'global '%apply #f #t)
-                                    (list consumer
-                                          (list 'call
-                                                (list 'global '%values->list #f #t)
-                                                (list (list 'call (list 'local nm #f #f) '() #f))
-                                                #f))
-                                    tail)
-                              tail #f))))))))))
+        (let* ((producer (lower-node (car (ast-2 node)) scope #f st))
+               (consumer (lower-node (cadr (ast-2 node)) scope #f st)))
+          ;; Neither `call-with-values`, which would decline the procedure for
+          ;; mentioning what it no longer mentions, nor the two primitives is
+          ;; recorded as a global: the primitives are read from the runtime.
+          ;; The producer is whatever the caller was handed, so calling it is
+          ;; calling something this pass cannot name.
+          (state-calls-unknown! st)
+          (let ((nm (synthesized-name! st)))
+            (list 'let nm producer
+                  (list 'call (list 'global '%apply #f #t)
+                        (list consumer
+                              (list 'call
+                                    (list 'global '%values->list #f #t)
+                                    (list (list 'call (list 'local nm #f #f) '() #f))
+                                    #f))
+                        tail)
+                  tail #f))))))
 
 ;; /**
 ;;  * A name this pass invents, distinct from anything the expander produces.
@@ -990,7 +959,7 @@
 ;;  * @param {list} scope - The enclosing lexical scope.
 ;;  * @param {boolean} tail - Whether the application is in tail position.
 ;;  * @param {vector} st - Lowering state.
-;;  * @returns {list|boolean|symbol} IR, #f if unsupported, or the symbol
+;;  * @returns {list|symbol} IR, or the symbol
 ;;  *   'not-this-shape if the caller should emit an ordinary call.
 ;;  */
 (define (lower-direct-application node scope tail st)
@@ -1005,15 +974,10 @@
                   (args (ast-2 node)))
               (if (not (= (length params) (length args)))
                   'not-this-shape
-                  (let ((inits (lower-each args scope st)))
-                    (if (not inits)
-                        #f
-                        (let ((inner (make-scope scope)))
-                          (declare-bindings! inner params inits st)
-                          (let ((body (lower-body-in (ast-4 fn) inner st tail)))
-                            (if (not body)
-                                #f
-                                (wrap-bindings params inits body tail))))))))))))
+                  (let ((inits (lower-each args scope st))
+                        (inner (make-scope scope)))
+                    (declare-bindings! inner params inits st)
+                    (wrap-bindings params inits (lower-body-in (ast-4 fn) inner st tail) tail))))))))
 
 ;; /**
 ;;  * Declares each parameter, noting the ones bound to a lambda, and those
@@ -1053,27 +1017,24 @@
 ;;  * @param {list} scope - The enclosing lexical scope.
 ;;  * @param {boolean} tail - Whether the application is in tail position.
 ;;  * @param {vector} st - Lowering state.
-;;  * @returns {list|boolean} An IR node, or #f if unsupported.
+;;  * @returns {list} An IR node.
 ;;  */
 (define (lower-ordinary-application node scope tail st)
-  (let ((fn (lower-node (ast-1 node) scope #f st)))
-    (if (not fn)
-        #f
-        (let ((args (lower-each (ast-2 node) scope st)))
-          (cond
-            ((not args) #f)
-            ((named-let-operator? fn) (lower-named-let-call fn args tail (app-span node) st))
-            (else
-                (if (ir-callable? fn)
-                    (if (eq? (car fn) 'local) (state-called-local! st (ast-1 fn)) #f)
-                    (state-calls-unknown! st))
-                (if tail #f (state-suspends! st))
-                (let* ((loop (loop-kind fn args tail st))
-                       (call (list 'call fn args tail loop (app-span node))))
-                  (if (eq? loop 'local)
-                      (vector-set! st 10 (cons call (vector-ref st 10)))
-                      #f)
-                  call)))))))
+  (let* ((fn (lower-node (ast-1 node) scope #f st))
+         (args (lower-each (ast-2 node) scope st)))
+    (if (named-let-operator? fn)
+        (lower-named-let-call fn args tail (app-span node) st)
+        (begin
+          (if (ir-callable? fn)
+              (if (eq? (car fn) 'local) (state-called-local! st (ast-1 fn)) #f)
+              (state-calls-unknown! st))
+          (if tail #f (state-suspends! st))
+          (let* ((loop (loop-kind fn args tail st))
+                 (call (list 'call fn args tail loop (app-span node))))
+            (if (eq? loop 'local)
+                (vector-set! st 10 (cons call (vector-ref st 10)))
+                #f)
+            call)))))
 
 ;; /**
 ;;  * Whether a lowered callee is a named `let`'s operator: a one-lambda
@@ -1150,16 +1111,13 @@
 ;;  * @param {list} nodes - Analyzed nodes.
 ;;  * @param {list} scope - Enclosing scope.
 ;;  * @param {vector} st - Lowering state.
-;;  * @returns {list|boolean} IR nodes, or #f if any was unsupported.
+;;  * @returns {list} IR nodes.
 ;;  */
 (define (lower-each nodes scope st)
   (if (null? nodes)
       '()
       (let ((head (lower-node (car nodes) scope #f st)))
-        (if (not head)
-            #f
-            (let ((rest (lower-each (cdr nodes) scope st)))
-              (if (not rest) #f (cons head rest)))))))
+        (cons head (lower-each (cdr nodes) scope st)))))
 
 ;; /**
 ;;  * Lowers a `letrec` group's initializers, each knowing the name it is bound
@@ -1168,7 +1126,7 @@
 ;;  * @param {list} inits - Their initializers, all lambdas.
 ;;  * @param {list} scope - The group's scope.
 ;;  * @param {vector} st - Lowering state.
-;;  * @returns {list|boolean} IR nodes, or #f if any was unsupported.
+;;  * @returns {list} IR nodes.
 ;;  */
 (define (lower-letrec-inits names inits scope st)
   (if (null? inits)
@@ -1176,10 +1134,7 @@
       (begin
         (state-pending-self! st 'local (car names))
         (let ((head (lower-node (car inits) scope #f st)))
-          (if (not head)
-              #f
-              (let ((rest (lower-letrec-inits (cdr names) (cdr inits) scope st)))
-                (if (not rest) #f (cons head rest))))))))
+          (cons head (lower-letrec-inits (cdr names) (cdr inits) scope st))))))
 
 ;; /**
 ;;  * Lowers a sequence, marking only its last expression as tail.
@@ -1187,17 +1142,14 @@
 ;;  * @param {list} scope - Enclosing scope.
 ;;  * @param {boolean} tail - Whether the sequence is in tail position.
 ;;  * @param {vector} st - Lowering state.
-;;  * @returns {list|boolean} IR nodes, or #f if any was unsupported.
+;;  * @returns {list} IR nodes.
 ;;  */
 (define (lower-sequence nodes scope tail st)
   (if (null? nodes)
       '()
       (let* ((last? (null? (cdr nodes)))
              (head (lower-node (car nodes) scope (if last? tail #f) st)))
-        (if (not head)
-            #f
-            (let ((rest (lower-sequence (cdr nodes) scope tail st)))
-              (if (not rest) #f (cons head rest)))))))
+        (cons head (lower-sequence (cdr nodes) scope tail st)))))
 
 ;; /**
 ;;  * Lowers a procedure body, which is in tail position by definition.
@@ -1210,7 +1162,7 @@
 ;;  * @param {list} node - The body node.
 ;;  * @param {list} scope - The procedure's scope.
 ;;  * @param {vector} st - Lowering state.
-;;  * @returns {list|boolean} An IR node, or #f if the body is unsupported.
+;;  * @returns {list} An IR node.
 ;;  */
 (define (lower-body node scope st)
   (lower-body-in node scope st #t))
@@ -1225,7 +1177,7 @@
 ;;  * @param {list} scope - The scope to lower in.
 ;;  * @param {vector} st - Lowering state.
 ;;  * @param {boolean} tail - Whether the body is in tail position.
-;;  * @returns {list|boolean} An IR node, or #f if the body is unsupported.
+;;  * @returns {list} An IR node.
 ;;  */
 (define (lower-body-in node scope st tail)
   (let ((tag (ast-tag node)))
@@ -1320,17 +1272,18 @@
 ;;  * @returns {lowered-lambda|lowering-failure} As for `lower-lambda`.
 ;;  */
 (define (lower-top-lambda node st)
-  (let ((ir (lower-node node (make-scope '()) #f st)))
-    (if ir (confirm-local-loops! st) #f)
-    (if (not ir)
-        (make-lowering-failure (let ((r (state-reason st))) (if r r "unsupported form")))
+  (call/cc
+    (lambda (abort)
+      (vector-set! st 4 abort)
+      (let ((ir (lower-node node (make-scope '()) #f st)))
+        (confirm-local-loops! st)
         ;; A local that was both called and assigned is not the lambda we
         ;; lowered, so the call does not reach a callee this pass can name.
         (make-lowered-lambda ir (reverse (state-globals st)) (vector-ref st 12)
                              (if (state-calls-unknown? st)
                                  #t
                                  (any-assigned? (vector-ref st 2) (vector-ref st 3)))
-                             (state-captures? st)))))
+                             (state-captures? st))))))
 
 ;; /**
 ;;  * Whether any called local is also assigned.

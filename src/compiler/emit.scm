@@ -1860,32 +1860,33 @@
               (emit-statement! form body)
               (set-form-loop-targets! form (cdr (form-loop-targets form)))
               (set-form-doubles! form '()))))
-         (note (and (> (return-count body-statements) 1) (symbol->string (temp! form))))
-         (deferred (deferred-exits body-statements label note))
-         (statements
-          (append
-           (map (lambda (param)
-                  (let ((v (js-local param)))
-                    (list 'assign (js v) (js "typeof " v " === 'number' ? " v " : " v ".value"))))
-                doubles)
-           (if (pair? intact) (list (list 'text (string-append rebound ": {"))) '())
-           (list (list 'text (string-append label ": for (;;) {")))
-           (if (pair? intact)
-               (list (list 'guarded (js "!(" (all-of intact) ")")
-                           (list (list 'text (string-append "break " rebound ";")))))
-               '())
-           (car deferred)
-           (list (list 'text "}"))
-           (exit-statements note (cdr deferred))
-           ;; Reached only by the break out of the block: every way out of the
-           ;; loop returns, and every other path through it goes round again.
-           (if (pair? intact)
-               (cons (list 'text "}")
-                     (map (lambda (param)
-                            (list 'assign (js (js-local param)) (js "R.inexactReal(" (js-local param) ")")))
-                          doubles))
-               '()))))
-    (emit! form (list 'if (all-of (append (map inexact-test doubles) intact)) statements '()))))
+         (note (and (> (return-count body-statements) 1) (symbol->string (temp! form)))))
+    (let-values (((loop-statements returns) (deferred-exits body-statements label note)))
+      (let ((statements
+             (append
+              (map (lambda (param)
+                     (let ((v (js-local param)))
+                       (list 'assign (js v) (js "typeof " v " === 'number' ? " v " : " v ".value"))))
+                   doubles)
+              (if (pair? intact) (list (list 'text (string-append rebound ": {"))) '())
+              (list (list 'text (string-append label ": for (;;) {")))
+              (if (pair? intact)
+                  (list (list 'guarded (js "!(" (all-of intact) ")")
+                              (list (list 'text (string-append "break " rebound ";")))))
+                  '())
+              loop-statements
+              (list (list 'text "}"))
+              (exit-statements note returns)
+              ;; Reached only by the break out of the block: every way out of
+              ;; the loop returns, and every other path through it goes round
+              ;; again.
+              (if (pair? intact)
+                  (cons (list 'text "}")
+                        (map (lambda (param)
+                               (list 'assign (js (js-local param)) (js "R.inexactReal(" (js-local param) ")")))
+                             doubles))
+                  '()))))
+        (emit! form (list 'if (all-of (append (map inexact-test doubles) intact)) statements '()))))))
 
 ;; /**
 ;;  * How many `return` statements there are among statements, in their
@@ -1913,11 +1914,11 @@
 ;;  * @param {string} label - The loop's label.
 ;;  * @param {string|boolean} note - The variable that notes the way out, or
 ;;  *   #f if there is only one.
-;;  * @returns {pair} (statements . returns).
+;;  * @returns {list} Two values: the statements, and the returns.
 ;;  */
 (define (deferred-exits statements label note)
-  (let ((found (deferred-exits-in statements label note '())))
-    (cons (car found) (reverse (cdr found)))))
+  (let-values (((statements found) (deferred-exits-in statements label note '())))
+    (values statements (reverse found))))
 
 ;; /**
 ;;  * `deferred-exits` from the returns found so far, which come back in
@@ -1926,12 +1927,12 @@
 ;;  * @param {string} label - The loop's label.
 ;;  * @param {string|boolean} note - The variable that notes the way out.
 ;;  * @param {list} found - The returns found so far, the latest first.
-;;  * @returns {pair} (statements . found).
+;;  * @returns {list} Two values: the statements, and the returns found.
 ;;  */
 (define (deferred-exits-in statements label note found)
   (let walk ((sts statements) (out '()) (found found))
     (if (null? sts)
-        (cons (reverse out) found)
+        (values (reverse out) found)
         (let ((st (car sts)))
           (case (car st)
             ((return)
@@ -1942,17 +1943,17 @@
                          out)
                    (cons st found)))
             ((if)
-             (let* ((then-part (deferred-exits-in (caddr st) label note found))
-                    (else-part (deferred-exits-in (cadddr st) label note (cdr then-part))))
+             (let*-values (((then-statements found) (deferred-exits-in (caddr st) label note found))
+                           ((else-statements found) (deferred-exits-in (cadddr st) label note found)))
                (walk (cdr sts)
-                     (cons (with-span-of st (cons* 'if (cadr st) (car then-part) (car else-part) (cddddr st)))
+                     (cons (with-span-of st (cons* 'if (cadr st) then-statements else-statements (cddddr st)))
                            out)
-                     (cdr else-part))))
+                     found)))
             ((guarded)
-             (let ((inner (deferred-exits-in (caddr st) label note found)))
+             (let-values (((inner found) (deferred-exits-in (caddr st) label note found)))
                (walk (cdr sts)
-                     (cons (with-span-of st (cons* 'guarded (cadr st) (car inner) (cdddr st))) out)
-                     (cdr inner))))
+                     (cons (with-span-of st (cons* 'guarded (cadr st) inner (cdddr st))) out)
+                     found)))
             (else (walk (cdr sts) (cons st out) found)))))))
 
 ;; /**

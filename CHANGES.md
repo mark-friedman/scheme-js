@@ -14459,3 +14459,29 @@ JavaScript under `src/`:
 - `HandlerCallFrame` and `handlerInForce` are the evaluator's.
 
 The handlers themselves are Scheme.
+
+# Task 38 done: lowering failure as an escape (2026-10-08)
+
+A lowering that fails no longer answers `#f` for every step above it to check. `fail!` escapes, out
+of the whole lambda, with the failure record `lower-lambda` answers, through a continuation
+`lower-top-lambda` captures once per definition (`src/compiler/ir.scm`). The twenty-odd steps of
+`lower-node`, `lower-each`, `lower-sequence`, `lower-letrec-inits` and the application lowerings
+that read `(if (not x) #f ...)` are plain `let`s, and the state's slot for the first reason holds
+the escape. Nothing needs undoing on the way out, since a failed lowering's state is dropped whole.
+
+The plan had it wait for 37 to make `guard`'s escape compile, which 37 did only ahead of time; the
+tier still declines a handler. It needed only an escape, which `call/cc` is, and the tier has
+compiled captures since 37(a).
+
+`npm run benchmark:self-host`, from two copies side by side: with its library compiled too, the
+lowering took 53.2 and 51.1 ms a pass over the corpus before, 52.9, 53.9 and 50.8 after;
+interpreted, about 4% longer, since the interpreter copies the frame stack for each capture. The
+three configurations agree on every lambda.
+
+With it, as the task asked: `ir.scm`'s header no longer says the compiler avoids `apply` and
+`values`, which compile; and `deferred-exits` in `src/compiler/emit.scm`, which built a pair only
+to return two results, returns two values, the code it generates for the libraries unchanged but
+for the expander's numbering of names. `generate-environment` still returns a pair, which its
+JavaScript callers read.
+
+No JavaScript was added or grown.
