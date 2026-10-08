@@ -643,6 +643,12 @@
          ;; local, or a global.
          (let ((hit (scope-lookup scope name)))
            (cond
+             ;; `this` is no global: it is a method's receiver, which the
+             ;; interpreter binds as JavaScript calls a procedure as a method
+             ;; (frames.js), and compiled code has none, so would read a global
+             ;; of the name.
+             ((and (not hit) (eq? name 'this))
+              (fail! st "reads this, a method's receiver, which compiled code does not bind"))
              ((not hit)
               (state-add-global! st name)
               ;; A global callee is nameable in the sense this flag means: the

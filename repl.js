@@ -217,7 +217,8 @@ async function bootstrapInterpreter(includeDirs = []) {
  * @param {string[]} includeDirs - The `-I` directories, where the program's
  *   libraries are looked for after its own directory.
  * @returns {Promise<never>} Exits: 0 with the file written, 1 with the
- *   reasons the program is refused on standard error.
+ *   reasons the program is refused, or why it could not be read or
+ *   expanded, on standard error.
  */
 async function buildAhead(args, includeDirs) {
     const program = args[1];
@@ -230,7 +231,14 @@ async function buildAhead(args, includeDirs) {
     const ahead = programEnvironment(parse('(import (scheme-js ahead))'), analyze, interpreter, env).env;
     const dirs = [path.dirname(path.resolve(program)), ...includeDirs,
         path.join(__dirname, 'src/core/scheme'), path.join(__dirname, 'src/extras/scheme')];
-    const outcome = callSchemeProcedure(ahead.lookup('build-program-file'), [program, list(...dirs)]);
+    let outcome;
+    try {
+        outcome = callSchemeProcedure(ahead.lookup('build-program-file'), [program, list(...dirs)]);
+    } catch (e) {
+        // A program that cannot be read or expanded, as running it would say.
+        console.error(`Error building ${program}: ${e.message}`);
+        process.exit(1);
+    }
     if (outcome instanceof Cons) {
         for (const reason of toArray(outcome)) console.error(stringValue(reason));
         process.exit(1);

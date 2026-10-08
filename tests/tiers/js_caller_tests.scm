@@ -202,3 +202,24 @@
   (test "a continuation captured inside it is re-entered before it returns" "number 3" (js-sees counts-by-reentry))
   (test "a tail call to a procedure the tier has not compiled finishes" "string interpreted"
         (js-sees tail-calls-interpreted)))
+
+;; ---------------------------------------------------------------------------
+;; A procedure called as a method
+;; ---------------------------------------------------------------------------
+
+;; /**
+;;  * A procedure for JavaScript to call as a method of an object, answering
+;;  * the object's name: `this` is the receiver, which the interpreter binds as
+;;  * JavaScript calls a procedure as a method. The tier compiles a procedure
+;;  * that makes one when it is bound, and compiled code binds no receiver, so
+;;  * it leaves this one interpreted.
+;;  * @returns {procedure}
+;;  */
+(define (make-greeter) (lambda () (js-ref this "name")))
+
+(define greeted (js-obj "name" "greeted"))
+(js-set! greeted "greet" (make-greeter))
+
+(test-group "JavaScript calling a procedure as a method"
+  (test "it reads its receiver as this" "greeted" (js-invoke greeted "greet"))
+  (test "the tier leaves interpreted what reads this" #f (compiled? make-greeter)))

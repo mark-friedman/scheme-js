@@ -35,6 +35,7 @@ import { intern } from '../core/interpreter/symbol.js';
 import { SCHEME_PRIMITIVE, SCHEME_RAW_CALL, callSchemeProcedure } from '../core/interpreter/values.js';
 import { createInterpreter } from '../core/interpreter/index.js';
 import { expandToCore, analyze } from '../core/interpreter/expand.js';
+import { parse } from '../core/interpreter/reader.js';
 import { assemble } from '../core/interpreter/assembler.js';
 import { loadLibrarySync, programEnvironment } from '../core/interpreter/library_loader.js';
 import {
@@ -129,6 +130,16 @@ const buildProcedures = {
     if (exports === false) throw new Error(`library-variables: no library ${stringValue(key)} is loaded`);
     return list(...toArray(exports).filter((entry) => callLibrarySystem('syntactic-keyword?', entry.cdr) === false));
   },
+
+  /**
+   * A program's forms, read as the CLI reads a program's file: with dot
+   * notation on, unless the file turns it off, where a library's file has it
+   * off (`%read-forms`).
+   * @param {string} text - The program's text.
+   * @param {string} filename - Its file, which its forms' spans name.
+   * @returns {list} The forms.
+   */
+  'read-program': (text, filename) => list(...parse(stringValue(text), { filename: stringValue(filename) })),
 
   /**
    * A program's environment, made in the current private registry from the

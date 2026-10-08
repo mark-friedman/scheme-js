@@ -102,6 +102,22 @@ const CONTINUATIONS = `(import (scheme base) (scheme write))
 (write (list (find-first even? '(1 3 4 5)) (re-enter) (deep 100000) (deep-reenter)))
 `;
 
+// JavaScript interop, a class, a promise and the command line: primitives that
+// need nothing of the interpreter, and a Scheme procedure JavaScript calls
+// back, which runs on the driver.
+const INTEROP = `(import (scheme base) (scheme write) (scheme process-context) (scheme-js interop)
+        (scheme-js promise))
+(define-class <Point> Point point? (fields (x point-x point-x-set!) (y point-y)) (methods))
+(define p (Point 3 4))
+(point-x-set! p 30)
+(define obj (js-obj "name" "scheme" "size" 3))
+(js-set! obj "size" 4)
+(define squares (js-invoke (js-eval "[1, 2, 3]") "map" (lambda (x . rest) (* x x))))
+(write (list (point? p) (point-x p) (point-y p) (js-ref obj "name") (js-ref obj "size")
+             (vector->list squares) (js-typeof obj) (js-promise? (js-promise-resolve 1))
+             (string? (car (command-line)))))
+`;
+
 const RAISES = `(import (scheme base) (scheme write))
 (display "before")
 (newline)
@@ -141,6 +157,11 @@ export async function runAheadProgramTests(logger) {
       continuations.file === null ? continuations.refusals : run(continuations.file),
       ['(4 (10 11 12) 100000 (20002 3))', '', 0]);
 
+    const interop = build(dir, 'interop', INTEROP);
+    assert(logger, 'JavaScript interop, classes, promises and the command line, a callback from JavaScript included',
+      interop.file === null ? interop.refusals : run(interop.file),
+      ['(#t 30 4 "scheme" 4 (1 4 9) "object" #t #t)', '', 0]);
+
     const raises = build(dir, 'raises', RAISES);
     assert(logger, 'an error nobody handles is reported as the CLI reports it, after what the program printed',
       raises.file === null ? raises.refusals : run(raises.file),
@@ -158,6 +179,12 @@ export async function runAheadProgramTests(logger) {
     assert(logger, 'one using parameterize, by the library procedure that winds',
       refusalOf('parameterize', '(import (scheme base))\n(define p (make-parameter 1))\n(parameterize ((p 2)) (p))\n')
         .some((line) => line.startsWith('param-dynamic-bind in (scheme core) is not compiled')), true);
+    assert(logger, 'one whose method reads this, the receiver compiled code does not bind, by the class',
+      refusalOf('this', '(import (scheme base) (scheme-js interop))\n'
+        + '(define-class <C> C c? (fields (n c-n)) (constructor (n) (set! this.n n)) (methods))\n(C 1)\n')
+        .some((line) => line.startsWith('<C> in the program is not compiled: reads this')), true);
+    assert(logger, 'one that cannot be expanded, as running it would say',
+      refusalOf('malformed', '(import (scheme base))\n(if)\n')[0].startsWith('Error building'), true);
     assert(logger, 'one reading, by the primitive the runtime does not carry',
       refusalOf('read', '(import (scheme base) (scheme read))\n(read)\n'),
       ['the primitive %read is not carried by the runtime of a program compiled ahead of time']);

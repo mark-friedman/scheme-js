@@ -51,13 +51,20 @@ import { bytevectorPrimitives } from '../core/primitives/bytevector.js';
 import { hashTablePrimitives } from '../extras/primitives/hash_table.js';
 import { bitwisePrimitives } from '../extras/primitives/bitwise.js';
 import { readerPrimitives } from '../core/primitives/reader_support.js';
+import { interopPrimitives } from '../extras/primitives/interop.js';
+import { jsInteropPrimitives } from '../core/primitives/js_interop_primitives.js';
+import { classPrimitives } from '../core/primitives/class.js';
+import { promisePrimitives } from '../extras/primitives/promise.js';
+import { processContextPrimitives } from '../core/primitives/process_context.js';
 
 /**
  * The primitives a program compiled ahead of time has: those that need
- * nothing of the interpreter or the library system, in the order the
- * interpreter's global environment binds them (`createGlobalEnvironment` in
- * src/core/primitives/index.js), so that a name two groups bind is bound as
- * it is there. A program that reaches any other is refused by the build.
+ * nothing of the interpreter or the library system -- JavaScript interop,
+ * classes and promises among them, whose callbacks, Scheme procedures, run on
+ * the driver -- in the order the interpreter's global environment binds them
+ * (`createGlobalEnvironment` in src/core/primitives/index.js), so that a name
+ * two groups bind is bound as it is there. A program that reaches any other
+ * is refused by the build.
  * @type {Object<string, Function>}
  */
 export const AHEAD_PRIMITIVES = {
@@ -71,12 +78,17 @@ export const AHEAD_PRIMITIVES = {
   ...charPrimitives,
   ...eqPrimitives,
   ...procedurePrimitives,
+  ...interopPrimitives,
   ...raisePrimitives,
   ...errorObjectPrimitives,
   ...timePrimitives,
+  ...processContextPrimitives,
   ...bytevectorPrimitives,
+  ...promisePrimitives,
   ...hashTablePrimitives,
   ...bitwisePrimitives,
+  ...jsInteropPrimitives,
+  ...classPrimitives,
   // The reader's scans of a whole text, which the printer uses too.
   ...readerPrimitives
 };

@@ -118,6 +118,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── compare_macro.js            # That workload under Gambit and Racket
 │   ├── run_r7rs.js                 # Canonical suite, both tiers, by workload class
 │   ├── run_ahead.js                # Canonical suite built with --build and run as one file, beside the tier at its calibrated counts
+│   ├── run_ahead_startup.js        # Small programs as one file against today: size, and start-up under Node and on a page
 │   ├── compare_r7rs.js             # Canonical suite: both tiers vs Gambit (gsi, C, JS), Racket, plain JS
 │   ├── decline_reasons.js          # Why the tier declines procedures: this repository's Scheme, or --corpus
 │   ├── run_escapes.js              # The capture policy on escapes: interpreted, default, captures compiled

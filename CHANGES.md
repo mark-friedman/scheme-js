@@ -14135,3 +14135,58 @@ page bundle in Node, each benchmark at a count near a second, before and after:
 that the copy keeps fast properties; it fails given the namespace. Measuring the whole canonical
 suite through the bundle, in Node and in a browser, is task 102. JavaScript under `src/`: the copy,
 one line in a module of its own, for `runtime.js`'s item.
+
+# Task 99 done: a program and its runtime as one file (2026-10-08)
+
+Decided with the user: `node repl.js --build PROGRAM -o OUTPUT`, beside the CLI's other flags, and
+the output one ES module, which `node OUTPUT` runs and a page loads with `<script type="module">`.
+
+The build, `(scheme-js ahead)`, writes the program's table as task 98 left it, and
+`src/packaging/ahead_bundle.js` bundles it with rollup, as the system's own bundles are built, with
+`runMain` (`src/compiler/ahead.js`) and everything that imports: the runtime, the values, the
+environment and the primitives the runtime carries. `runMain` runs the program as the module loads,
+writes out what it left unfinished on the console, and reports a raise nobody handles as the CLI
+reports one -- `Error executing PROGRAM: message`, exit status 1 under Node. The build reads the
+program as the CLI reads one, with dot notation on (a new build-host door, `read-program`), and a
+program that cannot be read or expanded is reported as `Error building PROGRAM: message`.
+`scripts/build_ahead.scm` and the benchmark worker give way to the flag, and the tests and
+`benchmarks/run_ahead.js` build and run programs as a user does.
+
+The runtime now also carries JavaScript interop (`js-ref`, `js-set!`, `js-invoke`, `js-eval`, ...),
+classes, promises and the command line, whose modules need nothing of the interpreter; a Scheme
+procedure JavaScript calls back runs on the driver. The promise primitives took an interpreter they
+never used, and are a constant now.
+
+Found on the way, besides task 101 (R141): the tier compiled a procedure reading `this` -- the
+receiver the interpreter binds as JavaScript calls a procedure as a method -- as reading a global of
+that name, and a procedure that made a method, compiled when it was bound, failed when JavaScript
+called the method. Compiled code has no receiver, so such a procedure is declined now
+(`lower-node` in `ir.scm`): the tier leaves it interpreted, and a program compiled ahead of time
+that reaches one is refused, which every class whose constructor or methods read its fields
+through `this` does. Compiling them is task 103. Tested in `tests/tiers/js_caller_tests.scm`, both
+tiers, and in the compiler's driver tests.
+
+**Measured** with `benchmarks/run_ahead_startup.js`, medians of nine, each run in a fresh process or
+browser context, over six small programs that print, raise an error nobody handles, make records, use
+a parameter, use JavaScript and compute:
+
+| | one file | today |
+|---|---|---|
+| size | 1.0 MB, 159-161 KB gzipped | 8.4 MB, 919 KB gzipped, before the page's Scheme runs; the compiler 4.3 MB, 482 KB gzipped, after |
+| under Node, spawn to exit | 45-50 ms | 300-345 ms (`node repl.js`) |
+| on a page, navigation to the program finished | 30-34 ms | 204-334 ms |
+
+Of the file, the program's table is about 550 KB, most of it `(scheme core)`'s printer, which every
+program that writes reaches, but which compresses to 50 KB; gzipped, most of the file is the
+runtime, 470 KB as written, a quarter of it comments, which nothing minifies yet. A build takes
+about 1.3 s.
+
+Tested in `tests/functional/ahead_program_tests.js` (Node only), now through the flag: programs
+built and run as a user does -- records, macros, several values, a parameter, import filters, an
+import read before the program's own definition, continuations and deep recursion, JavaScript
+interop with a callback, classes, promises, the command line, an uncaught error -- and refused: no
+imports, `guard`, `parameterize`, a method reading `this`, a form that cannot be expanded, `read`.
+`runtime_separation_tests.js` bundles the new groups with the runtime and still finds none of the
+interpreter. JavaScript under `src/`: the bundling, rollup's; `runMain`, the runtime's start; a
+build-host door that reads a program as the CLI does; the CLI's `--build`, which calls the build and
+then the bundling; primitive groups imported.

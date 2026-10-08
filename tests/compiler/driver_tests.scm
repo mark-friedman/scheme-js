@@ -58,6 +58,11 @@
   ;; over a cell (parameter.scm); it transfers no control.
   (test "one making a parameter is not" #f
         (lowering-decline (lower-lambda (analyze-lambda '(define (f) (make-parameter 1)))) #f))
+  ;; `this` is a method's receiver, which the interpreter binds as JavaScript
+  ;; calls a procedure as a method; compiled code has none.
+  (test "one reading this is, saying so"
+        "reads this, a method's receiver, which compiled code does not bind"
+        (lowering-decline (lower-lambda (analyze-lambda '(define (f) (lambda () this)))) #f))
   (let ((captures (lower-lambda (analyze-lambda '(define (f) (call/cc (lambda (k) (k 1))))))))
     (test "one that captures is compiled by default" #f (lowering-decline captures #f))
     (test "and declined when captures are"

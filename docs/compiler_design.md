@@ -799,11 +799,15 @@ at all, since every unit's environment is inside the runtime's environment of pr
 
 **What cannot run is refused by name, at build time, rather than failing as it runs.** Code the
 compiler declined, reached from anything that runs -- a procedure naming `dynamic-wind`,
-`with-exception-handler`, `guard` or `parameterize`, for which there is no compiled code yet --
-refuses the program, saying which procedure and why; so does a constant that cannot be written
-down, and a primitive the runtime does not carry (`AHEAD_PRIMITIVES`: those that need nothing of
-the interpreter or the library system -- not `read`, whose reader is a library of its own, nor
-`eval`). Unreached, a procedure that could not be compiled costs nothing.
+`with-exception-handler`, `guard` or `parameterize`, for which there is no compiled code yet, or
+reading `this`, the receiver the interpreter binds as JavaScript calls a procedure as a method,
+which compiled code has none of (task 103) -- refuses the program, saying which procedure and why;
+so does a constant that cannot be written down, and a primitive the runtime does not carry
+(`AHEAD_PRIMITIVES`: those that need nothing of the interpreter or the library system, JavaScript
+interop, classes, promises and the command line among them -- not `read`, whose reader is a library
+of its own, nor `eval`). Unreached, a procedure that could not be compiled costs nothing. A
+procedure JavaScript calls back -- a callback, a promise's handler -- runs on the driver, which
+stands for the interpreter the environment of primitives would otherwise belong to.
 
 The program runs on the driver that needs no interpreter beneath it (`runAhead`), which finishes
 its captures and its moves to the heap itself. Where the compiled tier hands a move to the
@@ -816,9 +820,14 @@ times the tier's time per iteration, median 0.93 -- `takl` 0.52, `sum` 0.64, `ct
 0.67 (`benchmarks/run_ahead.js`) -- and the two that read data files with `read` have no reader.
 Why those are faster was not looked into.
 
-A table is large: 650 KB for `fib`, most of it `(scheme core)`'s printer, which every program that
-writes reaches, and 15 MB for `benchmarks/r7rs/src/compiler.scm`, nearly all of it generated code
-(task 41).
+The one file a small program makes is about 1 MB, 160 KB gzipped, against the 8.4 MB, 920 KB
+gzipped, a page loads today before its Scheme runs; a program that writes reaches `(scheme core)`'s
+printer, and its table, 550 KB, is mostly that, but compresses to 50 KB, so that gzipped, most of
+the file is the runtime, 470 KB as written, a quarter of it comments, which nothing minifies yet.
+It starts in about 46 ms under Node, where `node repl.js` takes 300, and on a page has finished 31
+ms after its navigation began, where today's page takes 205 ms to run the same program
+(`benchmarks/run_ahead_startup.js`). A large program's table is large: 15 MB for
+`benchmarks/r7rs/src/compiler.scm`, nearly all of it generated code (task 41).
 
 ## Tiering
 

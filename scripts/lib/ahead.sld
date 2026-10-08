@@ -15,7 +15,7 @@
                 library-definition-exports library-definition-declaration-files
                 import-set-library-name import-set-steps imported-name parse-import-set
                 program-parts)
-          (only (scheme primitives) %environment-define! %read-forms)
+          (only (scheme primitives) %environment-define!)
           (scheme-js compiler)
           (scheme-js compiler build)
           (scheme-js prebuild)

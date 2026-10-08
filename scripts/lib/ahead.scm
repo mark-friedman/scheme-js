@@ -630,7 +630,7 @@
 ;;  *   a list of strings.
 ;;  */
 (define (build-program-file file dirs)
-  (let ((build (build-program (%read-forms (file-text file) file #f) (source-reader dirs))))
+  (let ((build (build-program (read-program (file-text file) file) (source-reader dirs))))
     (if (pair? (program-build-refusals build))
         (program-build-refusals build)
         (render-program build file))))

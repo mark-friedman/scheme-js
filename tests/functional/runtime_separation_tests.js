@@ -52,6 +52,11 @@ const RUNTIME_MODULES = [
   'src/core/primitives/raise.js',
   'src/core/primitives/reader_support.js',
   'src/core/primitives/time.js',
+  'src/core/primitives/process_context.js',
+  'src/core/primitives/class.js',
+  'src/core/primitives/js_interop_primitives.js',
+  'src/extras/primitives/interop.js',
+  'src/extras/primitives/promise.js',
   'src/compiler/ahead.js',
   'src/extras/primitives/hash_table.js',
   'src/extras/primitives/bitwise.js'
