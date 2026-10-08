@@ -13,6 +13,15 @@ const withoutPinnedSeed = {
   }
 };
 
+/**
+ * What every output's source map says: where each line of the bundle came
+ * from, and that every source in it is the system's, which a debugger skips
+ * as ignore-listed -- DevTools does so unless its user asks otherwise -- so
+ * that a step goes from a program's Scheme to its JavaScript and back without
+ * stopping in the system between (`x_google_ignoreList`).
+ */
+const SYSTEM_MAP = { sourcemap: true, sourcemapIgnoreList: () => true };
+
 export default [
   {
     input: 'src/packaging/scheme_entry.js',
@@ -27,7 +36,8 @@ export default [
       dir: 'dist',
       entryFileNames: 'scheme.js',
       chunkFileNames: '[name].js',
-      format: 'es'
+      format: 'es',
+      ...SYSTEM_MAP
     },
     external: ['fs', 'node:fs', 'path', 'node:path']
   },
@@ -46,7 +56,8 @@ export default [
     ],
     output: {
       file: 'dist/scheme-html.js',
-      format: 'es'
+      format: 'es',
+      ...SYSTEM_MAP
     }
   },
   {
@@ -54,7 +65,8 @@ export default [
     external: ['./scheme.js'], // Crucial: treat scheme.js as external
     output: {
       file: 'dist/scheme-repl.js',
-      format: 'es'
+      format: 'es',
+      ...SYSTEM_MAP
     }
   }
 ];

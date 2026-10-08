@@ -138,7 +138,9 @@ export class DevTools {
     for (let waited = 0; waited < 15000; waited += 100) {
       for (const target of browser.targets()) {
         if (!target.url().startsWith('devtools://')) continue;
-        const window = await target.asPage();
+        // Not every DevTools target is a window a page can be made of.
+        const window = await target.asPage().catch(() => null);
+        if (window === null) continue;
         const inspected = await window.evaluate(async () => {
           const SDK = await import('./core/sdk/sdk.js');
           return SDK.TargetManager.TargetManager.instance().primaryPageTarget()?.inspectedURL() ?? null;

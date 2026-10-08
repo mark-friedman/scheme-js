@@ -1006,8 +1006,13 @@ Constraint 4 has **two mechanisms, not one**, which is what every real toolchain
 - **Debug info** -- source maps and emitted debug points, so compiled code can be stepped and
   inspected in place, without switching. This is what calling convention B was chosen for: one live
   Scheme frame is one JavaScript frame, so DevTools can show a Scheme stack. Its frames are named for
-  their procedures and, where the code was read from a file, mapped to their places in it
-  (*Compiled code in a stack trace*); a page's scripts and the prebuilt tables are still to be.
+  their procedures and mapped to their places in the file or page script the code was read from
+  (*Compiled code in a stack trace*), so a breakpoint set in a Scheme file stops there, and a step
+  goes from a program's Scheme into its JavaScript and back, and from its JavaScript into its Scheme
+  and back, without stopping in the system between: the bundle's own source map lists every source
+  in it as ignore-listed (`rollup.config.js`), which DevTools skips unless its user asks otherwise.
+  The tier compiles only a page's own code; the system's Scheme comes compiled in the prebuilt
+  tables, inside the bundle. Those tables are not yet mapped to their Scheme.
 
 The first is not a lesser substitute for the second. Lowering beta-reduces immediately applied
 lambdas into bindings, lifts nested procedures into factories, inlines primitives and boxes assigned
@@ -1057,7 +1062,7 @@ runs in 0.15 s with only that procedure switched, where switching the whole prog
 | Context | Interpreted code | Compiled code |
 |---|---|---|
 | CLI REPL | the `:break` / `:step` / `:bt` debugger | runs as its closures where a breakpoint is, or everywhere while stepping |
-| Browser | the REPL debugger, cooperative under `runAsync` | runs as its closures where a breakpoint is, or everywhere while stepping; in place through DevTools and source maps, still to come |
+| Browser | the REPL debugger, cooperative under `runAsync` | runs as its closures where a breakpoint is, or everywhere while stepping; in place through DevTools and source maps, the system skipped as ignore-listed |
 
 ## How this is verified
 

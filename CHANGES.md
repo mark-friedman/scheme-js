@@ -14542,3 +14542,30 @@ The tests take about two seconds, and are skipped where Puppeteer is not install
 checkout's `node_modules`, as the benchmarks that drive Chrome use it, but not in `package.json`.
 
 No JavaScript under `src/` was added or grown.
+
+# Task 84: the bundle's source map ignore-lists the system (2026-10-08)
+
+Stage (b) of 84. Every output of the build now has a source map, which lists every source in it as
+ignore-listed (`sourcemap` and `sourcemapIgnoreList` in `rollup.config.js`, written by Rollup as
+`x_google_ignoreList`). DevTools skips ignore-listed code unless its user asks otherwise, so on a page
+that loads the bundle a step goes from the page's Scheme into its JavaScript and back, and from its
+JavaScript into its Scheme and back, never stopping in the system between, with nothing set by hand.
+The maps are large -- 18.5 MB for `scheme.js` and 9.8 MB for `scheme_compiler.js`, holding the
+sources' text -- but only DevTools fetches them, and only while it is open.
+
+The stepping tests (`tests/devtools/stepping_tests.js`) now run twice: over the system's modules,
+ignore-listed by their URLs as a user would list them, and over a bundle Rollup builds for the test
+from the build's own configuration, served beside the page, with no pattern set -- so the map alone
+must keep every step out of the system. The page names the bundle in its URL (`?entry=`). Two waits
+in the tests changed: a DevTools target that is no page is passed over, and a page's readiness is
+asked for rather than waited on with Puppeteer's own wait, which never saw a tab whose DevTools window
+was in front.
+
+Code compiled from the system's Scheme as a page runs needs no ignore list of its own: the tier
+compiles only the page's own code (checked on a page whose program uses the libraries' procedures
+heavily, which had one script compiled, the program's), and the system's Scheme comes compiled in
+the prebuilt tables, inside the bundle.
+
+The DevTools tests take about ten seconds now, most of it building the bundle.
+
+No JavaScript under `src/` was added or grown; `rollup.config.js` grew by the map's options.

@@ -7,14 +7,16 @@
 <body>
 <!--
   The page the DevTools tests drive (tests/devtools/stepping_tests.js): the
-  system loaded from its modules, the compiler with it, and a Scheme file and
-  a JavaScript module that call each other. Each Scheme procedure is called
-  until the tier has compiled it, since a step goes into compiled code; the
-  page says which are compiled once it is ready.
+  system loaded from its modules -- or from a bundle, whose URL `?entry=`
+  gives -- the compiler with it, and a Scheme file and a JavaScript module
+  that call each other. Each Scheme procedure is called until the tier has
+  compiled it, since a step goes into compiled code; the page says which are
+  compiled once it is ready.
 -->
 <script type="module">
-  import { schemeEval, schemeEvalAsync, loadCompiler } from '../../../src/packaging/scheme_entry.js';
   import * as user from './boundary.js';
+  const entry = new URLSearchParams(location.search).get('entry') ?? '../../../src/packaging/scheme_entry.js';
+  const { schemeEval, schemeEvalAsync, loadCompiler } = await import(entry);
 
   window.user = user;
   await loadCompiler();

@@ -454,7 +454,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │
 │   ├── devtools/                   # Debugging Scheme and JavaScript together in DevTools, by driving its own front end in a headless Chrome (Node only, through Puppeteer)
 │   │   ├── devtools_driver.js      # What the tests ask of DevTools' front end: breakpoints in a source, steps, where a pause is shown, what is ignore-listed
-│   │   ├── stepping_tests.js       # Stepping between Scheme and JavaScript, never pausing in the system's code
+│   │   ├── stepping_tests.js       # Stepping between Scheme and JavaScript, never pausing in the system's code: over the modules, and over a bundle built for it
 │   │   └── fixtures/               # A page whose Scheme and JavaScript call each other
 │   │
 │   ├── fuzz/                       # Differential fuzzer: generated programs, both tiers
