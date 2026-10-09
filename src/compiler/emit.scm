@@ -788,13 +788,15 @@
 ;;  * to. `blocks` holds the twin's finished blocks by number, and `sites` its
 ;;  * suspension points with the block each resumes at. `span` is the source
 ;;  * span of the call being emitted, which each statement emitted meanwhile is
-;;  * noted as coming from (`emit!`), or #f. `doubles` is the locals that hold
+;;  * noted as coming from (`emit!`), or #f; `placing` is the span the next
+;;  * statement is to be placed at instead, the first of a node's code, or #f
+;;  * (`with-node-placed`). `doubles` is the locals that hold
 ;;  * raw doubles where the emission is, inside a loop run on them (see "Loops
 ;;  * on raw doubles").
 ;;  */
 (define-record-type form
   (make-form name ir unit mode path counter labels loops loop-targets declared
-             out blocks block-count current sites frames depth span doubles)
+             out blocks block-count current sites frames depth span placing doubles)
   form?
   (name form-name)
   (ir form-ir)
@@ -814,6 +816,7 @@
   (frames form-frames set-form-frames!)
   (depth form-depth set-form-depth!)
   (span form-span set-form-span!)
+  (placing form-placing set-form-placing!)
   (doubles form-doubles set-form-doubles!))
 
 ;; /**
@@ -826,15 +829,16 @@
 ;;  * @returns {form} The emission.
 ;;  */
 (define (new-form name ir u mode path)
-  (make-form name ir u mode path 0 0 #f '() '() '() '() 1 0 '() '() #f #f '()))
+  (make-form name ir u mode path 0 0 #f '() '() '() '() 1 0 '() '() #f #f #f '()))
 
 (define (twin? form) (eq? (form-mode form) 'twin))
 (define (plan-of form) (unit-plan (form-unit form)))
 
 ;; /**
-;;  * The source span each statement was emitted from, where it was emitted
-;;  * while a call with one was (`form-span`): what the line it renders to maps
-;;  * to in the source map (`sourcemap.scm`). Kept beside the statements rather
+;;  * The source span each statement was emitted from: the node's whose code it
+;;  * begins (`form-placing`), or the call's it was emitted while (`form-span`).
+;;  * It is what the line the statement renders to maps to in the source map
+;;  * (`sourcemap.scm`). Kept beside the statements rather
 ;;  * than in them, since every reader of a statement -- liveness, the blocks of
 ;;  * the resumable form, rendering -- would otherwise have to step over it.
 ;;  */
@@ -848,21 +852,48 @@
 (define (statement-span st) (weak-table-ref statement-spans st))
 
 ;; /**
-;;  * Appends a statement to the emission, noting the span of the call it comes
-;;  * from.
+;;  * Appends a statement to the emission, noting the span it comes from: the
+;;  * node's whose code it is the first of, or else the call's it is emitted
+;;  * while. A fixed line, a closing brace or a label, is no node's code.
 ;;  * @param {form} form - The emission.
 ;;  * @param {list} st - The statement.
 ;;  * @returns {unspecified}
 ;;  */
 (define (emit! form st)
-  (let ((span (form-span form)))
-    (if span (weak-table-set! statement-spans st span) #f))
+  (let ((placing (and (not (eq? (car st) 'text)) (form-placing form))))
+    (if placing (set-form-placing! form #f))
+    (let ((span (or placing (form-span form))))
+      (if span (weak-table-set! statement-spans st span) #f)))
   (set-form-out! form (cons st (form-out form))))
+
+;; /**
+;;  * Emits a node, placing the first statement of its code at its span, if it
+;;  * has one. A node inside it with a span, whose code comes first, takes that
+;;  * place, and the rest of the node's code -- the `if` after its test's call,
+;;  * a binding after its value's -- is placed as the code around it is: a
+;;  * debugger, stepping from the inner node to a line placed at the outer
+;;  * node's start, would seem to step back. A node that emits no statement,
+;;  * a constant written into its parent's, leaves the place to its parent.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - An IR node.
+;;  * @param {procedure} emit - Emits it, and returns what it returns.
+;;  * @returns {*} What `emit` returns.
+;;  */
+(define (with-node-placed form node emit)
+  (let ((span (node-span node)))
+    (if (not span)
+        (emit)
+        (let ((outer (form-placing form)))
+          (set-form-placing! form span)
+          (let ((result (emit)))
+            (if (eq? (form-placing form) span) (set-form-placing! form outer))
+            result)))))
 
 ;; /**
 ;;  * Emits a call node with its source span as the emission's, so that the
 ;;  * statements it makes are noted as coming from it; a call with none leaves
-;;  * the span of the call it is in.
+;;  * the span of the call it is in, and its first statement may begin the
+;;  * node it is in (`with-node-placed`).
 ;;  * @param {form} form - The emission.
 ;;  * @param {list} node - A `call` IR node.
 ;;  * @param {procedure} emit - Emits it, and returns what it returns.
@@ -874,6 +905,8 @@
         (emit)
         (let ((outer (form-span form)))
           (set-form-span! form span)
+          ;; The call's code comes first in any node it begins.
+          (set-form-placing! form #f)
           (let ((result (emit)))
             (set-form-span! form outer)
             result)))))
@@ -935,11 +968,16 @@
 ;;  * @returns {list} The statements.
 ;;  */
 (define (collect-statements form thunk)
-  (let ((saved (form-out form)))
+  (let ((saved (form-out form))
+        (placing (form-placing form)))
+    ;; The statement the collected ones go into, emitted after them, is what
+    ;; begins the node being placed, if any is.
     (set-form-out! form '())
+    (set-form-placing! form #f)
     (thunk)
     (let ((collected (reverse (form-out form))))
       (set-form-out! form saved)
+      (set-form-placing! form placing)
       collected)))
 
 ;; --- Locals ----------------------------------------------------------------
@@ -1006,12 +1044,22 @@
 ;; ---------------------------------------------------------------------------
 
 ;; /**
-;;  * Emits an IR node whose value is wanted, returning an expression for it.
+;;  * Emits an IR node whose value is wanted, returning an expression for it,
+;;  * its code placed at its span (`with-node-placed`).
 ;;  * @param {form} form - The emission.
 ;;  * @param {list} node - An IR node.
 ;;  * @returns {list} The expression.
 ;;  */
 (define (emit-value! form node)
+  (with-node-placed form node (lambda () (emit-value-of! form node))))
+
+;; /**
+;;  * Emits an IR node whose value is wanted (`emit-value!`).
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - An IR node.
+;;  * @returns {list} The expression.
+;;  */
+(define (emit-value-of! form node)
   (case (car node)
     ((const) (js (constant (form-unit form) (cadr node))))
     ((local) (if (memq (cadr node) (form-doubles form))
@@ -1365,14 +1413,23 @@
 ;; ---------------------------------------------------------------------------
 
 ;; /**
-;;  * Emits an IR node as a statement. A node in tail position ends the
-;;  * procedure; anything else contributes its effects and its value is
-;;  * discarded.
+;;  * Emits an IR node as a statement, its code placed at its span
+;;  * (`with-node-placed`). A node in tail position ends the procedure;
+;;  * anything else contributes its effects and its value is discarded.
 ;;  * @param {form} form - The emission.
 ;;  * @param {list} node - An IR node.
 ;;  * @returns {unspecified}
 ;;  */
 (define (emit-statement! form node)
+  (with-node-placed form node (lambda () (emit-statement-of! form node))))
+
+;; /**
+;;  * Emits an IR node as a statement (`emit-statement!`).
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - An IR node.
+;;  * @returns {unspecified}
+;;  */
+(define (emit-statement-of! form node)
   (if (not (node-tail? node))
       (emit! form (list 'eval (emit-value! form node)))
       (case (car node)

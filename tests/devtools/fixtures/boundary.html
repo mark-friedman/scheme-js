@@ -2,16 +2,17 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Stepping between Scheme and JavaScript</title>
+<title>Stepping through Scheme and JavaScript</title>
 </head>
 <body>
 <!--
   The page the DevTools tests drive (tests/devtools/stepping_tests.js): the
   system loaded from its modules -- or from a bundle, whose URL `?entry=`
-  gives -- the compiler with it, and a Scheme file and a JavaScript module
-  that call each other. Each Scheme procedure is called until the tier has
-  compiled it, since a step goes into compiled code; the page says which are
-  compiled once it is ready.
+  gives -- the compiler with it, a Scheme file and a JavaScript module that
+  call each other, and a Scheme file whose lines hold code that calls
+  nothing. Each Scheme procedure is called until the tier has compiled it,
+  since a step goes into compiled code; the page says which are compiled
+  once it is ready.
 -->
 <script type="module">
   import * as user from './boundary.js';
@@ -20,14 +21,21 @@
 
   window.user = user;
   await loadCompiler();
-  const url = new URL('./boundary.scm', document.URL).href;
-  await schemeEvalAsync(await (await fetch(url)).text(), { filename: url });
-  const procedures = ['scheme-calls-js', 'scheme-called-from-js', 'scheme-round-trip'];
+  for (const file of ['./boundary.scm', './placing.scm']) {
+    const url = new URL(file, document.URL).href;
+    await schemeEvalAsync(await (await fetch(url)).text(), { filename: url });
+  }
+  const procedures = ['scheme-calls-js', 'scheme-called-from-js', 'scheme-round-trip',
+    'classify', 'assigning', 'counting', 'summing'];
   window.call = (name, ...args) => schemeEval(name)(...args);
   for (let i = 0; i < 3; i++) {
     window.call('scheme-calls-js', i);
     window.call('scheme-called-from-js', i);
     window.call('scheme-round-trip', i);
+    window.call('classify', i);
+    window.call('assigning', i === 1);
+    window.call('counting', i);
+    window.call('summing', schemeEval("'(1 2 3)"));
   }
   window.compiled = Object.fromEntries(procedures.map((name) => [name, schemeEval(name).$compiled === true]));
   window.ready = true;

@@ -421,6 +421,25 @@
         (js-set! core "source" span))
     core))
 
+;; /**
+;;  * A macro's expansion, given its use's span if it has none of its own. A
+;;  * template's pairs are made fresh, without spans, so the code the
+;;  * expansion's own forms become -- a `swap!`'s `let` and `set!`s -- would be
+;;  * placed nowhere: a debugger could neither stop at the use nor bind a
+;;  * breakpoint on its line. Given the use's, it is placed at the use, one
+;;  * place, and what the use gave the macro keeps its own. An expansion that
+;;  * is one of the use's own forms has its own span already.
+;;  * @param {*} expansion - What the transformer made.
+;;  * @param {pair} use - The macro's use.
+;;  * @returns {*} `expansion`.
+;;  */
+(define (with-use-span expansion use)
+  (if (and (pair? expansion)
+           (let ((span (js-ref expansion "source")))
+             (or (js-undefined? span) (js-null? span))))
+      (with-source expansion use)
+      expansion))
+
 ;; ---------------------------------------------------------------------------
 ;; Expanding a form
 ;; ---------------------------------------------------------------------------
@@ -540,7 +559,7 @@
                (transformer (cdr keyword))
                (special (and (not transformer) (car keyword) (special-form (car keyword)))))
           (cond (transformer
-                 (expand-form (transform transformer form env (car keyword)) env))
+                 (expand-form (with-use-span (transform transformer form env (car keyword)) form) env))
                 (special
                  (check-operands (car keyword) form)
                  (with-source (special form env) form))

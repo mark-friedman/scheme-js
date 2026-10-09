@@ -95,6 +95,17 @@ function pathOf(url) {
 }
 
 /**
+ * The line of a fixture that holds a text, one-based.
+ * @param {string} file - The fixture's name.
+ * @param {string} text - The text.
+ * @returns {number}
+ */
+function lineOf(file, text) {
+  return fs.readFileSync(path.join(ROOT, 'tests/devtools/fixtures', file), 'utf8')
+    .split('\n').findIndex((line) => line.includes(text)) + 1;
+}
+
+/**
  * Sets a breakpoint, starts a call on the page, notes the locals DevTools
  * shows where it pauses, and takes steps from there, as a user of DevTools
  * would, then removes the breakpoint and lets the call finish.
@@ -157,14 +168,18 @@ async function open(browser, url) {
 async function steppingTests(logger, over, devTools, page, fixtures) {
   const scm = `${fixtures}boundary.scm`;
   const js = `${fixtures}boundary.js`;
+  const placing = `${fixtures}placing.scm`;
   // Where the page's own JavaScript calls a Scheme procedure.
-  const caller = `boundary.html:${fs.readFileSync(path.join(ROOT, 'tests/devtools/fixtures/boundary.html'), 'utf8')
-    .split('\n').findIndex((line) => line.includes('window.call =')) + 1}`;
+  const caller = `boundary.html:${lineOf('boundary.html', 'window.call =')}`;
+  const at = (text) => `placing.scm:${lineOf('placing.scm', text)}`;
 
   logger.title(`DevTools, over ${over} - the page`);
   assert(logger, 'the procedures stepped into are compiled',
     await page.evaluate('JSON.stringify(window.compiled)'),
-    JSON.stringify({ 'scheme-calls-js': true, 'scheme-called-from-js': true, 'scheme-round-trip': true }));
+    JSON.stringify({
+      'scheme-calls-js': true, 'scheme-called-from-js': true, 'scheme-round-trip': true,
+      classify: true, assigning: true, counting: true, summing: true
+    }));
   assert(logger, 'DevTools lists the Scheme file the compiled code is mapped to', await devTools.source(scm), true);
 
   logger.title(`DevTools, over ${over} - from Scheme into JavaScript, and back`);
@@ -202,6 +217,48 @@ async function steppingTests(logger, over, devTools, page, fixtures) {
     assert(logger, 'a breakpoint at a Scheme expression that calls no procedure is bound', bound > 0, true);
     assert(logger, 'the program pauses at it', at, 'boundary.scm:7');
     assert(logger, 'a step over goes to the next expression', places, ['boundary.scm:8']);
+  }
+
+  // A line of Scheme whose code calls nothing has code a breakpoint is bound
+  // to, placed at its form, and a form's code is placed at its start once:
+  // what follows the first line of it, an `if` after its test's call, is no
+  // stop of its own, which would seem a step back.
+  logger.title(`DevTools, over ${over} - where code that calls nothing is placed`);
+  {
+    const { bound, at: paused, places } = await session(devTools, page, placing, lineOf('placing.scm', '(cond'),
+      "window.call('classify', 5)", ['stepOver', 'stepOver', 'stepOver']);
+    assert(logger, 'a breakpoint at a cond is bound, and the program pauses at its first test',
+      [bound > 0, paused], [true, at('(cond')]);
+    assert(logger, 'a step over goes to each test in turn, then to the constant the cond gives, then out',
+      places, [at('((= n 0)'), at("(else 'positive)"), caller]);
+  }
+  {
+    const { bound, at: paused, places } = await session(devTools, page, placing, lineOf('placing.scm', '(let ((count 0))'),
+      "window.call('assigning', true)", ['stepOver', 'stepOver', 'stepOver']);
+    assert(logger, 'a breakpoint at a binding to a constant is bound, and the program pauses at it',
+      [bound > 0, paused], [true, at('(let ((count 0))')]);
+    assert(logger, "a step over goes to a system macro's use, when, then to the set! it was given, then out",
+      places, [at('(when flag'), at('(set! count 1)'), caller]);
+  }
+  {
+    const { bound, at: paused, places } = await session(devTools, page, placing, lineOf('placing.scm', '(do (('),
+      "window.call('counting', 2)", Array(8).fill('stepOver'));
+    assert(logger, 'a breakpoint at a do is bound, and the program pauses at it', [bound > 0, paused],
+      [true, at('(do ((')]);
+    assert(logger, "a step over goes to the do's test, then each step, and the test again, in turn, then out",
+      places, [at('((= i n)'), at('(do (('), at("(acc '()"), at('((= i n)'), at('(do (('), at("(acc '()"),
+        at('((= i n)'), caller]);
+  }
+  {
+    const loop = lineOf('placing.scm', '(let loop');
+    const { bound, at: paused, places } = await session(devTools, page, placing, loop,
+      "window.call('summing', window.call('list', 1, 2))", Array(12).fill('stepOver'));
+    assert(logger, 'a breakpoint at a named let is bound, and the program pauses at it', [bound > 0, paused],
+      [true, at('(let loop')]);
+    assert(logger, "its loop's iterations each go back to its test, not to its start, and then out",
+      [places.filter((place) => place === at('(let loop')).length, places.filter((place) => place === at('(if (null?')).length,
+        places.at(-1)],
+      [0, 3, caller]);
   }
 
   logger.title(`DevTools, over ${over} - never in the system`);

@@ -14665,3 +14665,44 @@ free variable keeping its name ahead of a local of the nested procedure's own, a
 named among its procedure's.
 
 No JavaScript under `src/` was added or grown.
+
+# Task 84: code that calls nothing placed in the Scheme (2026-10-09)
+
+Stage (c) of 84, all but the templates of macros a user writes. A breakpoint on a line of Scheme that
+called nothing was bound to no code and never fired, in a compiled procedure: only a call's span
+reached the source map. Measured first, by stepping through procedures in DevTools: `cond` and `when`
+stepped well, test to test, their scaffolding's lines mapping nothing and so taken as the expression
+before; but a breakpoint on `(swap! x y)`, a `(let loop ...)`, a `do`, `'positive` or a binding to a
+constant was bound to nothing, and one on the line after a call-free macro use stopped at the
+procedure's entry, before the use had run.
+
+Now every core form read with a span keeps it through the lowering, beside its IR node in a weak table
+so that no node changes shape (`node-span` in `src/compiler/ir.scm`), and its span places the first
+statement of its code, unless the code of a form inside it comes first (`with-node-placed` in
+`src/compiler/emit.scm`). The rest of a form's code is placed as the code around it is: an `if`'s own
+line after its test's call, placed at the `if`, would be a stop after the test that seemed a step
+back. A statement collected for a branch, emitted before the `if` that holds it, leaves the place to
+the `if`. And a macro's expansion is given its use's span when it has none of its own
+(`with-use-span` in `src/core/scheme/expander.scm`): a template's pairs are made fresh, without spans,
+so a use whose expansion holds nothing the use gave it was placed nowhere. A macro the system defines
+is so one stop, at its use, then the forms the use gave it, which keep their own spans. The REPL
+debugger, which pauses at every expression with a span, gains the same stop at a use.
+
+A variable or a number alone on a line still has no span: the reader gives spans to lists, vectors
+and quotes, and the field a pair would need for the rest was measured and not added in task 53.
+
+Tested in `tests/compiler/emit_tests.scm` (an assignment, a returned constant, a binding to a
+variable, an `if` with and without a call for its test), `tests/core/scheme/expander_tests.scm` (an
+expansion given its use's span, but not one that is the use's own form), the DevTools tests over a
+new fixture, `tests/devtools/fixtures/placing.scm` (breakpoints on a `cond`, a binding to a constant,
+a `do` and a named `let` bound and fired, and stepping through `cond`, `when`, `set!`, `do` and a
+named `let`'s iterations, in order, never back to a form's start), and a new
+`tests/debug/macro_stepping_tests.js`, which steps the REPL debugger over a `when` and fails without
+the expander's change. The driver reports a pause's column too.
+
+Left: a macro the user writes. Its template's code is placed at its use, as a system macro's is. To
+step into the template, the code would be placed in the macro's definition; but DevTools steps over
+a range of code by the source position it maps to, so a step over the use would walk through the
+template's lines as well, until source map scopes can mark an expansion as an inlined range.
+
+No JavaScript under `src/` was added or grown.

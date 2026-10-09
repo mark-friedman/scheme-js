@@ -236,4 +236,13 @@
   (let* ((form (read-first "(when x\n  (f y))"))
          (core (expand form)))
     (test "what a macro's use was given keeps its span through the expansion" #t
-          (eq? (js-ref (caddr core) "source") (js-ref (caddr form) "source")))))
+          (eq? (js-ref (caddr core) "source") (js-ref (caddr form) "source")))
+    ;; A template's pairs are made fresh, so the code they become would be
+    ;; placed nowhere: a debugger could not stop at the use.
+    (test "and what the macro made is given the use's span" #t
+          (eq? (js-ref core "source") (js-ref form "source"))))
+  (expand '(define-syntax expander-test-identity (syntax-rules () ((_ e) e))))
+  (let* ((form (read-first "(expander-test-identity (f x))"))
+         (core (expand form)))
+    (test "but an expansion that is the use's own form keeps its own span" #t
+          (eq? (js-ref core "source") (js-ref (cadr form) "source")))))

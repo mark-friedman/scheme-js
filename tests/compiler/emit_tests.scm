@@ -558,3 +558,44 @@
           (and resume (eq? (vector-ref spans resume) call-span))))
   (test "the factory's lines are not placed" #f
         (vector-ref spans (line-index "let C0"))))
+
+;; Every core form the user wrote carries a span, not only a call; a form's
+;; span places the first line of its code, unless the code of a form inside it
+;; comes first. So a line of Scheme that calls nothing has code a breakpoint
+;; can be bound to, and what follows a form's first line -- the `if` after its
+;; test's call, a binding after its value's -- is not placed again, which a
+;; debugger would show as a step back to the form's start.
+(test-group "emit - where code that calls nothing is placed"
+  (define (span line column) (js-obj "filename" "a.scm" "line" line "column" column))
+  (define (spanned form at)
+    (js-set! form "source" at)
+    form)
+  ;; The fast form's lines, each with its span.
+  (define (placed body)
+    (let ((unit (generate-unit (lowered-ir (lower-lambda `(lambda (x) #f "f" ,body))) '(g) '() "f" '())))
+      (let loop ((lines (string-split (car unit) "\n")) (spans (caddr unit)) (out '()))
+        (if (or (null? lines) (string-prefix? "const $proc$r" (car lines)))
+            (reverse out)
+            (loop (cdr lines) (cdr spans) (cons (cons (string-trim (car lines)) (car spans)) out))))))
+  (define (span-of lines prefix)
+    (cond ((find (lambda (line) (string-prefix? prefix (car line))) lines) => cdr)
+          (else 'no-such-line)))
+  (define s-set (span 2 3))
+  (define s-quote (span 3 5))
+  (define s-let (span 4 3))
+  (define s-if (span 5 3))
+  (define s-call (span 5 7))
+  (test "an assignment is placed at its set!" #t
+        (eq? s-set (span-of (placed (spanned (list 'set 'x (list 'lit 1)) s-set)) "x[0] = 1")))
+  (test "a constant returned is placed at its quote" #t
+        (eq? s-quote (span-of (placed (spanned (list 'lit 'positive) s-quote)) "return K[")))
+  (test "a binding whose value calls nothing is placed at its let" #t
+        (eq? s-let (span-of (placed (spanned (list 'let 'y '(var x) (spanned '(app (var g) ((var y))) s-call)) s-let))
+                            "y = x")))
+  (test "an if whose test calls nothing is placed at its form" #t
+        (eq? s-if (span-of (placed (spanned '(if (var x) (lit 1) (lit 2)) s-if)) "if (x !== false)")))
+  (let ((lines (placed (spanned (list 'if (spanned '(app (var g) ((var x))) s-call) '(lit 1) '(lit 2)) s-if))))
+    (test "an if whose test is a call is placed at the call" #t
+          (eq? s-call (span-of lines "$t0 = (C0.v ?? G0())")))
+    (test "and its own line, after the call, is not placed again" #f
+          (span-of lines "if ($t2 !== false)"))))

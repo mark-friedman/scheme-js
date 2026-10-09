@@ -45,10 +45,16 @@ async function frontEnd(op, args) {
     const location = details.callFrames[0].location();
     const ui = await Bindings.DebuggerWorkspaceBinding.DebuggerWorkspaceBinding.instance()
       .rawLocationToUILocation(location);
-    if (!ui) return { url: location.script()?.sourceURL ?? '', line: location.lineNumber + 1, ignored: false };
+    if (!ui) {
+      return {
+        url: location.script()?.sourceURL ?? '', line: location.lineNumber + 1, column: location.columnNumber + 1,
+        ignored: false
+      };
+    }
     return {
       url: ui.uiSourceCode.url(),
       line: ui.lineNumber + 1,
+      column: (ui.columnNumber ?? 0) + 1,
       ignored: ignoreList.isUserOrSourceMapIgnoreListedUISourceCode(ui.uiSourceCode)
     };
   };
@@ -219,7 +225,7 @@ export class DevTools {
    * The pause after the `seen`th, as DevTools places it, once it comes.
    * @param {number} seen - How many there had been.
    * @param {number} [ms] - How long to wait.
-   * @returns {Promise<{url: string, line: number, ignored: boolean}|null>}
+   * @returns {Promise<{url: string, line: number, column: number, ignored: boolean}|null>}
    */
   pauseAfter(seen, ms = 15000) {
     return this.call('pauseAfter', seen, ms);
@@ -228,7 +234,7 @@ export class DevTools {
   /**
    * Steps, as a user does with DevTools' buttons.
    * @param {'stepInto'|'stepOver'|'stepOut'} kind - The step.
-   * @returns {Promise<{url: string, line: number, ignored: boolean}|null>}
+   * @returns {Promise<{url: string, line: number, column: number, ignored: boolean}|null>}
    *   Where it paused next, or null if it did not.
    */
   step(kind) {

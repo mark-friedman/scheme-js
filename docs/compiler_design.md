@@ -109,30 +109,42 @@ being the one the procedure was read from, or else its library, or else `program
 The prebuilt tables are module code, placed by their module's URL, and named the same way.
 
 And it is given a source map, which places each frame in the Scheme source. Positions ride from the
-reader to the lines of generated code: the expander gives the core form of each application the
-span it was read from (its `source`), the lowering keeps it on the `call` node it makes, and while the
-emitter emits a call, each statement it makes is noted as coming from that span -- beside the
-statement, in a weak table, since every reader of a statement would otherwise have to step over
-it. A procedure renders as items, each a line, a line with its span, or an indented group of them,
-so the function, the factory and the unit around it wrap what is inside rather than copying it, and
-the unit's text is written once, listing each line's span (`render-items` in `emit.scm`). Each line
-with a span maps, from its start, to the start of the span (`sourcemap.scm`): a frame shows at the
-Scheme expression whose code holds its call. A function's entry -- its declarations, its checks of
-its arguments and the stack, the resumable form's restoring of its frame -- comes before its first
-expression and is placed with it (`with-entry-placed`), so a step into a procedure stops showing its
-first expression, and a step over goes past the two as one. A line with no span after an expression
-is part of that expression's code, and a debugger, given no place for it, takes it as the line
-before. The factory's lines are not placed. What DevTools makes of it -- breakpoints in a Scheme file,
-steps into JavaScript from Scheme and back and into Scheme from JavaScript and back, never pausing
-in the system's code, which it skips as ignore-listed -- is tested by driving DevTools' own front end
-in a headless Chrome (`tests/devtools/`). The map goes into the script as a `data:` URL holding
-the JSON as it is: a URL's parser percent-encodes what it must and the URL's body is
-percent-decoded, so only `%`, `#`, `?` and spaces in a file's name are escaped. Only code read under
-a name is mapped. A page's scripts are read under names (`html_adapter.js`): one with a `src` under
-its URL, which a debugger fetches, and an inline one as `<page>#scheme-<n>`, whose text the page
-keeps (`source_texts.js`), for nothing could fetch it, and the map carries as its `sourcesContent`.
-A file named by a URL is placed in the `scheme:///` URL by its path. The prebuilt tables, which are
-modules, have no map of their own yet.
+reader to the lines of generated code: the expander gives the core form of each form read with a
+span its span (its `source`) -- an application's, an `if`'s, a `set!`'s, a quoted constant's -- and
+gives a macro's expansion the span of its use when it has none of its own (`with-use-span` in
+`src/core/scheme/expander.scm`), a template's pairs being made fresh; the lowering keeps a call's
+span on the `call` node it makes and any other's beside the node, in a weak table (`node-span` in
+`ir.scm`); and while the emitter emits a call, each statement it makes is noted as coming from that
+span -- beside the statement, in a weak table, since every reader of a statement would otherwise
+have to step over it. Any other node's span places the first statement of its code only, unless the
+code of a node inside it comes first (`with-node-placed` in `emit.scm`): so a line of Scheme that
+calls nothing -- a `set!`, a binding to a constant, a quoted constant, a named `let`, a macro's use
+whose expansion calls nothing -- has code a breakpoint binds to, and the rest of a node's code -- an
+`if` after its test's call, a binding after its value's -- is placed as the code around it is, since
+a debugger stepping from the inner node to a line placed at the outer node's start would seem to
+step back. A macro the system defines is so one stop, at its use, then the forms the use gave it, in
+DevTools and in the REPL debugger alike. A variable or a number alone on a line has no span: the
+reader gives spans to lists, vectors and quotes only, and a field on every pair for the rest was
+measured and not added (task 53). A procedure renders as items, each a line, a line with its span,
+or an indented group of them, so the function, the factory and the unit around it wrap what is
+inside rather than copying it, and the unit's text is written once, listing each line's span
+(`render-items` in `emit.scm`). Each line with a span maps, from its start, to the start of the span
+(`sourcemap.scm`): a frame shows at the Scheme expression whose code holds its call. A function's
+entry -- its declarations, its checks of its arguments and the stack, the resumable form's restoring
+of its frame -- comes before its first expression and is placed with it (`with-entry-placed`), so a
+step into a procedure stops showing its first expression, and a step over goes past the two as one.
+A line with no span after an expression is part of that expression's code, and a debugger, given no
+place for it, takes it as the line before. The factory's lines are not placed. What DevTools makes
+of it -- breakpoints in a Scheme file, steps into JavaScript from Scheme and back and into Scheme
+from JavaScript and back, never pausing in the system's code, which it skips as ignore-listed -- is
+tested by driving DevTools' own front end in a headless Chrome (`tests/devtools/`). The map goes
+into the script as a `data:` URL holding the JSON as it is: a URL's parser percent-encodes what it
+must and the URL's body is percent-decoded, so only `%`, `#`, `?` and spaces in a file's name are
+escaped. Only code read under a name is mapped. A page's scripts are read under names
+(`html_adapter.js`): one with a `src` under its URL, which a debugger fetches, and an inline one as
+`<page>#scheme-<n>`, whose text the page keeps (`source_texts.js`), for nothing could fetch it, and
+the map carries as its `sourcesContent`. A file named by a URL is placed in the `scheme:///` URL by
+its path. The prebuilt tables, which are modules, have no map of their own yet.
 
 ## A compiled procedure faces JavaScript; its code faces Scheme
 

@@ -52,9 +52,10 @@
 ;;;     (app fn args)
 ;;;
 ;;; and declines the rest, and `(other description)`, a form the host could
-;;; not give as a core form. An application's span is where it was read
-;;; from, the reader's, kept as its form's `source` (`app-span`); data written
-;;; by hand has none.
+;;; not give as a core form. A core form's span is where it was read from,
+;;; the reader's, kept as its `source` (`core-span`); data written by hand has
+;;; none, and nor has what a macro's template made, but the expansion's
+;;; outermost form, which the expander gives its use's span.
 ;;;
 ;;; An IR node is the same idea, with the fields the JavaScript version stores
 ;;; in an object, in the same order:
@@ -69,7 +70,8 @@
 ;;;
 ;;; A call's `span` is its application's, which the source map of the code
 ;;; generated for it reads (`sourcemap.scm`); the calls this pass synthesizes
-;;; carry none, and may stop before `loop`.
+;;; carry none, and may stop before `loop`. Any other node made from a form
+;;; with a span has it beside it (`node-span`).
 ;;;
 ;;; A call's `loop` is `local` or `global` when the call is a tail call to the
 ;;; procedure that contains it, which the emitter compiles as a jump back to
@@ -591,14 +593,29 @@
 (define (ast-4 node) (car (cddddr node)))
 
 ;; /**
-;;  * An application's source span, or #f: its form's `source`, where the
-;;  * expander keeps the span of the text it was made from.
-;;  * @param {list} node - An `app` core form.
+;;  * A core form's source span, or #f: its `source`, where the expander keeps
+;;  * the span of the text it was made from.
+;;  * @param {list} node - A core form.
 ;;  * @returns {object|boolean}
 ;;  */
-(define (app-span node)
+(define (core-span node)
   (let ((span (js-ref node "source")))
     (if (or (js-undefined? span) (js-null? span)) #f span)))
+
+;; /**
+;;  * The source span of each IR node made from a core form that had one, but a
+;;  * call, which keeps its own (`call`'s `span`). Kept beside the nodes rather
+;;  * than in them, so that no node changes shape; the emitter places the code
+;;  * it generates for a node at the node's span (`emit.scm`).
+;;  */
+(define node-spans (make-weak-table))
+
+;; /**
+;;  * The source span of the core form an IR node was made from, or #f.
+;;  * @param {list} node - An IR node.
+;;  * @returns {object|boolean}
+;;  */
+(define (node-span node) (weak-table-ref node-spans node))
 
 ;; /**
 ;;  * Whether an IR node denotes something this pass can name as a callee.
@@ -628,7 +645,8 @@
 ;; ---------------------------------------------------------------------------
 
 ;; /**
-;;  * Lowers an analyzed AST node to IR.
+;;  * Lowers an analyzed AST node to IR, noting its source span beside it
+;;  * (`node-spans`).
 ;;  * @param {list} node - An analyzed AST node.
 ;;  * @param {list} scope - The enclosing lexical scope.
 ;;  * @param {boolean} tail - Whether the node is in tail position.
@@ -637,6 +655,23 @@
 ;;  *   (`fail!`).
 ;;  */
 (define (lower-node node scope tail st)
+  (let ((ir (lower-core-form node scope tail st))
+        (span (core-span node)))
+    ;; A node made from an inner form, as a local bound to a constant becomes
+    ;; that constant, keeps the span it has.
+    (if (and span (not (eq? (car ir) 'call)) (not (node-span ir)))
+        (weak-table-set! node-spans ir span))
+    ir))
+
+;; /**
+;;  * Lowers an analyzed AST node to IR (`lower-node`).
+;;  * @param {list} node - An analyzed AST node.
+;;  * @param {list} scope - The enclosing lexical scope.
+;;  * @param {boolean} tail - Whether the node is in tail position.
+;;  * @param {vector} st - Lowering state.
+;;  * @returns {list} An IR node.
+;;  */
+(define (lower-core-form node scope tail st)
   (let ((tag (ast-tag node)))
     (cond
       ((eq? tag 'lit)
@@ -1023,14 +1058,14 @@
   (let* ((fn (lower-node (ast-1 node) scope #f st))
          (args (lower-each (ast-2 node) scope st)))
     (if (named-let-operator? fn)
-        (lower-named-let-call fn args tail (app-span node) st)
+        (lower-named-let-call fn args tail (core-span node) st)
         (begin
           (if (ir-callable? fn)
               (if (eq? (car fn) 'local) (state-called-local! st (ast-1 fn)) #f)
               (state-calls-unknown! st))
           (if tail #f (state-suspends! st))
           (let* ((loop (loop-kind fn args tail st))
-                 (call (list 'call fn args tail loop (app-span node))))
+                 (call (list 'call fn args tail loop (core-span node))))
             (if (eq? loop 'local)
                 (vector-set! st 10 (cons call (vector-ref st 10)))
                 #f)
