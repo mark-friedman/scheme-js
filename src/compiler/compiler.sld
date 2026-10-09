@@ -36,7 +36,7 @@
     ;; Lowering
     lower-lambda control-globals
     ;; Code generation
-    generate-unit inline-expansion-names js-name
+    generate-unit inline-expansion-names make-local-names local-name
     ;; What to compile
     compile-definition compile-expression compile-closure
     generate-environment compile-environment compile-program

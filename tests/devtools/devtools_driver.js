@@ -106,6 +106,18 @@ async function frontEnd(op, args) {
       debuggerModel[args[0]]();
       return pauseAfter(seen, 10000);
     }
+    case 'locals': {
+      // The top frame's own scope, by the names DevTools' Scope pane shows,
+      // which it takes from the source maps where they give any.
+      const SourceMapScopes = await import('./models/source_map_scopes/source_map_scopes.js');
+      const frame = debuggerModel.debuggerPausedDetails()?.callFrames[0];
+      if (!frame) return null;
+      const chain = await SourceMapScopes.NamesResolver.resolveScopeChain(frame);
+      const local = chain.find((scope) => scope.type() === 'local');
+      if (!local) return [];
+      const { properties } = await local.object().getAllProperties(false, false);
+      return (properties ?? []).map((property) => property.name);
+    }
     case 'resume':
       for (const location of breakpoints.allBreakpointLocations()) await location.breakpoint.remove(false);
       if (debuggerModel.isPaused()) debuggerModel.resume();
@@ -221,6 +233,15 @@ export class DevTools {
    */
   step(kind) {
     return this.call('step', kind);
+  }
+
+  /**
+   * The names of the paused frame's own locals, as DevTools' Scope pane lists
+   * them.
+   * @returns {Promise<Array<string>|null>} Null if it is not paused.
+   */
+  locals() {
+    return this.call('locals');
   }
 
   /**

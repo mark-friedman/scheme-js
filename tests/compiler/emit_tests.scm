@@ -6,10 +6,49 @@
 ;; always show up that way -- a string escaped wrongly, a literal repeated that
 ;; should not be -- and the lifting plan's decisions directly.
 
+(test-group "emit - a local's JavaScript name"
+  ;; Each list of locals is named as one unit's are, in order.
+  (define (named locals)
+    (let ((names (make-local-names)))
+      (map (lambda (local) (local-name names local)) locals)))
+  (test "a local is named as it was written, without the expander's number" '("items") (named '(items_$12)))
+  (test "a name never renamed is kept" '("x") (named '(x)))
+  (test "a hyphen becomes an underscore" '("item_count") (named '(item-count_$3)))
+  (test "a question mark becomes _p" '("found_p") (named '(found?_$2)))
+  (test "an exclamation mark becomes _bang" '("done_bang") (named '(done!_$2)))
+  (test "an arrow becomes _to_" '("list_to_vector") (named '(list->vector_$4)))
+  (test "the other common characters by a word" '("a_star_plus_lt_gt_eq" "a_b")
+        (named '(a*+<>=_$1 a/b_$2)))
+  (test "a percent sign, which marks a name the system made, becomes an underscore" '("_cwv0") (named '(%cwv0)))
+  (test "any other character becomes its code" '("a_7ec") (named '(a~c_$1)))
+  (test "and so does a dollar sign, which only the emitter's own names have" '("a_24b") (named '(a$b_$1)))
+  (test "a name that starts with a digit is prefixed" '("_1_plus") (named '(1+_$1)))
+  (test "a name JavaScript reserves takes a trailing underscore"
+        '("new_" "if_" "arguments_" "undefined_" "eval_" "let_" "await_")
+        (named '(new_$1 if_$2 arguments_$3 undefined_$4 eval_$5 let_$6 await_$7)))
+  (test "and so does a name the emitter's code uses"
+        '("R_" "E_" "K_" "C0_" "G12_" "P3_" "W4_" "Array_" "Error_" "Number_")
+        (named '(R_$1 E_$2 K_$3 C0_$4 G12_$5 P3_$6 W4_$7 Array_$8 Error_$9 Number_$10)))
+  (test "but not a name that only looks like one" '("Ca" "Rx" "c0") (named '(Ca_$1 Rx_$2 c0_$3)))
+  (test "the same local is named the same each time" '("x" "x") (named '(x_$1 x_$1)))
+  (test "two locals of one name are told apart by a suffix" '("x" "x_2" "x_3") (named '(x_$1 x_$2 x_$3)))
+  (test "a suffix never takes another local's name" '("x_2" "x" "x_3") (named '(x_2_$1 x_$2 x_$3)))
+  (test "nor do two names that are spelled alike" '("a_b" "a_b_2") (named '(a-b_$1 a_b_$2)))
+  (test "a name is the unit's own: another unit starts afresh" '("x" "x")
+        (list (car (named '(x_$1))) (car (named '(x_$2)))))
+  (define (unit-text definition)
+    (let ((lowered (lower-lambda (analyze-lambda definition))))
+      (car (generate-unit (lowered-ir lowered) (lowered-globals lowered)
+                          (lowered-library-globals lowered) "f" '()))))
+  ;; The procedure nested in the first operand is generated before the
+  ;; parameter is first read, in the second.
+  (test "a unit names its locals in the order they are bound, so a parameter keeps its name" #t
+        (let ((text (unit-text '(define (f x) (cons (lambda () (let ((x (car (list 1)))) x)) x)))))
+          (and (string-contains text "function (x)")
+               (string-contains text "x_2 = ")
+               #t))))
+
 (test-group "emit - JavaScript text"
-  (test "a plain name is prefixed" "s_x_$1" (js-name 'x_$1))
-  (test "a character JavaScript does not allow becomes its code" "s_null_3f" (js-name 'null?))
-  (test "each disallowed character is replaced" "s_a_2d_3eb" (js-name 'a->b))
   (test "a string is quoted" "\"abc\"" (js-string "abc"))
   (test "a quote and a backslash are escaped" "\"a\\\"b\\\\c\"" (js-string "a\"b\\c"))
   (test "a newline and a tab are escaped" "\"a\\nb\\tc\"" (js-string "a\nb\tc"))
@@ -222,7 +261,7 @@
         #t
         (let ((source (car (generate-unit (lowered-ir (lower-lambda '(lambda (v) #f #f (app (var vector-ref) ((var v) (lit 0))))))
                                           '(vector-ref) '() "f" '(vector-ref)))))
-          (and (string-contains source "$vectorRef(s_v, 0)") #t)))
+          (and (string-contains source "$vectorRef(v, 0)") #t)))
   (test "vector-length needs an array and is inline" '("Array.isArray(v)" "v.length")
         (parts 'vector-length '(v)))
   ;; `1.car` does not parse, and a JavaScript rejection is no procedure.
@@ -300,12 +339,12 @@
   (test "and so does each step of a pending tail call" #t
         (and (string-contains calls "{ $stack.room = $d; $t") #t))
   (test "entered with no room, the fast form moves the frames beneath it, passing its arguments" #t
-        (and (string-contains calls "if ($d < 0 && $stack.flushable) return $flush($proc$js, [s_x]);") #t))
+        (and (string-contains calls "if ($d < 0 && $stack.flushable) return $flush($proc$js, [x]);") #t))
   (test "the resumable form never does" 1 (count-of calls "$stack.flushable"))
   (test "a rest parameter is passed on as it arrived" #t
-        (and (string-contains rest "return $flush($proc$js, [s_a, ...s_r$raw]);") #t))
+        (and (string-contains rest "return $flush($proc$js, [a, ...r$raw]);") #t))
   (test "and its arguments, which arrive on the stack, take room too" #t
-        (and (string-contains rest " - s_r$raw.length;") #t))
+        (and (string-contains rest " - r$raw.length;") #t))
   (test "a procedure that calls nothing takes no room" #f (and (string-contains leaf "$d") #t)))
 
 ;; A call whose value is wanted calls the callee directly, and JavaScript's
@@ -365,7 +404,7 @@
   (test "a global operand is read before a later operand's call" #t
         (< (position global-first "= (C2.v ?? G2());") (position global-first "(C1.v ?? G1())")))
   (test "operands nothing can change are not copied" 0
-        (count-of settled "= s_x;")))
+        (count-of settled "= x;")))
 
 ;; A loop whose variables provably stay inexact runs on raw doubles first,
 ;; before the ordinary loop, when they arrive inexact; boxes, where an
@@ -377,8 +416,8 @@
     (let ((lowered (lower-lambda (analyze-lambda definition))))
       (car (generate-unit (lowered-ir lowered) (lowered-globals lowered)
                           (lowered-library-globals lowered) "f" '(+ - * < > = vector-ref)))))
-  ;; Locals are named for a counter the file shares, so a pattern names a
-  ;; local by its name as written and leaves its number out.
+  ;; A local is named as it was written; where a procedure binds a name
+  ;; again, the later binding's name has a suffix, which a pattern leaves out.
   (define (contains? text part) (and (string-contains text part) #t))
   (define summing
     (source-of '(define (f n) (let loop ((i n) (acc 0.)) (if (< i 0.) acc (loop (- i 1.) (+ i acc)))))))
@@ -386,25 +425,25 @@
   (test "entered only when its variables arrive inexact" #t
         (contains? summing "instanceof R.Flonum"))
   (test "its arithmetic is JavaScript's, with no test" #t
-        (contains? summing " + s_acc_$"))
+        (contains? summing " + acc"))
   (test "and a value leaving it is boxed" #t
-        (contains? summing "return R.inexactReal(s_acc_$"))
+        (contains? summing "return R.inexactReal(acc"))
   (test "it leaves at the head of an iteration if an operator is rebound, on a test that is JavaScript's" #t
         (contains? summing ".intact)) { break $rebound"))
   ;; A box made, or any call made, in a branch of the loop keeps V8 from
   ;; holding the loop's variables raw: such a loop took 6.6 ns an iteration
   ;; against 0.9.
   (test "and boxes its variables after the loop, not in it" #t
-        (< (string-contains summing "return R.inexactReal(s_acc_$")
-           (string-contains summing "= R.inexactReal(s_i_$")))
+        (< (string-contains summing "return R.inexactReal(acc")
+           (string-contains summing "= R.inexactReal(i")))
   (test "it leaves by a break, and makes what it returns after the loop" #t
         (< (string-contains summing "continue $doubles")
-           (string-contains summing "return R.inexactReal(s_acc_$")))
+           (string-contains summing "return R.inexactReal(acc")))
   (test "several ways out are told apart after the loop" #t
         (contains? (source-of '(define (f x)
                                  (let loop ((x x) (k 0))
                                    (cond ((> x 100.) x) ((= k 10) (* x -1.)) (else (loop (* x 2.) (+ k 1)))))))
-                   " === 0) { return R.inexactReal(s_x_$"))
+                   " === 0) { return R.inexactReal(x"))
   (test "a loop counting exactly is not" #f
         (contains? (source-of '(define (f n) (let loop ((i n) (acc 0)) (if (< i 0) acc (loop (- i 1) (+ i acc))))))
                    "$doubles"))
@@ -413,13 +452,13 @@
                    "$doubles"))
   (test "a loop reading a double bound outside it holds that raw too" #t
         (contains? (source-of '(define (f c) (let loop ((z c) (k 0)) (if (= k 3) z (loop (+ (* 2. (* z z)) c) (+ k 1))))))
-                   "'number' ? s_c_$"))
+                   "'number' ? c :"))
   (test "a loop with no inexact constant, whose variables could be doubles only if they arrived so, is not" #f
         (contains? (source-of '(define (f c) (let loop ((z c) (k 0)) (if (= k 3) z (loop (+ (* z z) c) (+ k 1))))))
                    "$doubles"))
   (test "but not an exact bound it only compares with" #f
         (contains? (source-of '(define (f n) (let loop ((x 0.) (i 0)) (if (= i n) x (loop (+ x 1.) (+ i 1))))))
-                   "'number' ? s_n_$")))
+                   "'number' ? n :")))
 
 ;; A local bound to a constant and never assigned is the constant where it is
 ;; read (`constant-binding` in ir.scm): an inexact integer in arithmetic is then

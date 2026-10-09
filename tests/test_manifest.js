@@ -143,6 +143,7 @@ export const tieredSchemeTestFiles = [
     'tests/tiers/complex_arithmetic_tests.scm',
     'tests/tiers/continuation_tests.scm',
     'tests/tiers/exact_division_tests.scm',
+    'tests/tiers/local_names_tests.scm',
 ];
 
 // Scheme tests of the compiler's own Scheme, run in the environment the

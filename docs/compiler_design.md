@@ -85,6 +85,21 @@ procedure shows as its name if a named `let` or an internal definition gave it o
 own property leaves all its properties slow to read (R110), and compiled code reads its callee's on
 every call. V8 removes the object literal, so making a closure costs what it did.
 
+A debugger shows a paused frame's variables by their names in the generated code, so a Scheme local
+is named there as it was written, as near as JavaScript allows (`local-name` in `emit.scm`): `items`,
+`found_p` for `found?`, `list_to_vector`, rather than the expander's `items_$12`. A character
+JavaScript does not allow is spelled with a word, or with its code; two locals of one unit spelled
+alike -- `x` bound twice, or `a-b` beside `a_b` -- are told apart by a suffix on the later one bound,
+`x_2`, since a unit names its locals in the order the source binds them before generating any code,
+so a parameter keeps its name; and a name the generated code or JavaScript already uses -- a reserved word, `arguments`,
+`undefined`, the runtime `R` or a global's cell `C0` -- takes a trailing `_`. The emitter's own
+names all begin with `$` or are a capital and digits, and no local's has a `$`, so the two never
+meet. A unit's names are its own: its nested procedures are emitted beside it as factories, not
+inside it, so a name only has to be unique in its unit. The source maps give no names, and DevTools'
+Scope pane shows the generated ones (`tests/devtools/`). The source map scopes proposal would give
+it the exact names, `found?`, and hide the temporaries; Chrome 146 reads scopes only behind an
+experiment.
+
 Code generated as a program runs is given a `//# sourceURL=scheme:///<file>/<procedure>`, the file
 being the one the procedure was read from, or else its library, or else `program`
 (`source-url` in `driver.scm`), so a debugger lists each procedure's code as a source of its own.
@@ -346,7 +361,7 @@ A procedure is emitted twice, and so is every procedure nested inside it, once w
 its parent — so a lambda at depth *d* appeared about 4^d times. Measured at 4.2x per level.
 
 Each nested procedure is now emitted **once, at the top level**, as a factory over its free
-variables, created with `$t5 = $mk$fn0(s_a, s_b)`. Variable *references* do not change, which is what
+variables, created with `$t5 = $mk$fn0(a, b)`. Variable *references* do not change, which is what
 makes it cheap: the inner function closes over the factory's parameters, which already have the names
 its body used. Code size becomes linear in the program rather than exponential in its nesting.
 

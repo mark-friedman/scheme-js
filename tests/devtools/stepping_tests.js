@@ -95,24 +95,26 @@ function pathOf(url) {
 }
 
 /**
- * Sets a breakpoint, starts a call on the page, and takes steps from where it
- * pauses, as a user of DevTools would, then removes the breakpoint and lets
- * the call finish.
+ * Sets a breakpoint, starts a call on the page, notes the locals DevTools
+ * shows where it pauses, and takes steps from there, as a user of DevTools
+ * would, then removes the breakpoint and lets the call finish.
  * @param {DevTools} devTools - The front end.
  * @param {Object} page - The tab.
  * @param {string} url - The breakpoint's source.
  * @param {number} line - Its line.
  * @param {string} expression - The call, as JavaScript.
  * @param {Array<string>} kinds - The steps.
- * @returns {Promise<{bound: number, at: (string|null), places: Array<string|null>}>}
- *   How many places the breakpoint was bound to, where the call paused, and
- *   where each step paused, while each did.
+ * @returns {Promise<{bound: number, at: (string|null), locals: (Array<string>|null),
+ *   places: Array<string|null>}>} How many places the breakpoint was bound to,
+ *   where the call paused, the names of the locals shown there, and where each
+ *   step paused, while each did.
  */
 async function session(devTools, page, url, line, expression, kinds) {
   const bound = await devTools.breakpoint(url, line);
   const seen = await devTools.pauses();
   const running = page.evaluate(expression).catch(() => null);
   const at = bound > 0 ? await devTools.pauseAfter(seen) : null;
+  const locals = at === null ? null : await devTools.locals();
   const places = [];
   for (const kind of at === null ? [] : kinds) {
     const place = await devTools.step(kind);
@@ -121,7 +123,7 @@ async function session(devTools, page, url, line, expression, kinds) {
   }
   await devTools.resume();
   await running;
-  return { bound, at: shown(at), places };
+  return { bound, at: shown(at), locals, places };
 }
 
 /**
@@ -167,10 +169,14 @@ async function steppingTests(logger, over, devTools, page, fixtures) {
 
   logger.title(`DevTools, over ${over} - from Scheme into JavaScript, and back`);
   {
-    const { bound, at, places } = await session(devTools, page, scm, 8, "window.call('scheme-calls-js', 3)",
-      ['stepInto', 'stepOut', 'stepOver']);
+    const { bound, at, locals, places } = await session(devTools, page, scm, 8,
+      "window.call('scheme-calls-js', 3)", ['stepInto', 'stepOut', 'stepOver']);
     assert(logger, 'a breakpoint at a Scheme call is bound', bound > 0, true);
     assert(logger, 'the program pauses at it', at, 'boundary.scm:8');
+    // Beside them, the compiler's own: its temporaries and the like, all named
+    // with a `$`, and JavaScript's `arguments`.
+    assert(logger, "DevTools shows the procedure's locals by the names they were written with",
+      locals?.filter((name) => !name.startsWith('$') && name !== 'arguments'), ['n', 'm', 'r']);
     // A step out comes back after the call: DevTools stepped into it skipping
     // what is mapped to the call's expression, and the engine skips the same
     // on the way out, as it does for any code a source map places.

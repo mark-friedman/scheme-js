@@ -418,7 +418,7 @@ export async function runPrebuiltLibraryTests(logger) {
     assert(logger, 'its Scheme runs in its library environment',
       env.lookup('lower-lambda') === env.bindings.get('lower-lambda'), true);
     assert(logger, 'which installed its prebuilt table',
-      ['lower-lambda', 'generate-unit', 'js-name'].map((name) => env.lookup(name).$compiled),
+      ['lower-lambda', 'generate-unit', 'local-name'].map((name) => env.lookup(name).$compiled),
       [true, true, true]);
     assert(logger, 'as did the libraries it imports',
       env.lookup('fold').$compiled && env.lookup('string-index').$compiled, true);
@@ -433,11 +433,13 @@ export async function runPrebuiltLibraryTests(logger) {
     // it calls any Scheme procedure: through the public interop.
     const exports = compilerExports();
     assert(logger, 'its entry points are its library\'s exports',
-      ['compile-definition', 'make-tier', 'js-name'].map((name) => exports.get(name) === env.lookup(name)),
+      ['compile-definition', 'make-tier', 'local-name'].map((name) => exports.get(name) === env.lookup(name)),
       [true, true, true]);
+    const localName = exports.get('local-name');
+    const names = () => exports.get('make-local-names')();
     assert(logger, 'called by a plain call, which converts its result for JavaScript',
-      exports.get('js-name')(intern('x_$1')), callSchemeProcedure(exports.get('js-name'), [intern('x_$1')]).toString());
+      localName(names(), intern('x_$1')), callSchemeProcedure(localName, [names(), intern('x_$1')]).toString());
     assert(logger, 'and so a JavaScript string',
-      typeof exports.get('js-name')(intern('x_$1')), 'string');
+      typeof localName(names(), intern('x_$1')), 'string');
   }
 }

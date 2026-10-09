@@ -14609,3 +14609,37 @@ the prebuilt tables, inside the bundle.
 The DevTools tests take about ten seconds now, most of it building the bundle.
 
 No JavaScript under `src/` was added or grown; `rollup.config.js` grew by the map's options.
+
+# Task 84: Scheme locals named as written in the generated code (2026-10-09)
+
+Part of stage (f) of 84, decided with the user: both readable generated names and source map scopes.
+This is the first. DevTools shows a paused frame's variables by their names in the generated code, and
+those were `s_n_$0`, `s_found_3f_$2`: the expander's renamed name, with `s_` before it and each
+character JavaScript does not allow as its code. A local is now named as it was written, as near as
+JavaScript allows (`local-name` in `src/compiler/emit.scm`): `n`, `items`, `found_p` for `found?`,
+`done_bang`, `list_to_vector`, other characters by a word or their code. Two locals of one unit
+spelled alike -- `x` bound twice, `a-b` beside `a_b` -- are told apart by a suffix on the later one
+bound, `x_2`: a unit names its locals in the order the source binds them, before it generates any
+code (`local-names-for`), for generating names a local where the code first reads it, and a
+procedure nested in a call's first operand could otherwise take a parameter's name from it. The
+names are kept in the unit, since a unit's nested procedures are emitted beside it as factories and
+a name need only be unique there. A name the generated code or JavaScript already
+uses -- a reserved word, `arguments`, `undefined`, `Number`, the runtime `R`, the environment `E`, the
+constants `K`, a global's cell `C0` -- takes a trailing `_`: the emitter's own names begin with `$`
+or are a capital and digits, and no local's has a `$`. The same names key a saved frame's slots,
+which only the resumable form reads back.
+
+Tested in `tests/compiler/emit_tests.scm` (the spelling, the suffixes, the order, the names kept
+apart) and
+`tests/tiers/local_names_tests.scm`, new, which runs procedures whose locals are named as JavaScript's
+words and the emitter's own -- through an arity check, constants, an infinity, a factory's free
+variables, a rest parameter and a continuation re-entered -- in both tiers; with the trailing `_`
+left off, its compiled run crashes. The DevTools tests now check that the Scope pane lists a
+procedure's locals at a pause in it as `n`, `m` and `r`. DevTools' own name resolution, which its
+Scope pane goes through, left the generated names as they were: the maps give none.
+
+The compiler's export `js-name` is now `make-local-names` and `local-name`, which the tests that
+build a twin's frame by its parameters' names call. The prebuilt tables were regenerated; the
+compiler's generated code is 3293 KB, down from 3480.
+
+No JavaScript under `src/` was added or grown.

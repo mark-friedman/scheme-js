@@ -70,56 +70,214 @@
 ;;; of a parent ask for the same node and get the same factory.
 
 ;; ---------------------------------------------------------------------------
-;; JavaScript text
+;; Locals' names
 ;; ---------------------------------------------------------------------------
+;;
+;; A Scheme local is named in the JavaScript as it was written, as near as
+;; JavaScript allows, since a debugger shows the generated code's variables:
+;; `items`, `found_p` and `list_to_vector`, not `items_$12`. The expander's
+;; number is dropped, and a character JavaScript does not allow in an
+;; identifier is spelled with a word, or with its code. That can leave two
+;; locals of a unit with one name -- `x` bound twice, or `a-b` beside `a_b` --
+;; and the later one bound gets a suffix, `x_2`: a unit's locals are named in
+;; the order the source binds them (`local-names-for`), before any code is
+;; generated, so a parameter keeps its name when the body binds it again. The
+;; names are a unit's own, kept in it (`unit-names`): a unit's nested
+;; procedures are emitted beside it as factories, not inside it, so a name
+;; only has to be unique in its unit.
+;;
+;; The emitter's own names are kept apart from them. They begin with `$` --
+;; temporaries, the runtime values a unit declares, its functions and labels
+;; -- or are a capital and digits -- the runtime `R`, the environment `E`, the
+;; constants `K`, a global's cell and accessors `C0`, `G0`, `P0` and `W0`. No
+;; local's name has a `$`, and one that would be a capital and digits, a word
+;; JavaScript reserves, or a global the code names gets a trailing `_`.
 
 ;; /**
-;;  * Each renamed Scheme local's JavaScript identifier, once worked out. A local
-;;  * is named wherever the code reads it, and working the name out again each
-;;  * time was about 6% of compiling the canonical programs under the tier.
+;;  * The JavaScript names of one unit's locals. A local is named wherever the
+;;  * code reads it, so its name is worked out once and kept.
+;;  * @property {weak-table} by-local - Each local's name, by the local.
+;;  * @property {weak-table} taken - The names given, each as a symbol.
 ;;  */
-(define js-names (make-weak-table))
+(define-record-type local-names
+  (make-local-names* by-local taken)
+  local-names?
+  (by-local local-names-by-local)
+  (taken local-names-taken))
 
 ;; /**
-;;  * The JavaScript identifier for a renamed Scheme local.
-;;  * @param {symbol} name - A renamed Scheme identifier.
+;;  * The names of a unit's locals, none given yet.
+;;  * @returns {local-names}
+;;  */
+(define (make-local-names) (make-local-names* (make-weak-table) (make-weak-table)))
+
+;; /**
+;;  * A local's JavaScript name in a unit: the one it was given, or a new one.
+;;  * @param {local-names} names - The unit's names.
+;;  * @param {symbol} local - The local, as the expander renamed it.
 ;;  * @returns {string} A JavaScript identifier.
 ;;  */
-(define (js-name name)
-  (or (weak-table-ref js-names name)
-      (let ((text (javascript-identifier name)))
-        (weak-table-set! js-names name text)
-        text)))
+(define (local-name names local)
+  (or (weak-table-ref (local-names-by-local names) local)
+      (let ((name (untaken-name names (readable-name local))))
+        (weak-table-set! (local-names-by-local names) local name)
+        (weak-table-set! (local-names-taken names) (string->symbol name) #t)
+        name)))
 
 ;; /**
-;;  * Works out the JavaScript identifier for a renamed Scheme local. The
-;;  * expander's names look like `x_$147`, already close; any character
-;;  * JavaScript does not allow in an identifier becomes `_` and its code in hex.
-;;  * @param {symbol} name - A renamed Scheme identifier.
+;;  * A name not yet given in a unit: the one wanted, or the first of it with a
+;;  * suffix, `_2`, `_3`, that is not.
+;;  * @param {local-names} names - The unit's names.
+;;  * @param {string} wanted - The name wanted.
+;;  * @returns {string}
+;;  */
+(define (untaken-name names wanted)
+  (let try ((n 1))
+    (let ((name (if (= n 1) wanted (string-append wanted "_" (number->string n)))))
+      (if (weak-table-ref (local-names-taken names) (string->symbol name))
+          (try (+ n 1))
+          name))))
+
+;; /**
+;;  * A local's name as written, as a JavaScript identifier: the expander's
+;;  * numbers dropped, its characters spelled as JavaScript allows, `_` before
+;;  * a leading digit, and `_` after a name the emitter's code or JavaScript
+;;  * already has a use for.
+;;  * @param {symbol} local - The local.
+;;  * @returns {string}
+;;  */
+(define (readable-name local)
+  (let* ((spelled (spell-identifier (written-name (symbol->string local))))
+         (name (if (or (string=? spelled "") (char-numeric? (string-ref spelled 0)))
+                   (string-append "_" spelled)
+                   spelled)))
+    (if (or (member name javascript-words) (emitter-name? name))
+        (string-append name "_")
+        name)))
+
+;; /**
+;;  * A name as it was written, without the numbers the expander appends to a
+;;  * local it renames (`x_$12`), once for each time it renamed it.
+;;  * @param {string} s - The name.
+;;  * @returns {string}
+;;  */
+(define (written-name s)
+  (let ((at (string-contains-right s "_$")))
+    (if (and at
+             (< (+ at 2) (string-length s))
+             (string-every char-numeric? s (+ at 2)))
+        (written-name (substring s 0 at))
+        s)))
+
+;; /**
+;;  * Text as the characters of a JavaScript identifier: an ASCII letter, digit
+;;  * or `_` kept, `->` as `_to_`, and any other character as a word
+;;  * (`character-words`) or as `_` and its code in hex.
+;;  * @param {string} s - The text.
+;;  * @returns {string}
+;;  */
+(define (spell-identifier s)
+  (let spell ((chars (string->list s)) (pieces '()))
+    (cond ((null? chars) (string-concatenate-reverse pieces))
+          ((and (char=? (car chars) #\-) (pair? (cdr chars)) (char=? (cadr chars) #\>))
+           (spell (cddr chars) (cons "_to_" pieces)))
+          (else (spell (cdr chars) (cons (spell-character (car chars)) pieces))))))
+
+;; /**
+;;  * The words the characters common in Scheme names are spelled with: `?` as
+;;  * `_p`, as Lisp has long named a predicate, `-` and `/` as `_`, and `%`,
+;;  * which begins the names the system makes for itself, as `_`.
+;;  */
+(define character-words
+  '((#\- . "_") (#\? . "_p") (#\! . "_bang") (#\* . "_star") (#\+ . "_plus")
+    (#\< . "_lt") (#\> . "_gt") (#\= . "_eq") (#\/ . "_") (#\% . "_")))
+
+;; /**
+;;  * A character as part of a JavaScript identifier.
+;;  * @param {char} c - The character.
+;;  * @returns {string}
+;;  */
+(define (spell-character c)
+  (cond ((and (< (char->integer c) 128)
+              (or (char-alphabetic? c) (char-numeric? c) (char=? c #\_)))
+         (string c))
+        ((assv c character-words) => cdr)
+        (else (string-append "_" (number->string (char->integer c) 16)))))
+
+;; /**
+;;  * The names a local cannot have: the words JavaScript reserves, those
+;;  * strict code cannot bind, and the globals generated code names --
+;;  * `undefined` for an unspecified value, `arguments` to check a call's
+;;  * arity, `Number` for the infinities and the checks of integers, `Error`
+;;  * and `Array`. A global the emitter comes to name belongs here.
+;;  */
+(define javascript-words
+  '("await" "break" "case" "catch" "class" "const" "continue" "debugger" "default" "delete"
+    "do" "else" "enum" "export" "extends" "false" "finally" "for" "function" "if"
+    "implements" "import" "in" "instanceof" "interface" "let" "new" "null" "package"
+    "private" "protected" "public" "return" "static" "super" "switch" "this" "throw"
+    "true" "try" "typeof" "var" "void" "while" "with" "yield"
+    "arguments" "eval"
+    "undefined" "Array" "Error" "Number"))
+
+;; /**
+;;  * Whether a name has the shape of the emitter's own short names: a capital
+;;  * and digits, or a capital alone.
+;;  * @param {string} name - The name.
+;;  * @returns {boolean}
+;;  */
+(define (emitter-name? name)
+  (and (char-upper-case? (string-ref name 0))
+       (< (char->integer (string-ref name 0)) 128)
+       (string-every char-numeric? name 1)))
+
+;; /**
+;;  * The names of a unit's locals, given in the order the source binds them: a
+;;  * procedure's parameters, then what its body binds, each binding before
+;;  * what is inside it. A local the lowering made, which none of these binds,
+;;  * is named where the code first reads it.
+;;  * @param {list} ir - The unit's lambda IR node.
+;;  * @returns {local-names}
+;;  */
+(define (local-names-for ir)
+  (let ((names (make-local-names)))
+    (for-each (lambda (local) (local-name names local)) (bound-in-order ir))
+    names))
+
+;; /**
+;;  * The locals a subtree binds, each binding before what is inside it.
+;;  * @param {list} node - An IR node.
+;;  * @returns {list} The locals.
+;;  */
+(define (bound-in-order node)
+  (append (case (car node)
+            ((lambda) (append (lambda-params node)
+                              (if (lambda-rest node) (list (lambda-rest node)) '())))
+            ((let define) (list (cadr node)))
+            ((letrec) (cadr node))
+            (else '()))
+          (append-map bound-in-order (ir-children node))))
+
+;; /**
+;;  * A local's JavaScript name in a unit.
+;;  * @param {unit} u - The unit.
+;;  * @param {symbol} name - A renamed Scheme local.
 ;;  * @returns {string} A JavaScript identifier.
 ;;  */
-(define (javascript-identifier name)
-  (define (plain? c)
-    (or (char-alphabetic? c) (char-numeric? c) (char=? c #\_) (char=? c #\$)))
-  (define (ascii-plain? c) (and (< (char->integer c) 128) (plain? c)))
-  (let ((s (symbol->string name)))
-    (string-append
-      "s_"
-      (if (string-every ascii-plain? s)
-          s
-          (apply string-append
-                 (map (lambda (c)
-                        (if (ascii-plain? c)
-                            (string c)
-                            (string-append "_" (number->string (char->integer c) 16))))
-                      (string->list s)))))))
+(define (js-name u name) (local-name (unit-names u) name))
 
 ;; /**
 ;;  * The symbol that stands for a Scheme local in an expression.
-;;  * @param {symbol} name - A renamed Scheme identifier.
+;;  * @param {form} form - The emission.
+;;  * @param {symbol} name - A renamed Scheme local.
 ;;  * @returns {symbol} Its JavaScript name, as a symbol.
 ;;  */
-(define (js-local name) (string->symbol (js-name name)))
+(define (js-local form name) (string->symbol (js-name (form-unit form) name)))
+
+;; ---------------------------------------------------------------------------
+;; JavaScript text
+;; ---------------------------------------------------------------------------
+
 
 ;; /**
 ;;  * A string as a JavaScript string literal, escaped as `JSON.stringify` does.
@@ -361,7 +519,7 @@
   (let* ((rest (lambda-rest (form-ir form)))
          ;; Arguments arrive on the stack, and a rest parameter's can be any
          ;; number: `apply` spreading a long list is the case.
-         (spread (if (and rest (not (twin? form))) (string-append " - " (js-name rest) "$raw.length") ""))
+         (spread (if (and rest (not (twin? form))) (string-append " - " (js-name (form-unit form) rest) "$raw.length") ""))
          (depth (lambda ()
                   (string-append "const $d = " (runtime form '$stack) ".room - "
                                  (number->string (frame-size form)) spread ";"))))
@@ -451,8 +609,8 @@
 ;;  * how each global is reached -- each a library's own binding, by the key
 ;;  * the lowering gave it, from the library's environment (`library-global-key`
 ;;  * in ir.scm) -- the constant pool, the factories emitted so
-;;  * far, where each call site resumes, and the runtime values its code names
-;;  * (see `runtime`).
+;;  * far, where each call site resumes, the runtime values its code names
+;;  * (see `runtime`), and its locals' names (see `local-name`).
 ;;  *
 ;;  * A call site's resume block and saved locals are decided by the twin,
 ;;  * which is generated first, and read by the fast form, which has to spill
@@ -460,7 +618,7 @@
 ;;  */
 (define-record-type unit
   (make-unit plan globals library-globals global-indices guarded constants factories emitted resume-points
-             runtime)
+             runtime names)
   unit?
   (plan unit-plan)
   (globals unit-globals)
@@ -471,7 +629,8 @@
   (factories unit-factories set-unit-factories!)
   (emitted unit-emitted set-unit-emitted!)
   (resume-points unit-resume-points set-unit-resume-points!)
-  (runtime unit-runtime set-unit-runtime!))
+  (runtime unit-runtime set-unit-runtime!)
+  (names unit-names))
 
 ;; /**
 ;;  * The local name generated code knows a runtime value by, noted as one its
@@ -749,8 +908,8 @@
 ;;  */
 (define (read-local form name)
   (if (boxed-local? form name)
-      (js (js-local name) "[0]")
-      (js (js-local name))))
+      (js (js-local form name) "[0]")
+      (js (js-local form name))))
 
 ;; /**
 ;;  * The statement binding a local to its first value. A boxed local's box is
@@ -761,8 +920,8 @@
 ;;  * @returns {list} The statement.
 ;;  */
 (define (bind-local form name value)
-  (declare! form (js-local name))
-  (list 'assign (js (js-local name))
+  (declare! form (js-local form name))
+  (list 'assign (js (js-local form name))
         (if (boxed-local? form name) (js "[" value "]") value)))
 
 ;; /**
@@ -780,8 +939,8 @@
   (for-each (lambda (def)
               (let ((name (cadr def)))
                 (if (boxed-local? form name)
-                    (begin (declare! form (js-local name))
-                           (emit! form (list 'assign (js (js-local name)) (js "[undefined]")))))))
+                    (begin (declare! form (js-local form name))
+                           (emit! form (list 'assign (js (js-local form name)) (js "[undefined]")))))))
             (definitions-in body)))
 
 ;; /**
@@ -810,7 +969,7 @@
   (case (car node)
     ((const) (js (constant (form-unit form) (cadr node))))
     ((local) (if (memq (cadr node) (form-doubles form))
-                 (js "R.inexactReal(" (js-local (cadr node)) ")")
+                 (js "R.inexactReal(" (js-local form (cadr node)) ")")
                  (read-local form (cadr node))))
     ;; Read through its cell on every reference, because a top-level binding
     ;; can be redefined after this code was compiled -- by the REPL running it,
@@ -822,7 +981,7 @@
     ((seq) (fold (lambda (expr last) (emit-value! form expr)) (js "undefined") (cadr node)))
     ((if) (if (twin? form) (emit-twin-value-if! form node) (emit-value-if! form node)))
     ((let)
-     (declare! form (js-local (cadr node)))
+     (declare! form (js-local form (cadr node)))
      (if (double-let? form node)
          (with-double form (cadr node) (caddr node) (lambda () (emit-value! form (cadddr node))))
          (let ((init (emit-value! form (caddr node))))
@@ -887,7 +1046,7 @@
 (define (emit-closure! form lam)
   (let* ((named (nested-name! form))
          (factory (factory-for! (form-unit form) (car named) (cdr named) lam))
-         (args (map js-local (plan-free-of (plan-of form) lam)))
+         (args (map (lambda (v) (js-local form v)) (plan-free-of (plan-of form) lam)))
          (result (temp! form)))
     (emit! form (list 'assign (js result)
                       (js factory "(" (join-exprs (map js args) ", ") ")")))
@@ -934,9 +1093,9 @@
   (let ((name (cadr node)))
     (if (boxed-local? form name)
         (begin
-          (declare! form (js-local name))
+          (declare! form (js-local form name))
           (let ((value (emit-value! form (caddr node))))
-            (emit! form (list 'assign (js (js-local name) "[0]") value))))
+            (emit! form (list 'assign (js (js-local form name) "[0]") value))))
         (let ((value (emit-value! form (caddr node))))
           (emit! form (bind-local form name value))))
     (js "undefined")))
@@ -955,17 +1114,17 @@
 ;;  */
 (define (emit-letrec-bindings! form node)
   (let ((names (cadr node)))
-    (for-each (lambda (name) (declare! form (js-local name))) names)
+    (for-each (lambda (name) (declare! form (js-local form name))) names)
     (for-each (lambda (name)
                 (if (boxed-local? form name)
-                    (emit! form (list 'assign (js (js-local name)) (js "[undefined]")))))
+                    (emit! form (list 'assign (js (js-local form name)) (js "[undefined]")))))
               names)
     (for-each (lambda (name init)
                 (let ((value (emit-value! form init)))
                   (emit! form (list 'assign
                                     (if (boxed-local? form name)
-                                        (js (js-local name) "[0]")
-                                        (js (js-local name)))
+                                        (js (js-local form name) "[0]")
+                                        (js (js-local form name)))
                                     value))))
               names (caddr node))))
 
@@ -1178,7 +1337,7 @@
              (for-each (lambda (expr) (emit-statement! form expr)) (cadr node))))
         ((let)
          (if (double-let? form node)
-             (begin (declare! form (js-local (cadr node)))
+             (begin (declare! form (js-local form (cadr node)))
                     (with-double form (cadr node) (caddr node) (lambda () (emit-statement! form (cadddr node)))))
              (let ((init (emit-value! form (caddr node))))
                (emit! form (bind-local form (cadr node) init))
@@ -1371,7 +1530,7 @@
           ;; boxes on entry, so it gives a boxed parameter a fresh box here --
           ;; either way each iteration has its own, as a fresh call would.
           (lambda (param value)
-            (list 'assign (js (js-local param))
+            (list 'assign (js (js-local form param))
                   (if (and (twin? form) (boxed-local? form param)) (js "[" value "]") value)))
           (if (twin? form) (list 'goto 0) (list 'text "continue $loop;"))))))
 
@@ -1392,7 +1551,7 @@
     (if (null? args)
         (append (reverse copies) (reverse assigns) (list (loop-jump target)))
         (let ((value (car args)) (param (car params)))
-          (cond ((and (equal? value (js (js-local param))) (not (boxed-local? form param)))
+          (cond ((and (equal? value (js (js-local form param))) (not (boxed-local? form param)))
                  (walk (cdr args) (cdr params) copies assigns))
                 ((settled? value)
                  (walk (cdr args) (cdr params) copies
@@ -1442,8 +1601,8 @@
          (entries (caddr (cadddr node)))
          (entry (emit-operands! form entries)))
     (for-each (lambda (param value)
-                (declare! form (js-local param))
-                (emit! form (list 'assign (js (js-local param)) value)))
+                (declare! form (js-local form param))
+                (emit! form (list 'assign (js (js-local form param)) value)))
               params entry)
     (if (and (not (twin? form)) (null? (form-doubles form)) (pure-loop-body? form (lambda-body lam))
              (any inexact-constant? (cons (lambda-body lam) entries)))
@@ -1452,7 +1611,7 @@
     (let ((target (enter-inline-loop! form params)))
       (for-each (lambda (param)
                   (if (boxed-local? form param)
-                      (emit! form (list 'assign (js (js-local param)) (js "[" (js-local param) "]")))))
+                      (emit! form (list 'assign (js (js-local form param)) (js "[" (js-local form param) "]")))))
                 params)
       (emit-define-boxes! form (lambda-body lam))
       (set-form-loop-targets! form (cons target (form-loop-targets form)))
@@ -1472,7 +1631,7 @@
 ;;  * @returns {loop-target} The target.
 ;;  */
 (define (enter-inline-loop! form params)
-  (let ((plain (lambda (param value) (list 'assign (js (js-local param)) value))))
+  (let ((plain (lambda (param value) (list 'assign (js (js-local form param)) value))))
     (if (twin? form)
         (let ((head (new-block! form)))
           (emit! form (list 'goto head))
@@ -1590,7 +1749,7 @@
 (define (emit-double form node)
   (case (car node)
     ((const) (js "(" (js-number (inexact (cadr node))) ")"))
-    ((local) (js (js-local (cadr node))))
+    ((local) (js (js-local form (cadr node))))
     (else
      (let ((args (caddr node)))
        (js "(" (emit-double form (car args)) " " (operator-text (inlined-operator form node)) " "
@@ -1617,7 +1776,7 @@
 ;;  * @returns {*} What `thunk` returns.
 ;;  */
 (define (with-double form name init thunk)
-  (emit! form (list 'assign (js (js-local name)) (emit-double form init)))
+  (emit! form (list 'assign (js (js-local form name)) (emit-double form init)))
   (let ((outer (form-doubles form)))
     (set-form-doubles! form (cons name outer))
     (let ((result (thunk)))
@@ -1840,7 +1999,7 @@
   (let* ((intact (map (lambda (index) (js "W" index ".intact"))
                       (delete-duplicates (operator-indices form body))))
          (inexact-test (lambda (param)
-                         (let ((v (js-local param)))
+                         (let ((v (js-local form param)))
                            (js "((typeof " v " === 'number' && !Number.isInteger(" v ")) || " v
                                " instanceof R.Flonum)"))))
          (number (begin (set-form-labels! form (+ (form-labels form) 1))
@@ -1854,7 +2013,7 @@
               (set-form-loop-targets!
                 form
                 (cons (make-loop-target params #t #f
-                                        (lambda (param value) (list 'assign (js (js-local param)) value))
+                                        (lambda (param value) (list 'assign (js (js-local form param)) value))
                                         (list 'text (string-append "continue " label ";")))
                       (form-loop-targets form)))
               (emit-statement! form body)
@@ -1865,7 +2024,7 @@
       (let ((statements
              (append
               (map (lambda (param)
-                     (let ((v (js-local param)))
+                     (let ((v (js-local form param)))
                        (list 'assign (js v) (js "typeof " v " === 'number' ? " v " : " v ".value"))))
                    doubles)
               (if (pair? intact) (list (list 'text (string-append rebound ": {"))) '())
@@ -1883,7 +2042,7 @@
               (if (pair? intact)
                   (cons (list 'text "}")
                         (map (lambda (param)
-                               (list 'assign (js (js-local param)) (js "R.inexactReal(" (js-local param) ")")))
+                               (list 'assign (js (js-local form param)) (js "R.inexactReal(" (js-local form param) ")")))
                              doubles))
                   '()))))
         (emit! form (list 'if (all-of (append (map inexact-test doubles) intact)) statements '()))))))
@@ -2202,21 +2361,21 @@
     (emit-define-boxes! form (lambda-body ir))
     (emit-statement! form (lambda-body ir))
     (let* ((rest (lambda-rest ir))
-           (params (map js-name (lambda-params ir)))
+           (params (map (lambda (p) (js-name u p)) (lambda-params ir)))
            (signature (string-join (append params
-                                           (if rest (list (string-append "..." (js-name rest) "$raw")) '()))
+                                           (if rest (list (string-append "..." (js-name u rest) "$raw")) '()))
                                    ", "))
            (prologue
              (append
                (if rest
-                   (let ((list-expr (string-append "R.listFrom(" (js-name rest) "$raw)")))
-                     (list (string-append "let " (js-name rest) " = "
+                   (let ((list-expr (string-append "R.listFrom(" (js-name u rest) "$raw)")))
+                     (list (string-append "let " (js-name u rest) " = "
                                           (if (boxed-local? form rest)
                                               (string-append "[" list-expr "]")
                                               list-expr)
                                           ";")))
                    '())
-               (map (lambda (p) (string-append (js-name p) " = [" (js-name p) "];"))
+               (map (lambda (p) (string-append (js-name u p) " = [" (js-name u p) "];"))
                     (filter (lambda (p) (boxed-local? form p)) (lambda-params ir)))))
            (declared (reverse (form-declared form)))
            (declaration (if (null? declared)
@@ -2224,7 +2383,7 @@
                             (list (string-append "let " (string-join (map symbol->string declared) ", ") ";"))))
            (body (append-map (lambda (st) (statement-lines form st)) (reverse (form-out form))))
            (entry (append (arity-guard ir)
-                          (depth-entry form (append params (if rest (list (string-append "..." (js-name rest) "$raw")) '())))))
+                          (depth-entry form (append params (if rest (list (string-append "..." (js-name u rest) "$raw")) '())))))
            (items (if (form-loops form)
                       (append declaration entry
                               (list "$loop: for (;;) {" (vector "  " (append prologue body)) "}"))
@@ -2261,8 +2420,8 @@
     (let* ((blocks (map cdr (sort-blocks (filter (lambda (b) (>= (car b) 0)) (form-blocks form)))))
            (rest (lambda-rest ir))
            (slots (delete-duplicates (append (reverse (form-declared form))
-                                             (map js-local (lambda-params ir))
-                                             (if rest (list (js-local rest)) '()))
+                                             (map (lambda (p) (js-local form p)) (lambda-params ir))
+                                             (if rest (list (js-local form rest)) '()))
                                      eq?))
            (live (live-in blocks))
            (sites (reverse (form-sites form))))
@@ -2353,8 +2512,8 @@
 ;;  */
 (define (render-factory u factory proc path lam)
   (let* ((plan (unit-plan u))
-         (params (map js-name (plan-free-of plan lam)))
-         (own (map js-name (plan-self-of plan lam)))
+         (params (map (lambda (v) (js-name u v)) (plan-free-of plan lam)))
+         (own (map (lambda (v) (js-name u v)) (plan-self-of plan lam)))
          ;; A procedure made by a named `let` or an internal definition shows
          ;; as its name; any other, as `anonymous`, as the expander names it.
          (shown (js-string (or (lambda-name lam) "anonymous")))
@@ -2440,7 +2599,7 @@
 ;;  */
 (define (generate-unit ir globals library-globals name guarded)
   (let* ((u (make-unit (plan-lifting ir) globals library-globals (global-indices globals) guarded
-                       '() '() '() '() '()))
+                       '() '() '() '() '() (local-names-for ir)))
          ;; The twin first: generating it decides where each call site resumes
          ;; and what a frame saves there, which the fast form needs in order to
          ;; suspend itself.

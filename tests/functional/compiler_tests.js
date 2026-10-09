@@ -1797,10 +1797,13 @@ export async function runCompilerTests(interpreter, logger) {
           env.define(result.name, result.procedure);
           procedure = result.procedure;
           // The analyzed lambda's parameters, renamed, as generated code
-          // names them (`js-name` in emit.scm), whose plain call gives a
-          // JavaScript string.
+          // names them: a unit names its procedure's parameters first, in
+          // order, so a fresh set of names given them in that order names
+          // them the same (`local-name` in emit.scm, whose plain call gives a
+          // JavaScript string).
           const lambda = ast.valueExpr ?? ast.value;
-          const jsName = (name) => compilerExports().get('js-name')(intern(name));
+          const names = compilerExports().get('make-local-names')();
+          const jsName = (name) => compilerExports().get('local-name')(names, intern(name));
           hasRest = Boolean(lambda.restParam);
           params = [...lambda.params.map(jsName), ...(hasRest ? [jsName(lambda.restParam)] : [])];
         } else {
