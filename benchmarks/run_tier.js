@@ -57,7 +57,10 @@
  * definition (`compiled-when-bound?`); either followed by `/M` for a
  * library's procedures to wait M calls after it loads, however they loop
  * (`library-calls-before-compiling`), where they wait as many as the
- * compiler says. Today's is `2`, which is `2/10`. The policies are
+ * compiler says. Today's is `2`, which is `2/10`. `bound` compiles every
+ * procedure a program binds as soon as it is bound, whatever it does: what a
+ * debugger stepping into a procedure on its first call would need, its code
+ * compiled before it first runs. The policies are
  * interleaved, each program run under every one in turn, round after round,
  * each round starting at the next, so that whatever else the machine is doing
  * falls on them alike; naming one twice measures how far apart two runs of
@@ -65,7 +68,7 @@
  *
  * Usage:
  *   node benchmarks/run_tier.js [--set canonical,tests,corpus,page | all]
- *     [--only name,name] [--runs N] [--policies 2,10,loops:2] [--json]
+ *     [--only name,name] [--runs N] [--policies 2,10,loops:2,bound] [--json]
  */
 
 import fs from 'fs';
@@ -102,7 +105,7 @@ const JSON_OUT = args.includes('--json');
 
 /**
  * The policies to measure, as `--policies` names them.
- * @type {Array<{label: string, wait: number, loopsOnly: boolean}>}
+ * @type {Array<{label: string, wait: number, loopsOnly: boolean, always: boolean}>}
  */
 /**
  * How many calls a library's procedures wait, as the compiler has it now.
@@ -111,9 +114,13 @@ const JSON_OUT = args.includes('--json');
 const LIBRARY_WAIT = Number(compilerEnvironment().env.lookup('library-calls-before-compiling'));
 
 const POLICIES = valueOf('--policies', '2').split(',').map((spec) => {
+  if (spec === 'bound') return { label: spec, wait: 2, loopsOnly: false, always: true, libraryWait: LIBRARY_WAIT };
   const match = /^(loops:)?([0-9]+)(?:\/([0-9]+))?$/.exec(spec);
-  if (match === null) throw new Error(`a policy is N or loops:N, then /M if it says, not ${spec}`);
-  return { label: spec, wait: Number(match[2]), loopsOnly: match[1] !== undefined, libraryWait: Number(match[3] ?? LIBRARY_WAIT) };
+  if (match === null) throw new Error(`a policy is N, loops:N or bound, then /M if it says, not ${spec}`);
+  return {
+    label: spec, wait: Number(match[2]), loopsOnly: match[1] !== undefined, always: false,
+    libraryWait: Number(match[3] ?? LIBRARY_WAIT)
+  };
 });
 
 for (const set of SETS) {
@@ -127,16 +134,24 @@ for (const set of SETS) {
 const loopsOrProcedures = compilerEnvironment().env.lookup('compiled-when-bound?');
 
 /**
+ * The rule the `bound` policy compiles at definition by: every procedure.
+ * @returns {boolean}
+ */
+const everyProcedure = () => true;
+everyProcedure[SCHEME_PRIMITIVE] = true;
+
+/**
  * Sets the tier's policy: both parts are globals of the compiler's library,
  * which its compiled code reads through their cells, so a change applies from
  * the next decision on.
- * @param {{wait: number, loopsOnly: boolean, libraryWait: number}} policy - The policy.
+ * @param {{wait: number, loopsOnly: boolean, always: boolean, libraryWait: number}} policy - The policy.
  */
 function usePolicy(policy) {
   const { env } = compilerEnvironment();
   env.set('calls-before-compiling', BigInt(policy.wait));
   env.set('library-calls-before-compiling', BigInt(policy.libraryWait));
-  env.set('compiled-when-bound?', policy.loopsOnly ? env.lookup('contains-loop?') : loopsOrProcedures);
+  env.set('compiled-when-bound?',
+    policy.always ? everyProcedure : policy.loopsOnly ? env.lookup('contains-loop?') : loopsOrProcedures);
 }
 
 // =============================================================================

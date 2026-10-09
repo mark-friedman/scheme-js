@@ -3861,3 +3861,23 @@ the forced collection, with no deep call at all. What V8 held them by was not fo
 *Consequence:* the test allocates before collecting, which still fails it for a library held by a
 `WeakRef` or held strongly, both checked. A test that observes collection in one job allocates
 before it collects.
+
+**R144. Compiling every definition as it is made does not cost a millisecond each.**
+
+The tier compiles a procedure on its second call, unless it loops or makes procedures, because
+"generating a procedure's code costs about a millisecond, so compiling every definition as it is
+made would cost a page with five hundred of them half a second before anything ran"
+(`src/compiler/tier.scm`). Measured with every procedure a program binds compiled as it is bound
+(`benchmarks/run_tier.js --policies 2,bound`, best of three): the canonical suite's 45 programs
+compiled 359 procedures more, and ran 20.6 ms longer in all, 4221.3 against 4200.7; the repository's
+79 test files 227 more, 41.0 ms longer, 1677.0 against 1636.0, the most for one file 3.4 ms; the
+corpus's 23 programs none more, their libraries' procedures waiting for calls however a definition is
+compiled, 13.0 ms longer; the three page-shaped programs none more, all 51 of their procedures being
+compiled either way. The procedures the rule leaves alone cost 0.08 to 0.19 ms each: five hundred,
+40 to 95 ms. What a page pays for compiling as it defines is another thing: the compiler arrives
+91 ms after the page's first script has run (`benchmarks/run_startup.js`, median of seven, 294.5
+against 203.2 ms), and a page compiling its first definitions would wait for it.
+
+*Consequence:* the rule stands, for what compiling everything would buy a program run normally is
+nothing, but the reason is the order of magnitude smaller: the cost of compiling at definition is
+the page's wait for the compiler, not the compiling.

@@ -14706,3 +14706,24 @@ a range of code by the source position it maps to, so a step over the use would 
 template's lines as well, until source map scopes can mark an expansion as an inlined range.
 
 No JavaScript under `src/` was added or grown.
+
+# Task 84: what compiling a page's code as it is defined would cost (2026-10-09)
+
+Measured for stage (d), asked by the user before choosing how DevTools debugging turns it on: a step
+into a procedure on its first call passes it by, the tier compiling it only on its second.
+`benchmarks/run_tier.js` gained a policy, `bound`, under which every procedure a program binds is
+compiled as it is bound. Against today's (`--policies 2,bound`, best of three): the canonical suite
+4221.3 ms against 4200.7, 359 procedures more compiled; the test files 1677.0 against 1636.0, 227
+more, at most 3.4 ms more for one; the corpus 3104.2 against 3091.2, none more; the page-shaped
+programs 179.7 against 178.9, none more. So 0.08 to 0.19 ms for each procedure the tier would have
+left, an order of magnitude below the millisecond `src/compiler/tier.scm` gives (R144). On a page, the
+compiler arrives 91 ms after the first script has run (`benchmarks/run_startup.js`, median of seven):
+compiling from the first definition would hold the page's scripts that long.
+
+Found on the way: under `bound`, `tests/tiers/tier_compiles_tests.scm` fails one check, which assumes
+a procedure called once runs interpreted; compiled, its `set!` of a top-level name is not reported to
+the tier, so the loop it assigns is never compiled -- as today wherever the assigning procedure is
+compiled first. And a user's own library's procedures wait for calls once it has loaded, `bound` or
+not, since none can be compiled while it loads.
+
+No JavaScript under `src/` was added or grown.
