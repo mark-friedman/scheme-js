@@ -70,14 +70,16 @@ const buildProcedures = {
    * Runs a thunk with a library registry of its own, empty, current: what it
    * loads is found by nothing outside it (`withPrivateLibraries`).
    * @param {procedure} resolver - Called with a library's name, or a file's
-   *   path, as a list of strings; answers the file's text.
+   *   path, as a list of strings -- and, for a file a library includes, the
+   *   library's name too; answers the file's text.
    * @param {procedure|boolean} hook - Called with each library loaded, by
    *   name, and its environment; or #f.
    * @param {procedure} thunk - What to run.
    * @returns {*} What the thunk returns.
    */
   'with-private-libraries': (resolver, hook, thunk) => withPrivateLibraries({
-    resolver: (parts) => stringValue(callSchemeProcedure(resolver, [list(...parts)])),
+    resolver: (parts, library) => stringValue(callSchemeProcedure(resolver,
+      library === undefined ? [list(...parts)] : [list(...parts), list(...library)])),
     hook: hook === false ? null : (name, env) => { callSchemeProcedure(hook, [list(...name), env]); }
   }, () => {
     loading.push(createInterpreter());

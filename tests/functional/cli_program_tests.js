@@ -44,6 +44,19 @@ export async function runCliProgramTests(logger) {
     assert(logger, 'a program with no import declarations sees everything', [none.status, none.stdout], [0, '(2)']);
     assert(logger, 'code given with -e that begins with import declarations sees nothing else either',
       [expression.status, /unbound variable: cdr/.test(expression.stderr)], [1, true]);
+
+    // The CLI looks for libraries in the directory it runs in first; a file
+    // there named like one a library of the system's includes is not
+    // included in its place: what a library includes is found beside it.
+    logger.title('CLI - run beside files named like what the system\'s libraries include');
+    const beside = path.join(dir, 'beside');
+    fs.mkdirSync(beside);
+    fs.writeFileSync(path.join(beside, 'list.scm'), '(this is not the list library\n');
+    fs.writeFileSync(path.join(beside, 'numbers.scm'), '(this is not the numbers library\n');
+    const there = await runCli([program('there.scm', '(import (scheme base) (scheme write)) (write (list 1 2))')],
+      { cwd: beside });
+    assert(logger, 'a program run there sees the system\'s libraries as they are',
+      [there.status, there.stdout, there.stderr], [0, '(1 2)', '']);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

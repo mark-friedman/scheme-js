@@ -809,7 +809,11 @@ make that possible, and each is a choice the rest of the system has to keep true
 **Every form that runs is compiled, and nothing else is needed.** The build loads the program's
 libraries from their source in a registry of its own, noting each top-level form with the core form
 it expanded into, as the prebuilt tables' build does, and expands the program's own forms without
-running them. Each core form is items, in order: a procedure's definition, bound to compiled code; a
+running them. It looks for a library's file in the program's directory, then the `-I` ones, then
+the system's, and for a file a library includes beside the library's own file first, as most
+Schemes resolve an include relative to the file that includes it (`library-resolver` in
+`scripts/lib/prebuild.scm`): a file of the program's named like one a library of the system's
+includes, `list.scm` say, is not taken for it. Each core form is items, in order: a procedure's definition, bound to compiled code; a
 value's, computed by a compiled thunk; a form run for its effect, the same. A macro's definition
 expands into nothing, and an expanded program uses no macro, so neither the expander nor the macros'
 transformers are carried. A library's few values -- the current ports' cells, `equal-tree-budget`

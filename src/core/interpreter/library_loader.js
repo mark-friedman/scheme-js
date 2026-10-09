@@ -97,11 +97,12 @@ function loaderFor(analyze, interpreter, baseEnv, files = null) {
     const evaluate = evaluator(analyze, interpreter);
     if (files === null) return callLibrarySystem('registry-loader', registry, baseEnv, evaluate);
     const resolver = getFileResolver();
-    const resolve = (path) => {
+    const resolve = (path, library) => {
         const parts = toArray(path).map(stringValue);
         const key = parts.join('/');
         if (files.has(key)) return files.get(key);
-        return resolver === null ? false : resolveNow(resolver, parts);
+        if (resolver === null) return false;
+        return resolveNow(resolver, parts, library === undefined ? undefined : toArray(library).map(stringValue));
     };
     resolve[SCHEME_PRIMITIVE] = true;
     return callLibrarySystem('make-loader', registry, resolve, baseEnv, evaluate);

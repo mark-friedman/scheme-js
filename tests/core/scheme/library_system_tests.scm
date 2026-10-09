@@ -137,15 +137,16 @@
 ;;  * run by `eval`.
 ;;  * @param {list} files - Each file, `(path . text)`, its path a list of
 ;;  *   strings.
-;;  * @param {procedure} [asked] - Called with each path the resolver is asked
-;;  *   for.
+;;  * @param {procedure} [asked] - Called with what the resolver is asked
+;;  *   for: each path, and for a file a library includes, the path of the
+;;  *   library's own file too.
 ;;  * @returns {loader}
 ;;  */
 (define (loader-over files . asked)
   (let* ((registry (make-library-registry #f #f '(r7rs)))
          (loader (make-loader registry
-                              (lambda (path)
-                                (if (pair? asked) ((car asked) path))
+                              (lambda (path . library)
+                                (if (pair? asked) (apply (car asked) path library))
                                 (cond ((assoc path files) => cdr)
                                       (else (error "no such file" path))))
                               (interaction-environment)
@@ -205,13 +206,41 @@
 
 (test-group "library system - a library is loaded once"
   (define asked '())
-  (define loader (loader-over test-files (lambda (path) (set! asked (cons path asked)))))
+  (define loader (loader-over test-files (lambda (path . library) (set! asked (cons path asked)))))
   (load-library loader '(test b))
   (load-library loader '(test a))
   (load-library loader '(test b))
   (test "each file read once, a library's imports before its includes"
         '(("test" "b") ("test" "a") ("test" "b.scm"))
         (reverse asked)))
+
+(test-group "library system - a file a library includes is asked for beside the library"
+  ;; A resolver that looks in several places is told, with the path of a file
+  ;; a library includes, the path it was asked for the library's own file by,
+  ;; so that it can look where it found that file first: a file named like
+  ;; one a library of the system's includes, elsewhere, is not taken for it.
+  (define asked '())
+  (define loader (loader-over test-files (lambda request (set! asked (cons request asked)))))
+  (load-library loader '(test b))
+  (load-library loader '(test ci))
+  (load-library loader '(test decls))
+  (test "a library's own file by its path; what it includes, and its files of declarations, with the library's too"
+        '((("test" "b")) (("test" "a")) (("test" "b.scm") ("test" "b"))
+          (("test" "ci")) (("test" "ci.scm") ("test" "ci"))
+          (("test" "decls")) (("test" "decls.scm") ("test" "decls")))
+        (reverse asked))
+  ;; A restorer standing for a table of (test b) built from other text: the
+  ;; files it names are fetched to be fingerprinted, and it declines.
+  (test "and so is each file a table was built from, fetched to be fingerprinted"
+        '((("test" "b")) (("test" "b.scm") ("test" "b"))
+          (("test" "b")) (("test" "a")) (("test" "b.scm") ("test" "b")))
+        (let* ((fetched '())
+               (restoring (loader-over test-files (lambda request (set! fetched (cons request fetched))))))
+          (set-registry-restorer! (loader-registry restoring)
+                                  (lambda (name texts)
+                                    (and (equal? name '("test" "b")) (not texts) '("b.sld" "b.scm"))))
+          (load-library restoring '(test b))
+          (reverse fetched))))
 
 (test-group "library system - closures run compiled, and as themselves for a debugger"
   ;; A closure run compiled, here as another procedure standing in for what
@@ -270,7 +299,7 @@
       (register-exports! registry "test.arithmetic" (list (cons '+ +)) #f)
       (register-exports! registry "scheme-js.special-forms" '() #f)
       (make-loader registry
-                   (lambda (path) (and (member path paths) (cdr (assoc path test-files))))
+                   (lambda (path . library) (and (member path paths) (cdr (assoc path test-files))))
                    #f #f)))
   (define (wanted paths name) (files-wanted (loader-with paths) name))
   (test "with nothing at hand, the library's own file" '(("test" "b")) (wanted '() '(test b)))
