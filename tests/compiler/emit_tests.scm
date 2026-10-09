@@ -40,11 +40,30 @@
     (let ((lowered (lower-lambda (analyze-lambda definition))))
       (car (generate-unit (lowered-ir lowered) (lowered-globals lowered)
                           (lowered-library-globals lowered) "f" '()))))
-  ;; The procedure nested in the first operand is generated before the
-  ;; parameter is first read, in the second.
-  (test "a unit names its locals in the order they are bound, so a parameter keeps its name" #t
-        (let ((text (unit-text '(define (f x) (cons (lambda () (let ((x (car (list 1)))) x)) x)))))
+  (define (count-in text part)
+    (let loop ((from 0) (n 0))
+      (let ((at (string-contains text part from)))
+        (if at (loop (+ at 1) (+ n 1)) n))))
+  ;; The `let` in the first operand is generated before the parameter is
+  ;; first read, in the second.
+  (test "a procedure's locals are named in the order they are bound, so a parameter keeps its name" #t
+        (let ((text (unit-text '(define (f x) (cons (let ((x (car (list 1)))) x) x)))))
           (and (string-contains text "function (x)")
+               (string-contains text "x_2 = ")
+               #t)))
+  (test "and so are a loop's, which are its procedure's own" #t
+        (let ((text (unit-text '(define (f x) (let loop ((x x)) (if (pair? x) (loop (cdr x)) x))))))
+          (and (string-contains text "function (x)")
+               (string-contains text "x_2 = x;")
+               #t)))
+  ;; A nested procedure is a function of its own, beside its parent, not
+  ;; inside it: its names are kept apart from its parent's.
+  (test "a nested procedure's local may have the name of one of its parent's" '(2 #f)
+        (let ((text (unit-text '(define (f x) (cons (lambda (x) (car x)) x)))))
+          (list (count-in text "function (x)") (and (string-contains text "x_2") #t))))
+  (test "but not that of a free variable, which its factory takes, and which keeps its name" #t
+        (let ((text (unit-text '(define (f x) (lambda () (cons x (let ((x (car (list 1)))) x)))))))
+          (and (string-contains text "$mk$fn0(x)")
                (string-contains text "x_2 = ")
                #t))))
 

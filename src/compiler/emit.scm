@@ -77,14 +77,19 @@
 ;; JavaScript allows, since a debugger shows the generated code's variables:
 ;; `items`, `found_p` and `list_to_vector`, not `items_$12`. The expander's
 ;; number is dropped, and a character JavaScript does not allow in an
-;; identifier is spelled with a word, or with its code. That can leave two
-;; locals of a unit with one name -- `x` bound twice, or `a-b` beside `a_b` --
-;; and the later one bound gets a suffix, `x_2`: a unit's locals are named in
-;; the order the source binds them (`local-names-for`), before any code is
-;; generated, so a parameter keeps its name when the body binds it again. The
-;; names are a unit's own, kept in it (`unit-names`): a unit's nested
-;; procedures are emitted beside it as factories, not inside it, so a name
-;; only has to be unique in its unit.
+;; identifier is spelled with a word, or with its code.
+;;
+;; A name only has to be unique in the JavaScript function it is a variable
+;; of, and each procedure the unit lifts is a function of its own, emitted
+;; beside its parent as a factory rather than inside it: a nested procedure's
+;; `x` and its parent's are both `x`, each shown in its own frame. Inside one
+;; function, though, two locals spelled alike -- `x` bound twice, or `a-b`
+;; beside `a_b` -- must be told apart, since a frame saved while both are live
+;; holds both, by name; the later one bound gets a suffix, `x_2`. A function's
+;; locals are named in the order the source binds them (`local-names-for`),
+;; before any code is generated, so a parameter keeps its name when the body
+;; binds it again, and a factory's free variables keep theirs. Each function's
+;; names are kept in the unit (`function-names`).
 ;;
 ;; The emitter's own names are kept apart from them. They begin with `$` --
 ;; temporaries, the runtime values a unit declares, its functions and labels
@@ -232,39 +237,79 @@
        (string-every char-numeric? name 1)))
 
 ;; /**
-;;  * The names of a unit's locals, given in the order the source binds them: a
-;;  * procedure's parameters, then what its body binds, each binding before
-;;  * what is inside it. A local the lowering made, which none of these binds,
-;;  * is named where the code first reads it.
-;;  * @param {list} ir - The unit's lambda IR node.
+;;  * The names of the locals of the function a procedure of a unit is emitted
+;;  * as, worked out the first time they are asked for.
+;;  * @param {unit} u - The unit.
+;;  * @param {list} lam - The procedure's lambda IR node: the unit's own, or
+;;  *   one it lifts.
 ;;  * @returns {local-names}
 ;;  */
-(define (local-names-for ir)
-  (let ((names (make-local-names)))
-    (for-each (lambda (local) (local-name names local)) (bound-in-order ir))
+(define (function-names u lam)
+  (or (weak-table-ref (unit-names u) lam)
+      (let ((names (local-names-for u lam)))
+        (weak-table-set! (unit-names u) lam names)
+        names)))
+
+;; /**
+;;  * The names of a procedure's function's locals, given in the order the
+;;  * source binds them: what its factory takes -- its free variables, and the
+;;  * name it binds itself by -- then its parameters, then what its body binds,
+;;  * each binding before what is inside it. A local the lowering made, which
+;;  * none of these binds, is named where the code first reads it.
+;;  * @param {unit} u - The unit.
+;;  * @param {list} lam - The procedure's lambda IR node.
+;;  * @returns {local-names}
+;;  */
+(define (local-names-for u lam)
+  (let ((names (make-local-names))
+        (plan (unit-plan u)))
+    (for-each (lambda (local) (local-name names local))
+              (append (plan-free-of plan lam)
+                      (plan-self-of plan lam)
+                      (parameters-in-order lam)
+                      (bound-in-order (lambda-body lam))))
     names))
 
 ;; /**
-;;  * The locals a subtree binds, each binding before what is inside it.
+;;  * A lambda's parameters, its rest parameter last.
+;;  * @param {list} lam - A lambda IR node.
+;;  * @returns {list} The names.
+;;  */
+(define (parameters-in-order lam)
+  (if (lambda-rest lam)
+      (append (lambda-params lam) (list (lambda-rest lam)))
+      (lambda-params lam)))
+
+;; /**
+;;  * The locals a subtree binds in the function it is emitted in, each binding
+;;  * before what is inside it. A loop emitted inline is part of that function,
+;;  * its parameters among its locals, and its name never a variable; any other
+;;  * nested procedure is a function of its own.
 ;;  * @param {list} node - An IR node.
 ;;  * @returns {list} The locals.
 ;;  */
 (define (bound-in-order node)
-  (append (case (car node)
-            ((lambda) (append (lambda-params node)
-                              (if (lambda-rest node) (list (lambda-rest node)) '())))
-            ((let define) (list (cadr node)))
-            ((letrec) (cadr node))
-            (else '()))
-          (append-map bound-in-order (ir-children node))))
+  (define (inside node) (append-map bound-in-order (ir-children node)))
+  (case (car node)
+    ((lambda) '())
+    ((let define) (cons (cadr node) (inside node)))
+    ((letrec)
+     (if (letrec-inline? node)
+         (let ((lam (car (caddr node))))
+           (append (parameters-in-order lam)
+                   (bound-in-order (lambda-body lam))
+                   (bound-in-order (cadddr node))))
+         (append (cadr node) (inside node))))
+    (else (inside node))))
 
 ;; /**
-;;  * A local's JavaScript name in a unit.
-;;  * @param {unit} u - The unit.
+;;  * A local's JavaScript name in the function an emission makes.
+;;  * @param {form} form - The emission.
 ;;  * @param {symbol} name - A renamed Scheme local.
 ;;  * @returns {string} A JavaScript identifier.
 ;;  */
-(define (js-name u name) (local-name (unit-names u) name))
+(define (js-name form name)
+  (local-name (function-names (form-unit form) (form-ir form)) name))
 
 ;; /**
 ;;  * The symbol that stands for a Scheme local in an expression.
@@ -272,7 +317,7 @@
 ;;  * @param {symbol} name - A renamed Scheme local.
 ;;  * @returns {symbol} Its JavaScript name, as a symbol.
 ;;  */
-(define (js-local form name) (string->symbol (js-name (form-unit form) name)))
+(define (js-local form name) (string->symbol (js-name form name)))
 
 ;; ---------------------------------------------------------------------------
 ;; JavaScript text
@@ -519,7 +564,7 @@
   (let* ((rest (lambda-rest (form-ir form)))
          ;; Arguments arrive on the stack, and a rest parameter's can be any
          ;; number: `apply` spreading a long list is the case.
-         (spread (if (and rest (not (twin? form))) (string-append " - " (js-name (form-unit form) rest) "$raw.length") ""))
+         (spread (if (and rest (not (twin? form))) (string-append " - " (js-name form rest) "$raw.length") ""))
          (depth (lambda ()
                   (string-append "const $d = " (runtime form '$stack) ".room - "
                                  (number->string (frame-size form)) spread ";"))))
@@ -610,7 +655,8 @@
 ;;  * the lowering gave it, from the library's environment (`library-global-key`
 ;;  * in ir.scm) -- the constant pool, the factories emitted so
 ;;  * far, where each call site resumes, the runtime values its code names
-;;  * (see `runtime`), and its locals' names (see `local-name`).
+;;  * (see `runtime`), and each of its functions' locals' names (see
+;;  * `function-names`).
 ;;  *
 ;;  * A call site's resume block and saved locals are decided by the twin,
 ;;  * which is generated first, and read by the fast form, which has to spill
@@ -2361,21 +2407,21 @@
     (emit-define-boxes! form (lambda-body ir))
     (emit-statement! form (lambda-body ir))
     (let* ((rest (lambda-rest ir))
-           (params (map (lambda (p) (js-name u p)) (lambda-params ir)))
+           (params (map (lambda (p) (js-name form p)) (lambda-params ir)))
            (signature (string-join (append params
-                                           (if rest (list (string-append "..." (js-name u rest) "$raw")) '()))
+                                           (if rest (list (string-append "..." (js-name form rest) "$raw")) '()))
                                    ", "))
            (prologue
              (append
                (if rest
-                   (let ((list-expr (string-append "R.listFrom(" (js-name u rest) "$raw)")))
-                     (list (string-append "let " (js-name u rest) " = "
+                   (let ((list-expr (string-append "R.listFrom(" (js-name form rest) "$raw)")))
+                     (list (string-append "let " (js-name form rest) " = "
                                           (if (boxed-local? form rest)
                                               (string-append "[" list-expr "]")
                                               list-expr)
                                           ";")))
                    '())
-               (map (lambda (p) (string-append (js-name u p) " = [" (js-name u p) "];"))
+               (map (lambda (p) (string-append (js-name form p) " = [" (js-name form p) "];"))
                     (filter (lambda (p) (boxed-local? form p)) (lambda-params ir)))))
            (declared (reverse (form-declared form)))
            (declaration (if (null? declared)
@@ -2383,7 +2429,7 @@
                             (list (string-append "let " (string-join (map symbol->string declared) ", ") ";"))))
            (body (append-map (lambda (st) (statement-lines form st)) (reverse (form-out form))))
            (entry (append (arity-guard ir)
-                          (depth-entry form (append params (if rest (list (string-append "..." (js-name u rest) "$raw")) '())))))
+                          (depth-entry form (append params (if rest (list (string-append "..." (js-name form rest) "$raw")) '())))))
            (items (if (form-loops form)
                       (append declaration entry
                               (list "$loop: for (;;) {" (vector "  " (append prologue body)) "}"))
@@ -2512,8 +2558,9 @@
 ;;  */
 (define (render-factory u factory proc path lam)
   (let* ((plan (unit-plan u))
-         (params (map (lambda (v) (js-name u v)) (plan-free-of plan lam)))
-         (own (map (lambda (v) (js-name u v)) (plan-self-of plan lam)))
+         (names (function-names u lam))
+         (params (map (lambda (v) (local-name names v)) (plan-free-of plan lam)))
+         (own (map (lambda (v) (local-name names v)) (plan-self-of plan lam)))
          ;; A procedure made by a named `let` or an internal definition shows
          ;; as its name; any other, as `anonymous`, as the expander names it.
          (shown (js-string (or (lambda-name lam) "anonymous")))
@@ -2599,7 +2646,7 @@
 ;;  */
 (define (generate-unit ir globals library-globals name guarded)
   (let* ((u (make-unit (plan-lifting ir) globals library-globals (global-indices globals) guarded
-                       '() '() '() '() '() (local-names-for ir)))
+                       '() '() '() '() '() (make-weak-table)))
          ;; The twin first: generating it decides where each call site resumes
          ;; and what a frame saves there, which the fast form needs in order to
          ;; suspend itself.

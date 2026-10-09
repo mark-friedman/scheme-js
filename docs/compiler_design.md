@@ -86,19 +86,22 @@ own property leaves all its properties slow to read (R110), and compiled code re
 every call. V8 removes the object literal, so making a closure costs what it did.
 
 A debugger shows a paused frame's variables by their names in the generated code, so a Scheme local
-is named there as it was written, as near as JavaScript allows (`local-name` in `emit.scm`): `items`,
-`found_p` for `found?`, `list_to_vector`, rather than the expander's `items_$12`. A character
-JavaScript does not allow is spelled with a word, or with its code; two locals of one unit spelled
-alike -- `x` bound twice, or `a-b` beside `a_b` -- are told apart by a suffix on the later one bound,
-`x_2`, since a unit names its locals in the order the source binds them before generating any code,
-so a parameter keeps its name; and a name the generated code or JavaScript already uses -- a reserved word, `arguments`,
-`undefined`, the runtime `R` or a global's cell `C0` -- takes a trailing `_`. The emitter's own
-names all begin with `$` or are a capital and digits, and no local's has a `$`, so the two never
-meet. A unit's names are its own: its nested procedures are emitted beside it as factories, not
-inside it, so a name only has to be unique in its unit. The source maps give no names, and DevTools'
-Scope pane shows the generated ones (`tests/devtools/`). The source map scopes proposal would give
-it the exact names, `found?`, and hide the temporaries; Chrome 146 reads scopes only behind an
-experiment.
+is named there as it was written, as near as JavaScript allows (`local-name` in `emit.scm`):
+`items`, `found_p` for `found?`, `list_to_vector`, rather than the expander's `items_$12`. A
+character JavaScript does not allow is spelled with a word, or with its code. A name need only be
+unique in its JavaScript function, and each procedure the unit lifts is a function of its own,
+beside its parent: a nested procedure's `x` and its parent's are both `x`, each in its own frame.
+Two locals of one function spelled alike -- `x` bound twice, or `a-b` beside `a_b` -- are told apart
+by a suffix on the later one bound, `x_2`, since a frame saved while both are live holds both by
+name; a function's locals are named in the order the source binds them before any code is generated,
+so a parameter, or a factory's free variable, keeps its name. Showing both as `x`, in nested scopes,
+as DevTools shows JavaScript's blocks, is what the source map scopes would do. And a name the
+generated code or JavaScript already uses -- a reserved word, `arguments`, `undefined`, the runtime
+`R` or a global's cell `C0` -- takes a trailing `_`. The emitter's own names all begin with `$` or
+are a capital and digits, and no local's has a `$`, so the two never meet. The source maps give no
+names, and DevTools' Scope pane shows the generated ones (`tests/devtools/`). The source map scopes
+proposal would give it the exact names, `found?`, and hide the temporaries; Chrome 146 reads scopes
+only behind an experiment.
 
 Code generated as a program runs is given a `//# sourceURL=scheme:///<file>/<procedure>`, the file
 being the one the procedure was read from, or else its library, or else `program`

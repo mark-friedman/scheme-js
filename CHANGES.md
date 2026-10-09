@@ -14643,3 +14643,25 @@ build a twin's frame by its parameters' names call. The prebuilt tables were reg
 compiler's generated code is 3293 KB, down from 3480.
 
 No JavaScript under `src/` was added or grown.
+
+# Task 84: a local's name need only be unique in its own function (2026-10-09)
+
+Decided with the user. The readable names (the entry above) were given per unit, so a procedure nested
+in another, with a local of a name its parent also binds, showed it as `x_2`. But a name need only be
+unique in its JavaScript function, and each procedure a unit lifts is a function of its own, emitted
+beside its parent as a factory, not inside it: DevTools shows each frame's locals apart, as it does
+any two functions'. So each function now has its own names (`function-names` in
+`src/compiler/emit.scm`): a lifted procedure's, given first to what its factory takes -- its free
+variables, and the name it binds itself by -- then its parameters, then its body's bindings; a loop
+emitted inline is part of the function it is in. A suffix remains only where one function binds a
+name twice, as in `(let ((x 1)) (let ((x 2)) (f x)) x)`, where a frame saved at the call must hold
+both, by name. Showing both as `x`, in nested scopes, as DevTools shows JavaScript's blocks, is left
+to the source map scopes; laying out a procedure in JavaScript blocks was weighed with the user and
+set aside: the resumable form's `switch` cannot keep a block across its cases, the liveness that
+decides a frame works on the generated names, and a block hides the variable a frame must still save.
+
+Tested in `tests/compiler/emit_tests.scm`: a nested procedure's local named as its parent's is, a
+free variable keeping its name ahead of a local of the nested procedure's own, and a loop's variables
+named among its procedure's.
+
+No JavaScript under `src/` was added or grown.

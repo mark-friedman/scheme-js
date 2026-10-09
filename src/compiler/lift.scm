@@ -14,14 +14,14 @@
 ;;; Each nested procedure is emitted once, at the top level of the generated
 ;;; unit, as a factory taking its free variables:
 ;;;
-;;;     function $mk$fn0(s_a, s_b) {
-;;;       function $fn0(s_x) { ... uses s_a, s_b, and $fn0 for recursion ... }
+;;;     function $mk$fn0(a, b) {
+;;;       function $fn0(x) { ... uses a, b, and $fn0 for recursion ... }
 ;;;       function $fn0$r($pc, $f) { ... }
 ;;;       $fn0.$resume = $fn0$r;
 ;;;       return $fn0;
 ;;;     }
 ;;;
-;;; and created with `$t5 = $mk$fn0(s_a, s_b)`. Every form of every parent
+;;; and created with `$t5 = $mk$fn0(a, b)`. Every form of every parent
 ;;; shares that one emission, so code size is linear in the program rather than
 ;;; exponential in its nesting. Variable *references* do not change, which is
 ;;; what makes this cheap: the inner function closes over the factory's
