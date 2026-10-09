@@ -16,7 +16,8 @@ import { parse } from '../../src/core/interpreter/reader.js';
 import { analyze } from '../../src/core/interpreter/expand.js';
 import { writeString } from '../../src/core/primitives/io/printer.js';
 import { settle } from '../../src/compiler/runtime.js';
-import { attachTier, detachTier } from '../../src/compiler/tiering.js';
+import { attachTier, detachTier, setEagerCompiling } from '../../src/compiler/tiering.js';
+import { SCHEME_PRIMITIVE } from '../../src/core/interpreter/values.js';
 import { isCompiledOver, withPrivateLibraries, getLibraryEnv } from '../../src/core/interpreter/library_registry.js';
 import { BUNDLED_SOURCES } from '../../src/packaging/bundled_libraries.js';
 import { installLibraryTable } from '../../src/compiler/prebuilt.js';
@@ -290,6 +291,80 @@ export async function runTieringTests(logger) {
     assert(logger, 'a breakpoint inside it pauses', paused, 1);
     assert(logger, 'and the program then finishes', writeString(result), '30');
     assert(logger, 'and it is compiled again after', t.compiled('poke'), true);
+  }
+
+  logger.title('Tiering - Compiling Every Procedure, for DevTools');
+  {
+    // Whether each call noted ran compiled: compiled code is a function named
+    // for its procedure, which a stack trace taken inside it shows, while
+    // interpreted code shows only the interpreter's functions.
+    const stacks = [];
+    const noting = (t) => {
+      const note = () => { stacks.push(new Error().stack); return true; };
+      note[SCHEME_PRIMITIVE] = true;
+      t.env.define('note-stack!', note);
+    };
+    const ranCompiled = (name) => stacks.at(-1).split('\n').some((line) => line.trim().startsWith(`at ${name} (`));
+
+    const plain = tiered();
+    noting(plain);
+    plain.run('(define (dt-plain x) (note-stack!) (* x x))');
+    plain.run('(dt-plain 1)');
+    const firstPlain = ranCompiled('dt-plain');
+    plain.run('(dt-plain 2)');
+    assert(logger, 'a procedure\'s first call runs interpreted; its second, which compiles it, runs compiled',
+      [firstPlain, ranCompiled('dt-plain')], [false, true]);
+
+    const t = tiered({ eager: true });
+    noting(t);
+    t.run('(define (dt-square x) (note-stack!) (* x x))');
+    assert(logger, 'compiling every procedure, one that neither loops nor makes procedures is compiled when it is defined',
+      t.compiled('dt-square'), true);
+    assert(logger, 'and its first call runs compiled', [t.run('(dt-square 3)'), ranCompiled('dt-square')], ['9', true]);
+    const before = Number(t.tier.expressions);
+    assert(logger, 'a top-level form that does not loop is compiled too', [t.run('(list 1 2)'), Number(t.tier.expressions)],
+      ['(1 2)', before + 1]);
+    t.interpreter.interpretForDebugger(true);
+    t.run('(define (dt-debugged x) (+ x 1))');
+    assert(logger, 'but nothing is compiled while the program is being debugged in the REPL', t.compiled('dt-debugged'), false);
+    t.interpreter.interpretForDebugger(false);
+
+    const later = tiered();
+    noting(later);
+    later.run('(define (dt-once x) (note-stack!) (+ x 1))');
+    later.run('(define (dt-never x) (note-stack!) (+ x 2))');
+    later.run('(dt-once 1)');
+    assert(logger, 'turned on as the program runs', setEagerCompiling(later.interpreter, true), true);
+    assert(logger, 'the procedures waiting for their calls are compiled at once, one never called and one called once',
+      [later.compiled('dt-never'), later.compiled('dt-once')], [true, true]);
+    later.run('(dt-never 1)');
+    assert(logger, 'and the next call runs compiled', ranCompiled('dt-never'), true);
+    later.run('(define (dt-after x) (+ x 3))');
+    assert(logger, 'and one defined after is compiled when it is defined', later.compiled('dt-after'), true);
+    setEagerCompiling(later.interpreter, false);
+    later.run('(define (dt-off x) (+ x 4))');
+    later.run('(dt-off 1)');
+    assert(logger, 'turned off, the tier waits for calls again', later.compiled('dt-off'), false);
+    assert(logger, 'with no tier attached, there is nothing to turn on',
+      setEagerCompiling(createInterpreter().interpreter, true), false);
+  }
+  {
+    // A library's procedures cannot be compiled while it loads, so they are
+    // compiled at their first call after.
+    const bundled = (name) => BUNDLED_SOURCES[`${name[name.length - 1]}.sld`] ?? BUNDLED_SOURCES[name[name.length - 1]];
+    const seen = withPrivateLibraries({ resolver: bundled }, () => {
+      const t = tiered({ eager: true });
+      t.run(`(define-library (tier eager)
+               (export eager-inc)
+               (import (scheme base))
+               (begin (define (eager-inc x) (+ x 1))))`);
+      t.run('(import (tier eager))');
+      const loaded = t.compiled('eager-inc');
+      const answer = t.run('(eager-inc 1)');
+      return { loaded, answer, called: t.compiled('eager-inc') };
+    });
+    assert(logger, "compiling every procedure, a library's is not compiled while the library loads", seen.loaded, false);
+    assert(logger, 'but at its first call after', [seen.answer, seen.called], ['2', true]);
   }
 
   logger.title('Tiering - Attaching to a Program Already Running');

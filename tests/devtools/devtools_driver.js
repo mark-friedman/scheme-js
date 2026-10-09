@@ -95,7 +95,7 @@ async function frontEnd(op, args) {
       const ui = sourceFor(args[0]);
       if (!ui) return 0;
       await breakpoints.setBreakpoint(ui, args[1] - 1, undefined, '', true, false);
-      for (let waited = 0; waited < 5000; waited += 50) {
+      for (let waited = 0; waited <= args[2]; waited += 50) {
         const bound = breakpoints.allBreakpointLocations()
           .filter((l) => l.uiLocation.uiSourceCode === ui && l.uiLocation.lineNumber === args[1] - 1);
         if (bound.length > 0) return bound.length;
@@ -205,12 +205,14 @@ export class DevTools {
 
   /**
    * Sets a breakpoint at a line of a source, as a user does in its view.
+   * DevTools binds it to code generated later too, as that code arrives.
    * @param {string} url - The source's URL.
    * @param {number} line - One-based.
+   * @param {number} [ms] - How long to wait for it to be bound.
    * @returns {Promise<number>} How many places in the code it is bound to.
    */
-  breakpoint(url, line) {
-    return this.call('breakpoint', url, line);
+  breakpoint(url, line, ms = 5000) {
+    return this.call('breakpoint', url, line, ms);
   }
 
   /**

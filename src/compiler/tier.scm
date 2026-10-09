@@ -13,16 +13,28 @@
 ;;
 ;; ## When
 ;;
-;; Generating a procedure's code costs about a millisecond, so compiling every
-;; definition as it is made would cost a page with five hundred of them half a
-;; second before anything ran, much of it for code run once. So:
+;; Compiling a procedure that runs once costs more than interpreting it: a
+;; small one takes 0.1 to 0.2 ms to compile, and its one call microseconds to
+;; interpret. Compiling every definition as it is made measured 0.5 to 2.5%
+;; slower over `benchmarks/run_tier.js`'s programs, never faster. So:
 ;;
 ;;  - A top-level procedure whose body loops or makes procedures is compiled
 ;;    when it is bound. A loop inside a procedure called once is where a
 ;;    program spends its time, and a count of calls could never catch it.
-;;  - Any other is compiled on its second call, so a procedure called once is
-;;    never compiled.
+;;  - Any other is compiled on its second call, which runs compiled, so a
+;;    procedure called once is never compiled.
 ;;  - A top-level expression is compiled only if it loops.
+;;
+;; Except while the program is debugged in DevTools, which steps only into
+;; compiled code -- the interpreter is the system's own code, which it skips
+;; -- and so would pass over a procedure's first call. With the tier set to
+;; compile eagerly (`tier-compile-eagerly!`), every procedure is compiled as
+;; it is bound, a library's at its first call once the library has loaded,
+;; and every top-level form but a definition; turned on as the program runs,
+;; the procedures it has bound at top level are compiled at once, and one
+;; waiting elsewhere at its next call. The call that compiles a procedure
+;; runs compiled. The host sets it: a page from its URL or a call in the
+;; console, the CLI when Node's inspector is on.
 ;;
 ;; Switching needs no on-stack replacement. Both tiers look a top-level name up
 ;; at every call, so once the compiled procedure is bound, the next call -- a
@@ -67,8 +79,7 @@
 ;; /**
 ;;  * How many calls a procedure a library defines waits, once the library has
 ;;  * loaded, before it is compiled, however it loops: compiling waits while a
-;;  * library loads (see the notes at the head of this file), and the call that
-;;  * finds it due runs interpreted either way.
+;;  * library loads (see the notes at the head of this file).
 ;;  *
 ;;  * Ten, measured over the test programs of 22 libraries that are not
 ;;  * shipped (`benchmarks/run_tier.js --set corpus`): compiled at their first
@@ -96,6 +107,9 @@
 ;;  * @property {object} outcomes - A JavaScript `Map` from each name the tier
 ;;  *   tried to "compiled" or why not, for whoever attached it to read.
 ;;  * @property {integer} expressions - How many top-level forms it compiled.
+;;  * @property {boolean} eager - Whether it compiles every procedure as it is
+;;  *   bound, for a debugger that steps only into compiled code; the
+;;  *   interpreter reads it, to find a waiting closure due at any call.
 ;;  * @property {procedure} bound - What the interpreter calls when a closure is
 ;;  *   bound to a top-level name: `tier-bound!` on this tier.
 ;;  * @property {procedure} due - What it calls when a waiting closure's calls
@@ -105,7 +119,7 @@
 ;;  */
 (define-record-type tier
   (make-tier-record interpreter env prebuilt? decline-captures? waiting outcomes expressions
-                    bound due form)
+                    eager bound due form)
   tier?
   (interpreter tier-interpreter)
   (env tier-env)
@@ -114,6 +128,7 @@
   (waiting tier-waiting)
   (outcomes tier-outcomes)
   (expressions tier-expressions set-tier-expressions!)
+  (eager tier-eager? set-tier-eager!)
   (bound tier-bound-hook)
   (due tier-due-hook)
   (form tier-form-hook))
@@ -126,13 +141,15 @@
 ;;  * @param {procedure} prebuilt? - As for the record.
 ;;  * @param {boolean} decline-captures? - As for the record.
 ;;  * @param {object} outcomes - As for the record.
+;;  * @param {boolean} eager? - Whether to compile every procedure as it is
+;;  *   bound, as for the record.
 ;;  * @returns {tier|boolean} The tier, or #f if code cannot be generated here --
 ;;  *   a Content-Security-Policy forbids it -- and the program runs interpreted.
 ;;  */
-(define (make-tier interpreter env prebuilt? decline-captures? outcomes)
+(define (make-tier interpreter env prebuilt? decline-captures? outcomes eager?)
   (and (code-generation-allowed?)
        (letrec ((tier (make-tier-record
-                       interpreter env prebuilt? decline-captures? (make-weak-table) outcomes 0
+                       interpreter env prebuilt? decline-captures? (make-weak-table) outcomes 0 eager?
                        (lambda (name closure env) (tier-bound! tier name closure env))
                        (lambda (closure) (tier-due! tier closure))
                        (lambda (node env) (tier-top-level-procedure tier node env)))))
@@ -195,7 +212,9 @@
 
 ;; /**
 ;;  * A closure has been bound to a top-level name: compiled now if its body
-;;  * loops or makes procedures, and set to wait for its second call otherwise.
+;;  * loops or makes procedures, or the tier compiles eagerly, and set to wait
+;;  * for its second call otherwise. While a library loads, nothing can be
+;;  * compiled; compiling eagerly, its procedures wait for one call.
 ;;  * @param {tier} tier - The tier.
 ;;  * @param {string} name - The name.
 ;;  * @param {procedure} closure - The closure.
@@ -205,8 +224,10 @@
   (when (tier-manages? tier env)
     (weak-table-set! (tier-waiting tier) closure (cons name env))
     (cond ((debugging? (tier-interpreter tier)) (wait-calls! closure 1))
-          ((library-loading?) (wait-calls! closure library-calls-before-compiling))
-          ((compiled-when-bound? (closure-body closure)) (tier-compile! tier closure))
+          ((library-loading?)
+           (wait-calls! closure (if (tier-eager? tier) 1 library-calls-before-compiling)))
+          ((or (tier-eager? tier) (compiled-when-bound? (closure-body closure)))
+           (tier-compile! tier closure))
           (else (wait-calls! closure calls-before-compiling)))))
 
 ;; /**
@@ -219,6 +240,25 @@
   (if (tier-deferring? tier)
       (wait-calls! closure 1)
       (tier-compile! tier closure)))
+
+;; /**
+;;  * Turns compiling every procedure as it is bound on or off. Turned on, the
+;;  * procedures the program has bound at top level that wait to be compiled
+;;  * are compiled now, so that a debugger can bind breakpoints in them before
+;;  * they run: compiled by the call that hits one, the code would arrive too
+;;  * late for it. One bound elsewhere -- in a library, or in a program of its
+;;  * own imports -- is compiled at its next call, which runs compiled.
+;;  * @param {tier} tier - The tier.
+;;  * @param {boolean} eager? - Whether to.
+;;  */
+(define (tier-compile-eagerly! tier eager?)
+  (set-tier-eager! tier eager?)
+  (when (and eager? (not (tier-deferring? tier)))
+    (for-each (lambda (binding)
+                (let ((value (cdr binding)))
+                  (if (and (procedure? value) (weak-table-ref (tier-waiting tier) value))
+                      (tier-compile! tier value))))
+              (environment-bindings (tier-env tier)))))
 
 ;; /**
 ;;  * Compiles a waiting closure and binds the compiled procedure in its place,
@@ -271,11 +311,12 @@
 ;; /**
 ;;  * The compiled procedure to run a top-level form as, or #f to interpret it.
 ;;  *
-;;  * Only a form that loops. One that only makes procedures is interpreted: the
-;;  * procedures it binds are compiled when bound, over their closures, and one
-;;  * it makes and keeps elsewhere would, compiled here, have no closure for a
-;;  * debugger to go back to. Definitions run interpreted, which is where the
-;;  * tier sees what they bind.
+;;  * Only a form that loops, unless the tier compiles eagerly. One that only
+;;  * makes procedures is interpreted: the procedures it binds are compiled when
+;;  * bound, over their closures, and one it makes and keeps elsewhere would,
+;;  * compiled here, have no closure for the REPL's debugger to go back to --
+;;  * which compiling eagerly, for DevTools, leaves aside. Definitions run
+;;  * interpreted, which is where the tier sees what they bind.
 ;;  *
 ;;  * @param {tier} tier - The tier.
 ;;  * @param {object} node - The analyzed form.
@@ -287,9 +328,11 @@
        (not (tier-deferring? tier))
        (let ((form (ast->scheme node)))
          (and (not (defines-at-top-level? form))
-              (contains-loop? form)
-              (let ((outcome (compile-expression-form form env (ast-span node) #f
-                                                      (tier-declines-captures? tier))))
+              (or (tier-eager? tier) (contains-loop? form))
+              (let ((outcome (if (tier-eager? tier)
+                                 (compile-thunk form env (ast-span node) (tier-declines-captures? tier))
+                                 (compile-expression-form form env (ast-span node) #f
+                                                          (tier-declines-captures? tier)))))
                 (and (compiled? outcome)
                      (begin
                        (set-tier-expressions! tier (+ (tier-expressions tier) 1))

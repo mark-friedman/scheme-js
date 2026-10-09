@@ -159,6 +159,77 @@ export function isCompilerLoaded() {
  */
 let userCodeCompilation = true;
 
+// While the page is debugged in DevTools, every procedure is compiled as it is
+// defined, and the page's scripts wait for the compiler: DevTools steps only
+// into compiled code, the interpreter being the system's own, which it skips,
+// and the tier compiles a procedure only at its second call. Turned on by
+// `scheme-devtools` in the page's URL, or by `schemeJS.devtools()` in the
+// console, which the tab remembers through reloads until
+// `schemeJS.devtools(false)`.
+
+/**
+ * The key under which a tab remembers that it is debugged in DevTools.
+ * @type {string}
+ */
+const DEVTOOLS_KEY = 'scheme-js-devtools';
+
+/**
+ * Whether this tab remembers being debugged in DevTools; false where there is
+ * no session storage, or the page may not use it.
+ * @returns {boolean}
+ */
+function rememberedForDevTools() {
+  try {
+    return globalThis.sessionStorage?.getItem(DEVTOOLS_KEY) === 'on';
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Whether the page is debugged in DevTools, and so compiles every procedure as
+ * it is defined.
+ * @type {boolean}
+ */
+let forDevTools = (typeof location !== 'undefined' && new URLSearchParams(location.search).has('scheme-devtools'))
+  || rememberedForDevTools();
+
+/**
+ * Whether the page is debugged in DevTools: its scripts are then to wait for
+ * the compiler, so that what they define is compiled as it is defined.
+ * @returns {boolean}
+ */
+export function isCompilingForDevTools() {
+  return forDevTools;
+}
+
+/**
+ * Has every procedure compiled as it is defined, so that DevTools can step
+ * into it at its first call, or not; the tab remembers which through reloads.
+ * The page's procedures already defined are compiled at once. Called in the
+ * console, as `schemeJS.devtools()`.
+ * @param {boolean} [on=true] - Whether to.
+ * @returns {string} What it did, for the console to show.
+ */
+export function compileForDevTools(on = true) {
+  forDevTools = on !== false;
+  try {
+    if (forDevTools) globalThis.sessionStorage?.setItem(DEVTOOLS_KEY, 'on');
+    else globalThis.sessionStorage?.removeItem(DEVTOOLS_KEY);
+  } catch (e) {
+    // A page that may not use session storage is not remembered.
+  }
+  if (compiler !== null) compiler.setEagerCompiling(interpreter, forDevTools);
+  else if (forDevTools) loadCompiler();
+  return forDevTools
+    ? "scheme-js: the page's procedures are compiled, and each it defines as it is defined, so DevTools "
+      + 'can step into them and bind breakpoints in them; in this tab until schemeJS.devtools(false). '
+      + "Reload to step through the page's start-up too."
+    : 'scheme-js: a procedure is compiled once it is called again, as usual.';
+}
+
+globalThis.schemeJS = Object.assign(globalThis.schemeJS ?? {}, { devtools: compileForDevTools });
+
 /**
  * Whether a library has a prebuilt table installed over it as it loads, so
  * that the tier leaves its procedures alone.
@@ -175,7 +246,7 @@ function isPrebuilt(libraryName) {
  */
 function attachIfWanted() {
   if (compiler !== null && userCodeCompilation && !interpreter.tier) {
-    compiler.attachTier(interpreter, env, { isPrebuilt });
+    compiler.attachTier(interpreter, env, { isPrebuilt, eager: forDevTools });
   }
 }
 

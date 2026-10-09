@@ -1,4 +1,4 @@
-import { schemeEvalAsync } from './scheme_entry.js';
+import { schemeEvalAsync, isCompilingForDevTools, loadCompiler } from './scheme_entry.js';
 
 /**
  * The name an inline script is read under: the page's file and the script's
@@ -20,7 +20,8 @@ function inlineScriptName(pageUrl, place) {
  * `inlineScriptName`, its text kept since nothing could fetch it. Each is a
  * program: one that begins with import declarations sees only them, and what
  * it defines is its own; one with none shares the page's environment with
- * the others like it.
+ * the others like it. While the page is debugged in DevTools, the first waits
+ * for the compiler, so that what each defines is compiled as it is defined.
  * @param {Iterable<{src: string, textContent: string}>} [scripts] - The
  *   scripts; the page's `<script type="text/scheme">` elements by default.
  * @param {string} [pageUrl] - The page's URL; the document's by default.
@@ -30,6 +31,9 @@ export async function runScripts(
     scripts = document.querySelectorAll('script[type="text/scheme"]'),
     pageUrl = document.URL) {
     let inlinePlace = 0;
+    if (isCompilingForDevTools()) {
+        await loadCompiler().catch((e) => console.warn('scheme-js: the compiler did not load:', e));
+    }
     for (const script of scripts) {
         try {
             if (script.src) {

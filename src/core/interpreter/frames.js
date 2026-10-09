@@ -530,6 +530,16 @@ export function continueApplication(exprs, index, values, env, registers, interp
     // All arguments evaluated, ready to apply
     const func = values[0];
 
+    // A top-level procedure waiting to be compiled, whose calls have run out,
+    // or any of whose calls is due while the tier compiles every procedure
+    // (`set-tier-eager!` in src/compiler/tier.scm). Compiled, it no longer
+    // answers as a closure, and this call runs compiled below, as any call to
+    // a compiled procedure does.
+    if (isSchemeClosure(func) && func.tierCountdown !== 0
+        && (--func.tierCountdown === 0 || interpreter.tier?.eager === true) && interpreter.tier) {
+        callSchemeProcedure(interpreter.tier.due, [func]);
+    }
+
     // 1. SCHEME CLOSURE APPLICATION
     // Check for callable Scheme closures first (they are typeof 'function')
     if (isSchemeClosure(func)) {
@@ -543,13 +553,6 @@ export function continueApplication(exprs, index, values, env, registers, interp
             throw new SchemeArityError(func.name || 'anonymous', required, func.restParam ? Infinity : required, argc);
         }
         registers[CTL] = func.body;
-
-        // A top-level procedure waiting to be compiled. This call runs
-        // interpreted; the compiled procedure replaces the closure's binding,
-        // so the next call through the name runs compiled.
-        if (func.tierCountdown !== 0 && --func.tierCountdown === 0 && interpreter.tier) {
-            callSchemeProcedure(interpreter.tier.due, [func]);
-        }
 
         // Handle rest parameter if present
         if (func.restParam) {

@@ -57,6 +57,26 @@ export async function runCliProgramTests(logger) {
       { cwd: beside });
     assert(logger, 'a program run there sees the system\'s libraries as they are',
       [there.status, there.stdout, there.stderr], [0, '(1 2)', '']);
+
+    // Debugged in DevTools, a procedure has to be compiled to be stepped
+    // into, and the tier compiles one only on its second call; so with Node's
+    // inspector on, or asked to, the CLI has every procedure compiled as it
+    // is defined.
+    logger.title('CLI - compiling every procedure, for DevTools');
+    const once = program('once.scm', `(import (scheme base) (scheme write) (scheme-js interop))
+      (define (once x) (+ x 1))
+      (write (list (once 1) (eq? #t (js-ref once "$compiled"))))`);
+    const inspect = ['--inspect=127.0.0.1:0'];
+    const [plain, asked, inspected, declined] = await Promise.all([
+      runCli([once]),
+      runCli(['--devtools', once]),
+      runCli([once], { nodeOptions: inspect }),
+      runCli(['--no-devtools', once], { nodeOptions: inspect })
+    ]);
+    assert(logger, 'a procedure called once is not compiled', [plain.status, plain.stdout], [0, '(2 #f)']);
+    assert(logger, 'but is with --devtools, as it is defined', [asked.status, asked.stdout], [0, '(2 #t)']);
+    assert(logger, "and with Node's inspector on", [inspected.status, inspected.stdout], [0, '(2 #t)']);
+    assert(logger, 'unless --no-devtools says not to', [declined.status, declined.stdout], [0, '(2 #f)']);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

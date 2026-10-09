@@ -24,3 +24,10 @@
     (if (null? items)
         total
         (loop (cdr items) (+ total (car items))))))
+
+;; Never called as the page starts, so compiled before its first call only
+;; when every procedure is compiled as it is defined: it neither loops nor
+;; makes a procedure, nor binds with `let`, whose expansion applies one.
+(define (first-call x)
+  (+ (* x 2)
+     1))

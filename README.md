@@ -74,6 +74,13 @@ interpreted:
 node repl.js --no-compile myprogram.scm
 ```
 
+Run under Node's inspector, to debug it in DevTools, every procedure is compiled as it is defined, so
+that a step goes into it at its first call (`--no-devtools` turns that off, and `--devtools` turns it on
+without the inspector):
+```bash
+node --inspect repl.js myprogram.scm
+```
+
 ### Browser REPL (from source)
 
 1. Start a local HTTP server in the project root:
@@ -175,6 +182,14 @@ and code evaluated from JavaScript can be named too:
 schemeEval(code, { filename: 'https://example.com/app/main.scm' }); // a URL the source can be fetched from
 schemeEval(code, { filename: 'widget#1', inline: true });          // nothing to fetch: keep the text
 ```
+
+To debug a page's Scheme in DevTools -- breakpoints in its `.scm` files, steps from its Scheme into its
+JavaScript and back -- open it with `scheme-devtools` in its URL (`page.html?scheme-devtools`), or call
+`schemeJS.devtools()` in the console, which the tab remembers through reloads until
+`schemeJS.devtools(false)`. DevTools steps only into compiled code, and the page otherwise compiles a
+procedure only once it is called again; so this has every procedure compiled as it is defined, and the
+page's scripts wait for the compiler before they run. The system's own code is ignore-listed by the
+bundle's source map, so a step never stops in it.
 
 ---
 ### Debugging Tools

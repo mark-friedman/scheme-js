@@ -536,7 +536,20 @@
     ((defines-at-top-level? form) (make-declined name "defines at top level" #f))
     ((not (makes-procedures-or-loops? form))
      (make-declined name "makes no procedure and has no loop, so runs once" #f))
-    (else (compile-lambda (expression-thunk form) "top-level" #f env span decline-captures?))))
+    (else (compile-thunk form env span decline-captures?))))
+
+;; /**
+;;  * Compiles a top-level form that defines nothing as a thunk, whatever it
+;;  * does: one that runs once too, which a debugger stepping only into
+;;  * compiled code needs compiled (`tier.scm`).
+;;  * @param {list} form - The expression.
+;;  * @param {object} env - The environment its globals resolve in.
+;;  * @param {object|boolean} span - Its source span, or #f.
+;;  * @param {boolean} decline-captures? - Whether to decline a capture.
+;;  * @returns {compiled|declined}
+;;  */
+(define (compile-thunk form env span decline-captures?)
+  (compile-lambda (expression-thunk form) "top-level" #f env span decline-captures?))
 
 ;; /**
 ;;  * Compiles an interpreted closure, in its own environment, so its free

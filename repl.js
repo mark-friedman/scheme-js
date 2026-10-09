@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import repl from 'repl';
+import inspector from 'inspector';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -275,23 +276,38 @@ async function buildAhead(args, includeDirs) {
 
 // --- REPL Logic ---
 
+/**
+ * Whether Node's inspector is on, as `--inspect` and `--inspect-brk` turn it
+ * on, so that a debugger may attach.
+ * @returns {boolean}
+ */
+function inspectorOn() {
+    return inspector.url() !== undefined;
+}
+
 async function startRepl() {
     // `--no-compile` leaves the program's own code interpreted; the standard
     // library is compiled either way, as it ships. Each `-I dir` names a
     // directory libraries are looked for in first, as other Schemes' CLIs do.
+    // `--devtools` has every procedure compiled as it is defined, as it is
+    // when Node's inspector is on unless `--no-devtools` says otherwise:
+    // DevTools steps only into compiled code, and the tier compiles a
+    // procedure only at its second call (src/compiler/tier.scm).
     const options = process.argv.slice(2);
     const includeDirs = [];
     const args = [];
+    const flags = ['--no-compile', '--devtools', '--no-devtools'];
     for (let i = 0; i < options.length; i++) {
         if (options[i] === '-I' && i + 1 < options.length) includeDirs.push(path.resolve(options[++i]));
-        else if (options[i] !== '--no-compile') args.push(options[i]);
+        else if (!flags.includes(options[i])) args.push(options[i]);
     }
     const compile = !options.includes('--no-compile');
+    const forDevTools = options.includes('--devtools') || (inspectorOn() && !options.includes('--no-devtools'));
 
     if (args[0] === '--build') return buildAhead(args, includeDirs);
 
     const { interpreter, env } = await bootstrapInterpreter(includeDirs);
-    if (compile) attachTier(interpreter, env, { isPrebuilt });
+    if (compile) attachTier(interpreter, env, { isPrebuilt, eager: forDevTools });
 
     // Initialize Debugger
     const runtime = new SchemeDebugRuntime();

@@ -146,13 +146,80 @@ async function session(devTools, page, url, line, expression, kinds) {
 async function open(browser, url) {
   const page = await browser.newPage();
   await page.goto(url);
-  // Asked rather than waited for: Puppeteer's own wait did not see a tab
-  // whose DevTools window was in front.
+  await ready(page);
+  return { page, devTools: await DevTools.open(browser, page) };
+}
+
+/**
+ * Waits until a page says it is ready. Asked rather than waited for:
+ * Puppeteer's own wait did not see a tab whose DevTools window was in front.
+ * @param {Object} page - The tab.
+ * @returns {Promise<void>}
+ */
+async function ready(page) {
   for (let waited = 0; !(await page.evaluate(() => window.ready === true)); waited += 100) {
-    if (waited > 60000) throw new Error(`${url} did not become ready`);
+    if (waited > 60000) throw new Error(`${page.url()} did not become ready`);
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  return { page, devTools: await DevTools.open(browser, page) };
+}
+
+/**
+ * The tests of the switch that has every procedure compiled as it is
+ * defined: a procedure is stepped into only compiled, and the tier compiles
+ * one only on its second call, so while a page is debugged in DevTools every
+ * procedure is compiled before its first. Turned on by the page's URL, or by
+ * a call in the console, which the tab remembers.
+ * @param {Object} logger - Test logger.
+ * @param {string} over - What the system is loaded as, for the tests' names.
+ * @param {Object} browser - Puppeteer's browser, launched with `devtools`.
+ * @param {string} fixtures - The fixtures' URL.
+ * @param {string} query - The page's query string for what the system is
+ *   loaded as, ending in `&` if it is not empty.
+ * @param {string|null} ignore - A pattern to ignore-list the system's code by,
+ *   or null if its source map does.
+ * @returns {Promise<void>}
+ */
+async function switchTests(logger, over, browser, fixtures, query, ignore) {
+  const placing = `${fixtures}placing.scm`;
+  const inside = lineOf('placing.scm', '(+ (* x 2)');
+  const pausesInside = async (page, devTools) => {
+    await devTools.breakpoint(placing, inside);
+    const seen = await devTools.pauses();
+    const running = page.evaluate("window.call('first-call', 1)").catch(() => null);
+    const at = await devTools.pauseAfter(seen, 10000);
+    await devTools.resume();
+    return [shown(at), await running];
+  };
+  logger.title(`DevTools, over ${over} - every procedure compiled before its first call`);
+  {
+    const { page, devTools } = await open(browser, `${fixtures}boundary.html?${query}scheme-devtools`);
+    if (ignore) await devTools.ignore(ignore);
+    assert(logger, 'with scheme-devtools in its URL, a procedure the page never called is compiled',
+      await page.evaluate("window.compiledNow('first-call')"), true);
+    assert(logger, 'and a breakpoint in it pauses its first call', await pausesInside(page, devTools),
+      [`placing.scm:${inside}`, 3]);
+    await page.close();
+  }
+  {
+    const { page, devTools } = await open(browser, `${fixtures}boundary.html?${query}tab=console`);
+    if (ignore) await devTools.ignore(ignore);
+    const before = await page.evaluate("window.compiledNow('first-call')");
+    const said = await page.evaluate('schemeJS.devtools()');
+    assert(logger, 'without it, a procedure never called is not compiled; turned on in the console, the page says so',
+      [before, typeof said === 'string' && said.length > 0], [false, true]);
+    assert(logger, "and compiles the page's procedures at once, so a breakpoint in one never called pauses its first call",
+      [await page.evaluate("window.compiledNow('first-call')"), ...await pausesInside(page, devTools)],
+      [true, `placing.scm:${inside}`, 3]);
+    await page.reload();
+    await ready(page);
+    const remembered = await page.evaluate("window.compiledNow('first-call')");
+    await page.evaluate('schemeJS.devtools(false)');
+    await page.reload();
+    await ready(page);
+    assert(logger, 'the tab remembers it through a reload, until it is turned off',
+      [remembered, await page.evaluate("window.compiledNow('first-call')")], [true, false]);
+    await page.close();
+  }
 }
 
 /**
@@ -294,6 +361,24 @@ export async function runDevToolsSteppingTests(logger) {
     {
       const { page, devTools } = await open(browser, `${fixtures}boundary.html?entry=/bundle/scheme.js`);
       await steppingTests(logger, 'the bundle, ignore-listed by its source map', devTools, page, fixtures);
+    }
+    await switchTests(logger, "the system's modules", browser, fixtures, '', `^http://127\\.0\\.0\\.1:${port}/src/`);
+    await switchTests(logger, 'the bundle', browser, fixtures, 'entry=/bundle/scheme.js&', null);
+    logger.title('DevTools - a page whose Scheme is in its own scripts');
+    {
+      // Whether the procedure the page's first script defines was compiled
+      // as it was defined, the compiler already there.
+      const at = async (query) => {
+        const page = await browser.newPage();
+        await page.goto(`${fixtures}scripts.html${query}`);
+        await ready(page);
+        const compiled = await page.evaluate(() => window.compiledAtOnce);
+        await page.close();
+        return compiled;
+      };
+      assert(logger, 'its first script runs before the compiler has arrived, and defines interpreted', await at(''), false);
+      assert(logger, 'but with scheme-devtools in its URL, after, and every procedure is compiled as it is defined',
+        await at('?scheme-devtools'), true);
     }
   } finally {
     await browser.close();

@@ -25,6 +25,9 @@ import { callSchemeProcedure } from '../core/interpreter/values.js';
  * @param {function(Array<string>): boolean} [options.isPrebuilt] - Whether a
  *   library has a prebuilt table installed over it as it loads, so that its
  *   procedures are not the tier's. None has, by default.
+ * @param {boolean} [options.eager=false] - Compile every procedure as it is
+ *   bound, for a debugger that steps only into compiled code, as DevTools
+ *   does (`setEagerCompiling`).
  * @param {boolean} [options.declineCaptures=false] - Decline procedures that
  *   capture a continuation, or reach one that does, as the tier once did.
  * @returns {Object|null} The tier's record, whose `outcomes` is a `Map` from
@@ -38,10 +41,28 @@ export function attachTier(interpreter, env, options = {}) {
   const compiler = compilerExports();
   if (compiler === null) return null;
   const tier = callSchemeProcedure(compiler.get('make-tier'),
-    [interpreter, env, options.isPrebuilt ?? (() => false), options.declineCaptures === true, new Map()]);
+    [interpreter, env, options.isPrebuilt ?? (() => false), options.declineCaptures === true, new Map(),
+      options.eager === true]);
   if (tier === false) return null;
   interpreter.tier = tier;
   return tier;
+}
+
+/**
+ * Has a program's tier compile every procedure as it is bound, or go back to
+ * compiling one only once it is called again: while the program is debugged
+ * in DevTools, which steps only into compiled code, a procedure's first call
+ * would otherwise be passed over. Turned on, the procedures the program has
+ * bound at top level are compiled at once, and one waiting elsewhere at its
+ * next call, which runs compiled (`tier-compile-eagerly!` in `tier.scm`).
+ * @param {Object} interpreter - The interpreter.
+ * @param {boolean} eager - Whether to compile every procedure as it is bound.
+ * @returns {boolean} Whether a tier was attached to set.
+ */
+export function setEagerCompiling(interpreter, eager) {
+  if (!interpreter.tier) return false;
+  callSchemeProcedure(compilerExports().get('tier-compile-eagerly!'), [interpreter.tier, eager === true]);
+  return true;
 }
 
 /**

@@ -971,11 +971,32 @@ compiler's code (R95). A mode in which the debugger may pause in the system's ow
 that, and is planned for later (62). Calling a hook costs about 0.1 µs; what the hooks do costs about
 2 µs a binding and 0.7 µs a top-level form, and compiling about 3 ms a procedure.
 
-**When.** Generating a procedure's code costs about a millisecond, so compiling every definition as it
-is made would cost a page with five hundred of them half a second, much of it for code run once. A
-procedure whose body loops or makes procedures is compiled when it is bound, since a loop inside a
-procedure called once is where time goes and no call count would ever see it; any other is compiled
-on its second call. A top-level expression is compiled, as a thunk called once, only if it loops.
+**When.** Compiling a procedure that runs once costs more than interpreting it: a small one takes
+0.1 to 0.2 ms to compile, its one call microseconds to interpret, and compiling every definition as
+it was made measured 0.5 to 2.5% slower over `benchmarks/run_tier.js`'s programs, never faster
+(R144). A procedure whose body loops or makes procedures is compiled when it is bound, since a loop
+inside a procedure called once is where time goes and no call count would ever see it; any other is
+compiled on its second call, which itself runs compiled, the interpreter applying the procedure as
+compiled once the tier has compiled it. A `let` counts as making a procedure, its expansion applying
+a `lambda`, though the lowering compiles it as a binding (R145). A top-level expression is compiled,
+as a thunk called once, only if it loops.
+
+**Compiling everything, for DevTools.** DevTools steps only into compiled code: the interpreter is
+the system's own, which it skips, so a procedure's first call would be passed over and a breakpoint
+in a procedure not yet compiled has no code to bind to. So a tier can compile eagerly
+(`tier-compile-eagerly!`): every procedure as it is bound, a library's at its first call once it has
+loaded, and every top-level form but a definition; turned on as the program runs, the procedures it
+has bound at top level are compiled at once, which a breakpoint set right after can bind to, and one
+waiting elsewhere -- in a library, or a program of its own imports -- at its next call. The
+interpreter, finding a waiting closure due at any call while the tier is eager, has the tier compile
+it and runs that call compiled. A page turns it on with `scheme-devtools` in its URL, or
+`schemeJS.devtools()` in the console, which the tab remembers through reloads until
+`schemeJS.devtools(false)`, and then has its scripts wait for the compiler, about 90 ms
+(`scheme_entry.js`, `html_adapter.js`); the CLI turns it on when Node's inspector is on, as
+`--inspect` turns it on, or with `--devtools`, and `--no-devtools` keeps it off (`repl.js`). Not
+reached: a procedure compiled code assigns to a top-level name, which the tier is not told of, and
+one an interpreted definition's value holds in data, bound to no name. A program built ahead of time
+needs none of it: every procedure in it is compiled from its first call.
 
 **No on-stack replacement.** Both tiers look a top-level name up at every call. Once the compiled
 procedure is bound in the closure's place, the next call through the name -- a recursive call below
@@ -988,7 +1009,7 @@ made, and the pair recorded, so it runs as that closure while the program is deb
 its breakpoints fire. That is why a top-level expression that only makes procedures is not compiled:
 compiled as a thunk, the procedures it made and kept would have no closure to go back to. The
 procedures it binds are compiled when bound instead. A loop's thunk keeps that limitation for any
-procedure the loop makes and stores.
+procedure the loop makes and stores, and compiling everything for DevTools sets it aside.
 
 **When not.** Nothing is compiled while the program is being debugged, since it would be switched
 straight back; a procedure due meanwhile is compiled on its first call after. Nor while a library is

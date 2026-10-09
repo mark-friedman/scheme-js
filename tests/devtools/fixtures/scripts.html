@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Scheme scripts</title>
+<!--
+  A page whose Scheme is in its own scripts, run by the HTML adapter, which
+  the DevTools tests open (tests/devtools/stepping_tests.js): whether a
+  procedure the first script defines is compiled as it is defined says
+  whether the compiler had arrived before that script ran.
+-->
+<script type="module" src="../../../src/packaging/html_adapter.js"></script>
+</head>
+<body>
+<script type="text/scheme">
+(define (defined-first x) x)
+(js-set! (js-eval "window") "compiledAtOnce" (eq? #t (js-ref defined-first "$compiled")))
+(js-set! (js-eval "window") "ready" #t)
+</script>
+</body>
+</html>

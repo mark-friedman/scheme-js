@@ -14727,3 +14727,52 @@ compiled first. And a user's own library's procedures wait for calls once it has
 not, since none can be compiled while it loads.
 
 No JavaScript under `src/` was added or grown.
+
+# Task 84 (d): every procedure compiled before its first call, for DevTools (2026-10-09)
+
+Stage (d) of 84, as decided with the user after the measurement in the entry before: one switch in
+the tier. DevTools steps only into compiled code -- the interpreter is the system's own, which it
+skips -- and the tier compiles a procedure only at its second call, so a step into a procedure's first
+call passed it by, and a breakpoint in a procedure not yet compiled had no code to bind to.
+
+With the switch on (`tier-compile-eagerly!` in `src/compiler/tier.scm`), every procedure is compiled
+as it is bound, a library's at its first call once the library has loaded, and every top-level form
+but a definition (`compile-thunk` in `src/compiler/driver.scm`). Turned on as a program runs, the
+procedures it has bound at top level are compiled at once: compiled instead by the call that hits a
+breakpoint in it, a procedure's code reaches DevTools too late for the breakpoint to bind, which the
+first version of the test showed. One waiting elsewhere is compiled at its next call. The interpreter,
+finding a waiting closure due -- at any call, while the switch is on -- has the tier compile it before
+applying it, and so runs that call compiled, in either mode: the second call of a procedure the tier
+compiles at its second call now runs compiled, where it ran interpreted (`src/core/interpreter/frames.js`).
+
+How it is turned on:
+
+- **On a page**: `scheme-devtools` in its URL, or `schemeJS.devtools()` in the console, which the tab
+  remembers in its session storage through reloads until `schemeJS.devtools(false)`; the call says
+  what it did. The page's scripts then wait for the compiler before the first runs, about 90 ms,
+  so that what they define is compiled as it is defined (`src/packaging/scheme_entry.js`,
+  `src/packaging/html_adapter.js`).
+- **In Node**: when its inspector is on, as `--inspect` and `--inspect-brk` turn it on, unless
+  `--no-devtools`; or with `--devtools` (`repl.js`).
+
+Tested in `tests/functional/tiering_tests.js` (compiled when defined, and the first call run compiled,
+which a stack trace taken inside it shows; a top-level form that does not loop compiled; nothing while
+the REPL's debugger is on; turned on as a program runs, its waiting procedures compiled at once, and
+off again; a library's procedure at its first call after loading), `tests/functional/cli_program_tests.js`
+(`--devtools`, `node --inspect`, and `--no-devtools` under it; the harness gained `nodeOptions`), and
+the DevTools tests, over the modules and over the bundle: with `scheme-devtools`, a procedure the page
+never called is compiled and a breakpoint in it pauses its first call; turned on in the console, the
+same, the tab remembering it through a reload until turned off; and a page whose Scheme is in its own
+scripts, run by the HTML adapter, has its first script's procedure compiled as it is defined only with
+the switch. Every tiered Scheme test file also passes with the tier set to compile everything, but for
+the check that assumes a procedure called once runs interpreted.
+
+Found: a procedure that binds with `let` is compiled when it is bound, the expander making a `let` an
+application of a `lambda` (R145); the test's procedure never called had to bind with none. And the
+tier's header gave a millisecond a procedure for compiling; it now gives what was measured (R144).
+
+JavaScript under `src/` added or grown, each with what requires it: `frames.js`, the evaluator, the
+waiting check moved ahead of applying a closure; `tiering.js`, `setEagerCompiling`, which calls the
+tier's Scheme, as JavaScript that starts Scheme does; `scheme_entry.js` and `html_adapter.js`, the
+page's start-up, reading its URL and session storage and the console's call -- host input -- and
+calling the tier.

@@ -29,6 +29,8 @@ const TIMEOUT_MS = 30000;
  *   each lands in one place, in the order it was written.
  * @param {string} [options.cwd] - The directory it runs in; the repository's
  *   root by default.
+ * @param {Array<string>} [options.nodeOptions] - Options to Node itself,
+ *   given before `repl.js`: `--inspect`, say.
  * @param {function(Object, string): void} [options.onOutput] - Called with the
  *   child and everything it has written to standard output so far, once when
  *   it starts and again each time it writes; when given, `input` is not
@@ -37,9 +39,9 @@ const TIMEOUT_MS = 30000;
  * @returns {Promise<{status: number|null, stdout: string, stderr: string}>}
  *   How it exited and what it wrote.
  */
-export function runCli(args, { input = '', stdin, output, cwd = ROOT, onOutput } = {}) {
+export function runCli(args, { input = '', stdin, output, cwd = ROOT, onOutput, nodeOptions = [] } = {}) {
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, [REPL, ...args], {
+    const child = spawn(process.execPath, [...nodeOptions, REPL, ...args], {
       cwd,
       stdio: [stdin ?? 'pipe', output ?? 'pipe', output ?? 'pipe']
     });

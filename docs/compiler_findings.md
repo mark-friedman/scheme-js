@@ -3881,3 +3881,20 @@ against 203.2 ms), and a page compiling its first definitions would wait for it.
 *Consequence:* the rule stands, for what compiling everything would buy a program run normally is
 nothing, but the reason is the order of magnitude smaller: the cost of compiling at definition is
 the page's wait for the compiler, not the compiling.
+
+**R145. A procedure called once is compiled if it binds with `let`.**
+
+The tier compiles a procedure when it is bound only if its body loops or makes procedures, and any
+other on its second call, "so a procedure called once is never compiled" (`src/compiler/tier.scm`).
+But the expander makes a `let` an application of a `lambda`, `((lambda (y) ...) init)`, which the
+lowering then compiles as a binding, allocating nothing; and the test of a body that makes procedures
+(`makes-procedures-or-loops?` in `src/compiler/driver.scm`) looks for a `lambda` in it. So every
+procedure that binds with `let`, `let*` or a body's definitions is compiled when it is bound, whether
+it is called once or never: `(define (f x) (let ((y (* x 2))) (+ y 1)))` is, and `(define (f x) (+
+(* x 2) 1))` is not. Found writing the DevTools test of a procedure never called, whose `let` had it
+compiled with or without the switch under test.
+
+*Consequence:* the measurements of the tier's policy (`benchmarks/run_tier.js`, R144) were of this
+rule, not the one written down. Whether a `let`'s `lambda` should count is a question of the policy,
+to measure before changing; the tests of the tier that rely on a procedure staying interpreted bind
+with no `let`.
