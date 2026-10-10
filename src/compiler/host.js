@@ -33,7 +33,17 @@ import {
 } from '../core/interpreter/library_registry.js';
 import * as R from './runtime.js';
 import { RUNTIME } from './runtime_object.js';
+import { closureOver } from '../core/interpreter/assembler.js';
 import { sourceText } from '../core/interpreter/source_texts.js';
+
+/**
+ * The runtime the code the tier generates is given: the one every compiled
+ * code is, and the closure a procedure that code makes runs as for the REPL's
+ * debugger (`closureOver`), which needs the interpreter -- a program built ahead
+ * of time, given the runtime alone, carries none, and its code never asks.
+ * @type {Object}
+ */
+const TIER_RUNTIME = { ...RUNTIME, closureOver };
 
 /**
  * The library's name.
@@ -114,7 +124,7 @@ const hostProcedures = {
   // the heap.
   'instantiate': (source, env, constants, span) => {
     try {
-      const procedure = new Function('R', 'E', 'K', `'use strict';\n${text(source)}`)(RUNTIME, env, toArray(constants));
+      const procedure = new Function('R', 'E', 'K', `'use strict';\n${text(source)}`)(TIER_RUNTIME, env, toArray(constants));
       return R.recordSource(procedure, span === false ? null : span);
     } catch (e) {
       return `code generation failed: ${e.message}`;

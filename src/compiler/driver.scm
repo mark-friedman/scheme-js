@@ -289,13 +289,16 @@
 ;;  * @param {procedure|boolean} closure - The closure it comes from, or #f.
 ;;  * @param {object} env - The environment it will run in.
 ;;  * @param {object|boolean} span - Its source span, or #f.
+;;  * @param {boolean} ways-back? - Whether each procedure its code makes can
+;;  *   be made an interpreted closure again, for the REPL's debugger
+;;  *   (`way-back` in `emit.scm`).
 ;;  * @returns {generated|declined} The code, or why it is too large to keep.
 ;;  */
-(define (emit-lowered lowered name closure env span)
+(define (emit-lowered lowered name closure env span ways-back?)
   (let* ((globals (lowered-globals lowered))
          (library-globals (lowered-library-globals lowered))
          (unit (generate-unit (lowered-ir lowered) globals library-globals name
-                              (guarded-globals globals library-globals env)))
+                              (guarded-globals globals library-globals env) ways-back?))
          (source (car unit)))
     (cond ((source-too-large source) => (lambda (reason) (make-declined name reason #f)))
           (else (make-generated name closure env span source (cadr unit) globals (caddr unit)
@@ -374,16 +377,17 @@
 ;;  * @param {object} env - The environment its globals resolve in.
 ;;  * @param {object|boolean} span - Its source span, or #f.
 ;;  * @param {boolean} decline-captures? - Whether to decline a capture.
+;;  * @param {boolean} ways-back? - As for `emit-lowered`.
 ;;  * @param {list} [ordinary] - The control globals that are ordinary
 ;;  *   procedures where the code runs (`lowering-decline`).
 ;;  * @returns {generated|declined}
 ;;  */
-(define (lower-and-emit node name closure env span decline-captures? . ordinary)
+(define (lower-and-emit node name closure env span decline-captures? ways-back? . ordinary)
   (let* ((lowered (lower-lambda node))
          (reason (apply lowering-decline lowered decline-captures? ordinary)))
     (if reason
         (make-declined name reason #f)
-        (emit-lowered lowered name closure env span))))
+        (emit-lowered lowered name closure env span ways-back?))))
 
 ;; /**
 ;;  * `lower-and-emit`, declining the procedure if the compiler fails.
@@ -391,7 +395,7 @@
 ;;  */
 (define (generate-lambda node name closure env span decline-captures? . ordinary)
   (unless-failing name
-    (lambda () (apply lower-and-emit node name closure env span decline-captures? ordinary))))
+    (lambda () (apply lower-and-emit node name closure env span decline-captures? #f ordinary))))
 
 ;; /**
 ;;  * A file's name as a place in a `scheme:///` URL: a name that is itself a
@@ -464,10 +468,10 @@
 ;;  * declining the procedure if the compiler fails in either.
 ;;  * @returns {compiled|declined}
 ;;  */
-(define (compile-lambda node name closure env span decline-captures?)
+(define (compile-lambda node name closure env span decline-captures? ways-back?)
   (unless-failing name
     (lambda ()
-      (let ((result (lower-and-emit node name closure env span decline-captures?)))
+      (let ((result (lower-and-emit node name closure env span decline-captures? ways-back?)))
         (if (generated? result) (instantiate-generated result) result)))))
 
 ;; ---------------------------------------------------------------------------
@@ -488,7 +492,7 @@
       ((not (eq? (ast-tag (ast-2 form)) 'lambda))
        (make-declined (symbol->string (ast-1 form)) "definition is not a procedure" #f))
       (else (compile-lambda (ast-2 form) (symbol->string (ast-1 form)) #f env
-                            (definition-span node) decline-captures?)))))
+                            (definition-span node) decline-captures? #f)))))
 
 ;; /**
 ;;  * A top-level expression as a lambda of no arguments, to call once.
@@ -536,7 +540,7 @@
     ((defines-at-top-level? form) (make-declined name "defines at top level" #f))
     ((not (makes-procedures-or-loops? form))
      (make-declined name "makes no procedure and has no loop, so runs once" #f))
-    (else (compile-thunk form env span decline-captures?))))
+    (else (compile-thunk form env span decline-captures? #f))))
 
 ;; /**
 ;;  * Compiles a top-level form that defines nothing as a thunk, whatever it
@@ -546,10 +550,11 @@
 ;;  * @param {object} env - The environment its globals resolve in.
 ;;  * @param {object|boolean} span - Its source span, or #f.
 ;;  * @param {boolean} decline-captures? - Whether to decline a capture.
+;;  * @param {boolean} ways-back? - As for `emit-lowered`.
 ;;  * @returns {compiled|declined}
 ;;  */
-(define (compile-thunk form env span decline-captures?)
-  (compile-lambda (expression-thunk form) "top-level" #f env span decline-captures?))
+(define (compile-thunk form env span decline-captures? ways-back?)
+  (compile-lambda (expression-thunk form) "top-level" #f env span decline-captures? ways-back?))
 
 ;; /**
 ;;  * Compiles an interpreted closure, in its own environment, so its free
@@ -558,12 +563,13 @@
 ;;  * @param {procedure} closure - The closure.
 ;;  * @param {string} name - The name to compile it under.
 ;;  * @param {boolean} decline-captures? - Whether to decline a capture.
+;;  * @param {boolean} ways-back? - As for `emit-lowered`.
 ;;  * @returns {compiled|declined}
 ;;  */
-(define (compile-closure closure name decline-captures?)
+(define (compile-closure closure name decline-captures? ways-back?)
   (if (interpreted-closure? closure)
       (compile-lambda (closure-lambda closure name) name closure (closure-environment closure)
-                      (closure-span closure) decline-captures?)
+                      (closure-span closure) decline-captures? ways-back?)
       (make-declined name "not an interpreted closure" #f)))
 
 ;; ---------------------------------------------------------------------------
@@ -752,7 +758,7 @@
        (let* ((closure (environment-value env name))
               (outcome (if ruled-out
                            (make-declined name (cdr ruled-out) #f)
-                           (compile-closure closure name decline-captures?))))
+                           (compile-closure closure name decline-captures? #f))))
          (if (compiled? outcome)
              (let ((procedure (compiled-procedure outcome)))
                (run-compiled! closure procedure)

@@ -67,6 +67,32 @@
                (string-contains text "x_2 = ")
                #t))))
 
+(test-group "emit - a way back to the interpreter, while compiling for DevTools"
+  ;; A procedure compiled code makes has no interpreted closure behind it; while
+  ;; the tier compiles for DevTools, each can make one, over what it captured,
+  ;; for the REPL's debugger, which pauses only in interpreted code.
+  (define (unit-text ways-back? definition)
+    (let ((lowered (lower-lambda (analyze-lambda definition))))
+      (car (generate-unit (lowered-ir lowered) (lowered-globals lowered)
+                          (lowered-library-globals lowered) "f" '() ways-back?))))
+  (define (has? text part) (and (string-contains text part) #t))
+  (define making '(define (f k) (lambda (x) (+ x k))))
+  (test "a procedure compiled code makes asks whether the debugger runs it interpreted, only while compiling for DevTools"
+        '(#f #t) (map (lambda (ways-back?) (has? (unit-text ways-back? making) "$dbg.which")) '(#f #t)))
+  (test "and can be made an interpreted closure over what it captured, from the lambda it came from"
+        #t (has? (unit-text #t making) "R.closureOver(E, K["))
+  (test "a captured local is passed by value, or as its box when it is assigned"
+        '(#t #t)
+        (list (has? (unit-text #t making) "\"k_$")
+              (has? (unit-text #t '(define (f k) (lambda (x) (set! k x) k))) "k, true")))
+  (test "a local bound to a constant, which the code reads as the constant, is in the closure's frame too"
+        #t (has? (unit-text #t '(define (f) (let ((k 10)) (lambda (x) (* x k))))) "\"k_$"))
+  (test "the procedure itself is not asked: it was compiled over a closure of its own"
+        1 (let ((text (unit-text #t making)))
+            (let loop ((from 0) (n 0))
+              (let ((at (string-contains text "$dbg.which" from)))
+                (if at (loop (+ at 1) (+ n 1)) n))))))
+
 (test-group "emit - JavaScript text"
   (test "a string is quoted" "\"abc\"" (js-string "abc"))
   (test "a quote and a backslash are escaped" "\"a\\\"b\\\\c\"" (js-string "a\"b\\c"))

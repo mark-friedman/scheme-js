@@ -210,6 +210,85 @@ export class Environment {
 }
 
 /**
+ * The bindings of a frame whose variables compiled code holds too: each a
+ * value the code copied, which never changes, or the box -- a one-element
+ * array -- the code holds an assigned variable in, which these read and write
+ * through, so that the frame and the code share it.
+ */
+class SharedBindings extends Map {
+    /**
+     * @param {Array<*>} held - Three elements to a variable: its name, its
+     *   value or box, and whether it is a box.
+     */
+    constructor(held) {
+        super();
+        /** @type {Set<string>} */
+        this.boxed = new Set();
+        for (let i = 0; i < held.length; i += 3) {
+            super.set(held[i], held[i + 1]);
+            if (held[i + 2] === true) this.boxed.add(held[i]);
+        }
+    }
+
+    get(name) {
+        const held = super.get(name);
+        return this.boxed.has(name) ? held[0] : held;
+    }
+
+    set(name, value) {
+        if (this.boxed.has(name)) super.get(name)[0] = value;
+        else super.set(name, value);
+        return this;
+    }
+
+    *entries() {
+        for (const [name, held] of super.entries()) yield [name, this.boxed.has(name) ? held[0] : held];
+    }
+
+    [Symbol.iterator]() {
+        return this.entries();
+    }
+
+    *values() {
+        for (const [, value] of this.entries()) yield value;
+    }
+
+    forEach(fn, thisArg) {
+        for (const [name, value] of this.entries()) fn.call(thisArg, value, name, this);
+    }
+}
+
+/**
+ * The frame of a procedure compiled code made, run as an interpreted closure
+ * again for the REPL's debugger (`closureOver` in src/compiler/runtime.js):
+ * its variables are those the compiled procedure captured, shared with it
+ * (`SharedBindings`). Only such a closure has one, so every other frame's
+ * bindings stay a plain `Map`.
+ */
+export class SharedFrame extends Environment {
+    /**
+     * @param {Environment} parent - The environment the procedure's globals
+     *   resolve in.
+     * @param {Array<*>} held - As for `SharedBindings`.
+     */
+    constructor(parent, held) {
+        super(parent, new SharedBindings(held));
+    }
+
+    /**
+     * A cell over a variable that is a box reads and writes the box, as the
+     * compiled code does.
+     * @param {string} name - A name bound in this frame.
+     * @returns {{v: *}}
+     */
+    cellFor(name) {
+        if (!this.bindings.boxed.has(name)) return super.cellFor(name);
+        const box = Map.prototype.get.call(this.bindings, name);
+        return { get v() { return box[0]; }, set v(value) { box[0] = value; } };
+    }
+}
+
+/**
  * Brings a binding's cell, if compiled code has asked for one, up to date.
  * @param {Environment} env - The frame written to.
  * @param {string} name - The name written.

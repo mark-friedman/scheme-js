@@ -31,3 +31,12 @@
 (define (first-call x)
   (+ (* x 2)
      1))
+
+;; A procedure a definition's value holds in data, bound to no name: compiled
+;; before it first runs only when every procedure is, with the value.
+(define handlers
+  (list (lambda (x)
+          (* x 3))))
+
+(define (call-handler x)
+  ((car handlers) x))

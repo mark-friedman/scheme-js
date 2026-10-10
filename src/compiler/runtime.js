@@ -15,7 +15,7 @@
 
 import {
   TailCall, Values, SCHEME_PRIMITIVE, SCHEME_RAW_CALL, callWithSchemeValues, callForeign, createCompiledProcedure,
-  createNativeContinuation, callSchemeProcedure, methodReceiver
+  createNativeContinuation, callSchemeProcedure, methodReceiver, interpreterOf
 } from '../core/interpreter/values.js';
 import { schemeToJsDeep } from '../core/interpreter/js_interop.js';
 // The capture protocol belongs to the interpreter, which owns what a
@@ -40,6 +40,56 @@ export { Flonum, inexactReal } from '../core/interpreter/number_representation.j
 export { applyProcedure, valuesToList } from '../core/primitives/apply.js';
 
 export { TailCall, Cons, SCHEME_RAW_CALL, SCHEME_PRIMITIVE, UNWIND, reify, SchemeError, primitiveCell, callForeign };
+
+// =============================================================================
+// A way back to the interpreter, for the REPL's debugger
+// =============================================================================
+//
+// While the tier compiles for DevTools, a procedure compiled code makes, which
+// has no interpreted closure behind it, asks on entry whether the REPL's
+// debugger runs it interpreted, and if so runs as a closure made from the
+// lambda it came from (`way-back` in src/compiler/emit.scm). The closure is
+// made by `closureOver` in src/core/interpreter/assembler.js, which the
+// runtime the tier's code is given carries (`instantiate` in host.js): a
+// program built ahead of time, whose runtime this is too, carries no
+// interpreter, and never compiles for DevTools.
+
+/**
+ * What the debugger of the interpreter an environment belongs to last said of
+ * which compiled procedures run interpreted (`Interpreter.debugCell`).
+ * @param {Object} env - The environment a unit's code runs in.
+ * @returns {{which: (boolean|Function), generation: number}}
+ */
+export function debuggingCell(env) {
+  return interpreterOf(env).debugCell;
+}
+
+/**
+ * The interpreted closure a compiled procedure is to run as, while the
+ * debugger runs it so, or null. The closure is made the first time it is
+ * asked for, and whether the debugger chooses it asked again only when what
+ * the debugger said has changed.
+ * @param {Function} procedure - The compiled procedure.
+ * @param {{which: (boolean|Function), generation: number}} cell - The
+ *   debugger's choice (`debuggingCell`).
+ * @param {function(): Function} make - Makes the closure (`closureOver` in
+ *   src/core/interpreter/assembler.js).
+ * @returns {Function|null}
+ */
+export function wayBack(procedure, cell, make) {
+  let back = procedure.$back;
+  if (back === undefined) {
+    back = { closure: make(), generation: -1, interpreted: false };
+    procedure.$back = back;
+  }
+  if (back.generation !== cell.generation) {
+    back.generation = cell.generation;
+    const which = cell.which;
+    back.interpreted = which === true
+      || (typeof which === 'function' && callSchemeProcedure(which, [back.closure]) !== false);
+  }
+  return back.interpreted ? back.closure : null;
+}
 
 /**
  * Reports a capture beneath a redefined inlined primitive.

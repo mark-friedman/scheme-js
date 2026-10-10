@@ -202,7 +202,7 @@
 ;;  * @returns {procedure}
 ;;  */
 (define (compiled proc name)
-  (let ((outcome (compile-closure proc name #f)))
+  (let ((outcome (compile-closure proc name #f #f)))
     (if (compiled? outcome)
         (compiled-procedure outcome)
         (error "the compiler declined" name (declined-reason outcome)))))

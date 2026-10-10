@@ -136,6 +136,16 @@ async function frontEnd(op, args) {
 }
 
 /**
+ * Each DevTools window attached to, as a Puppeteer page, by its target, and
+ * those that are a tab's already: attaching to a window again, or asking a
+ * window another tab has which tab it inspects, stalled for the length of
+ * Puppeteer's protocol timeout, the second tab opened taking a minute.
+ * @type {WeakMap<Object, Promise<Object|null>>}
+ */
+const attached = new WeakMap();
+const claimed = new WeakSet();
+
+/**
  * DevTools' front end, for one tab.
  */
 export class DevTools {
@@ -155,15 +165,17 @@ export class DevTools {
   static async open(browser, page) {
     for (let waited = 0; waited < 15000; waited += 100) {
       for (const target of browser.targets()) {
-        if (!target.url().startsWith('devtools://')) continue;
+        if (!target.url().startsWith('devtools://') || claimed.has(target)) continue;
         // Not every DevTools target is a window a page can be made of.
-        const window = await target.asPage().catch(() => null);
+        if (!attached.has(target)) attached.set(target, target.asPage().catch(() => null));
+        const window = await attached.get(target);
         if (window === null) continue;
         const inspected = await window.evaluate(async () => {
           const SDK = await import('./core/sdk/sdk.js');
           return SDK.TargetManager.TargetManager.instance().primaryPageTarget()?.inspectedURL() ?? null;
         }).catch(() => null);
         if (inspected === page.url()) {
+          claimed.add(target);
           const devTools = new DevTools(window);
           await devTools.call('attach');
           return devTools;

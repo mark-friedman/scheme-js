@@ -126,7 +126,7 @@ export function tryCompileClosure(closure, name, options = {}) {
   const compiler = compilerExports();
   if (compiler === null) return { compiled: false, reason: notStarted() };
   return resultOf(callSchemeProcedure(compiler.get('compile-closure'),
-    [closure, name, options.declineCaptures === true]));
+    [closure, name, options.declineCaptures === true, false]));
 }
 
 /**

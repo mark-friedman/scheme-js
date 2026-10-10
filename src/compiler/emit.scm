@@ -655,8 +655,9 @@
 ;;  * the lowering gave it, from the library's environment (`library-global-key`
 ;;  * in ir.scm) -- the constant pool, the factories emitted so
 ;;  * far, where each call site resumes, the runtime values its code names
-;;  * (see `runtime`), and each of its functions' locals' names (see
-;;  * `function-names`).
+;;  * (see `runtime`), each of its functions' locals' names (see
+;;  * `function-names`), and whether each procedure its code makes can be made
+;;  * an interpreted closure again (see `way-back`).
 ;;  *
 ;;  * A call site's resume block and saved locals are decided by the twin,
 ;;  * which is generated first, and read by the fast form, which has to spill
@@ -664,7 +665,7 @@
 ;;  */
 (define-record-type unit
   (make-unit plan globals library-globals global-indices guarded constants factories emitted resume-points
-             runtime names)
+             runtime names ways-back?)
   unit?
   (plan unit-plan)
   (globals unit-globals)
@@ -676,7 +677,8 @@
   (emitted unit-emitted set-unit-emitted!)
   (resume-points unit-resume-points set-unit-resume-points!)
   (runtime unit-runtime set-unit-runtime!)
-  (names unit-names))
+  (names unit-names)
+  (ways-back? unit-ways-back?))
 
 ;; /**
 ;;  * The local name generated code knows a runtime value by, noted as one its
@@ -2485,13 +2487,112 @@
                             '()
                             (list (string-append "let " (string-join (map symbol->string declared) ", ") ";"))))
            (body (append-map (lambda (st) (statement-lines form st)) (reverse (form-out form))))
-           (entry (append (arity-guard ir)
-                          (depth-entry form (append params (if rest (list (string-append "..." (js-name form rest) "$raw")) '())))))
+           (arguments (append params (if rest (list (string-append "..." (js-name form rest) "$raw")) '())))
+           (entry (append (if (and (unit-ways-back? u) (not (string=? path "")))
+                              (way-back form ir name arguments)
+                              '())
+                          (arity-guard ir)
+                          (depth-entry form arguments)))
            (items (if (form-loops form)
                       (append declaration entry
                               (list "$loop: for (;;) {" (vector "  " (append prologue body)) "}"))
                       (append declaration entry prologue body))))
       (named-function name shown (string-append "function (" signature ")") items))))
+
+;; ---------------------------------------------------------------------------
+;; A way back to the interpreter
+;; ---------------------------------------------------------------------------
+;;
+;; The REPL's debugger pauses only in interpreted code, and runs a procedure
+;; the tier compiled as the closure it was compiled over while it needs to
+;; (`interpret-compiled-over!` in library_system.scm). A procedure compiled
+;; code makes has no closure behind it. While the tier compiles for DevTools,
+;; which compiles a page's top-level forms and definitions' values whole, each
+;; such procedure is given a way back: its fast form first asks whether the
+;; debugger runs it interpreted (`$dbg`, the interpreter's), and if so makes,
+;; once, the closure of the lambda it came from, over what it captured, and
+;; runs the call as that (`wayBack` and `closureOver` in
+;; src/compiler/runtime.js). A variable it captured is passed by value, or,
+;; assigned, by the box the compiled code holds it in, which the closure's
+;; frame reads and writes, so the two share it. Nothing of this is generated
+;; but while the tier compiles for DevTools.
+
+;; /**
+;;  * The line that begins a procedure compiled code makes, with a way back to
+;;  * an interpreted closure; none if the lambda it came from is not known, or
+;;  * a local it reads is not to hand, when it stays compiled.
+;;  * @param {form} form - The procedure's fast form's emission.
+;;  * @param {list} lam - Its lambda IR node.
+;;  * @param {string} proc - The name its fast form is bound to.
+;;  * @param {list} arguments - Its arguments, as JavaScript text.
+;;  * @returns {list} Lines of JavaScript.
+;;  */
+(define (way-back form lam proc arguments)
+  (let ((core (lambda-core lam))
+        (frame (way-back-frame form lam)))
+    (if (not core)
+        '()
+        (let ((dbg (runtime form '$dbg)))
+          (list (string-append
+                  "if (" dbg ".which !== false) { const $c = R.wayBack(" proc "$js, " dbg
+                  ", () => R.closureOver(E, " (constant (form-unit form) core) ", [" frame "])); "
+                  "if ($c !== null) return " (runtime form '$tailCall) "($c, [" (string-join arguments ", ")
+                  "]); }"))))))
+
+;; /**
+;;  * What the frame of a procedure's interpreted closure binds, as the
+;;  * elements of a JavaScript array, three to a variable: its name, its value,
+;;  * and whether the value is the variable's box. A variable it captured is
+;;  * its factory's parameter; the name a `letrec` gave it, the procedure
+;;  * itself; and a local bound to a constant, which the code reads as the
+;;  * constant but the lambda by its name, the constant.
+;;  * @param {form} form - The procedure's fast form's emission.
+;;  * @param {list} lam - Its lambda IR node.
+;;  * @returns {string}
+;;  */
+(define (way-back-frame form lam)
+  (let* ((plan (plan-of form))
+         (u (form-unit form))
+         (entry (lambda (name value box?)
+                  (string-append (js-string (symbol->string name)) ", " value ", " (if box? "true" "false"))))
+         (captured (map (lambda (v) (entry v (js-name form v) (boxed? plan v))) (plan-free-of plan lam)))
+         (own (map (lambda (v) (entry v (js-name form v) #f)) (plan-self-of plan lam)))
+         (constants (map (lambda (c) (entry (constant-origin c) (constant u (cadr c)) #f))
+                         (constants-read-within lam))))
+    (string-join (append captured own constants) ", ")))
+
+;; /**
+;;  * The constants a lambda's code has for locals bound outside it, once each.
+;;  * @param {list} lam - A lambda IR node.
+;;  * @returns {list} `const` IR nodes.
+;;  */
+(define (constants-read-within lam)
+  (let ((bound (append-map names-bound-by (ir-find binding-node? lam))))
+    (let keep ((consts (ir-find (lambda (n) (and (eq? (car n) 'const) (constant-origin n))) lam))
+               (seen '()))
+      (cond ((null? consts) '())
+            ((or (memq (constant-origin (car consts)) seen) (memq (constant-origin (car consts)) bound))
+             (keep (cdr consts) seen))
+            (else (cons (car consts) (keep (cdr consts) (cons (constant-origin (car consts)) seen))))))))
+
+;; /**
+;;  * Whether an IR node binds names.
+;;  * @param {list} node - An IR node.
+;;  * @returns {boolean}
+;;  */
+(define (binding-node? node) (and (memq (car node) '(lambda let letrec define)) #t))
+
+;; /**
+;;  * The names an IR node binds.
+;;  * @param {list} node - A `lambda`, `let`, `letrec` or `define` node.
+;;  * @returns {list}
+;;  */
+(define (names-bound-by node)
+  (case (car node)
+    ((lambda) (parameters-in-order node))
+    ((let define) (list (cadr node)))
+    ((letrec) (cadr node))
+    (else '())))
 
 ;; /**
 ;;  * The resumable form of a procedure, as a JavaScript function bound to a
@@ -2653,7 +2754,8 @@
     ($add . "R.add") ($sub . "R.sub") ($mul . "R.mul")
     ($lt . "R.lt") ($gt . "R.gt") ($le . "R.le") ($ge . "R.ge") ($numEq . "R.numEq")
     ($stack . "R.stack") ($flush . "R.flush") ($tailCall . "R.tailCall") ($PRIM . "R.SCHEME_PRIMITIVE")
-    ($notProc . "R.notAProcedure") ($foreign . "R.callForeign")))
+    ($notProc . "R.notAProcedure") ($foreign . "R.callForeign")
+    ($dbg . "R.debuggingCell(E)")))
 
 ;; /**
 ;;  * The declaration of the runtime values a unit's code uses, in the order
@@ -2701,9 +2803,9 @@
 ;;  *   the span of each of its lines, or #f, which its source map is written
 ;;  *   from.
 ;;  */
-(define (generate-unit ir globals library-globals name guarded)
+(define (generate-unit ir globals library-globals name guarded . ways-back)
   (let* ((u (make-unit (plan-lifting ir) globals library-globals (global-indices globals) guarded
-                       '() '() '() '() '() (make-weak-table)))
+                       '() '() '() '() '() (make-weak-table) (and (pair? ways-back) (car ways-back))))
          ;; The twin first: generating it decides where each call site resumes
          ;; and what a frame saves there, which the fast form needs in order to
          ;; suspend itself.

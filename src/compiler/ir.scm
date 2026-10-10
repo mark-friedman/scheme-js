@@ -618,6 +618,31 @@
 (define (node-span node) (weak-table-ref node-spans node))
 
 ;; /**
+;;  * The core form each `lambda` node was made from, and the local each
+;;  * constant a reference to a local bound to a constant became was read
+;;  * as: what a procedure compiled code makes needs, to be made an interpreted
+;;  * closure again over what it captured (`way-back` in `emit.scm`), the core
+;;  * form naming that local where the code has the constant.
+;;  */
+(define lambda-cores (make-weak-table))
+(define constant-origins (make-weak-table))
+
+;; /**
+;;  * The core form a `lambda` node was made from, or #f.
+;;  * @param {list} lam - A `lambda` IR node.
+;;  * @returns {list|boolean}
+;;  */
+(define (lambda-core lam) (weak-table-ref lambda-cores lam))
+
+;; /**
+;;  * The local a `const` node stands for, read where it was bound to the
+;;  * constant, or #f.
+;;  * @param {list} node - A `const` IR node.
+;;  * @returns {symbol|boolean}
+;;  */
+(define (constant-origin node) (weak-table-ref constant-origins node))
+
+;; /**
 ;;  * Whether an IR node denotes something this pass can name as a callee.
 ;;  *
 ;;  * A global can be looked up and followed; a lambda, and a local bound to
@@ -661,6 +686,8 @@
     ;; that constant, keeps the span it has.
     (if (and span (not (eq? (car ir) 'call)) (not (node-span ir)))
         (weak-table-set! node-spans ir span))
+    (if (and (eq? (car ir) 'lambda) (eq? (ast-tag node) 'lambda))
+        (weak-table-set! lambda-cores ir node))
     ir))
 
 ;; /**
@@ -694,7 +721,10 @@
               ;; safety analysis can look it up and follow it. Not that it is
               ;; safe.
               (list 'global name tail #t))
-             ((pair? (cdr hit)) (list 'const (cadr (cdr hit)) tail))
+             ((pair? (cdr hit))
+              (let ((const (list 'const (cadr (cdr hit)) tail)))
+                (weak-table-set! constant-origins const name)
+                const))
              (else (list 'local name tail (eq? (cdr hit) #t)))))))
 
       ((eq? tag 'if)

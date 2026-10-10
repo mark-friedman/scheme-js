@@ -198,6 +198,16 @@ async function switchTests(logger, over, browser, fixtures, query, ignore) {
       await page.evaluate("window.compiledNow('first-call')"), true);
     assert(logger, 'and a breakpoint in it pauses its first call', await pausesInside(page, devTools),
       [`placing.scm:${inside}`, 3]);
+    // A definition's value is compiled too, so a procedure it holds in data
+    // has code a breakpoint binds to.
+    const handler = lineOf('placing.scm', '(* x 3)');
+    const bound = await devTools.breakpoint(placing, handler);
+    const seen = await devTools.pauses();
+    const running = page.evaluate("window.call('call-handler', 2)").catch(() => null);
+    const at = bound > 0 ? await devTools.pauseAfter(seen) : null;
+    await devTools.resume();
+    assert(logger, "a breakpoint in a procedure a definition's value holds in data pauses it",
+      [bound > 0, shown(at), await running], [true, `placing.scm:${handler}`, 6]);
     await page.close();
   }
   {
@@ -245,7 +255,7 @@ async function steppingTests(logger, over, devTools, page, fixtures) {
     await page.evaluate('JSON.stringify(window.compiled)'),
     JSON.stringify({
       'scheme-calls-js': true, 'scheme-called-from-js': true, 'scheme-round-trip': true,
-      classify: true, assigning: true, counting: true, summing: true
+      classify: true, assigning: true, counting: true, summing: true, 'call-handler': true
     }));
   assert(logger, 'DevTools lists the Scheme file the compiled code is mapped to', await devTools.source(scm), true);
 

@@ -106,7 +106,7 @@
     (test "and the failure is kept, by the procedure's name"
           '("f") (map car (take-compiler-failures!)))
     (test "until it is taken" '() (take-compiler-failures!)))
-  (let ((outcome (with-error-text (lambda () (compile-lambda unlowerable "g" #f #f #f #f)))))
+  (let ((outcome (with-error-text (lambda () (compile-lambda unlowerable "g" #f #f #f #f #f)))))
     (test "compiling it to a procedure declines it too" #t (declined? (car outcome)))
     (test "and keeps that failure" '("g") (map car (take-compiler-failures!))))
   (test "a procedure the compiler declines for a reason of its own is no failure"

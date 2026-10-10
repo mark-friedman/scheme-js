@@ -292,7 +292,7 @@
                         (unsafe-closures (list (cons (string->symbol name) closure)) env #f))))
     (if (pair? ruled-out)
         (make-declined name (cdar ruled-out) #f)
-        (compile-closure closure name (tier-declines-captures? tier)))))
+        (compile-closure closure name (tier-declines-captures? tier) (tier-eager? tier)))))
 
 ;; /**
 ;;  * Makes a closure run as what it compiled to, staying the object every
@@ -314,9 +314,15 @@
 ;;  * Only a form that loops, unless the tier compiles eagerly. One that only
 ;;  * makes procedures is interpreted: the procedures it binds are compiled when
 ;;  * bound, over their closures, and one it makes and keeps elsewhere would,
-;;  * compiled here, have no closure for the REPL's debugger to go back to --
-;;  * which compiling eagerly, for DevTools, leaves aside. Definitions run
-;;  * interpreted, which is where the tier sees what they bind.
+;;  * compiled here, have no closure for the REPL's debugger to go back to.
+;;  * Definitions run interpreted, which is where the tier sees what they bind.
+;;  *
+;;  * Compiling eagerly, for DevTools, every form is compiled but a definition
+;;  * of a procedure, which the tier compiles over its closure as it is bound;
+;;  * of another definition, the value is, and the procedure answered computes
+;;  * it for the interpreter to bind (`Interpreter.runTopLevel`). A procedure
+;;  * such code makes is given a way back to an interpreted closure
+;;  * (`way-back` in emit.scm), so the REPL's debugger can still pause in it.
 ;;  *
 ;;  * @param {tier} tier - The tier.
 ;;  * @param {object} node - The analyzed form.
@@ -326,17 +332,24 @@
 (define (tier-top-level-procedure tier node env)
   (and (program-environment? tier env)
        (not (tier-deferring? tier))
-       (let ((form (ast->scheme node)))
-         (and (not (defines-at-top-level? form))
-              (or (tier-eager? tier) (contains-loop? form))
-              (let ((outcome (if (tier-eager? tier)
-                                 (compile-thunk form env (ast-span node) (tier-declines-captures? tier))
-                                 (compile-expression-form form env (ast-span node) #f
-                                                          (tier-declines-captures? tier)))))
-                (and (compiled? outcome)
-                     (begin
-                       (set-tier-expressions! tier (+ (tier-expressions tier) 1))
-                       (compiled-procedure outcome))))))))
+       (let* ((form (ast->scheme node))
+              (outcome
+                (cond ((defines-at-top-level? form)
+                       (and (tier-eager? tier)
+                            (eq? (ast-tag form) 'define)
+                            (not (eq? (ast-tag (ast-2 form)) 'lambda))
+                            (compile-thunk (ast-2 form) env (definition-span node)
+                                           (tier-declines-captures? tier) #t)))
+                      ((tier-eager? tier)
+                       (compile-thunk form env (ast-span node) (tier-declines-captures? tier) #t))
+                      ((contains-loop? form)
+                       (compile-expression-form form env (ast-span node) #f (tier-declines-captures? tier)))
+                      (else #f))))
+         (and outcome
+              (compiled? outcome)
+              (begin
+                (set-tier-expressions! tier (+ (tier-expressions tier) 1))
+                (compiled-procedure outcome))))))
 
 ;; ---------------------------------------------------------------------------
 ;; Procedures whose saved frames are re-entered

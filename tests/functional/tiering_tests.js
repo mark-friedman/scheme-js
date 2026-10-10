@@ -349,6 +349,37 @@ export async function runTieringTests(logger) {
       setEagerCompiling(createInterpreter().interpreter, true), false);
   }
   {
+    // A definition's value is compiled too, and a procedure it makes, which
+    // has no interpreted closure behind it, keeps a way back to one: the
+    // REPL's debugger, which pauses only in interpreted code, runs it as that
+    // closure, sharing the variables it captured with the compiled code.
+    const t = tiered({ eager: true });
+    const define = (source) => {
+      for (const form of parse(source, { filename: 'way-back.scm' })) {
+        settle(t.interpreter.runTopLevel(analyze(form), t.env, { jsAutoConvert: 'raw' }));
+      }
+    };
+    define('(define dt-handlers\n  (list (lambda (x)\n          (* x 2))))');
+    assert(logger, "compiling every procedure, a definition's value is compiled, and a procedure it holds in data with it",
+      [t.env.lookup('dt-handlers').car.$compiled === true, t.run('((car dt-handlers) 21)')], [true, '42']);
+    define('(define dt-counter\n  (let ((n 0))\n    (lambda ()\n      (set! n\n            (+ n 1))\n      n)))');
+    const first = t.run('(dt-counter)');
+    let paused = 0;
+    const runtime = new SchemeDebugRuntime({
+      onPause: () => { paused++; setTimeout(() => runtime.resume(), 2); }
+    });
+    t.interpreter.setDebugRuntime(runtime);
+    runtime.enable();
+    const id = runtime.setBreakpoint('way-back.scm', 4);
+    const second = await t.interpreter.runAsync(analyze(parse('(dt-counter)')[0]), t.env, { jsAutoConvert: 'raw' });
+    runtime.removeBreakpoint(id);
+    t.interpreter.setDebugRuntime(null);
+    const third = t.run('(dt-counter)');
+    assert(logger, 'a breakpoint in a procedure such a value made pauses the REPL\'s debugger, and the procedure keeps '
+      + 'its state, compiled, then interpreted, then compiled again', [first, paused, writeString(second), third],
+      ['1', 1, '2', '3']);
+  }
+  {
     // A library's procedures cannot be compiled while it loads, so they are
     // compiled at their first call after.
     const bundled = (name) => BUNDLED_SOURCES[`${name[name.length - 1]}.sld`] ?? BUNDLED_SOURCES[name[name.length - 1]];

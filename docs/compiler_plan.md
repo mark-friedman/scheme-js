@@ -279,8 +279,7 @@ built for the test.
   DevTools walk the template on a step over the use too, it stepping over by the source position code
   maps to. Stepping into a template moves to (f)'s scopes, which can mark an expansion as an inlined
   range. An expansion viewer, as Racket's macro stepper is, would be a tool of its own, later.
-- **(d) The user's code compiled before it first runs, while DevTools debugs -- done 2026-10-09, and
-  being extended.** Measured first (R144): every procedure compiled as it is bound cost 0.5 to 2.5% over
+- **(d) The user's code compiled before it first runs, while DevTools debugs -- done 2026-10-09.** Measured first (R144): every procedure compiled as it is bound cost 0.5 to 2.5% over
   `benchmarks/run_tier.js`'s sets, 0.08 to 0.19 ms a procedure the tier would have left; a page's first
   script would wait 91 ms for the compiler. *Decided with the user:* one switch in the tier,
   `tier-compile-eagerly!` in `tier.scm`: every procedure compiled as it is bound, a library's at its
@@ -290,17 +289,20 @@ built for the test.
   page, `scheme-devtools` in its URL or `schemeJS.devtools()` in the console, remembered for the tab,
   its scripts then waiting for the compiler; in Node, on under `--inspect` unless `--no-devtools`, or
   with `--devtools`. The call that compiles a waiting procedure runs compiled, in either mode. Found: a
-  `let` counts as making a procedure for compiling at definition (R145). *Being done, decided with the
-  user 2026-10-09:* a definition's value compiled too, while the switch is on, so that a procedure it
+  `let` counts as making a procedure for compiling at definition (R145). *Done 2026-10-09, decided with the
+  user that day:* a definition's value compiled too, while the switch is on, so that a procedure it
   holds in data -- `(define handlers (list (lambda (e) ...)))` -- is compiled and its definition's line
   can hold a breakpoint; and a live way back to the REPL debugger for every procedure a compiled
   top-level form or definition makes, which has no interpreted closure behind it: compiled code made
   while the switch is on keeps, for each procedure it makes, its `lambda` and what it captured, so that
   the REPL debugger can make it an interpreted closure sharing its state, through an environment whose
   variables read and write the compiled code's boxes -- as it switches procedures compiled over closures
-  today -- with no reload. Asked of it: that sharing state with the interpreter costs little in
-  performance. Not reached yet: a procedure compiled code assigns to a top-level name, which the tier is
-  not told of.
+  today -- with no reload (`way-back` in `emit.scm`, `wayBack` in `runtime.js`, `closureOver` in
+  `assembler.js`, `SharedFrame` in `environment.js`). Asked of it, that sharing state cost little: nothing is generated
+  but while the switch is on, the prebuilt tables' code unchanged; the check on entry costs about a
+  nanosecond a call, 11% on a loop doing nothing but call such a procedure; and a frame shares its
+  variables only once the REPL's debugger runs a procedure interpreted. Not reached: a procedure
+  compiled code assigns to a top-level name, which the tier is not told of.
 - **(e) Values as Scheme, and the switch between Scheme and JavaScript -- to do.**
 - **(f) Scheme names -- readable names done 2026-10-09; scopes to do.** *Decided with the user
   2026-10-09:* both readable generated names, which every DevTools and Node's stack traces show, and

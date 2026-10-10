@@ -14776,3 +14776,62 @@ waiting check moved ahead of applying a closure; `tiering.js`, `setEagerCompilin
 tier's Scheme, as JavaScript that starts Scheme does; `scheme_entry.js` and `html_adapter.js`, the
 page's start-up, reading its URL and session storage and the console's call -- host input -- and
 calling the tier.
+
+# Task 84 (d): definitions' values compiled, and a way back for the REPL's debugger (2026-10-09)
+
+Two additions to (d), decided with the user. With the switch for DevTools on, a definition's value was
+interpreted, so a procedure it held in data -- `(define handlers (list (lambda (e) ...)))` -- was never
+compiled, and DevTools could neither stop in it nor bind a breakpoint there. And the procedures a
+compiled top-level form makes have no interpreted closure behind them, so the REPL's debugger, which
+pauses only in interpreted code, could not stop in them; nor, now, in those a compiled value makes.
+Asked whether that could be undone without a reload, the user chose to build a live way back, given
+that sharing state with the interpreter cost little.
+
+**Definitions' values.** While the tier compiles eagerly, a definition whose value is not a `lambda`
+has its value compiled (`tier-top-level-procedure` in `src/compiler/tier.scm`), and the interpreter
+binds what the compiled code computes (`compiledForm` in `src/core/interpreter/interpreter.js`). A
+definition of a procedure still runs interpreted, the tier compiling it over its closure as it is bound.
+
+**The way back.** While the tier compiles for DevTools, each procedure compiled code makes begins by
+reading the interpreter's record of which compiled procedures its debugger runs interpreted
+(`debuggingCell`, which `interpretForDebugger` keeps). While that is not none, the procedure makes,
+once, an interpreted closure of the `lambda` it came from -- the core form, kept beside its IR node
+(`lambda-core` in `src/compiler/ir.scm`), in the unit's constant pool with its spans -- asks the
+debugger's choice of it, as the library system asks of a closure the tier compiled over, and if chosen
+runs the call as that closure (`way-back` in `src/compiler/emit.scm`; `wayBack` in
+`src/compiler/runtime.js`; `closureOver` in `src/core/interpreter/assembler.js`, which the runtime the
+tier's code is given carries -- `instantiate` in `src/compiler/host.js` -- since a program built ahead
+of time, whose runtime `runtime.js` is too, carries no interpreter, which the first version pulled into
+its bundle). The closure's frame binds what the procedure captured: an unassigned
+variable by value; an assigned one by the box the compiled code holds it in, which the frame reads and
+writes through (`SharedFrame` in `src/core/interpreter/environment.js`), so the state is one whichever
+runs; the name a `letrec` gave the procedure, the procedure; and a local bound to a constant, which the
+compiled code has as the constant but the `lambda` by its name, the constant (`constant-origin`).
+
+What it costs, as the user asked: nothing outside the switch -- nothing is generated, and the prebuilt
+tables' code differs from before only in the expander's numbering of names; with it, the check costs
+about a nanosecond a call, a loop doing nothing but call such a procedure taking 26.4 ms against 23.7;
+and a frame shares variables only once the debugger runs a procedure interpreted.
+
+Tested in `tests/compiler/emit_tests.scm` (the check only while compiling for DevTools, and only in a
+procedure compiled code makes; the lambda in the pool; a captured variable by value or by its box; a
+constant's local in the frame), `tests/functional/tiering_tests.js` (a value's procedure in data
+compiled; a breakpoint in a procedure a compiled value made, `(let ((n 0)) (lambda () (set! n ...)
+n))`, pausing the REPL's debugger, the counter going 1, 2, 3 through compiled, interpreted and compiled
+again; without the way back it does not pause) and the DevTools tests (with `scheme-devtools`, a
+breakpoint in a procedure a definition's value holds in a list pauses it). Every tiered Scheme test
+file passes with the tier compiling everything, the check that a loop assigned beneath compiled code
+is compiled included, now that the procedure it installs is compiled with its definition's value.
+
+And the DevTools tests' driver attaches to each DevTools window once (`tests/devtools/devtools_driver.js`).
+It looked through every window for the one a new tab has, attaching again to those it had already
+made earlier tabs' and asking each which tab it inspects; each of those stalled for Puppeteer's protocol
+timeout, so the second tab took a minute to find and a run opening more tabs timed out, with or without
+anything compiled for DevTools.
+
+JavaScript under `src/` added, each with what requires it: `runtime.js`'s `debuggingCell` and
+`wayBack`, which `src/compiler/runtime.js` is for; `closureOver` in `assembler.js`, `SharedFrame` in
+`environment.js` and the debugger's record in `interpreter.js`, the evaluator; the tier's runtime in
+`host.js`, the compiler's door to the interpreter; `compiledForm`, the evaluator's door to the tier;
+`interpreterOf` exported from `values.js`, and `tryCompileClosure` passing the new argument, fixed in
+place.

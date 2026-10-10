@@ -1,5 +1,5 @@
 import { Values, isSchemeClosure, callSchemeProcedure, registerGlobalEnvironment, methodReceiver } from './values.js';
-import { LiteralNode, TailAppNode, ANS, CTL, ENV, FSTACK, RaiseNode } from './ast.js';
+import { LiteralNode, TailAppNode, DefineNode, ANS, CTL, ENV, FSTACK, RaiseNode } from './ast.js';
 import { SchemeError } from './errors.js';
 import { CaptureUnwind, UNWIND, completeCapture, unwinding, compiledStack, flushState, restoreFlush, beginStepAgain, openCompiledSegment, enterRun, leaveRun } from './unwind.js';
 import { CompiledEntryRemainder } from './frames.js';
@@ -8,6 +8,22 @@ import { takeCompiledRaise, handlerInForce } from './ast_nodes.js';
 import { interpretCompiledOver } from './library_registry.js';
 import { globalContext } from './context.js';
 
+
+/**
+ * The form to run in a top-level form's place, given the procedure the
+ * compiler tier compiled from it: a call of it; or, for a definition, whose
+ * value it computes, the definition with that call for its value.
+ * @param {Executable} ast - The analyzed form.
+ * @param {Function} thunk - The compiled procedure.
+ * @returns {Executable}
+ */
+function compiledForm(ast, thunk) {
+  const call = new TailAppNode(new LiteralNode(thunk), []);
+  if (!(ast instanceof DefineNode)) return call;
+  const definition = new DefineNode(ast.name, call);
+  definition.source = ast.source;
+  return definition;
+}
 
 /**
  * Wraps a JS Error as a SchemeError if not already one.
@@ -239,6 +255,16 @@ export class Interpreter {
      * @type {boolean}
      */
     this.debugging = false;
+
+    /**
+     * What the debugger last said of which compiled procedures run as
+     * interpreted closures, for those compiled code made, which ask it
+     * themselves (`wayBack` in src/compiler/runtime.js): `which` as
+     * `interpretForDebugger` was given it, and a count of the times it was,
+     * so that each asks again only when it has changed.
+     * @type {{which: (boolean|Function), generation: number}}
+     */
+    this.debugCell = { which: false, generation: 0 };
   }
 
 
@@ -630,6 +656,8 @@ export class Interpreter {
    */
   interpretForDebugger(which) {
     this.debugging = which !== false;
+    this.debugCell.which = which;
+    this.debugCell.generation++;
     if (this.globalEnv) interpretCompiledOver(which, this.globalEnv);
   }
 
@@ -649,8 +677,7 @@ export class Interpreter {
    */
   runTopLevel(ast, env = this.globalEnv, options = undefined) {
     const thunk = this.tier ? callSchemeProcedure(this.tier.form, [ast, env]) : false;
-    const form = thunk ? new TailAppNode(new LiteralNode(thunk), []) : ast;
-    return this.run(form, env, [], undefined, options);
+    return this.run(thunk ? compiledForm(ast, thunk) : ast, env, [], undefined, options);
   }
 
   /**

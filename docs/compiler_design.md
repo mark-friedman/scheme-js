@@ -985,18 +985,38 @@ as a thunk called once, only if it loops.
 the system's own, which it skips, so a procedure's first call would be passed over and a breakpoint
 in a procedure not yet compiled has no code to bind to. So a tier can compile eagerly
 (`tier-compile-eagerly!`): every procedure as it is bound, a library's at its first call once it has
-loaded, and every top-level form but a definition; turned on as the program runs, the procedures it
-has bound at top level are compiled at once, which a breakpoint set right after can bind to, and one
-waiting elsewhere -- in a library, or a program of its own imports -- at its next call. The
+loaded, every top-level form, and of a definition whose value is not a `lambda`, the value -- the
+interpreter binding what the compiled code computes (`compiledForm` in `interpreter.js`), so a
+procedure the value holds in data is compiled with it; turned on as the program runs, the procedures
+it has bound at top level are compiled at once, which a breakpoint set right after can bind to, and
+one waiting elsewhere -- in a library, or a program of its own imports -- at its next call. The
 interpreter, finding a waiting closure due at any call while the tier is eager, has the tier compile
 it and runs that call compiled. A page turns it on with `scheme-devtools` in its URL, or
 `schemeJS.devtools()` in the console, which the tab remembers through reloads until
 `schemeJS.devtools(false)`, and then has its scripts wait for the compiler, about 90 ms
 (`scheme_entry.js`, `html_adapter.js`); the CLI turns it on when Node's inspector is on, as
 `--inspect` turns it on, or with `--devtools`, and `--no-devtools` keeps it off (`repl.js`). Not
-reached: a procedure compiled code assigns to a top-level name, which the tier is not told of, and
-one an interpreted definition's value holds in data, bound to no name. A program built ahead of time
-needs none of it: every procedure in it is compiled from its first call.
+reached: a procedure compiled code assigns to a top-level name, which the tier is not told of. A
+program built ahead of time needs none of it: every procedure in it is compiled from its first call.
+
+**A way back, for the REPL's debugger.** Compiled whole, a top-level form or a definition's value
+makes procedures with no interpreted closure behind them, which the REPL's debugger, pausing only in
+interpreted code, could not stop in. So while the tier compiles for DevTools, each procedure
+compiled code makes is given a way back (`way-back` in `emit.scm`): its fast form first reads the
+interpreter's record of which compiled procedures the debugger runs interpreted (`debuggingCell`,
+kept by `interpretForDebugger`), and while that is not none, makes, once, an interpreted closure of
+the `lambda` it came from -- the core form, kept beside its IR node (`lambda-core` in `ir.scm`), its
+spans with it, in the constant pool -- asks the debugger's choice of it as it asks of a closure the
+tier compiled over, and if chosen runs the call as that closure (`wayBack` in `runtime.js`,
+`closureOver` in `assembler.js`, which only the runtime the tier's code is given carries, a program
+built ahead of time carrying no interpreter). The closure's frame binds what the procedure captured:
+a variable by value, or, assigned, by the box the compiled code holds it in, which the frame reads
+and writes through (`SharedFrame` in `environment.js`), so a counter's state is the same whichever
+runs; the name a `letrec` gave it, the procedure; and a local bound to a constant, which the code
+has as the constant, the constant (`constant-origin`). Nothing of it is generated otherwise: the
+prebuilt tables and the code of a program not debugged in DevTools are as they were. The check costs
+about a nanosecond a call -- a loop doing nothing but call such a procedure ran 11% longer -- and a
+frame shares its variables only once the debugger runs a procedure interpreted.
 
 **No on-stack replacement.** Both tiers look a top-level name up at every call. Once the compiled
 procedure is bound in the closure's place, the next call through the name -- a recursive call below

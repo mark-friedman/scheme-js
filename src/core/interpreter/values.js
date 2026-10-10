@@ -349,7 +349,7 @@ export function shareInterpreter(env, other) {
  * @returns {Interpreter} The interpreter.
  * @throws {SchemeError} If it is inside no interpreter's global environment.
  */
-function interpreterOf(env) {
+export function interpreterOf(env) {
     const interpreter = interpreterOfGlobalEnvironment.get(rootOf(env));
     if (interpreter === undefined) {
         throw new SchemeError('a compiled procedure was called from JavaScript, but its environment belongs to no interpreter');

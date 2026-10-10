@@ -34,6 +34,9 @@ import { importLibraries, defineLibrary } from './library_loader.js';
 import { getLibraryEnv } from './library_registry.js';
 import { Executable, CTL } from './stepables_base.js';
 import { stringValue } from '../primitives/string_class.js';
+import { createClosure, interpreterOf } from './values.js';
+import { SharedFrame } from './environment.js';
+import { SchemeError } from './errors.js';
 
 /**
  * A core form's fields, after its tag.
@@ -91,6 +94,27 @@ export function assemble(form, analyze, libraryEnvironment = getLibraryEnv) {
   if (form.source !== undefined && form.source !== null) node.source = form.source;
   node.core = form;
   return node;
+}
+
+/**
+ * The interpreted closure of a lambda over the variables a procedure
+ * compiled from it captured, its frame sharing them with the compiled code
+ * (`SharedFrame`): what such a procedure runs as while the REPL's debugger
+ * runs it interpreted, compiled code having made it with no closure behind
+ * it (`wayBack` in src/compiler/runtime.js, `way-back` in emit.scm).
+ * @param {Environment} env - The environment the procedure's globals resolve
+ *   in.
+ * @param {Cons} core - The lambda, as a core form, its spans kept.
+ * @param {Array<*>} held - Three elements to a variable: its name, its value
+ *   or box, and whether it is a box.
+ * @returns {Function} The closure.
+ */
+export function closureOver(env, core, held) {
+  const node = assemble(core, () => {
+    throw new SchemeError('a procedure made interpreted again holds no import');
+  });
+  return createClosure(node.params, node.body, new SharedFrame(env, held), node.restParam, interpreterOf(env),
+    node.name, node.source ?? null, node.originalParams, node.originalRestParam);
 }
 
 /**
