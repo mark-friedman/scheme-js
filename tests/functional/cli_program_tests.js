@@ -77,6 +77,14 @@ export async function runCliProgramTests(logger) {
     assert(logger, 'but is with --devtools, as it is defined', [asked.status, asked.stdout], [0, '(2 #t)']);
     assert(logger, "and with Node's inspector on", [inspected.status, inspected.stdout], [0, '(2 #t)']);
     assert(logger, 'unless --no-devtools says not to', [declined.status, declined.stdout], [0, '(2 #f)']);
+    // And DevTools draws Scheme's values as Scheme with the formatter
+    // registered then (src/extras/scheme/devtools.scm).
+    const formatters = program('formatters.scm', `(import (scheme base) (scheme write) (scheme-js interop))
+      (write (not (js-undefined? (js-eval "globalThis.devtoolsFormatters"))))`);
+    const [withFormatters, withoutFormatters] = await Promise.all([
+      runCli(['--devtools', formatters]), runCli([formatters])]);
+    assert(logger, "a custom formatter for DevTools is registered then, and only then",
+      [withFormatters.stdout, withoutFormatters.stdout], ['#t', '#f']);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

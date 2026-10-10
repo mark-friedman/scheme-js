@@ -1,7 +1,9 @@
 import { createInterpreter } from '../core/interpreter/index.js';
 import { parse } from '../core/interpreter/reader.js';
 import { analyze } from '../core/interpreter/expand.js';
-import { setFileResolver, setLibraryLoadHook, setLibraryRestorer, programEnvironment, runProgramForm } from '../core/interpreter/library_loader.js';
+import { setFileResolver, setLibraryLoadHook, setLibraryRestorer, programEnvironment, runProgramForm, loadLibrarySync } from '../core/interpreter/library_loader.js';
+import { callSchemeProcedure } from '../core/interpreter/values.js';
+import { intern } from '../core/interpreter/symbol.js';
 import { BUNDLED_SOURCES } from './bundled_libraries.js';
 import { installLibraryTable, libraryRestorer } from '../compiler/prebuilt.js';
 import { rememberSourceText } from '../core/interpreter/source_texts.js';
@@ -228,7 +230,25 @@ export function compileForDevTools(on = true) {
     : 'scheme-js: a procedure is compiled once it is called again, as usual.';
 }
 
-globalThis.schemeJS = Object.assign(globalThis.schemeJS ?? {}, { devtools: compileForDevTools });
+// DevTools draws Scheme's values as Scheme with the custom formatter
+// (scheme-js devtools) registers, once its user turns custom formatters on in
+// its settings: a value only Scheme has, as Scheme; a vector, which is an
+// array, as Scheme while paused in Scheme. `schemeJS.values('scheme')` draws
+// every one as Scheme, `'javascript'` none, `'auto'` as at first.
+const devtoolsLibrary = loadLibrarySync(['scheme-js', 'devtools'], analyze, interpreter, env);
+callSchemeProcedure(devtoolsLibrary.get('install-devtools-formatters!'), []);
+
+/**
+ * Switches how DevTools draws Scheme's values. Called in the console, as
+ * `schemeJS.values('scheme')`.
+ * @param {string} [mode='auto'] - `auto`, `scheme` or `javascript`.
+ * @returns {string} The mode.
+ */
+function drawValuesAs(mode = 'auto') {
+  return callSchemeProcedure(devtoolsLibrary.get('set-devtools-display!'), [intern(String(mode))]).name;
+}
+
+globalThis.schemeJS = Object.assign(globalThis.schemeJS ?? {}, { devtools: compileForDevTools, values: drawValuesAs });
 
 /**
  * Whether a library has a prebuilt table installed over it as it loads, so

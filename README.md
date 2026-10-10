@@ -191,6 +191,15 @@ procedure only once it is called again; so this has every procedure compiled as 
 page's scripts wait for the compiler before they run. The system's own code is ignore-listed by the
 bundle's source map, so a step never stops in it.
 
+With custom formatters turned on in DevTools' settings (Preferences, Console, *Enable custom
+formatters*), Scheme's values are drawn as Scheme -- a list as `(1 2 3)`, a symbol by its name, a record
+by its type and fields -- and expanding one shows its parts and, last, the value as JavaScript draws
+it. A vector, which is a JavaScript array, is drawn as a vector while paused in Scheme and as an array
+while paused in JavaScript; `schemeJS.values('scheme')` in the console draws every value as Scheme,
+`schemeJS.values('javascript')` none, and `schemeJS.values('auto')` as at first. A value JavaScript has
+a primitive for -- `#t`, `#f`, the empty list, a number -- is drawn as JavaScript draws it: `true`,
+`false`, `null`, `3`.
+
 ---
 ### Debugging Tools
 See the [Debugger Manual](./docs/debugger_manual.md) for more details.

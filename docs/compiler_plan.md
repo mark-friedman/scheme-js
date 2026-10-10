@@ -303,7 +303,17 @@ built for the test.
   nanosecond a call, 11% on a loop doing nothing but call such a procedure; and a frame shares its
   variables only once the REPL's debugger runs a procedure interpreted. Not reached: a procedure
   compiled code assigns to a top-level name, which the tier is not told of.
-- **(e) Values as Scheme, and the switch between Scheme and JavaScript -- to do.**
+- **(e) Values as Scheme, and the switch between Scheme and JavaScript -- done 2026-10-09.** A
+  custom formatter for DevTools, written in Scheme -- `(scheme-js devtools)`, `src/extras/scheme/devtools.scm`
+  -- over a JavaScript shim that registers it, reads where the program is paused and makes its markup
+  JsonML (`src/extras/primitives/devtools.js`): a formatter is called on the paused thread, so the frame
+  beneath it is the paused one, and a `scheme:///` script is compiled Scheme. A value only Scheme has
+  is drawn as Scheme, `write`'s text cut short, wherever the program is paused; a vector or bytevector,
+  which JavaScript holds as an array, only while paused in Scheme; expanding one shows its parts and,
+  last, the value as JavaScript draws it, the switch for one value. `schemeJS.values('scheme' |
+  'javascript' | 'auto')` is the switch for all of them. Registered at a page's start-up, and by the CLI
+  when DevTools can attach -- loading the library cost a CLI start 5 ms. Formatters are asked only of
+  objects: `#t`, `#f`, `()` and the numbers JavaScript holds are drawn as JavaScript draws them.
 - **(f) Scheme names -- readable names done 2026-10-09; scopes to do.** *Decided with the user
   2026-10-09:* both readable generated names, which every DevTools and Node's stack traces show, and
   source map scopes, for exact names and hidden temporaries where DevTools reads them (Chrome 146 does

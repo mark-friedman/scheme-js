@@ -24,3 +24,13 @@ export function jsCallsScheme(proc, x) {
   const y = proc(x);
   return y * 2;
 }
+
+/**
+ * Holds an array, which DevTools draws as JavaScript while paused here.
+ * @param {number} n - The first element.
+ * @returns {number}
+ */
+export function jsHoldsArray(n) {
+  const items = [n, n + 1];
+  return items.length;
+}

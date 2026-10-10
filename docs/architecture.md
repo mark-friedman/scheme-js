@@ -355,11 +355,14 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │       │   ├── interop.js          # JS interop: js-eval, js-ref, js-set!
 │       │   ├── promise.js          # Promise interop primitives
 │       │   ├── hash_table.js       # Map-backed store under SRFI 125; native hash functions
+│       │   ├── devtools.js         # DevTools' custom formatter: registering it, the paused frame, JsonML; a procedure's and a record's reflection
 │       │   └── bitwise.js          # BigInt operators under SRFI 151
 │       └── scheme/                 # Scheme library files
 │           ├── procedural-macros.sld # (scheme-js procedural-macros): er-macro-transformer, define-macro
 │           ├── promise.sld         # (scheme-js promise) library declaration
 │           ├── promise.scm         # Promise utilities and macros
+│           ├── devtools.sld        # (scheme-js devtools): DevTools draws Scheme's values as Scheme
+│           ├── devtools.scm        # Its formatter: which values are Scheme's to draw, by where the program is paused; headers and bodies
 │           ├── 125.sld             # (srfi 125) hash tables
 │           ├── hash_table.scm      # SRFI 125 implementation
 │           ├── 128.sld             # (srfi 128) comparators

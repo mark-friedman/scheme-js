@@ -255,7 +255,7 @@ async function steppingTests(logger, over, devTools, page, fixtures) {
     await page.evaluate('JSON.stringify(window.compiled)'),
     JSON.stringify({
       'scheme-calls-js': true, 'scheme-called-from-js': true, 'scheme-round-trip': true,
-      classify: true, assigning: true, counting: true, summing: true, 'call-handler': true
+      classify: true, assigning: true, counting: true, summing: true, 'call-handler': true, vectoring: true
     }));
   assert(logger, 'DevTools lists the Scheme file the compiled code is mapped to', await devTools.source(scm), true);
 
@@ -337,6 +337,57 @@ async function steppingTests(logger, over, devTools, page, fixtures) {
         places.at(-1)],
       [0, 3, caller]);
   }
+
+  // With DevTools' custom formatters on, a Scheme value is drawn as Scheme:
+  // one only Scheme has wherever the program is paused, a vector, which is
+  // an array, only while paused in Scheme; and the console switches every
+  // one to Scheme or to JavaScript.
+  logger.title(`DevTools, over ${over} - values drawn as Scheme`);
+  await devTools.customFormatters(true);
+  const drawnAt = async (url, line, call) => {
+    await devTools.breakpoint(url, line);
+    const seen = await devTools.pauses();
+    const running = page.evaluate(call).catch(() => null);
+    const paused = await devTools.pauseAfter(seen);
+    const drawn = paused === null ? null : await devTools.drawn();
+    await devTools.resume();
+    await running;
+    return drawn;
+  };
+  const inSumming = () => drawnAt(placing, lineOf('placing.scm', '(if (null? items)'),
+    "window.call('summing', window.call('list', 1, 2))");
+  const inJavaScript = () => drawnAt(js, lineOf('boundary.js', 'return items.length'), 'window.user.jsHoldsArray(1)');
+  const items = (await inSumming())?.items;
+  assert(logger, 'paused in Scheme, a list is drawn as Scheme writes it, with a body', [items?.header, items?.body],
+    ['(1 2)', true]);
+  assert(logger, 'and a vector, which is an array, as a vector',
+    (await drawnAt(placing, lineOf('placing.scm', '(vector-length v)'), "window.call('vectoring', [1, 2, 3])"))?.v?.header,
+    '#(1 2 3)');
+  assert(logger, 'paused in JavaScript, an array is drawn as JavaScript draws it', (await inJavaScript())?.items, null);
+  assert(logger, 'but a Scheme procedure, which only Scheme has, is drawn as Scheme',
+    (await drawnAt(js, lineOf('boundary.js', 'const y = proc(x)'), "window.call('scheme-round-trip', 5)"))?.proc?.header,
+    '#<procedure scheme-called-from-js>');
+  const switched = await page.evaluate("schemeJS.values('scheme')");
+  const array = (await inJavaScript())?.items?.header;
+  await page.evaluate("schemeJS.values('javascript')");
+  const list = (await inSumming())?.items;
+  await page.evaluate("schemeJS.values('auto')");
+  await devTools.customFormatters(false);
+  assert(logger, 'switched in the console to draw every value as Scheme, an array in JavaScript is drawn as a vector',
+    [switched, array], ['scheme', '#(1 2)']);
+  assert(logger, 'and switched to draw none, a list in Scheme is drawn as JavaScript draws it', list, null);
+  // The body, as the page's formatter gives DevTools it when a value is
+  // expanded: each element a row DevTools draws, then the value as JavaScript.
+  const body = await page.evaluate(() => {
+    const formatter = globalThis.devtoolsFormatters.at(-1);
+    const value = window.schemeValue("'(1 2)");
+    const jsonml = formatter.body(value);
+    const rows = jsonml.slice(2);
+    return [jsonml[0], rows.length, rows[0][2], rows[0][3][0], rows[0][3][1].object, rows.at(-1)[2],
+      rows.at(-1)[3][1].object === value, rows.at(-1)[3][1].config.javascript];
+  });
+  assert(logger, "expanded, a list's body is its elements, each for DevTools to draw, then the list as JavaScript draws it",
+    body, ['ol', 3, '0: ', 'object', 1, 'JavaScript: ', true, true]);
 
   logger.title(`DevTools, over ${over} - never in the system`);
   assert(logger, "no pause was in the system's code, nor in code DevTools could not place in a source",

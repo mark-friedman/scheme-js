@@ -14835,3 +14835,44 @@ JavaScript under `src/` added, each with what requires it: `runtime.js`'s `debug
 `host.js`, the compiler's door to the interpreter; `compiledForm`, the evaluator's door to the tier;
 `interpreterOf` exported from `values.js`, and `tryCompileClosure` passing the new argument, fixed in
 place.
+
+# Task 84 (e): Scheme's values drawn as Scheme in DevTools (2026-10-09)
+
+Stage (e) of 84. DevTools draws a Scheme list as the chain of JavaScript objects it is made of. It draws
+an object with the custom formatters a page lists in `globalThis.devtoolsFormatters`, once its user turns
+custom formatters on in its settings, and asks each for a header, whether there is a body, and the
+body, as JsonML. So `(scheme-js devtools)` is one, written in Scheme (`src/extras/scheme/devtools.scm`)
+over a JavaScript shim (`src/extras/primitives/devtools.js`) that registers it, turns the markup the
+Scheme answers with into JsonML, and tells the Scheme what only the host can: whether a function is a
+Scheme procedure, a record's type and fields, and where the program is paused.
+
+That last was measured first: the user asked that a value be drawn as Scheme when stopped at Scheme
+and as JavaScript when stopped at JavaScript, and nothing tells a formatter where DevTools is stopped.
+But DevTools calls a formatter on the paused thread, so a stack trace taken in it has the paused frame
+right beneath it -- `at summing (scheme:///tests/devtools/fixtures/placing.scm/summing:26:5)`, or `at
+Module.jsCallsScheme (.../boundary.js:24:13)` -- and a `scheme:///` script is code the tier compiled.
+
+So: a value only Scheme has -- a pair, a symbol, a character, a string Scheme holds, an inexact integer,
+a record, a Scheme procedure -- is drawn as Scheme wherever the program is paused, `write`'s text cut
+short, so many elements and levels deep, however large or circular; a vector or a bytevector, which
+JavaScript holds as an array, only while paused in Scheme. Expanding one shows its parts -- a list's
+elements and tail, a vector's elements, a record's fields, each for DevTools to draw in turn -- and,
+last, the value as JavaScript draws it: the switch for one value. `schemeJS.values('scheme')` in the
+console draws every value as Scheme, `'javascript'` none, `'auto'` as at first. A formatter is asked only
+of objects, so `#t`, `#f`, the empty list and the numbers JavaScript holds are drawn as JavaScript draws
+them. Registered at a page's start-up, which measured no slower, and by the CLI only when DevTools can
+attach, under `--inspect` or with `--devtools`, since loading the library cost a CLI start 5 ms.
+
+Tested in a new `tests/core/scheme/devtools_tests.scm` (which values are Scheme's to draw, by where the
+program is paused and the switch; each kind's header; the body's rows), the DevTools tests over the
+modules and the bundle (with custom formatters on: a list drawn `(1 2)` with a body, paused in Scheme; a
+vector `#(1 2 3)` paused in Scheme and an array left to DevTools paused in JavaScript; a Scheme procedure
+drawn as one in JavaScript; the switch both ways; and a list's body as the page's formatter gives it),
+and the CLI's tests (the formatter registered under `--devtools` and not otherwise). The driver gained
+`customFormatters`, which turns them on as DevTools' settings do, and `drawn`, the headers of a paused
+frame's locals.
+
+JavaScript under `src/` added, each with what requires it: `devtools.js`, the host's part of the
+formatter -- DevTools' API, the paused frame's stack, a record's and a procedure's reflection;
+`scheme_entry.js` and `repl.js`, start-up, registering it and the console's switch; `RECORD_FIELDS`
+exported from `record.js`, fixed in place.

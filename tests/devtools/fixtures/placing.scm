@@ -40,3 +40,8 @@
 
 (define (call-handler x)
   ((car handlers) x))
+
+;; A vector, which JavaScript holds as an array: drawn as Scheme while paused
+;; here.
+(define (vectoring v)
+  (vector-length v))

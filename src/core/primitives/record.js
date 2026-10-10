@@ -16,7 +16,7 @@ import { SCHEME_PRIMITIVE } from '../interpreter/values.js';
 // ============================================================================
 
 // The field names of a record type made by make-record-type, in field order.
-const RECORD_FIELDS = Symbol('record-fields');
+export const RECORD_FIELDS = Symbol('record-fields');
 
 /**
  * Notes each constructor argument as a Scheme store into its field, so that

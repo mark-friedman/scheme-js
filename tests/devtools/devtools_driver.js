@@ -112,6 +112,29 @@ async function frontEnd(op, args) {
       debuggerModel[args[0]]();
       return pauseAfter(seen, 10000);
     }
+    case 'customFormatters':
+      // As its user turns them on in DevTools' settings.
+      Common.Settings.Settings.instance().moduleSetting('custom-formatters').set(args[0]);
+      await sleep(200);
+      return true;
+    case 'drawn': {
+      // Each of the top frame's own locals, as the custom formatters draw its
+      // header -- the text of their JsonML -- or null where they leave it to
+      // DevTools, and whether they give it a body.
+      const frame = debuggerModel.debuggerPausedDetails()?.callFrames[0];
+      if (!frame) return null;
+      const local = frame.scopeChain().find((scope) => scope.type() === 'local');
+      const { properties } = await local.object().getAllProperties(false, false, true);
+      // An element is a tag, its attributes, then its children; an `object`
+      // element, a value DevTools draws, has no text of its own.
+      const text = (jsonml) => (typeof jsonml === 'string' ? jsonml
+        : Array.isArray(jsonml) && jsonml[0] !== 'object' ? jsonml.slice(2).map(text).join('') : '');
+      return Object.fromEntries((properties ?? []).map((property) => {
+        const preview = property.value?.customPreview?.() ?? null;
+        return [property.name, preview === null ? null
+          : { header: text(JSON.parse(preview.header)), body: preview.bodyGetterId !== undefined }];
+      }));
+    }
     case 'locals': {
       // The top frame's own scope, by the names DevTools' Scope pane shows,
       // which it takes from the source maps where they give any.
@@ -253,6 +276,26 @@ export class DevTools {
    */
   step(kind) {
     return this.call('step', kind);
+  }
+
+  /**
+   * Turns DevTools' custom formatters on or off, as its user does in its
+   * settings.
+   * @param {boolean} on - Whether to.
+   * @returns {Promise<void>}
+   */
+  customFormatters(on) {
+    return this.call('customFormatters', on);
+  }
+
+  /**
+   * How the custom formatters draw each of the paused frame's own locals.
+   * @returns {Promise<Object<string, {header: string, body: boolean}|null>|null>}
+   *   Each local's header's text and whether it has a body, or null where
+   *   DevTools draws it itself; null if nothing is paused.
+   */
+  drawn() {
+    return this.call('drawn');
   }
 
   /**

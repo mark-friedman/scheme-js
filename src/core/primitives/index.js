@@ -17,6 +17,7 @@ import { getAsyncPrimitives } from './async.js';
 import { getControlPrimitives } from './control.js';
 import { GCPrimitives } from './gc.js';
 import { interopPrimitives } from '../../extras/primitives/interop.js';
+import { devtoolsPrimitives } from '../../extras/primitives/devtools.js';
 import { getExceptionPrimitives } from './exception.js';
 import { errorObjectPrimitives } from './error_object.js';
 import { procedurePrimitives } from './apply.js';
@@ -82,6 +83,7 @@ export function createGlobalEnvironment(interpreter) {
     addPrimitives(procedurePrimitives);
     addPrimitives(GCPrimitives);
     addPrimitives(interopPrimitives);
+    addPrimitives(devtoolsPrimitives);
     addPrimitives(getExceptionPrimitives(interpreter));
     addPrimitives(errorObjectPrimitives);
     addPrimitives(timePrimitives);

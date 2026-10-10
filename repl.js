@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 import { createInterpreter } from './src/core/interpreter/index.js';
-import { setFileResolver, setLibraryLoadHook, setLibraryRestorer, programEnvironment, runProgramForm } from './src/core/interpreter/library_loader.js';
+import { setFileResolver, setLibraryLoadHook, setLibraryRestorer, programEnvironment, runProgramForm, loadLibrarySync } from './src/core/interpreter/library_loader.js';
 import { libraryNameToKey } from './src/core/interpreter/library_registry.js';
 import { installLibraryTable, libraryRestorer } from './src/compiler/prebuilt.js';
 import { attachTier } from './src/compiler/tiering.js';
@@ -308,6 +308,13 @@ async function startRepl() {
 
     const { interpreter, env } = await bootstrapInterpreter(includeDirs);
     if (compile) attachTier(interpreter, env, { isPrebuilt, eager: forDevTools });
+    // DevTools attached to Node draws Scheme's values as Scheme, as on a page
+    // (src/extras/scheme/devtools.scm): registered when it can attach, since
+    // loading the library costs every other start 5 ms.
+    if (forDevTools) {
+        callSchemeProcedure(loadLibrarySync(['scheme-js', 'devtools'], analyze, interpreter, env)
+            .get('install-devtools-formatters!'), []);
+    }
 
     // Initialize Debugger
     const runtime = new SchemeDebugRuntime();
