@@ -138,7 +138,9 @@ function assertAllChars(procName, args) {
 }
 
 /**
- * Variadic character comparison helper.
+ * Variadic character comparison helper. Characters are compared by their code
+ * points, as R7RS orders them (`char->integer`): compared as strings, in
+ * UTF-16, a character beyond U+FFFF came before one from U+E000 to U+FFFF.
  * @param {string} procName - Procedure name
  * @param {Function} compare - Comparison function (a, b) => boolean
  * @param {Array} args - Character arguments
@@ -148,13 +150,14 @@ function compareChars(procName, compare, args) {
     assertArity(procName, args, 2, Infinity);
     assertAllChars(procName, args);
     for (let i = 0; i < args.length - 1; i++) {
-        if (!compare(args[i].toString(), args[i + 1].toString())) return false;
+        if (!compare(args[i].codePoint, args[i + 1].codePoint)) return false;
     }
     return true;
 }
 
 /**
- * Variadic case-insensitive character comparison helper.
+ * Variadic case-insensitive character comparison helper, by the code points
+ * of the characters case-folded, as `compareChars` compares code points.
  * @param {string} procName - Procedure name
  * @param {Function} compare - Comparison function (a, b) => boolean
  * @param {Array} args - Character arguments
@@ -164,9 +167,7 @@ function compareCiChars(procName, compare, args) {
     assertArity(procName, args, 2, Infinity);
     assertAllChars(procName, args);
     for (let i = 0; i < args.length - 1; i++) {
-        const a = String.fromCodePoint(foldCodePoint(args[i].valueOf()));
-        const b = String.fromCodePoint(foldCodePoint(args[i + 1].valueOf()));
-        if (!compare(a, b)) return false;
+        if (!compare(foldCodePoint(args[i].codePoint), foldCodePoint(args[i + 1].codePoint))) return false;
     }
     return true;
 }

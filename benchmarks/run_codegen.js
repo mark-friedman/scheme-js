@@ -137,6 +137,32 @@ const GROUPS = [
     ]
   },
   {
+    name: 'characters',
+    about: 'characters compared by code point and what a value is, inline (task 54)',
+    definitions: `
+      (define (one x) 1)
+      (define (letter? c) (if (or (char<=? #\\a c #\\z) (char<=? #\\A c #\\Z)) 1 0))
+      (define (same? c) (if (char=? c #\\h) 1 0))
+      (define (code c) (if (= (char->integer c) 0) 0 1))
+      (define (blank? c) (case c ((#\\space #\\tab #\\newline #\\return) 1) (else 0)))
+      (define (kind x)
+        (cond ((symbol? x) 1) ((string? x) 2) ((vector? x) 3) ((char? x) 4) ((boolean? x) 5)
+              ((procedure? x) 6) (else 7)))
+      (define key-a 'a)
+      (define key-char-h #\\h)
+      (define key-char-z #\\Z)
+      (define key-number 42)`,
+    workloads: [
+      ['a letter: two ranges of three characters', '(letter? key-char-z)'],
+      ['two characters equal', '(same? key-char-h)'],
+      ['a code point', '(code key-char-h)'],
+      ['case on characters, none matching', '(blank? key-char-h)'],
+      ['what a value is: a symbol, asked first', '(kind key-a)'],
+      ['what a value is: a character, asked fourth', '(kind key-char-h)'],
+      ['what a value is: none of six', '(kind key-number)']
+    ]
+  },
+  {
     name: 'vectors',
     about: 'vector-ref, vector-set! and vector-length on an array and an exact index in range',
     definitions: `

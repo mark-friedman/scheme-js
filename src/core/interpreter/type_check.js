@@ -10,7 +10,7 @@ import { Char } from '../primitives/char_class.js';
 import { SchemeString } from '../primitives/string_class.js';
 import { Complex } from '../primitives/complex.js';
 import { Symbol } from './symbol.js';
-import { Closure, Continuation, isSchemeClosure, isSchemeContinuation } from './values.js';
+import { isSchemeClosure, isSchemeContinuation } from './values.js';
 import { SchemeTypeError, SchemeArityError, SchemeRangeError } from './errors.js';
 import { Flonum } from './number_representation.js';
 
@@ -145,15 +145,14 @@ export function isVector(x) {
 }
 
 /**
- * Checks if value is a procedure (closure, continuation, or JS function).
+ * Checks if value is a procedure: a function, which every Scheme closure,
+ * continuation, primitive and compiled procedure is, as a JavaScript function
+ * is.
  * @param {*} x - Value to check
  * @returns {boolean}
  */
 export function isProcedure(x) {
-    // All callable functions are procedures
-    // This includes Scheme closures/continuations (which are now callable functions)
-    // and regular JS functions
-    return typeof x === 'function' || x instanceof Closure || x instanceof Continuation;
+    return typeof x === 'function';
 }
 
 /**
@@ -275,7 +274,7 @@ export function assertVector(procName, argPos, value) {
  * @param {string} procName - Procedure name
  * @param {number} argPos - Argument position (1-indexed)
  * @param {*} value - Value to check
- * @returns {Function|Closure|Continuation} The procedure
+ * @returns {Function} The procedure
  * @throws {SchemeTypeError}
  */
 export function assertProcedure(procName, argPos, value) {

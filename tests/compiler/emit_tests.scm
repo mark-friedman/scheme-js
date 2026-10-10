@@ -209,9 +209,10 @@
           (plan-self-of plan (car (outermost-lambdas (lambda-body ir)))))))
 
 ;; `eqv?` is `===` when either operand is a constant whose identity is its
-;; value -- a symbol, a boolean, the empty list -- and needs the primitive
-;; otherwise: numbers compare by value and exactness, characters by code point.
-;; That is the shape `case` produces, one test per datum.
+;; value -- a symbol, a boolean, the empty list, a character, of which there
+;; is one object a code point -- and needs the primitive otherwise: numbers
+;; compare by value and exactness. That is the shape `case` produces, one test
+;; per datum.
 (test-group "inline - eqv? against a constant"
   (define x '(local x #f #f))
   (define y '(local y #f #f))
@@ -222,13 +223,46 @@
   (test "against the empty list" #t (expands? 'eqv? x '(const () #f)))
   (test "not against an exact integer" #f (expands? 'eqv? x '(const 1 #f)))
   (test "not against an inexact number" #f (expands? 'eqv? x '(const 1.5 #f)))
-  (test "not against a character" #f (expands? 'eqv? x (list 'const #\a #f)))
+  (test "against a character" #t (expands? 'eqv? x (list 'const #\a #f)))
   (test "not between two variables" #f (expands? 'eqv? x y))
   (test "and to identity when it does" "s_x === K[0]"
         (let ((entry (inline-expansion 'eqv? (list x '(const a #f)))))
           (expr->string ((cadddr entry) (list (js 's_x) (js "K[0]"))))))
   (test "other expansions still apply by arity alone" #t (expands? 'car x))
   (test "and not at another arity" #f (expands? 'car x y)))
+
+;; Two or three characters are compared by code point, and one character with
+;; another by identity, there being one object a code point; a character's
+;; code point is a field; and what a value is, a type test. Each is taken only
+;; for operands it is exact for, the primitive answering any other.
+(test-group "inline - characters, and what a value is"
+  (define (operands n) (list-tail '((local a #f #f) (local b #f #f) (local c #f #f) (local d #f #f)) (- 4 n)))
+  (define (expands? name n) (if (inline-expansion name (operands n)) #t #f))
+  (define (texts name names)
+    (let ((entry (inline-expansion name (operands (length names))))
+          (exprs (map js names)))
+      (list (let ((shape ((caddr entry) exprs))) (and shape (expr->string shape)))
+            (expr->string ((cadddr entry) exprs)))))
+  (test "a comparison of two characters, or of three, expands" '(#t #t #t #t)
+        (list (expands? 'char=? 2) (expands? 'char<? 2) (expands? 'char<=? 3) (expands? 'char>=? 3)))
+  (test "but not of one, or of four, which the primitive takes" '(#f #f)
+        (list (expands? 'char<? 1) (expands? 'char<? 4)))
+  (test "two characters are equal as one object, when both are characters"
+        '("a instanceof R.Char && b instanceof R.Char" "a === b")
+        (texts 'char=? '(a b)))
+  (test "and ordered by their code points"
+        '("a instanceof R.Char && b instanceof R.Char" "a.codePoint < b.codePoint")
+        (texts 'char<? '(a b)))
+  (test "three, each pair in turn"
+        '("a instanceof R.Char && b instanceof R.Char && c instanceof R.Char"
+          "a.codePoint <= b.codePoint && b.codePoint <= c.codePoint")
+        (texts 'char<=? '(a b c)))
+  (test "a character's code point" '("a instanceof R.Char" "a.codePoint") (texts 'char->integer '(a)))
+  (test "what a value is, a test of its type for any value"
+        '((#f "a instanceof R.Char") (#f "a instanceof R.SchemeSymbol")
+          (#f "typeof a === 'string' || a instanceof R.SchemeString") (#f "Array.isArray(a)")
+          (#f "typeof a === 'boolean'") (#f "typeof a === 'function'"))
+        (map (lambda (name) (texts name '(a))) '(char? symbol? string? vector? boolean? procedure?))))
 
 ;; An arithmetic expansion's fast path is taken when both operands are exact
 ;; integers or both are inexact reals, which are JavaScript `bigint` and

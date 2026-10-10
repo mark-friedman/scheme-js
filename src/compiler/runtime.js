@@ -40,6 +40,12 @@ export { Flonum, inexactReal } from '../core/interpreter/number_representation.j
 export { applyProcedure, valuesToList } from '../core/primitives/apply.js';
 
 export { TailCall, Cons, SCHEME_RAW_CALL, SCHEME_PRIMITIVE, UNWIND, reify, SchemeError, primitiveCell, callForeign };
+// What generated code tests a value against, for the inline expansions of the
+// character procedures and the type predicates ("Characters, and what a value
+// is" in inline.scm).
+export { Char } from '../core/primitives/char_class.js';
+export { Symbol as SchemeSymbol } from '../core/interpreter/symbol.js';
+export { SchemeString } from '../core/primitives/string_class.js';
 
 // =============================================================================
 // A way back to the interpreter, for the REPL's debugger

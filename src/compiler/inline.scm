@@ -19,7 +19,8 @@
 ;;; clears the first time anything rebinds the name
 ;;; (`src/core/interpreter/primitive_bindings.js`).
 ;;;
-;;; An entry is (name arity test value), or (name arity test value applies?).
+;;; An entry is (name arity test value), or (name arity test value applies?),
+;;; and a name may have an entry for each of several arities.
 ;;; `test` and `value` take the operands, as expressions in the emitter's
 ;;; representation (see `emit.scm`), and return an expression: `test` the
 ;;; run-time condition under which the fast path is valid, or #f when it always
@@ -181,16 +182,97 @@
 
 ;; /**
 ;;  * Whether an operand is a constant whose identity is its value: a symbol, a
-;;  * boolean or the empty list. `eqv?` against one is JavaScript `===`, since
-;;  * symbols are interned and the other two are immediates; against a number
-;;  * or a character it is not, since those compare by value.
+;;  * boolean, the empty list or a character. `eqv?` against one is JavaScript
+;;  * `===`, since symbols are interned, two are immediates, and there is one
+;;  * character object a code point (src/core/primitives/char_class.js);
+;;  * against a number it is not, since numbers compare by value and exactness.
 ;;  * @param {list} node - An operand's IR node.
 ;;  * @returns {boolean}
 ;;  */
 (define (identity-constant? node)
   (and (eq? (car node) 'const)
        (let ((value (cadr node)))
-         (or (symbol? value) (boolean? value) (null? value)))))
+         (or (symbol? value) (boolean? value) (null? value) (char? value)))))
+
+;; ---------------------------------------------------------------------------
+;; Characters, and what a value is
+;; ---------------------------------------------------------------------------
+;;
+;; There is one character object a code point, so two characters are equal as
+;; one object, and are ordered by their code points, as R7RS orders them,
+;; through `char->integer`. A reader asks it of every character it reads, and
+;; a printer what each value it writes is; called, each cost a call through
+;; the primitive and, for a comparison, the list its rest parameter makes. A
+;; comparison is expanded for two characters and for three -- a reader's
+;; `(char<=? #\a c #\z)` -- and taken only when every operand is a
+;; character; a type test is what the primitive computes, for any value.
+
+;; /**
+;;  * Whether every operand is a character.
+;;  * @param {list} ops - The operand expressions.
+;;  * @returns {list} An expression.
+;;  */
+(define (all-characters ops)
+  (all-of (map (lambda (op) (js op " instanceof R.Char")) ops)))
+
+;; /**
+;;  * A relation of each operand to the next, all of them holding.
+;;  * @param {list} ops - The operand expressions.
+;;  * @param {procedure} relation - Two operands to an expression.
+;;  * @returns {list} An expression.
+;;  */
+(define (each-to-next ops relation)
+  (let ((pairs (map relation (drop-right ops 1) (cdr ops))))
+    (fold (lambda (r acc) (js acc " && " r)) (car pairs) (cdr pairs))))
+
+;; /**
+;;  * A comparison of characters at an arity, by a relation of two.
+;;  * @param {symbol} name - The Scheme name.
+;;  * @param {integer} arity - How many characters.
+;;  * @param {procedure} relation - Two operands to an expression.
+;;  * @returns {list} A table entry.
+;;  */
+(define (character-comparison name arity relation)
+  (list name arity all-characters (lambda (ops) (each-to-next ops relation))))
+
+;; /**
+;;  * The entries of a comparison of characters, for two and for three.
+;;  * @param {symbol} name - The Scheme name.
+;;  * @param {procedure} relation - Two operands to an expression.
+;;  * @returns {list} Table entries.
+;;  */
+(define (character-comparisons name relation)
+  (list (character-comparison name 2 relation) (character-comparison name 3 relation)))
+
+;; /**
+;;  * The relation of two characters' code points by a JavaScript operator.
+;;  * @param {string} op - The operator.
+;;  * @returns {procedure}
+;;  */
+(define (by-code-point op)
+  (lambda (a b) (js a ".codePoint " op " " b ".codePoint")))
+
+;; /**
+;;  * The entries for characters and for what a value is.
+;;  */
+(define character-expansions
+  (append
+    (character-comparisons 'char=? (lambda (a b) (js a " === " b)))
+    (character-comparisons 'char<? (by-code-point "<"))
+    (character-comparisons 'char>? (by-code-point ">"))
+    (character-comparisons 'char<=? (by-code-point "<="))
+    (character-comparisons 'char>=? (by-code-point ">="))
+    (list
+      (list 'char->integer 1 all-characters (lambda (ops) (js (car ops) ".codePoint")))
+      (total 'char? 1 (lambda (ops) (js (car ops) " instanceof R.Char")))
+      (total 'symbol? 1 (lambda (ops) (js (car ops) " instanceof R.SchemeSymbol")))
+      ;; A string JavaScript made is a string too.
+      (total 'string? 1 (lambda (ops) (js "typeof " (car ops) " === 'string' || " (car ops) " instanceof R.SchemeString")))
+      (total 'vector? 1 (lambda (ops) (js "Array.isArray(" (car ops) ")")))
+      (total 'boolean? 1 (lambda (ops) (js "typeof " (car ops) " === 'boolean'")))
+      ;; Every procedure is a function: a closure, a continuation, a
+      ;; primitive, a compiled procedure, a JavaScript function.
+      (total 'procedure? 1 (lambda (ops) (js "typeof " (car ops) " === 'function'"))))))
 
 ;; /**
 ;;  * An operand as what a property is read of: in parentheses if it is a
@@ -212,7 +294,7 @@
 ;;  * Every primitive with an inline expansion.
 ;;  */
 (define inline-expansions
-  (list
+  (cons*
     ;; Arithmetic and comparison: inline on two numbers, the runtime's
     ;; otherwise, tower fallback.
     (numeric-arithmetic '+ "+" '$add)
@@ -265,7 +347,9 @@
     (list 'eqv? 2
           (lambda (ops) #f)
           (lambda (ops) (js (car ops) " === " (cadr ops)))
-          (lambda (args) (any identity-constant? args)))))
+          (lambda (args) (any identity-constant? args)))
+    ;; Characters, and what a value is.
+    character-expansions))
 
 ;; /**
 ;;  * The expansion for a call, if this primitive has one for these operands.
@@ -274,15 +358,15 @@
 ;;  * @returns {list|boolean} The table entry, or #f.
 ;;  */
 (define (inline-expansion name args)
-  (let ((entry (assq name inline-expansions)))
-    (and entry
-         (= (cadr entry) (length args))
-         (let ((applies? (cddddr entry)))
-           (or (null? applies?) ((car applies?) args)))
-         entry)))
+  (find (lambda (entry)
+          (and (eq? (car entry) name)
+               (= (cadr entry) (length args))
+               (let ((applies? (cddddr entry)))
+                 (or (null? applies?) ((car applies?) args)))))
+        inline-expansions))
 
 ;; /**
 ;;  * The names that have an expansion at any arity, for the JavaScript side
 ;;  * to find out which of them are bound to their primitive.
 ;;  */
-(define (inline-expansion-names) (map car inline-expansions))
+(define (inline-expansion-names) (delete-duplicates (map car inline-expansions) eq?))

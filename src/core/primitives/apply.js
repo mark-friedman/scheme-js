@@ -11,7 +11,7 @@
  * and need not import `apply` to use `call-with-values`.
  */
 
-import { TailCall, Values, NO_VALUES, SCHEME_PRIMITIVE, Closure, Continuation } from '../interpreter/values.js';
+import { TailCall, Values, NO_VALUES, SCHEME_PRIMITIVE } from '../interpreter/values.js';
 import { Cons, toArray } from '../interpreter/cons.js';
 import { SchemeTypeError } from '../interpreter/errors.js';
 
@@ -80,13 +80,13 @@ valuesToList[SCHEME_PRIMITIVE] = true;
 /**
  * The primitives about procedures and their values that need nothing of the
  * interpreter, so that compiled code has them without it: `apply`;
- * `procedure?`, true of Scheme closures, continuations and JavaScript
- * functions alike; `values`; and `%values->list`.
+ * `procedure?`, true of a function, which Scheme closures, continuations and
+ * JavaScript functions alike are; `values`; and `%values->list`.
  * @type {Object<string, Function>}
  */
 export const procedurePrimitives = {
     'apply': applyProcedure,
-    'procedure?': (obj) => typeof obj === 'function' || obj instanceof Closure || obj instanceof Continuation,
+    'procedure?': (obj) => typeof obj === 'function',
 
     /**
      * values: Return multiple values.

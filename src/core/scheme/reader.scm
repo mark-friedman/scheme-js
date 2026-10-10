@@ -48,18 +48,21 @@
 (define atom-ends (string-append blanks "(){}[];\"|#"))
 
 ;; /**
-;;  * Whether a character is whitespace between tokens.
+;;  * Whether a character is whitespace between tokens: a space, a tab, a line
+;;  * ending or a form feed. The reader asks it of every character between
+;;  * tokens, and `case` on characters is compiled as tests of identity, there
+;;  * being one character object a code point.
 ;;  */
 (define (blank? c)
-  (or (char=? c #\space) (char=? c #\tab) (char=? c #\newline) (char=? c #\return)
-      (char=? c (integer->char 12))))
+  (case c ((#\space #\tab #\newline #\return #\xC) #t) (else #f)))
 
 ;; /**
-;;  * Whether a character ends an atom.
+;;  * Whether a character ends an atom, which the reader asks of every
+;;  * character of one.
 ;;  */
 (define (delimiter? c)
   (or (blank? c)
-      (memv c '(#\( #\) #\{ #\} #\[ #\] #\; #\" #\|))))
+      (case c ((#\( #\) #\{ #\} #\[ #\] #\; #\" #\|) #t) (else #f))))
 
 ;; /**
 ;;  * Whether a character is an ASCII letter, as a character's name is made of.
@@ -323,7 +326,7 @@
       (cond ((not c) skipped)
             ((blank? c) (advance! r) (loop #t))
             ((char=? c #\;)
-             (take-while! r (lambda (c) (not (memv c '(#\newline #\return)))))
+             (take-while! r (lambda (c) (case c ((#\newline #\return) #f) (else #t))))
              (loop #t))
             ((at-block-comment? r) (skip-block-comment! r) (loop #t))
             (else skipped)))))
@@ -356,7 +359,7 @@
       (if (> depth 0)
           (begin
             (if (reader-port r)
-                (take-while! r (lambda (c) (not (memv c '(#\# #\|)))))
+                (take-while! r (lambda (c) (case c ((#\# #\|) #f) (else #t))))
                 (set-reader-position! r (%string-find-any (reader-text r) "#|" (reader-position r))))
             (cond ((not (peek r)) (end-of-text r "unterminated block comment" "block comment" start))
                   ((at-block-comment? r) (advance-by! r 2) (nest (+ depth 1)))
@@ -658,7 +661,7 @@
 ;;  * are not tried as numbers.
 ;;  */
 (define (number-start? c)
-  (or (digit? c) (memv c '(#\+ #\- #\. #\#))))
+  (or (digit? c) (case c ((#\+ #\- #\. #\#) #t) (else #f))))
 
 ;; /**
 ;;  * An atom's text as a symbol -- folding case if asked -- or, with dot

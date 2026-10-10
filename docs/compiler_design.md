@@ -565,6 +565,15 @@ inlined the division primitives into compiled code and V8 in Chrome did not (tas
 program redefine `car`, so the expansion is correct only while the name still denotes the
 primitive — and that has to hold every time it runs, not just when it was compiled.
 
+A character is one object a code point (`src/core/primitives/char_class.js`), so two characters
+compared, or one compared with a character constant -- `case` on characters, one `eqv?` a datum --
+are tested for identity, `===`; ordered, by their code points, as R7RS orders them through
+`char->integer`, for two characters and for three, a reader's `(char<=? #\a c #\z)`; and the type
+predicates a printer and a reader ask of every value -- `char?`, `symbol?`, `string?`, `vector?`,
+`boolean?`, `procedure?` -- are the type tests their primitives make. The reader read the compiler's
+sources in 0.69 of the time for it, and a `case` on eight characters went from 107 to 6 ns (task 54).
+A name may have an expansion for each of several arities.
+
 The obvious guard asks the environment on every use: read the global, compare it with the
 primitive. That is a hash lookup per `car`, and it was most of what compiled code did. Removing
 every guard outright, unsoundly, made the `call` and `fixnum` classes about 1.95x faster.

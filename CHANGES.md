@@ -14992,3 +14992,49 @@ DevTools reads them; the prebuilt tables and built programs mapped.
 
 No JavaScript under `src/` (`npm run audit:languages -- HEAD`: 1,198 lines of Scheme added, 111
 removed).
+
+# Task 54 (a): characters, and what a value is, compiled inline (2026-10-10)
+
+The first of 54's four items, chosen with the user after considering 88, 54 and 59: only 54 had its
+evidence, and a profile of the compiled reader -- reading the compiler's sources ten times over, 1.22 s
+-- found its time in the calls 54's row names: `memv` on characters 9.7%, record accessors 6.2%, an
+optional port's rest list and its sorting out 5.5%, `char=?` 4%.
+
+**What is inline now** (`character-expansions` in `src/compiler/inline.scm`). A character is one object
+a code point (`src/core/primitives/char_class.js`), so `eqv?` against a character constant is `===`
+(`identity-constant?`, whose comment had said characters compare by value), which makes `case` on
+characters a chain of identity tests. `char=?`, `char<?`, `char>?`, `char<=?` and `char>=?` of two
+characters, or of three, compare identity or code points, when every operand is a character;
+`char->integer` reads the code point; `char?`, `symbol?`, `string?`, `vector?`, `boolean?` and
+`procedure?` are the type tests their primitives make. A name may have an entry for each of several
+arities (`inline-expansion` finds one by name and arity). Each is guarded by its primitive's binding as
+`car` is. `src/compiler/runtime.js` hands generated code the classes it tests against, `Char`,
+`SchemeSymbol` and `SchemeString`. The reader's hot character tests -- `blank?`, which made a form feed
+with `integer->char` on every call it got that far, `delimiter?`, `number-start?`, the scans of
+comments -- are `case` now (`src/core/scheme/reader.scm`), and the seed is pinned again.
+
+**Fixed on the way.** The character comparisons compared characters as strings, in UTF-16, so
+`(char<? #\xFFFF #\x10000)` was `#f`; they compare code points now, as R7RS orders characters, and so
+do the case-insensitive ones (`compareChars` in `src/core/primitives/char.js`). `procedure?` and
+`isProcedure` also tested for `Closure` and `Continuation`, classes nothing makes since closures and
+continuations became functions; they test for a function, which is what the expansion does, so a
+`procedure?` that fails does not fall back to the primitive's call.
+
+**Measured**, two copies side by side. Reading the compiler's sources ten times: 820-841 ms against
+1,190-1,237. The canonical suite, compiled, best of two each: `read1` 0.62 of its time, `parsing` 0.72,
+`dynamic` 0.75, the rest level -- six programs a first run had 3-7% slower measured level over three
+runs each at a longer target. `run_codegen.js`'s new `characters` group, compiled: a letter test, two
+ranges of three characters, 65.6 to 13.4 ns; two characters equal 22.9 to 3.4; a code point 6.7 to
+2.5; `case` on characters, none matching, 55.0 to 4.8; a value none of six types 16.7 to 6.8; and in
+the `case` group a `case` on eight characters 107.4 to 5.9 ns. `run_tier.js --set all`: canonical
+4,402 to 4,143 ms, corpus 3,133 to 3,019, page 184 to 177.
+
+Tested in `tests/compiler/emit_tests.scm` (`eqv?` against a character; the comparisons at two and three
+operands and not one or four; each expansion's test and value) and `tests/tiers/character_tests.scm`
+(new, both tiers: the comparisons, a character beyond U+FFFF, case-insensitively too, three operands,
+`char->integer`, `case` on characters and on what is not one, the primitive's error for what is not a
+character, and every type predicate on every kind of value).
+
+JavaScript added, each with what requires it: `runtime.js`'s three re-exports, what generated code
+tests a value against, which is `runtime.js`'s; `char.js`, `apply.js` and `type_check.js`, fixed in
+place (`npm run audit:languages -- HEAD`: Scheme 109 added and 22 removed, JavaScript 23 and 17).
