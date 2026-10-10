@@ -147,6 +147,7 @@ export const tieredSchemeTestFiles = [
     'tests/tiers/local_names_tests.scm',
     'tests/tiers/character_tests.scm',
     'tests/tiers/record_tests.scm',
+    'tests/tiers/rest_list_tests.scm',
 ];
 
 // Scheme tests of the compiler's own Scheme, run in the environment the

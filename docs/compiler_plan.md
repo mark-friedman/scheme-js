@@ -267,7 +267,20 @@ to (5) are 97 to 99, ranked first. 99's command and output are the user's to spe
   what `car` does, and is left alone. Measured: `run_codegen.js`'s `records` group 10.0 to 3.7 ns, an
   integer field 12.4 to 6.5, a modifier 11.2 to 5.9; canonical `read1` 0.87, `dynamic` 0.93, nothing
   else beyond noise; `run_tier.js` corpus 3,036 to 2,784 ms, page 177 to 159.
-- **(c) Optional arguments without a rest list -- to do.** `read-char`, `peek-char`, `write-char`.
+- **(c) Optional arguments without a rest list -- done 2026-10-10.** In the fast form a rest parameter
+  the procedure neither assigns nor lets a procedure inside it capture stays the array of the
+  arguments until it is used as a list: `null?`, `pair?` and `car` of it, and of its tails by `cdr`,
+  read the array, while the local holds no list or the empty one; any other use makes the list,
+  once (`lazy-rest`, `emit-rest-view!` in `emit.scm`). `case-lambda` takes its arguments apart with
+  `car` and `cdr` alone, and the port procedures with a macro, `optional-port`, so neither passes the
+  list on. Found on the way: the views first numbered their temporaries unlike the resumable form,
+  which resumed `rapid-generator`'s frames with a value in the wrong place (`run_tier.js` caught it);
+  the emitter now checks the two forms agree (`check-temporaries!`), all but a loop on raw doubles,
+  which only the fast form runs and after which no frame is saved. Measured: `run_codegen.js`'s
+  `optional` group, an optional argument given 5.6 to 2.8 ns, checked for one too many 17.9 to 6.8,
+  `case-lambda` 40.9 to 9.1; `write-char` to a port passed 42.6 to 21.8; canonical `read1` 0.75,
+  `dynamic` about 0.9, nothing else beyond noise; `run_tier.js` canonical and corpus level, page 188-190
+  ms against 188-203, within its noise.
 - **(d) A known callee entered past the arity test -- to do.** The test costs call-heavy code 2-5%.
 
 ## Completed

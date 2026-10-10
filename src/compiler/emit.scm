@@ -480,7 +480,7 @@
       ((spill)
        (let ((reify (string-append "R.reify(" (form-name form) ", "
                                    (number->string (caddr st)) ", "
-                                   (frame-literal (form-frame form (caddr st))) ");")))
+                                   (frame-literal form (form-frame form (caddr st))) ");")))
          (if (cadr st)
              (string-append "if (" (expr (cadr st)) " === " (unwind) ") { " reify " return " (unwind) "; }")
              reify)))
@@ -489,7 +489,7 @@
                                 " }"))
       ((suspend)
        (let ((spill (string-append "R.reify(" (form-name form) "$r, " (number->string (caddr st))
-                                   ", " (frame-literal (cadddr st)) "); return " (unwind) ";")))
+                                   ", " (frame-literal form (cadddr st)) "); return " (unwind) ";")))
          (if (cadr st)
              (string-append "if (" (expr (cadr st)) " === " (unwind) ") { " spill " }")
              spill)))
@@ -578,8 +578,19 @@
 
 (define (goto-text n) (string-append "$pc = " (number->string n) "; continue;"))
 
-(define (frame-literal slots)
-  (string-append "{ " (string-join (map symbol->string slots) ", ") " }"))
+(define (frame-literal form slots)
+  (let ((lazy (and (form-lazy-rest form) (js-local form (form-lazy-rest form)))))
+    (string-append "{ "
+                   (string-join (map (lambda (slot)
+                                       ;; The frame holds the rest parameter as the list
+                                       ;; the resumable form reads.
+                                       (if (eq? slot lazy)
+                                           (string-append (symbol->string slot) ": "
+                                                          (expr->string (rest-list form)))
+                                           (symbol->string slot)))
+                                     slots)
+                                ", ")
+                   " }")))
 
 ;; ---------------------------------------------------------------------------
 ;; Lines
@@ -943,13 +954,17 @@
 ;;  * statement is to be placed at instead, the first of a node's code, or #f
 ;;  * (`with-node-placed`). `scope` is the innermost scope of the Scheme the
 ;;  * code being emitted is in, below the procedure's own, or #f
-;;  * (`with-scope-of`). `doubles` is the locals that hold
+;;  * (`with-scope-of`). `lazy-rest` is the procedure's rest parameter, where
+;;  * the fast form makes it a list only where it must, or #f (see "A rest
+;;  * parameter"). `unshared` is how many temporaries the fast form took for
+;;  * code the resumable form has none of (`check-temporaries!`). `doubles` is
+;;  * the locals that hold
 ;;  * raw doubles where the emission is, inside a loop run on them (see "Loops
 ;;  * on raw doubles").
 ;;  */
 (define-record-type form
   (make-form name ir unit mode path counter labels loops loop-targets declared
-             out blocks block-count current sites frames depth span placing scope doubles)
+             out blocks block-count current sites frames depth span placing scope lazy-rest unshared doubles)
   form?
   (name form-name)
   (ir form-ir)
@@ -971,6 +986,8 @@
   (span form-span set-form-span!)
   (placing form-placing set-form-placing!)
   (scope form-scope set-form-scope!)
+  (lazy-rest form-lazy-rest)
+  (unshared form-unshared set-form-unshared!)
   (doubles form-doubles set-form-doubles!))
 
 ;; /**
@@ -983,7 +1000,8 @@
 ;;  * @returns {form} The emission.
 ;;  */
 (define (new-form name ir u mode path)
-  (make-form name ir u mode path 0 0 #f '() '() '() '() 1 0 '() '() #f #f #f #f '()))
+  (make-form name ir u mode path 0 0 #f '() '() '() '() 1 0 '() '() #f #f #f #f
+             (and (eq? mode 'fast) (lazy-rest ir (unit-plan u))) 0 '()))
 
 (define (twin? form) (eq? (form-mode form) 'twin))
 (define (plan-of form) (unit-plan (form-unit form)))
@@ -1173,15 +1191,16 @@
 (define (boxed-local? form name) (boxed? (plan-of form) name))
 
 ;; /**
-;;  * An expression reading a local; a boxed one is read through its box.
+;;  * An expression reading a local; a boxed one is read through its box, and a
+;;  * rest parameter not yet made a list is made one (`rest-list`).
 ;;  * @param {form} form - The emission.
 ;;  * @param {symbol} name - A renamed local.
 ;;  * @returns {list} The expression.
 ;;  */
 (define (read-local form name)
-  (if (boxed-local? form name)
-      (js (js-local form name) "[0]")
-      (js (js-local form name))))
+  (cond ((boxed-local? form name) (js (js-local form name) "[0]"))
+        ((eq? name (form-lazy-rest form)) (rest-list form))
+        (else (js (js-local form name)))))
 
 ;; /**
 ;;  * The statement binding a local to its first value. A boxed local's box is
@@ -1452,6 +1471,7 @@
 ;;  */
 (define (emit-inline! form node)
   (or (and (pair? (form-doubles form)) (emit-double-inline form node))
+      (emit-rest-view! form node)
       (emit-guarded-inline! form node)
       (emit-record-access! form node)))
 
@@ -1582,6 +1602,145 @@
       ", (typeof " value " === 'number' || " value " instanceof R.Flonum) && R.noteSchemeStore("
       record ", " key ", " value "), undefined)"
       " : R.callBinding(" callee ", [" record ", " value "])"))
+
+;; ---------------------------------------------------------------------------
+;; A rest parameter
+;; ---------------------------------------------------------------------------
+;;
+;; A rest parameter arrives as JavaScript's arguments, an array, and making it
+;; a list on every call cost a procedure taking an optional argument 3 ns a
+;; call more than one of fixed arity (`run_codegen.js`'s `optional` group), and
+;; a `case-lambda`, which takes its arguments as one, more. Most such procedures
+;; only take the list apart: is there an argument, what is it. So in the fast
+;; form a rest parameter the procedure neither assigns nor lets a procedure
+;; inside it capture (`lazy-rest`) stays the array until it is used as a list:
+;; `null?`, `pair?` and `car` of it, and of its tails by `cdr`, read the array
+;; (`emit-rest-view!`), and any other reading of it -- passing it on, returning
+;; it, saving the frame, which the resumable form reads a list from -- makes
+;; it, once, in the local that holds it (`rest-list`). Once made, a list that is
+;; not empty may have been changed by whatever it was passed to, so the array
+;; is read only while the local holds no list or the empty one, which nothing
+;; can change; and only while the operators are still the primitives, as for
+;; any expansion. Otherwise the list is made and the operators called on it.
+
+;; /**
+;;  * The rest parameter of a procedure, if its fast form need make it a list
+;;  * only where it is used as one: one the procedure does not assign, nor any
+;;  * procedure inside it read -- which is conservative for a loop placed inline,
+;;  * whose procedure reads it as the procedure around it does.
+;;  * @param {list} lam - The procedure's lambda IR node.
+;;  * @param {lift-plan} plan - The unit's lifting plan.
+;;  * @returns {symbol|boolean} The parameter, or #f.
+;;  */
+(define (lazy-rest lam plan)
+  (let ((rest (lambda-rest lam)))
+    (and rest
+         (not (boxed? plan rest))
+         (not (memq rest (assigned-locals lam)))
+         (not (any (lambda (inner) (mentions? inner rest)) (outermost-lambdas (lambda-body lam))))
+         rest)))
+
+;; /**
+;;  * The rest parameter as a list, made from the arguments the first time.
+;;  * The empty list, which is `null`, is made again each time, which costs
+;;  * nothing. Making it again is no change, so the expression may be written
+;;  * twice, as a variable may, and it is one part, which `repeatable?` takes:
+;;  * the resumable form, where the parameter is a variable, gives an operand
+;;  * no temporary for it, and the two forms must number their temporaries
+;;  * alike, since a frame one saves the other restores by name.
+;;  * @param {form} form - The fast form's emission.
+;;  * @returns {list} The expression.
+;;  */
+(define (rest-list form)
+  (let ((name (symbol->string (js-local form (form-lazy-rest form)))))
+    (js (string->symbol (string-append "(" name " ??= R.listFrom(" name "$raw))")))))
+
+;; /**
+;;  * The global a call calls, by its written name, if it is still bound to its
+;;  * primitive where the code runs, or #f.
+;;  * @param {unit} u - The unit.
+;;  * @param {list} fn - The callee's IR node.
+;;  * @returns {symbol|boolean}
+;;  */
+(define (guarded-primitive u fn)
+  (and (eq? (car fn) 'global)
+       (memq (cadr fn) (unit-guarded u))
+       (global-written-name (unit-library-globals u) (cadr fn))))
+
+;; /**
+;;  * The `cdr`s a node takes of the rest parameter, as the globals they call,
+;;  * outermost first: '() for the parameter itself, and #f for a node that is
+;;  * no tail of it.
+;;  * @param {unit} u - The unit.
+;;  * @param {list} node - An IR node.
+;;  * @param {symbol} rest - The rest parameter.
+;;  * @returns {list|boolean}
+;;  */
+(define (rest-tail u node rest)
+  (case (car node)
+    ((local) (and (eq? (cadr node) rest) '()))
+    ((call) (and (eq? (guarded-primitive u (cadr node)) 'cdr)
+                 (= (length (caddr node)) 1)
+                 (let ((inner (rest-tail u (car (caddr node)) rest)))
+                   (and inner (cons (cadr (cadr node)) inner)))))
+    (else #f)))
+
+;; /**
+;;  * `null?`, `pair?` or `car` of the rest parameter, or of a tail of it, read
+;;  * from the arguments while it is not a list that might have changed, or #f
+;;  * for any other call.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - A `call` IR node.
+;;  * @returns {list|boolean} The expression holding the value, or #f.
+;;  */
+(define (emit-rest-view! form node)
+  (let ((rest (form-lazy-rest form))
+        (u (form-unit form)))
+    (and rest
+         (= (length (caddr node)) 1)
+         (let ((op (guarded-primitive u (cadr node))))
+           (and (memq op '(null? pair? car))
+                (let ((cdrs (rest-tail u (car (caddr node)) rest)))
+                  (and cdrs
+                       ;; The resumable form expands each `cdr` into a
+                       ;; temporary of its own; the fast form takes them too,
+                       ;; unused, so the temporaries after are numbered alike.
+                       (begin
+                         (for-each (lambda (c) (temp! form)) cdrs)
+                         (let ((result (temp! form)))
+                           (emit! form (list 'assign (js result) (rest-view form op (cadr (cadr node)) cdrs)))
+                           (js result))))))))))
+
+;; /**
+;;  * The reading of the arguments `null?`, `pair?` or `car` of a tail is, and
+;;  * the list's otherwise.
+;;  * @param {form} form - The emission.
+;;  * @param {symbol} op - The operator's written name.
+;;  * @param {symbol} op-global - The global it is.
+;;  * @param {list} cdrs - The globals of the `cdr`s taken, outermost first.
+;;  * @returns {list} The expression.
+;;  */
+(define (rest-view form op op-global cdrs)
+  (let* ((u (form-unit form))
+         (name (js-local form (form-lazy-rest form)))
+         (raw (string-append (symbol->string name) "$raw"))
+         (k (number->string (length cdrs)))
+         (guards (map (lambda (g)
+                        (let ((i (global-index u g)))
+                          (js "(W" i ".intact || " (global-read u g) " === P" i ")")))
+                      (delete-duplicates (cons op-global cdrs) eq?)))
+         ;; Whether the tail exists -- the arguments themselves always do --
+         ;; and what the operator gives of it.
+         (exists (if (null? cdrs) '() (list (js raw ".length >= " k))))
+         (shape (case op
+                  ((null?) (cons exists (js raw ".length === " k)))
+                  ((pair?) (cons exists (js raw ".length > " k)))
+                  (else (cons (list (js raw ".length > " k)) (js raw "[" k "]")))))
+         (made (fold (lambda (g inner) (js "R.callBinding(" (global-read u g) ", [" inner "])"))
+                     (rest-list form)
+                     (reverse cdrs))))
+    (js (join-exprs (append guards (list (js name " == null")) (car shape)) " && ") " ? " (cdr shape)
+        " : R.callBinding(" (global-read u op-global) ", [" made "])")))
 
 ;; /**
 ;;  * Emits a call whose value is wanted.
@@ -1996,8 +2155,13 @@
       (lambda ()
         (if (and (not (twin? form)) (null? (form-doubles form)) (pure-loop-body? form (lambda-body lam))
                  (any inexact-constant? (cons (lambda-body lam) entries)))
-            (let ((doubles (double-loop-variables form params entries (lambda-body lam))))
-              (if (pair? doubles) (emit-double-loop! form params doubles (lambda-body lam)))))
+            (let ((doubles (double-loop-variables form params entries (lambda-body lam)))
+                  (before (form-counter form)))
+              (if (pair? doubles) (emit-double-loop! form params doubles (lambda-body lam)))
+              ;; Only the fast form runs a loop on raw doubles, which saves
+              ;; no frame, nor does what follows it, a loop being placed
+              ;; inline only in tail position, its body calling nothing.
+              (set-form-unshared! form (+ (form-unshared form) (- (form-counter form) before)))))
         (let ((target (enter-inline-loop! form params)))
           (for-each (lambda (param)
                       (if (boxed-local? form param)
@@ -2828,6 +2992,7 @@
   (let ((form (new-form name ir u 'fast path)))
     (emit-define-boxes! form (lambda-body ir))
     (emit-statement! form (lambda-body ir))
+    (check-temporaries! form)
     (let* ((rest (lambda-rest ir))
            (params (map (lambda (p) (js-name form p)) (lambda-params ir)))
            (signature (string-join (append params
@@ -2835,14 +3000,16 @@
                                    ", "))
            (prologue
              (append
-               (if rest
-                   (let ((list-expr (string-append "R.listFrom(" (js-name form rest) "$raw)")))
-                     (list (string-append "let " (js-name form rest) " = "
-                                          (if (boxed-local? form rest)
-                                              (string-append "[" list-expr "]")
-                                              list-expr)
-                                          ";")))
-                   '())
+               (cond ((not rest) '())
+                     ;; Made a list where it is first used as one.
+                     ((form-lazy-rest form) (list (string-append "let " (js-name form rest) ";")))
+                     (else
+                      (let ((list-expr (string-append "R.listFrom(" (js-name form rest) "$raw)")))
+                        (list (string-append "let " (js-name form rest) " = "
+                                             (if (boxed-local? form rest)
+                                                 (string-append "[" list-expr "]")
+                                                 list-expr)
+                                             ";")))))
                (map (lambda (p) (string-append (js-name form p) " = [" (js-name form p) "];"))
                     (filter (lambda (p) (boxed-local? form p)) (lambda-params ir)))))
            (declared (reverse (form-declared form)))
@@ -2861,6 +3028,33 @@
                               (list "$loop: for (;;) {" (vector "  " (append prologue body)) "}"))
                       (append declaration entry prologue body))))
       (named-function form name shown (string-append "function (" signature ")") items))))
+
+;; /**
+;;  * How many temporaries and nested procedures the resumable form of each
+;;  * procedure numbered, by its lambda IR node, for the fast form, generated
+;;  * after it, to check its own against (`check-temporaries!`).
+;;  */
+(define temporaries-taken (make-weak-table))
+
+;; /**
+;;  * Raises if the fast form of a procedure numbered as many temporaries as
+;;  * the resumable form did not, but those it took for a loop on raw doubles,
+;;  * which the resumable form does not have (`form-unshared`). The two must give the same value the same
+;;  * name, since a frame the fast form saves the resumable form restores by
+;;  * name, so they take the same temporaries in the same order -- and a
+;;  * difference, which would resume a frame with a value in the wrong place,
+;;  * is a fault of the compiler's, which declines the procedure (`unless-
+;;  * failing` in driver.scm) and which the test suites report.
+;;  * @param {form} form - The fast form's emission, done.
+;;  * @returns {unspecified}
+;;  */
+(define (check-temporaries! form)
+  (let ((taken (weak-table-ref temporaries-taken (form-ir form)))
+        (shared (- (form-counter form) (form-unshared form))))
+    (if (and taken (not (= taken shared)))
+        (error (string-append "emit: the two forms of " (form-name form) " numbered "
+                              (number->string taken) " and " (number->string shared)
+                              " temporaries")))))
 
 ;; ---------------------------------------------------------------------------
 ;; A way back to the interpreter
@@ -2983,6 +3177,7 @@
     ;; always enters later, takes them from the frame.
     (emit-define-boxes! form (lambda-body ir))
     (emit-statement! form (lambda-body ir))
+    (weak-table-set! temporaries-taken ir (form-counter form))
     (switch-to! form -1)
     (let* ((blocks (map cdr (sort-blocks (filter (lambda (b) (>= (car b) 0)) (form-blocks form)))))
            (rest (lambda-rest ir))

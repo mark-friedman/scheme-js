@@ -103,31 +103,34 @@
 (define (the-current-output-port) (cdr (param-dynamic-lookup current-output-port-cell)))
 
 ;; /**
-;;  * The open textual output port a writer's optional port argument gives, or
-;;  * the current output port: checked here, once, for a writer that writes it
-;;  * piece by piece.
+;;  * A writer's port, checked here, once, to be an open textual output port,
+;;  * for a writer that writes it piece by piece.
 ;;  * @param {string} who - The writer, for the error.
-;;  * @param {list} rest - Its optional arguments.
+;;  * @param {*} port - The port its optional argument gives
+;;  *   (`optional-port`).
 ;;  * @returns {port} The port.
 ;;  */
-(define (textual-output-port who rest)
-  (let ((port (if (null? rest) (the-current-output-port) (port-given who rest))))
-    (cond ((not (and (output-port? port) (textual-port? port)))
-           (error (string-append who ": expected textual output port") port))
-          ((not (output-port-open? port))
-           (error (string-append who ": port is closed") port))
-          (else port))))
+(define (textual-output-port who port)
+  (cond ((not (and (output-port? port) (textual-port? port)))
+         (error (string-append who ": expected textual output port") port))
+        ((not (output-port-open? port))
+         (error (string-append who ": port is closed") port))
+        (else port)))
 
 ;; /**
-;;  * The port an optional port argument gives, when it was given.
-;;  * @param {string} who - The procedure, for the error.
-;;  * @param {pair} rest - Its optional arguments, not empty.
-;;  * @returns {port} The port.
+;;  * The port an optional port argument gives -- the default if it was left
+;;  * out -- or the error for too many arguments. A macro, so that the rest
+;;  * parameter is only taken apart where the procedure is, which compiled code
+;;  * does from the arguments, without making the list ("A rest parameter" in
+;;  * src/compiler/emit.scm); handed to a procedure, it was made on every call.
+;;  * @syntax (optional-port who rest default)
 ;;  */
-(define (port-given who rest)
-  (if (null? (cdr rest))
-      (car rest)
-      (error (string-append who ": too many arguments") rest)))
+(define-syntax optional-port
+  (syntax-rules ()
+    ((_ who rest default)
+     (cond ((null? rest) default)
+           ((null? (cdr rest)) (car rest))
+           (else (error (string-append who ": too many arguments") rest))))))
 
 ;; ---------------------------------------------------------------------------
 ;; Reading and writing the current port by default (R7RS 6.13.2, 6.13.3)
@@ -138,23 +141,23 @@
 ;; which checks the port.
 
 (define (read-char . port)
-  (%read-char (if (null? port) (the-current-input-port) (port-given "read-char" port))))
+  (%read-char (optional-port "read-char" port (the-current-input-port))))
 (define (peek-char . port)
-  (%peek-char (if (null? port) (the-current-input-port) (port-given "peek-char" port))))
+  (%peek-char (optional-port "peek-char" port (the-current-input-port))))
 (define (char-ready? . port)
-  (%char-ready? (if (null? port) (the-current-input-port) (port-given "char-ready?" port))))
+  (%char-ready? (optional-port "char-ready?" port (the-current-input-port))))
 (define (read-line . port)
-  (%read-line (if (null? port) (the-current-input-port) (port-given "read-line" port))))
+  (%read-line (optional-port "read-line" port (the-current-input-port))))
 (define (read-string k . port)
-  (%read-string k (if (null? port) (the-current-input-port) (port-given "read-string" port))))
+  (%read-string k (optional-port "read-string" port (the-current-input-port))))
 (define (read-u8 . port)
-  (%read-u8 (if (null? port) (the-current-input-port) (port-given "read-u8" port))))
+  (%read-u8 (optional-port "read-u8" port (the-current-input-port))))
 (define (peek-u8 . port)
-  (%peek-u8 (if (null? port) (the-current-input-port) (port-given "peek-u8" port))))
+  (%peek-u8 (optional-port "peek-u8" port (the-current-input-port))))
 (define (u8-ready? . port)
-  (%u8-ready? (if (null? port) (the-current-input-port) (port-given "u8-ready?" port))))
+  (%u8-ready? (optional-port "u8-ready?" port (the-current-input-port))))
 (define (read-bytevector k . port)
-  (%read-bytevector k (if (null? port) (the-current-input-port) (port-given "read-bytevector" port))))
+  (%read-bytevector k (optional-port "read-bytevector" port (the-current-input-port))))
 
 ;; /**
 ;;  * Reads bytes from a binary input port into part of a bytevector
@@ -184,28 +187,32 @@
             (else (bytevector-copy! target start bytes)
                   (bytevector-length bytes))))))
 (define (read . port)
-  (%read (if (null? port) (the-current-input-port) (port-given "read" port))))
+  (%read (optional-port "read" port (the-current-input-port))))
 
 (define (write-char char . port)
-  (%write-char char (if (null? port) (the-current-output-port) (port-given "write-char" port))))
+  (%write-char char (optional-port "write-char" port (the-current-output-port))))
 (define (write-u8 byte . port)
-  (%write-u8 byte (if (null? port) (the-current-output-port) (port-given "write-u8" port))))
+  (%write-u8 byte (optional-port "write-u8" port (the-current-output-port))))
 (define (newline . port)
-  (%newline (if (null? port) (the-current-output-port) (port-given "newline" port))))
+  (%newline (optional-port "newline" port (the-current-output-port))))
 
 ;; `display` and the `write`s write a datum as the printer does (printer.scm),
 ;; which differs between them only in whether strings and characters are
 ;; written as themselves and which objects take datum labels.
 (define (display obj . port)
-  (print-datum obj (textual-output-port "display" port) #t 'cycles))
+  (print-datum obj (textual-output-port "display" (optional-port "display" port (the-current-output-port)))
+               #t 'cycles))
 (define (write obj . port)
-  (print-datum obj (textual-output-port "write" port) #f 'cycles))
+  (print-datum obj (textual-output-port "write" (optional-port "write" port (the-current-output-port)))
+               #f 'cycles))
 (define (write-simple obj . port)
-  (print-datum obj (textual-output-port "write-simple" port) #f 'none))
+  (print-datum obj (textual-output-port "write-simple" (optional-port "write-simple" port (the-current-output-port)))
+               #f 'none))
 (define (write-shared obj . port)
-  (print-datum obj (textual-output-port "write-shared" port) #f 'shared))
+  (print-datum obj (textual-output-port "write-shared" (optional-port "write-shared" port (the-current-output-port)))
+               #f 'shared))
 (define (flush-output-port . port)
-  (%flush-output-port (if (null? port) (the-current-output-port) (port-given "flush-output-port" port))))
+  (%flush-output-port (optional-port "flush-output-port" port (the-current-output-port))))
 
 ;; /**
 ;;  * Calls a writer of part of a sequence -- `%write-string`, `%write-bytevector`

@@ -21,6 +21,12 @@
 ;;  * @returns A procedure that dispatches on arity
 ;;  */
 
+;; The clauses take the arguments apart with `pair?`, `null?`, `car` and `cdr`
+;; alone, never `cadr` and the like, which are procedures of a library where
+;; those four are primitives compiled code tests inline -- and, on a rest
+;; parameter it does not pass on, reads from the arguments without making
+;; the list at all ("A rest parameter" in src/compiler/emit.scm).
+;;
 ;; Simple implementation: expand to cond-based dispatch on length
 ;; For (case-lambda (()  body0) ((x) body1) ((x y) body2))
 ;; expands to:
@@ -29,7 +35,7 @@
 ;;     (cond
 ;;       ((= n 0) body0)
 ;;       ((= n 1) (let ((x (car args))) body1))
-;;       ((= n 2) (let ((x (car args)) (y (cadr args))) body2))
+;;       ((= n 2) (let ((x (car args)) (y (car (cdr args)))) body2))
 ;;       (else (error "no matching clause")))))
 
 (define-syntax case-lambda
@@ -65,22 +71,23 @@
     
     ;; Two params
     ((case-lambda-clauses args ((a b) body ...) rest ...)
-     (if (and (pair? args) (pair? (cdr args)) (null? (cddr args)))
-         (let ((a (car args)) (b (cadr args)))
+     (if (and (pair? args) (pair? (cdr args)) (null? (cdr (cdr args))))
+         (let ((a (car args)) (b (car (cdr args))))
            body ...)
          (case-lambda-clauses args rest ...)))
     
     ;; Three params
     ((case-lambda-clauses args ((a b c) body ...) rest ...)
-     (if (and (pair? args) (pair? (cdr args)) (pair? (cddr args)) (null? (cdddr args)))
-         (let ((a (car args)) (b (cadr args)) (c (caddr args)))
+     (if (and (pair? args) (pair? (cdr args)) (pair? (cdr (cdr args))) (null? (cdr (cdr (cdr args)))))
+         (let ((a (car args)) (b (car (cdr args))) (c (car (cdr (cdr args)))))
            body ...)
          (case-lambda-clauses args rest ...)))
     
     ;; Four params
     ((case-lambda-clauses args ((a b c d) body ...) rest ...)
-     (if (= (length args) 4)
-         (let ((a (car args)) (b (cadr args)) (c (caddr args)) (d (cadddr args)))
+     (if (and (pair? args) (pair? (cdr args)) (pair? (cdr (cdr args))) (pair? (cdr (cdr (cdr args))))
+              (null? (cdr (cdr (cdr (cdr args))))))
+         (let ((a (car args)) (b (car (cdr args))) (c (car (cdr (cdr args)))) (d (car (cdr (cdr (cdr args))))))
            body ...)
          (case-lambda-clauses args rest ...)))
     
@@ -103,15 +110,15 @@
 
     ;; Three or more (rest param) - must come before (a b . rest)
     ((case-lambda-clauses args ((a b c . rest) body ...) more ...)
-     (if (and (pair? args) (pair? (cdr args)) (pair? (cddr args)))
-         (let ((a (car args)) (b (cadr args)) (c (caddr args)) (rest (cdddr args)))
+     (if (and (pair? args) (pair? (cdr args)) (pair? (cdr (cdr args))))
+         (let ((a (car args)) (b (car (cdr args))) (c (car (cdr (cdr args)))) (rest (cdr (cdr (cdr args)))))
            body ...)
          (case-lambda-clauses args more ...)))
     
     ;; Two or more (rest param) - must come before (a . rest)
     ((case-lambda-clauses args ((a b . rest) body ...) more ...)
      (if (and (pair? args) (pair? (cdr args)))
-         (let ((a (car args)) (b (cadr args)) (rest (cddr args)))
+         (let ((a (car args)) (b (car (cdr args))) (rest (cdr (cdr args))))
            body ...)
          (case-lambda-clauses args more ...)))
     

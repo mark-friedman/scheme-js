@@ -583,6 +583,17 @@ carries, and that the record is of that type, and calls what the global holds ot
 `emit.scm`). Only the field's name is in the code, so a prebuilt table holds it; a number goes through
 the table of inexacts stored as numbers, as the accessor's own read does. 10 ns a read became 3.7.
 
+A rest parameter the procedure neither assigns nor lets a procedure inside it capture stays, in the
+fast form, the array of the arguments until it is used as a list ("A rest parameter" in `emit.scm`):
+`null?`, `pair?` and `car` of it, and of its tails by `cdr`, read the array, while the local holds no
+list, or the empty one, which nothing can change; anything else -- passing it on, returning it,
+saving the frame the resumable form reads it from -- makes the list, once, in the local. So an
+optional argument costs what a fixed one does, and `case-lambda`, which takes its arguments apart with
+`car` and `cdr`, a fifth of what it did. The two forms of a procedure must number their temporaries
+alike, since a frame one saves the other restores by name; the emitter checks they do
+(`check-temporaries!`), all but those of a loop on raw doubles, which only the fast form runs and
+after which, a loop being placed inline only in tail position, no frame is saved.
+
 The obvious guard asks the environment on every use: read the global, compare it with the
 primitive. That is a hash lookup per `car`, and it was most of what compiled code did. Removing
 every guard outright, unsoundly, made the `call` and `fixnum` classes about 1.95x faster.

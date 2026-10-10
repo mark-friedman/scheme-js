@@ -15081,3 +15081,53 @@ JavaScript added, each with what requires it: `record.js`'s marks and `%record-p
 record values' representation and a primitive on it; `runtime.js`'s re-exports, what generated code
 reads, which is `runtime.js`'s (`npm run audit:languages -- HEAD`: Scheme 137 added and 17 removed,
 JavaScript 33 and 1).
+
+# Task 54 (c): optional arguments without a rest list (2026-10-10)
+
+The third of 54's items. With (a) and (b) in, `read-char` and `peek-char` with a port were about 19% of
+the compiled reader's time: their bodies, the list their rest parameter is made into on every call
+(`listFrom`), and `port-given`, which took it apart. `run_codegen.js`'s new `optional` group put the list
+at 3 ns a call of a procedure taking an optional argument, against fixed arity's 1.7, and a
+`case-lambda`, which takes its arguments as a list and its clauses apart with `cadr` and `cddr` --
+procedures of `(scheme cxr)`, called -- at 41.
+
+**A rest list made only where it must be** ("A rest parameter" in `src/compiler/emit.scm`). In the fast
+form a rest parameter the procedure neither assigns nor lets a procedure inside it capture (`lazy-rest`)
+stays the array of the arguments until it is used as a list. `null?`, `pair?` and `car` of it, and of
+its tails by `cdr`, read the array (`emit-rest-view!`), guarded on the operators being the primitives
+still, and on the local holding no list, or the empty one: a list made and passed on may since have been
+changed by whatever it was passed to. Any other use makes the list, once, in the local that holds it
+(`rest-list`) -- passing it on, returning it, saving the frame, whose resumable form reads a list -- and
+anything the guards do not hold for calls what the names hold on the list made. `case-lambda` takes its
+arguments apart with `car` and `cdr` alone now (`src/core/scheme/case_lambda.scm`), and the port
+procedures with a macro, `optional-port`, which gives the same error as `port-given` did for too many
+arguments, so neither passes the list on (`src/core/scheme/ports.scm`, the seed pinned again).
+
+**Found on the way.** The fast form and the resumable form of a procedure number their temporaries alike,
+since a frame the fast form saves the resumable form restores by name. The views first took one
+temporary where the resumable form's `cdr` takes one each, and the list's expression, not taken for a
+variable, a temporary of its own as an operand: `rapid-generator`'s tests, whose coroutines resume frames
+beneath `generator->list`, a `case-lambda`, found a callee restored as `undefined`, and `run_tier.js`
+reported the program's answer wrong. The views now take the temporaries the resumable form does, and the
+list's expression is one part, which `repeatable?` takes, as making it again changes nothing. And the
+emitter now checks, for every procedure, that its two forms numbered their temporaries alike
+(`check-temporaries!`), raising a compiler failure otherwise, which the suites report. It holds for every
+procedure the build compiles and the suites run, but those a loop on raw doubles takes: only the fast form
+runs such a loop, and since one is placed inline only in tail position, its body calling nothing, no frame
+is saved after it (`form-unshared`).
+
+**Measured**, two copies side by side. The `optional` group, compiled: an optional argument given 5.6 to
+2.8 ns, left out 1.4 to 1.2, checked for one too many 17.9 to 6.8, `case-lambda`'s second clause 40.9 to
+9.1; `write-char` to a port passed 42.6 to 21.8. The canonical suite, compiled: `read1` 8.1-8.4 to 6.1-6.2
+ms, `dynamic` 52.2-54.8 to 46.6-48.5, the rest level within noise. `run_tier.js --set all`, best of three
+twice: canonical 4,025 and 3,986 ms against 4,053 and 3,986, corpus 2,919 and 2,858 against 2,922 and
+2,837; the page set, four runs more, 188.3-189.7 against 187.7-203.2, within its noise.
+
+Tested in `tests/compiler/emit_tests.scm` (the arguments not made a list on entry, `null?` and `car` of a
+tail read from the array, the list made otherwise, as an operand and in a frame saved, and not for a
+parameter assigned or captured) and `tests/tiers/rest_list_tests.scm` (new, both tiers: an optional
+argument left out, given once and twice, the list passed on and taken apart after, changed by whoever it
+was passed to and read after, taken apart past its end, kept across a continuation captured before it was
+made, and taken apart through a `cdr` before a call whose frame is resumed).
+
+No JavaScript under `src/` (`npm run audit:languages -- HEAD`: Scheme 277 added and 68 removed).

@@ -684,3 +684,33 @@
         (has? (unit-with '((line-starts accessor . line-starts)) '(define (f r) (line-starts r))) "r[\"line-starts\"]"))
   (test "not at another arity" #f (has? (unit-with '((point-x accessor . x)) '(define (f p) (point-x p p))) "$READS"))
   (test "nor of a global that held no accessor" #f (has? (unit-with '() '(define (f p) (point-x p))) "$READS")))
+
+;; A rest parameter the procedure neither assigns nor lets a nested procedure
+;; capture stays, in the fast form, the array of the arguments, until it is
+;; used as a list: `null?`, `pair?` and `car` of it, and of its tails by
+;; `cdr`, read the array, while it has not been made a list that might since
+;; have been changed; anything else makes it, once.
+(test-group "a rest parameter, a list only where it must be"
+  (define (fast-text definition)
+    (let* ((lowered (lower-lambda (analyze-lambda definition)))
+           (text (car (generate-unit (lowered-ir lowered) (lowered-globals lowered) (lowered-library-globals lowered)
+                                     "f" (lowered-globals lowered))))
+           (start (string-contains text "const $proc = "))
+           (end (string-contains text "const $proc$r = ")))
+      (substring text start end)))
+  (define (has? text part) (and (string-contains text part) #t))
+  (define taken-apart (fast-text '(define (f a . b) (if (null? b) a (car (cdr b))))))
+  (test "the arguments are not made a list on entry" #f (has? taken-apart "let b = R.listFrom(b$raw)"))
+  (test "null? of it is the array's length, while it is not a list made" #t
+        (has? taken-apart "b == null ? b$raw.length === 0"))
+  (test "car of a tail is an element" #t (has? taken-apart "b$raw.length > 1 ? b$raw[1]"))
+  (test "and otherwise the list, made, is taken apart by what the names hold" #t
+        (has? taken-apart "(b ??= R.listFrom(b$raw))"))
+  (test "used as a list, it is made" #t
+        (has? (fast-text '(define (f . b) (length b))) "(b ??= R.listFrom(b$raw))"))
+  (test "saved in a frame, it is made" #t
+        (has? (fast-text '(define (f . b) (g) (car b))) "b: (b ??= R.listFrom(b$raw))"))
+  (test "but assigned, it is a list from the start, in a box as any variable assigned is" #t
+        (has? (fast-text '(define (f . b) (set! b (cdr b)) (car b))) "let b = [R.listFrom(b$raw)]"))
+  (test "and so it is if a nested procedure captures it" #t
+        (has? (fast-text '(define (f . b) (lambda () b))) "let b = R.listFrom(b$raw)")))

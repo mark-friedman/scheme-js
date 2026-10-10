@@ -185,6 +185,26 @@ const GROUPS = [
     ]
   },
   {
+    name: 'optional',
+    about: 'an optional argument taken as a rest list, given and not, beside fixed arity and case-lambda (task 54)',
+    definitions: `
+      (define (one x) 1)
+      (define (fixed a b) (if (eq? a b) 0 1))
+      (define (optional a . b) (if (eq? a (if (null? b) #f (car b))) 0 1))
+      (define (checked a . b)
+        (if (eq? a (cond ((null? b) #f) ((null? (cdr b)) (car b)) (else (error "too many" b)))) 0 1))
+      (define cased (case-lambda ((a) 1) ((a b) (if (eq? a b) 0 1))))
+      (define key-a 'a)
+      (define key-b 'b)`,
+    workloads: [
+      ['fixed arity, two arguments', '(fixed key-a key-b)'],
+      ['an optional argument, given', '(optional key-a key-b)'],
+      ['an optional argument, left out', '(optional key-a)'],
+      ['given, and checked for one too many', '(checked key-a key-b)'],
+      ['case-lambda, the second clause', '(cased key-a key-b)']
+    ]
+  },
+  {
     name: 'vectors',
     about: 'vector-ref, vector-set! and vector-length on an array and an exact index in range',
     definitions: `
