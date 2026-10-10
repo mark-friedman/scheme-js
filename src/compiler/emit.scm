@@ -814,8 +814,8 @@
 ;;  * `function-names`), whether each procedure its code makes can be made
 ;;  * an interpreted closure again (see `way-back`), the scopes of its
 ;;  * Scheme, or #f if its source map is to have none (see scopes.scm), and its
-;;  * globals that hold a record's accessor or modifier, as (global kind .
-;;  * field) (see "Records").
+;;  * globals that hold a record's constructor, predicate, accessor or
+;;  * modifier, as (global kind . what) (see "Records").
 ;;  *
 ;;  * A call site's resume block and saved locals are decided by the twin,
 ;;  * which is generated first, and read by the fast form, which has to spill
@@ -1531,23 +1531,36 @@
 ;; read inside it, of a property named as it runs, is one site for every
 ;; record type and field there is, which V8 reads by hashing: a call of one
 ;; cost compiled code 10 ns, a modifier's 11, where `car`'s field read costs
-;; 3 (`run_codegen.js`'s `records` group). So a call of a global that held an
-;; accessor or a modifier as the code was compiled (`record-globals` in
-;; driver.scm) reads or writes the field itself, a site of its own, by the
-;; field's name. As it runs it checks that the global still holds an accessor
-;; or modifier of that field, whose record type it carries
-;; (`src/core/primitives/record.js`), and that the record is of that type --
-;; and otherwise calls what the global holds, which signals the accessor's
-;; error, or is what the name was bound to since. Only the name is written
-;; into the code, so a prebuilt table holds it. A number read or written goes
-;; through the table of inexacts stored as numbers, as the accessor's does
-;; (`storedToScheme`, `noteSchemeStore` in js_interop.js). As for a primitive
-;; expanded inline, a procedure the name was bound to since runs with no
-;; resume point beneath it (`callBinding` in runtime.js).
+;; 3 (`run_codegen.js`'s `records` group). A constructor is worse: it took its
+;; arguments as an array, and the record type's class, one function for every
+;; type, set each field by a name it read from a list, so that a record of two
+;; fields cost 68 ns to make and one of four 95, where a pair costs about 10.
+;; And a call of any of them is a call, which V8 inlines into a small
+;; procedure but not into a large one -- the loop of an evaluator, say -- and
+;; which has a resume point beneath it.
+;;
+;; So a call of a global that held a record's constructor, predicate, accessor
+;; or modifier as the code was compiled (`record-globals` in driver.scm) does
+;; what it does itself, at a site of its own, by the field's name: makes the
+;; record and sets each field (`record-make`), tests the record's type
+;; (`record-test`), or reads or writes the field (`record-read`,
+;; `record-write`). As it runs it checks that the global still holds one that
+;; does the same, whose record type it carries (`src/core/primitives/
+;; record.js`) -- a constructor of a type with those fields from those
+;; arguments, by the key it carries; a predicate; an accessor or modifier of
+;; that field, and the record of its type -- and otherwise calls what the global
+;; holds, which signals the procedure's error, or is what the name was bound to
+;; since. Only names and the key are written into the code, so a prebuilt table
+;; holds it. A number read or written goes through the table of inexacts stored
+;; as numbers, as the procedures' do (`storedToScheme`, `noteSchemeStore` in
+;; js_interop.js). As for a primitive expanded inline, a procedure the name was
+;; bound to since runs with no resume point beneath it (`callBinding` in
+;; runtime.js).
 
 ;; /**
-;;  * The inline read or write of a record's field, for a call of a global
-;;  * holding its accessor or modifier, or #f.
+;;  * The inline making, testing, reading or writing of a record, for a call
+;;  * of a global holding its constructor, predicate, accessor or modifier, or
+;;  * #f.
 ;;  * @param {form} form - The emission.
 ;;  * @param {list} node - A `call` IR node.
 ;;  * @returns {list|boolean} The expression holding the value, or #f.
@@ -1558,17 +1571,44 @@
          (record (and (eq? (car fn) 'global) (assq (cadr fn) (unit-records u))))
          (args (caddr node)))
     (and record
-         (= (length args) (if (eq? (cadr record) 'accessor) 1 2))
+         (= (length args) (record-arity (cdr record)))
          (let ((callee (temp! form)))
            (emit! form (list 'assign (js callee) (js (global-read u (cadr fn)))))
            (let* ((operands (map-in-order (lambda (arg) (emit-repeatable! form arg)) args))
-                  (key (js-string (symbol->string (cddr record))))
+                  (kind (cadr record))
                   (result (temp! form)))
              (emit! form (list 'assign (js result)
-                               (if (eq? (cadr record) 'accessor)
-                                   (record-read form callee (car operands) key)
-                                   (record-write form callee (car operands) (cadr operands) key))))
+                               (case kind
+                                 ((accessor) (record-read form callee (car operands) (field-key (cddr record))))
+                                 ((modifier) (record-write form callee (car operands) (cadr operands)
+                                                           (field-key (cddr record))))
+                                 ((predicate) (record-test form callee (car operands)))
+                                 (else (record-make form callee operands (cddr record))))))
              (js result))))))
+
+;; /**
+;;  * How many arguments a record's procedure takes.
+;;  * @param {list} kind - What it does, as `%record-procedure-kind` answers.
+;;  * @returns {number}
+;;  */
+(define (record-arity kind)
+  (case (car kind)
+    ((accessor predicate) 1)
+    ((modifier) 2)
+    (else (length (constructor-tags (cdr kind))))))
+
+;; A constructor's (key fields tags): the key it carries, its record type's
+;; fields in field order, and the fields its arguments set, in argument order.
+(define constructor-key car)
+(define constructor-fields cadr)
+(define constructor-tags caddr)
+
+;; /**
+;;  * A field's name as a JavaScript string literal, a property's key.
+;;  * @param {symbol} field - The field.
+;;  * @returns {string}
+;;  */
+(define (field-key field) (js-string (symbol->string field)))
 
 ;; /**
 ;;  * The read of a field by its accessor, held in a temporary.
@@ -1602,6 +1642,50 @@
       ", (typeof " value " === 'number' || " value " instanceof R.Flonum) && R.noteSchemeStore("
       record ", " key ", " value "), undefined)"
       " : R.callBinding(" callee ", [" record ", " value "])"))
+
+;; /**
+;;  * The test of a value's type by a record's predicate.
+;;  * @param {form} form - The emission.
+;;  * @param {symbol} callee - The temporary holding what the global holds.
+;;  * @param {list} value - The value's expression.
+;;  * @returns {list} The expression.
+;;  */
+(define (record-test form callee value)
+  (js callee "?.[" (runtime form '$TESTS) "] === true"
+      " ? " value " instanceof " callee "[" (runtime form '$RTYPE) "]"
+      " : R.callBinding(" callee ", [" value "])"))
+
+;; /**
+;;  * The making of a record by its constructor: the record type's class made
+;;  * with no arguments, which sets no field, then every field set, in field
+;;  * order, from its argument or else undefined -- as the constructor sets
+;;  * them, so that records made either way share one shape. A record just
+;;  * made has no notes in the table of inexacts, so only an inexact number
+;;  * needs one (`noteConstructorStores` in record.js).
+;;  * @param {form} form - The emission.
+;;  * @param {symbol} callee - The temporary holding what the global holds.
+;;  * @param {list} operands - The arguments' expressions, each repeatable.
+;;  * @param {list} made - The constructor's (key fields tags).
+;;  * @returns {list} The expression.
+;;  */
+(define (record-make form callee operands made)
+  (let ((record (temp! form))
+        (tags (constructor-tags made)))
+    (define (argument-of field)
+      (let loop ((tags tags) (operands operands))
+        (cond ((null? tags) (js "undefined"))
+              ((eq? (car tags) field) (car operands))
+              (else (loop (cdr tags) (cdr operands))))))
+    (js callee "?.[" (runtime form '$MAKES) "] === " (js-string (constructor-key made))
+        " ? (" record " = new (" callee "[" (runtime form '$RTYPE) "])()"
+        (append-map (lambda (field) (js ", " record "[" (field-key field) "] = " (argument-of field)))
+                    (constructor-fields made))
+        (append-map (lambda (tag operand)
+                      (js ", " operand " instanceof R.Flonum && R.noteSchemeStore("
+                          record ", " (field-key tag) ", " operand ")"))
+                    tags operands)
+        ", " record ")"
+        " : R.callBinding(" callee ", [" (join-exprs operands ", ") "])")))
 
 ;; ---------------------------------------------------------------------------
 ;; A rest parameter
@@ -3313,7 +3397,8 @@
     ($stack . "R.stack") ($flush . "R.flush") ($tailCall . "R.tailCall") ($PRIM . "R.SCHEME_PRIMITIVE")
     ($notProc . "R.notAProcedure") ($foreign . "R.callForeign")
     ($dbg . "R.debuggingCell(E)")
-    ($READS . "R.RECORD_READS") ($WRITES . "R.RECORD_WRITES") ($RTYPE . "R.RECORD_TYPE")))
+    ($READS . "R.RECORD_READS") ($WRITES . "R.RECORD_WRITES") ($TESTS . "R.RECORD_TESTS")
+    ($MAKES . "R.RECORD_MAKES") ($RTYPE . "R.RECORD_TYPE")))
 
 ;; /**
 ;;  * The declaration of the runtime values a unit's code uses, in the order
@@ -3361,8 +3446,9 @@
 ;;  *   be made an interpreted closure again (`way-back`); not, by default.
 ;;  * @param {boolean} [scopes?] - Whether its source map is to have the scopes
 ;;  *   of its Scheme (scopes.scm); not, by default.
-;;  * @param {list} [records] - The globals that hold a record's accessor or
-;;  *   modifier where it will run, as (global kind . field); none, by default.
+;;  * @param {list} [records] - The globals that hold a record's constructor,
+;;  *   predicate, accessor or modifier where it will run, as (global kind .
+;;  *   what) (`record-globals` in driver.scm); none, by default.
 ;;  * @returns {list} (source constants spans scopes): the source, its
 ;;  *   constants, the span of each of its lines, or #f, which its source map
 ;;  *   is written from, and the scopes it gives, or #f (`unit-scopes`).

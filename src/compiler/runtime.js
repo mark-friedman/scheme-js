@@ -49,7 +49,7 @@ export { SchemeString } from '../core/primitives/string_class.js';
 // What a record's accessor and modifier carry, and what reading and writing a
 // field does with a number, for compiled code that reads and writes the field
 // itself ("Records" in emit.scm).
-export { RECORD_READS, RECORD_WRITES, RECORD_TYPE } from '../core/primitives/record.js';
+export { RECORD_READS, RECORD_WRITES, RECORD_TESTS, RECORD_MAKES, RECORD_TYPE } from '../core/primitives/record.js';
 export { storedToScheme, noteSchemeStore } from '../core/interpreter/js_interop.js';
 
 // =============================================================================

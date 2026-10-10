@@ -575,13 +575,20 @@ sources in 0.69 of the time for it, and a `case` on eight characters went from 1
 A name may have an expansion for each of several arities.
 
 A record's accessors are one function, made over a field's name, so its read of the field is one
-site for every record type and field there is, which V8 reads by hashing. A call of a global that
-holds an accessor or a modifier as the code is compiled -- which the driver asks the environment
-(`record-globals`) -- reads or writes the field itself, by name, a site of its own: as it runs it
-checks that the global still holds an accessor or modifier of that field, whose record type it
-carries, and that the record is of that type, and calls what the global holds otherwise ("Records" in
-`emit.scm`). Only the field's name is in the code, so a prebuilt table holds it; a number goes through
-the table of inexacts stored as numbers, as the accessor's own read does. 10 ns a read became 3.7.
+site for every record type and field there is, which V8 reads by hashing; its constructor took its
+arguments as an array and set each field by a name read from a list, in a class every record type
+shares. A call of a global that holds a record's constructor, predicate, accessor or modifier as the
+code is compiled -- which the driver asks the environment (`record-globals`) -- does what it does
+itself, a site of its own, by the field's name: makes the record of the class with no arguments,
+which sets no field, then sets every field in field order, as the constructor does, so records made
+either way share a shape; tests its type; reads or writes the field. As it runs it checks that the
+global still holds one that does the same, whose record type it carries -- a constructor by a key
+naming its type's fields and its own, an accessor or modifier by its field and the record by its type
+-- and calls what the global holds otherwise ("Records" in `emit.scm`). Only names and the key are in
+the code, so a prebuilt table holds it; a number goes through the table of inexacts stored as numbers,
+as the procedures' own do. 10 ns a read became 3.7 (task 54); making a record of two fields and
+keeping it in a global 68 ns became 28, of four 95 became 28, where a pair takes 20 (task 109). A predicate was cheap already where V8 inlined it, in a
+small procedure; the inline test is for a large one, where it does not.
 
 A rest parameter the procedure neither assigns nor lets a procedure inside it capture stays, in the
 fast form, the array of the arguments until it is used as a list ("A rest parameter" in `emit.scm`):

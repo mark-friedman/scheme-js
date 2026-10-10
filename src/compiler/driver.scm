@@ -285,11 +285,12 @@
           globals))
 
 ;; /**
-;;  * The globals among a procedure's that hold a record's accessor or modifier
-;;  * where it will run -- for a library's binding, in the library's
-;;  * environment -- each as (global kind . field) (`%record-procedure-field`):
-;;  * a call of one reads or writes the field inline ("Records" in emit.scm),
-;;  * checking as it runs that the global still holds one of that field.
+;;  * The globals among a procedure's that hold a record's constructor,
+;;  * predicate, accessor or modifier where it will run -- for a library's
+;;  * binding, in the library's environment -- each as (global kind . what)
+;;  * (`%record-procedure-kind`): a call of one makes, tests, reads or writes
+;;  * the record inline ("Records" in emit.scm), checking as it runs that the
+;;  * global still holds one that does the same.
 ;;  * @param {list} globals - The procedure's globals, as symbols.
 ;;  * @param {list} library-globals - (key name . env) for each that is a
 ;;  *   library's binding.
@@ -302,8 +303,8 @@
                        (holder (if library (cddr library) env))
                        (value (and holder
                                    (environment-value holder (symbol->string (if library (cadr library) g)))))
-                       (field (and value (%record-procedure-field value))))
-                  (and field (cons g field))))
+                       (kind (and value (%record-procedure-kind value))))
+                  (and kind (cons g kind))))
               globals))
 
 ;; /**

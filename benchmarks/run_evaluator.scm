@@ -372,6 +372,11 @@
               (execute (analyze core) #f)))
           (read-forms "benchmarks/evaluator/kernels.scm"))
 
+;; Every kernel once before any is timed, so that the first is not charged with
+;; the time V8 takes to optimize the evaluator itself.
+(for-each (lambda (kernel) (execute (make-app-node (vector (make-lit-node (cadr kernel)))) #f))
+          (global-ref 'kernels))
+
 (for-each (lambda (kernel)
             (let ((timed (best (cadr kernel))))
               (display (car kernel)) (display "\t") (display (car timed)) (display "\t")

@@ -35,6 +35,10 @@
                (ms (- (now) start)))
           (loop (+ i 1) (if (or (not best-ms) (< ms best-ms)) ms best-ms) value)))))
 
+;; Every kernel once before any is timed, as the evaluator in Scheme does
+;; (`benchmarks/run_evaluator.scm`), so that both are measured alike.
+(for-each (lambda (kernel) ((cadr kernel))) kernels)
+
 (for-each (lambda (kernel)
             (let ((timed (best (cadr kernel))))
               (display (car kernel)) (display "\t") (display (car timed)) (display "\t")

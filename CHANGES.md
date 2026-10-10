@@ -15201,3 +15201,59 @@ is the user's to decide; the plan's row says so.
 The first run had the evaluator in Scheme 5 to 9 times slower: its global lookup called `eval` for a name
 not yet in its table, and the tier declines a procedure naming `eval`, so every lookup ran interpreted.
 The system's globals are put in the table before anything runs now.
+
+# Task 109: records made and tested inline; 68's ceiling remeasured (2026-10-10)
+
+Decided with the user after 68's ceiling: make and test records inline first, then revisit 68. The
+ceiling's profile had making records 15% of the evaluator in Scheme's time -- a record of four fields
+119 ns to make in compiled code, a pair 4.6 -- and testing them, a `cond` of predicates, much of its
+loop.
+
+**Why a record was slow to make.** A constructor took its arguments as an array and made the record
+type's class with them; the class set each field by a name it read from a list, one loop for every
+record type there is, so every store missed V8's caches; then each argument was noted in the table of
+inexacts stored as numbers. Measured apart in plain JavaScript, thirty record types sharing the code: the
+constructor as it was 55 ns; the class made with no arguments, but still defining every field, then
+each field set by name at a site of its own, 47; made with a class that defines nothing, then each field
+set, 10; a pair 8.
+
+**What changed.** The class sets as many fields as it is given arguments, and with none sets none. A
+call of a global that holds a record's constructor as the code is compiled makes the class with no
+arguments and sets every field itself, in field order, from its argument or undefined, and notes an
+inexact number given -- the only kind a record just made needs noted; a call of one that holds a
+predicate tests the type with `instanceof` ("Records" in `emit.scm`, beside 54's accessors and
+modifiers). As it runs each checks that the global still holds one that does the same, and otherwise
+calls what it holds: a constructor carries a key naming its type's fields and the fields it takes, as
+JSON (`constructorKey` in `record.js`), which the code compares, and makes the type it carries, so a
+name rebound to another type's constructor of the same fields makes that type's record; a predicate
+carries a mark and its type. The constructors set every field in field order too -- one taking them out
+of order used to set them in its own order after the class defined them all -- so records made either way
+share one shape. `%record-procedure-field`, which tells the driver what a global holds, is
+`%record-procedure-kind`, answering for constructors and predicates as well.
+
+**Measured.** `run_codegen.js`'s `records` group, which gained constructors and more predicates: making a
+record of two fields and keeping it in a global 67.6 to 27.6 ns, of four 95.0 to 27.7, of one argument
+and two fields 46.2 to 26.4, against 20.1 for a pair; a predicate 3.0 to 2.8, of what is not its record
+3.9 to 3.4, four in a `cond` 13.6 to 11.1 -- V8 had inlined the predicate's call into these small
+procedures already, which it does not into a large one, the evaluator's loop. 68's ceiling, every kernel
+now run once before any is timed so that the first is not charged with V8 optimizing the evaluator:
+before, from a copy of the code before this change with the same drivers, 1.78 and 1.83 times the
+interpreter's time in the geometric mean; after, 1.27 and 1.31, each kernel 1.20 to 1.40. What remains of
+it: the loop 31%, searching frames by name 25%, evaluating operands in place 14%, `make-vector` 11%,
+`vector-copy` 5%, the global table 6%. The canonical suite, before and after from two copies of equal
+standing, level, its outliers on a first run level when run again; `run_tier.js`'s corpus 2,576 and
+2,572 ms to 2,568 and 2,563, its test set level; `benchmark:self-host` level. They make few records.
+
+Tests: constructors in field order, out of order and leaving a field out, inexact and exact numbers made
+into fields, the record written and compared as the interpreter's, its fields as JavaScript reads them,
+the constructor's arity error, predicates of records, of other types and of what is no record, and the
+names rebound to another type's constructor of the same fields, to one of them in another order, and to
+procedures that are neither, in both tiers (`tests/tiers/record_tests.scm`); the generated code
+(`tests/compiler/emit_tests.scm`); what `%record-procedure-kind` answers (`tests/compiler/
+driver_tests.scm`). Node 9,635 passed under `--expose-gc`, as `npm test` runs it -- one run before lost
+the functional suite to a page whose navigation timed out, and the next passed -- and the browser 9,293.
+
+JavaScript under `src/`: `record.js`'s marks for constructors and predicates, the key and the primitive
+reading them, which are the value representation's; the class constructor, the constructors and their
+noting of inexacts fixed in place; re-exports in `runtime.js`. 62 lines of JavaScript added and 18
+removed, 122 of Scheme and 35.

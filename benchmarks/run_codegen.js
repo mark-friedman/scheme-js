@@ -164,23 +164,39 @@ const GROUPS = [
   },
   {
     name: 'records',
-    about: 'a record\'s accessor, modifier and predicate, beside car, a field read inline (task 54)',
+    about: 'a record\'s constructor, accessor, modifier and predicate, beside a pair\'s (tasks 54 and 109)',
     definitions: `
       (define-record-type point (make-point x y) point? (x point-x set-point-x!) (y point-y set-point-y!))
+      (define-record-type quad (make-quad a b c d) quad? (a quad-a) (b quad-b) (c quad-c) (d quad-d))
+      (define-record-type partial (make-partial y) partial? (x partial-x) (y partial-y))
+      (define-record-type label (make-label x) label? (x label-x))
       (define (one x) 1)
       (define (symbol-field p) (if (eq? (point-x p) 'a) 0 1))
       (define (integer-field p) (if (= (point-y p) 0) 0 1))
       (define (store-integer p) (set-point-y! p 2) 1)
       (define (of-type p) (if (point? p) 1 0))
+      (define (dispatch r) (cond ((point? r) 1) ((quad? r) 2) ((partial? r) 3) ((label? r) 4) (else 0)))
       (define (pair-field p) (if (eq? (car p) 'a) 0 1))
+      (define made #f)
+      (define (make-two a) (set! made (make-point a a)) 1)
+      (define (make-four a) (set! made (make-quad a a a a)) 1)
+      (define (make-one-of-two a) (set! made (make-partial a)) 1)
+      (define (make-pair a) (set! made (cons a a)) 1)
       (define key-a 'a)
       (define a-point (make-point 'b 2))
+      (define a-label (make-label 'b))
       (define a-pair (cons 'b 2))`,
     workloads: [
+      ['a constructor: two fields', '(make-two key-a)'],
+      ['a constructor: four fields', '(make-four key-a)'],
+      ['a constructor: one argument of two fields', '(make-one-of-two key-a)'],
+      ['cons, for comparison', '(make-pair key-a)'],
       ['an accessor: a field holding a symbol', '(symbol-field a-point)'],
       ['an accessor: a field holding an integer', '(integer-field a-point)'],
       ['a modifier: storing an integer', '(store-integer a-point)'],
       ['a predicate', '(of-type a-point)'],
+      ['a predicate, of what is not its record', '(of-type a-pair)'],
+      ['four predicates in a cond, the last true', '(dispatch a-label)'],
       ['car, a field read inline, for comparison', '(pair-field a-pair)']
     ]
   },

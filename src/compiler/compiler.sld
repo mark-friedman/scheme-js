@@ -25,7 +25,7 @@
 
 (define-library (scheme-js compiler)
   (import (scheme base)
-          (only (scheme primitives) emergency-exit eval exit %record-procedure-field)
+          (only (scheme primitives) emergency-exit eval exit %record-procedure-kind)
           (scheme char)
           (scheme cxr)
           (srfi 1)

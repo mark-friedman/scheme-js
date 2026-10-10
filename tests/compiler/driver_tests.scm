@@ -223,9 +223,22 @@
         (unit-scopes? (generated-scopes (generated-for #t))))
   (test "and otherwise none" #f (generated-scopes (generated-for #f))))
 
-(test-group "driver - which globals hold a record's accessor or modifier"
-  (define-record-type spot (make-spot x) spot? (x spot-x set-spot-x!))
-  (test "an accessor, by its field" '(accessor . x) (%record-procedure-field spot-x))
-  (test "a modifier, by its field" '(modifier . x) (%record-procedure-field set-spot-x!))
-  (test "neither: a predicate, a constructor, another procedure, no procedure" '(#f #f #f #f)
-        (map %record-procedure-field (list spot? make-spot car 'x))))
+(test-group "driver - which globals hold a record's procedure"
+  (define-record-type spot (make-spot x y) spot? (x spot-x set-spot-x!) (y spot-y))
+  (define-record-type place (make-place x y) place? (x place-x) (y place-y))
+  (define-record-type turned (make-turned y x) turned? (x turned-x) (y turned-y))
+  (define-record-type partial (make-partial y) partial? (x partial-x) (y partial-y))
+  (define (key-of constructor) (cadr (%record-procedure-kind constructor)))
+  (test "an accessor, by its field" '(accessor . x) (%record-procedure-kind spot-x))
+  (test "a modifier, by its field" '(modifier . x) (%record-procedure-kind set-spot-x!))
+  (test "a predicate" '(predicate) (%record-procedure-kind spot?))
+  (test "a constructor, by a key, its type's fields and its own" '(constructor #t (x y) (x y))
+        (let ((kind (%record-procedure-kind make-spot)))
+          (list (car kind) (string? (cadr kind)) (caddr kind) (cadddr kind))))
+  (test "and one taking them out of order, or leaving one out" '(((x y) (y x)) ((x y) (y)))
+        (map (lambda (c) (cddr (%record-procedure-kind c))) (list make-turned make-partial)))
+  (test "two constructors of the same fields from the same arguments share a key" #t
+        (string=? (key-of make-spot) (key-of make-place)))
+  (test "and others do not" '(#f #f)
+        (list (string=? (key-of make-spot) (key-of make-turned)) (string=? (key-of make-spot) (key-of make-partial))))
+  (test "none: another procedure, no procedure" '(#f #f) (map %record-procedure-kind (list car 'x))))

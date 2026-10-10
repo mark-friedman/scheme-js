@@ -685,6 +685,44 @@
   (test "not at another arity" #f (has? (unit-with '((point-x accessor . x)) '(define (f p) (point-x p p))) "$READS"))
   (test "nor of a global that held no accessor" #f (has? (unit-with '() '(define (f p) (point-x p))) "$READS")))
 
+;; A call of a global that holds a record's constructor or predicate as the
+;; unit is compiled makes or tests the record inline, checking as it runs that
+;; the callee is still a constructor of those fields from those arguments, by
+;; the key it carries, or a predicate. The globals come as (global constructor
+;; key fields tags) and (global predicate).
+(test-group "records - a record's constructor and predicate inline"
+  (define (unit-with records definition)
+    (let ((lowered (lower-lambda (analyze-lambda definition))))
+      (car (generate-unit (lowered-ir lowered) (lowered-globals lowered) (lowered-library-globals lowered)
+                          "f" '() #f #f records))))
+  (define (has? text part) (and (string-contains text part) #t))
+  (define (before? text first second)
+    (let ((i (string-contains text first)) (j (string-contains text second)))
+      (and i j (< i j))))
+  (define making (unit-with '((make-point constructor "K" (x y) (x y))) '(define (f a b) (make-point a b))))
+  (test "a constructor's call makes the record of the callee's type, the callee checked by its key"
+        '(#t #t #t #t)
+        (list (has? making "?.[$MAKES] === \"K\"") (has? making "new ($") (has? making "[\"x\"] = a")
+              (has? making "[\"y\"] = b")))
+  (test "noting an inexact number stored" #t (has? making "a instanceof R.Flonum && R.noteSchemeStore("))
+  (test "and anything else is the call" #t (has? making "R.callBinding("))
+  (define swapping (unit-with '((make-swapped constructor "K" (x y) (y x))) '(define (f a b) (make-swapped a b))))
+  (test "the fields set in field order, each from its argument" '(#t #t #t)
+        (list (has? swapping "[\"x\"] = b") (has? swapping "[\"y\"] = a")
+              (before? swapping "[\"x\"] = b" "[\"y\"] = a")))
+  (test "a field the constructor leaves out set to undefined, in its place" '(#t #t)
+        (let ((partial (unit-with '((make-partial constructor "K" (x y) (y))) '(define (f a) (make-partial a)))))
+          (list (has? partial "[\"x\"] = undefined") (before? partial "[\"x\"] = undefined" "[\"y\"] = a"))))
+  (test "a key JavaScript must escape, escaped" #t
+        (has? (unit-with '((make-point constructor "[\"x\"]" (x) (x))) '(define (f a) (make-point a)))
+              "=== \"[\\\"x\\\"]\""))
+  (test "not at another arity" #f
+        (has? (unit-with '((make-point constructor "K" (x y) (x y))) '(define (f a) (make-point a))) "$MAKES"))
+  (define testing (unit-with '((point? predicate)) '(define (f p) (point? p))))
+  (test "a predicate's call tests the record's type, the callee checked to be a predicate" '(#t #t #t)
+        (list (has? testing "?.[$TESTS] === true") (has? testing "p instanceof") (has? testing "R.callBinding(")))
+  (test "not at another arity" #f (has? (unit-with '((point? predicate)) '(define (f p) (point? p p))) "$TESTS")))
+
 ;; A rest parameter the procedure neither assigns nor lets a nested procedure
 ;; capture stays, in the fast form, the array of the arguments, until it is
 ;; used as a list: `null?`, `pair?` and `car` of it, and of its tails by

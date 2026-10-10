@@ -4,12 +4,13 @@
  * Provides record type operations for R7RS define-record-type.
  */
 
-import { isString, stringValue } from './string_class.js';
-import { toArray, Cons } from '../interpreter/cons.js';
+import { isString, stringValue, SchemeString } from './string_class.js';
+import { toArray, Cons, list } from '../interpreter/cons.js';
 import { intern } from '../interpreter/symbol.js';
 import { assertString, assertList, assertSymbol } from '../interpreter/type_check.js';
 import { SchemeError, SchemeTypeError, SchemeArityError } from '../interpreter/errors.js';
 import { noteSchemeStore, storedToScheme } from '../interpreter/js_interop.js';
+import { Flonum } from '../interpreter/number_representation.js';
 import { SCHEME_PRIMITIVE } from '../interpreter/values.js';
 
 // ============================================================================
@@ -19,26 +20,44 @@ import { SCHEME_PRIMITIVE } from '../interpreter/values.js';
 // The field names of a record type made by make-record-type, in field order.
 export const RECORD_FIELDS = Symbol('record-fields');
 
-// What a record's accessor and modifier carry, for compiled code that reads
-// or writes the field itself where it calls one ("Records" in emit.scm): the
-// field's name, under one key for an accessor and another for a modifier,
-// and the record type.
+// What a record's procedures carry, for compiled code that makes, tests,
+// reads or writes the record itself where it calls one ("Records" in
+// emit.scm): an accessor its field's name, a modifier its field's name under
+// another key, a predicate `true`, a constructor a key naming its type's
+// fields and the fields it takes (`constructorKey`); and each its record type.
 export const RECORD_READS = Symbol('record-reads');
 export const RECORD_WRITES = Symbol('record-writes');
+export const RECORD_TESTS = Symbol('record-tests');
+export const RECORD_MAKES = Symbol('record-makes');
 export const RECORD_TYPE = Symbol('record-type');
 
 /**
  * Notes each constructor argument as a Scheme store into its field, so that
  * integer-valued flonums keep their exactness (see `noteSchemeStore` in
- * `js_interop.js`).
+ * `js_interop.js`). A record just made has no notes, so only an inexact
+ * number needs one: an exact integer's store would clear a note there is not.
  * @param {Object} record - The record just constructed.
  * @param {string[]} fieldNames - The field each argument initialised.
  * @param {Array} args - The constructor's arguments.
  */
 function noteConstructorStores(record, fieldNames, args) {
     for (let i = 0; i < args.length; i++) {
-        noteSchemeStore(record, fieldNames[i], args[i]);
+        if (args[i] instanceof Flonum) noteSchemeStore(record, fieldNames[i], args[i]);
     }
+}
+
+/**
+ * The key a record constructor carries for compiled code, naming its record
+ * type's fields, in field order, and the fields its arguments initialise, in
+ * argument order: two constructors with one key make the same record from the
+ * same arguments, but for its type. JSON, so that no two different pairs of
+ * lists, whatever their names, have one key.
+ * @param {string[]} fieldNames - The record type's fields.
+ * @param {string[]} tagNames - The constructor's.
+ * @returns {string}
+ */
+function constructorKey(fieldNames, tagNames) {
+    return JSON.stringify([fieldNames, tagNames]);
 }
 
 /**
@@ -94,10 +113,19 @@ export const recordPrimitives = {
         // JavaScript identifiers. A computed key names the class, so it shows
         // up under the record type's name in a debugger, without `new
         // Function` -- which a strict Content-Security-Policy forbids.
+        //
+        // It sets as many fields as it is given arguments, in field order,
+        // and with none sets none: compiled code makes a record so and sets
+        // every field itself, by name, a site of its own (`record-make`
+        // in emit.scm), where this loop, one site for every record type, cost
+        // a record of four fields 37 ns more. Every constructor sets every
+        // field, in field order, so that all records of a type share one
+        // shape.
         const ClassConstructor = {
             [jsClassName]: class {
                 constructor(...args) {
-                    for (let i = 0; i < fieldNames.length; i++) {
+                    const count = Math.min(args.length, fieldNames.length);
+                    for (let i = 0; i < count; i++) {
                         this[fieldNames[i]] = args[i];
                     }
                 }
@@ -154,20 +182,25 @@ export const recordPrimitives = {
                     return record;
                 };
             } else {
+                // Each field's argument, in field order, or -1 for a field
+                // the constructor leaves out, which is set undefined: every
+                // field set, in field order, so all records of the type share
+                // one shape.
+                const argumentOf = fieldNames.map(field => tagNames.indexOf(field));
                 ctor = function (...args) {
                     if (args.length !== arity) {
                         throw new SchemeArityError(procName, arity, arity, args.length);
                     }
-                    // Constructing with no arguments first defines every field,
-                    // in field order, so all records of the type share one shape.
                     const record = new rtd();
-                    for (let i = 0; i < arity; i++) {
-                        record[tagNames[i]] = args[i];
+                    for (let i = 0; i < fieldNames.length; i++) {
+                        record[fieldNames[i]] = argumentOf[i] < 0 ? undefined : args[argumentOf[i]];
                     }
                     noteConstructorStores(record, tagNames, args);
                     return record;
                 };
             }
+            ctor[RECORD_MAKES] = constructorKey(fieldNames, tagNames);
+            ctor[RECORD_TYPE] = rtd;
         }
         ctor[SCHEME_PRIMITIVE] = true;
         // Ensure instanceof works in JS if rtd is a class/constructor
@@ -185,6 +218,8 @@ export const recordPrimitives = {
     'record-predicate': (rtd) => {
         const pred = (obj) => obj instanceof rtd;
         pred[SCHEME_PRIMITIVE] = true;
+        pred[RECORD_TESTS] = true;
+        pred[RECORD_TYPE] = rtd;
         return pred;
     },
 
@@ -233,16 +268,25 @@ export const recordPrimitives = {
     },
 
     /**
-     * What a procedure reads or writes of a record, for the compiler: an
-     * accessor's field as `(accessor . field)`, a modifier's as
-     * `(modifier . field)`; #f for anything else.
+     * What a procedure does with a record, for the compiler: an accessor's
+     * field as `(accessor . field)`, a modifier's as `(modifier . field)`, a
+     * predicate as `(predicate)`, and a constructor as `(constructor key
+     * fields tags)` -- the key it carries, its type's fields and the fields
+     * its arguments initialise; #f for anything else.
      * @param {*} proc - The value.
      * @returns {Cons|boolean}
      */
-    '%record-procedure-field': (proc) => {
+    '%record-procedure-kind': (proc) => {
         if (typeof proc !== 'function') return false;
         if (proc[RECORD_READS] !== undefined) return new Cons(intern('accessor'), intern(proc[RECORD_READS]));
         if (proc[RECORD_WRITES] !== undefined) return new Cons(intern('modifier'), intern(proc[RECORD_WRITES]));
+        if (proc[RECORD_TESTS] === true) return new Cons(intern('predicate'), null);
+        if (proc[RECORD_MAKES] !== undefined) {
+            const [fieldNames, tagNames] = JSON.parse(proc[RECORD_MAKES]);
+            const symbols = (names) => list(...names.map(name => intern(name)));
+            return list(intern('constructor'), new SchemeString(proc[RECORD_MAKES]),
+                symbols(fieldNames), symbols(tagNames));
+        }
         return false;
     }
 };
