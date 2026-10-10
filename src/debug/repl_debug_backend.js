@@ -59,13 +59,15 @@ export class ReplDebugBackend extends DebugBackend {
     }
 
     /**
-     * Called when execution resumes.
-     * @param {string} [action='resume'] - The action that caused resumption
+     * Called when a pause ends: the program resumes or steps, or its run is
+     * aborted, which `:abort` says itself.
+     * @param {string} [action='resume'] - How: 'resume', 'stepInto',
+     *   'stepOver', 'stepOut' or 'abort'.
      */
     onResume(action = 'resume') {
         this.paused = false;
         this.pauseInfo = null;
-        this.outputFn(`;; Resumed`);
+        if (action !== 'abort') this.outputFn(`;; Resumed`);
 
         if (this._pauseActionResolver) {
             this._pauseActionResolver(action);

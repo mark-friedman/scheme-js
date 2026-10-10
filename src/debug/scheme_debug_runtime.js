@@ -374,7 +374,8 @@ export class SchemeDebugRuntime {
     }
 
     /**
-     * Whether the run was aborted.
+     * Whether the last pause ended in an abort, which the run it released
+     * reads, to stop.
      * @returns {boolean}
      */
     isAborted() {

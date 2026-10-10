@@ -3,10 +3,13 @@
  *
  * A line typed at the paused REPL is the debugger's: a debug command, or else
  * an expression to evaluate in the selected frame, as the CLI's REPL takes
- * it. These tests mount the REPL on an element of their own, type lines into
- * it and press Enter as a person would, and read what it shows, so they need
- * a DOM and run only in the browser. The rule itself is tested in both, by
- * tests/core/scheme/debugger_tests.scm and tests/unit/repl_debug_commands_tests.js.
+ * it. Once the run ends -- continued, or aborted -- the REPL is as it was
+ * before it: its usual prompt, a line evaluated and its result shown, and a
+ * later run paused and continued as before. These tests mount the REPL on an
+ * element of their own, type lines into it and press Enter as a person would,
+ * and read what it shows, so they need a DOM and run only in the browser. The
+ * debugger's side is tested in both, by tests/core/scheme/debugger_tests.scm,
+ * tests/unit/repl_debug_commands_tests.js and tests/debug/abort_tests.js.
  */
 
 import { assert } from '../harness/helpers.js';
@@ -21,19 +24,18 @@ import {
 import { SchemeDebugRuntime, ReplDebugBackend, ReplDebugCommands } from '../../src/debug/index.js';
 
 /**
- * Settles once a condition holds, checking it between turns of the event
- * loop, or fails after a time.
+ * Waits until a condition holds, checking it between turns of the event
+ * loop, for at most five seconds.
  * @param {Function} holds - The condition.
- * @param {string} what - What is waited for, to say if it never comes.
- * @param {number} [ms=5000] - How long to wait.
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>} Whether it came to hold.
  */
-async function until(holds, what, ms = 5000) {
-  const deadline = Date.now() + ms;
+async function until(holds) {
+  const deadline = Date.now() + 5000;
   while (!holds()) {
-    if (Date.now() > deadline) throw new Error(`timed out waiting for ${what}`);
+    if (Date.now() > deadline) return false;
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
+  return true;
 }
 
 /**
@@ -67,7 +69,7 @@ function mountRepl() {
       const before = history.children.length;
       inputArea.textContent = line;
       inputArea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
-      await until(() => currentLine.style.display !== 'none', `the REPL to take input after ${line}`);
+      await until(() => currentLine.style.display !== 'none');
       // The first entry is the line itself.
       return shown().slice(before + 1);
     },
@@ -102,9 +104,26 @@ export async function runWebReplDebugTests(logger) {
 
   // Continued, the exception goes on to the top level, ending the run.
   await repl.enter(':c');
-  await until(() => repl.shown().some((entry) => entry.startsWith('Error: ')), 'the run to end');
+  await until(() => repl.shown().some((entry) => entry.startsWith('Error: ')));
   assert(logger, 'once the run has ended, the prompt is the usual one', repl.prompt(), '>');
   assert(logger, 'and a line is evaluated as usual', await repl.enter('(+ 1 2)'), ['3']);
+
+  // Aborted, the run stops at once, and the REPL is as it was before it.
+  await repl.enter('(f 6)');
+  assert(logger, 'paused again, a line is the debugger\'s', await repl.enter('x'), [';; result: 6']);
+  assert(logger, 'an abort says so', (await repl.enter(':abort'))[0], ';; Evaluation aborted');
+  assert(logger, 'the run stops, as aborted',
+    await until(() => repl.shown().at(-1) === 'Error: Evaluation aborted') || repl.shown().at(-1), true);
+  assert(logger, 'once the aborted run has stopped, the prompt is the usual one', repl.prompt(), '>');
+  assert(logger, 'and a line is evaluated as usual, its result shown', await repl.enter('(+ 1 2)'), ['3']);
+  assert(logger, 'an abort with nothing paused is refused', await repl.enter(':abort'), [';; Not paused']);
+  const pausingAgain = await repl.enter('(f 7)');
+  assert(logger, 'a later run pauses as before',
+    pausingAgain.some((entry) => entry.includes(';; Paused: exception')) ? true : pausingAgain, true);
+  await repl.enter(':c');
+  await until(() => repl.shown().at(-1)?.startsWith('Error: '));
+  assert(logger, 'and, continued, goes on rather than being aborted',
+    repl.shown().at(-1), 'Error: Unhandled exception: 7');
 }
 
 export default runWebReplDebugTests;

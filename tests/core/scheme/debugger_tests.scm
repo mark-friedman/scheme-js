@@ -164,16 +164,36 @@
   (pause-at! dbg (span "test.scm" 12 1) #f #f)
   (pause-at! dbg #f #f "manual pause")
   (resume! dbg)
-  (abort! dbg)
   (test "a breakpoint's pause names it, a step's is a step, another keeps its reason"
         '((paused "breakpoint" "bp-1") (paused "step" ()) (paused "manual pause" ()))
         (filter-told (lambda (what) (eq? (car what) 'paused)) ((cdr recording))))
-  (test "a resume releases the run and is told how; an abort only releases it"
-        '((released) (resumed "stepInto") (released) (resumed "resume") (released))
+  (test "a resume releases the run and is told how"
+        '((released) (resumed "stepInto") (released) (resumed "resume"))
         (filter-told (lambda (what) (memq (car what) '(released resumed))) ((cdr recording))))
-  (test "each change tells the host what it mirrors, last of all an abort"
-        '(changed #t #t #f #t)
+  (test "each change tells the host what it mirrors, last of all a resume"
+        '(changed #t #t #f #f)
         (car (reverse (filter-told (lambda (what) (eq? (car what) 'changed)) ((cdr recording)))))))
+
+(test-group "debugger - an abort"
+  (define recording (recording-host '() '() '()))
+  (define dbg (make-debugger (car recording)))
+  (define (told kinds) (filter-told (lambda (what) (memq (car what) kinds)) ((cdr recording))))
+  (define (last-change) (car (reverse (told '(changed)))))
+  (set-debugger-enabled! dbg #t)
+  (pause-at! dbg #f #f "manual pause")
+  (abort! dbg)
+  ;; A host keeping whether the program is paused learns that it is not.
+  (test "releases the paused run, and the host is told the pause ended so"
+        '((released) (resumed "abort")) (told '(released resumed)))
+  (test "and runs" '(running #f) (list (debugger-mode dbg) (debugger-paused? dbg)))
+  (test "the run released reads that it was aborted, to stop" '(#t #t)
+        (list (debugger-aborted? dbg) (list-ref (last-change) 4)))
+  ;; An abort ends the run it was given, which never pauses again.
+  (pause-at! dbg #f #f "manual pause")
+  (test "a pause after it begins with its run not aborted" '(#f #f)
+        (list (debugger-aborted? dbg) (list-ref (last-change) 4)))
+  (resume! dbg)
+  (test "so a resume lets that run go on" #f (debugger-aborted? dbg)))
 
 (test-group "debugger - whether the program is being debugged"
   (define dbg (fresh-debugger))
@@ -245,6 +265,8 @@
   (test "none left" ";; No breakpoints set" (debugger-command dbg ":breakpoints"))
   (test "no step while running" ";; Not paused" (debugger-command dbg ":step"))
   (test "nor locals" ";; Not paused" (debugger-command dbg ":locals"))
+  (test "nor an abort, which would be left for a run to come" ";; Not paused" (debugger-command dbg ":abort"))
+  (test "which is not aborted" #f (debugger-aborted? dbg))
   (test "no stack" ";; No call stack info available" (debugger-command dbg ":bt"))
   (enter-activation! dbg "frame-0" (span "test.scm" 3 1) 'env-0)
   (enter-activation! dbg "frame-1" (span "test.scm" 7 1) 'env-1)
@@ -286,6 +308,10 @@
             ";; Debugging disabled\n;; WARNING: Fast Mode enabled. UI will freeze during long computations."
             ";; Debugging disabled")
         (debugger-command dbg ":debug off"))
+  (pause! dbg "breakpoint" #f)
+  (test "an abort, paused" ";; Evaluation aborted" (debugger-command dbg ":abort"))
+  (test "ends the pause, telling the host" '(#f (resumed "abort"))
+        (list (debugger-paused? dbg) (car (reverse ((cdr recording))))))
   (reset-frame-selection! dbg)
   (test "an evaluation's answer" ";; result: 50" (eval-answer "50"))
   (test "and its failure" ";; Error during eval: boom" (eval-failure "boom")))

@@ -30,11 +30,14 @@ export class DebugBackend {
     }
 
     /**
-     * Called when execution resumes.
-     * 
+     * Called when a pause ends: the program resumes or steps, or its run is
+     * aborted.
+     *
      * @abstract
+     * @param {string} action - How: 'resume', 'stepInto', 'stepOver',
+     *   'stepOut' or 'abort'.
      */
-    onResume() {
+    onResume(action) {
         // Default: no-op
     }
 

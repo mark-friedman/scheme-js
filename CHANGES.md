@@ -15282,7 +15282,8 @@ environments: `debugger-input` in `tests/core/scheme/debugger_tests.scm`, and
 `tests/unit/repl_debug_commands_tests.js`. Node 9,642 passed, 0 failed, under `npm test`; the browser 9,308
 passed, 0 failed, headless.
 
-**Left as found.** After `:abort` the browser REPL stays at `debug>`, and a line typed there answers
+**Left as found.** *(The abort half fixed the same day, in "An abort ends its run, and only its run".)*
+After `:abort` the browser REPL stays at `debug>`, and a line typed there answers
 `;; Not paused` (before this change it showed the same error): `abort!` does not tell the backend, so
 `ReplDebugBackend.isPaused()` stays true. The old `PauseController.abort` did not tell it either. With
 its input piped, the CLI's REPL stops answering once its `debug>` loop closes, after `:c` as after
@@ -15291,3 +15292,54 @@ its input piped, the CLI's REPL stops answering once its `debug>` loop closes, a
 JavaScript under `src/`: `ReplDebugCommands.execute` calls `debugger-input` rather than
 `debugger-command`, fixed in place in a door into the Scheme. 7 lines of JavaScript added and 4 removed,
 almost all of them comments; 14 of Scheme and 2.
+
+# An abort ends its run, and only its run (2026-10-10)
+
+After `:abort` the browser REPL stayed at `debug>` and took every line as the debugger's, answering
+`;; Not paused`. Looking at why found that an abort went wrong four ways, all as old as the REPL
+debugger -- the `PauseController` that task 67 replaced behaved the same:
+
+- **The backend was never told.** `abort!` released the paused run without the `resumed` call a resume
+  or step makes, so `ReplDebugBackend.isPaused()` stayed true and both REPLs went on routing lines to the
+  debugger. The browser REPL also kept its `debug>` prompt.
+- **The abort outlived its run.** `aborted?` was set and only `reset-debugger!` cleared it, so after one
+  abort the next pause, resumed with `:c`, was aborted too, and the browser REPL hid every result, since it
+  showed one only when `isAborted()` was false. An `:abort` typed with nothing paused set it as well,
+  waiting for a run to come.
+- **At an exception no handler catches, an abort did not abort.** That pause is waited on in
+  `runAsync`'s `catch`, which never checked for an abort, so the run ended with the exception rather
+  than "Evaluation aborted".
+- **A handler could catch it.** "Evaluation aborted" was thrown inside the loop's `try`, whose `catch`
+  gives errors to the program's handlers, so a `with-exception-handler` around the call was called with
+  it, and one that escaped would have carried on.
+
+**What changed.** `abort!` ends the pause as `resume!` does, telling the host `resumed` with `"abort"`,
+and `ReplDebugBackend.onResume` says nothing for it, since `:abort` answers `;; Evaluation aborted`
+itself. The browser REPL's override of `onResume` passes that on; it had dropped its argument. `pause!`
+clears `aborted?`, which now means whether the last pause ended in an abort: an abort ends the run it
+releases, which never pauses again. `:abort` takes a pause, like `:continue`, and answers `;; Not
+paused` otherwise. In `runAsync` both waits on a pause stop the run if it was aborted, with an
+`EvaluationAborted` (a `SchemeError`) that the loop's `catch` throws on past the program's handlers. The
+browser REPL no longer asks `isAborted()` before showing a result: an aborted run raises, and never gets
+there.
+
+**Tests.** `tests/debug/abort_tests.js` (both environments) runs to a breakpoint, an exception a handler
+will catch and one none will, aborts each, and checks the run stops with "Evaluation aborted", the
+handler is not called, the backend is no longer paused and printed no `;; Resumed`, the next run gives its
+result, and a later pause resumed goes on to its end. Against the code before, three failed: the
+backend still paused, the resumed run aborted, and the uncaught exception's message. The browser REPL test
+(`tests/functional/web_repl_debug_tests.js`) goes on past `:c` to pause again, `:abort`, and check the
+`>` prompt, `(+ 1 2)` answering 3, `:abort` refused with nothing paused, and a later pause continued
+rather than aborted. Before, its abort half failed as reported, and once the debugger was fixed it
+caught the dropped `onResume` argument, which printed `;; Resumed` after an abort. In
+`tests/core/scheme/debugger_tests.scm`: an abort tells the host `(released)` then `(resumed "abort")`,
+the next pause begins unaborted, and `:abort` without a pause is refused. Node 9,660 passed, 0 failed,
+under `npm test`, and the browser 9,334 passed, 0 failed, headless. One `npm test` before that lost the
+functional suite to a DevTools fixture page that "did not become ready" while another session's benchmark
+held the machine; run alone, the DevTools suite failed once more at another page and then passed whole,
+and the fixture is ready in 300 ms without DevTools attached.
+
+JavaScript under `src/`: in `interpreter.js`, `EvaluationAborted`, its rethrow and the check after the
+exception path's wait, which are the evaluator's; in `repl_debug_backend.js`, `onResume`'s silence for an
+abort, fixed in place; the rest is comments. 32 lines of JavaScript added and 9 removed, most of them
+comments; 19 of Scheme and 12.

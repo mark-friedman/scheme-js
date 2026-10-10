@@ -211,13 +211,15 @@
 ;;  * What only the host can do, as procedures.
 ;;  * @property {procedure} changed - Called after every change, with whether
 ;;  *   debugging is enabled, whether the program is being debugged, whether
-;;  *   it is paused and whether it was aborted, which the evaluator reads, and
+;;  *   it is paused and whether its last pause ended in an abort, which the
+;;  *   evaluator reads, and
 ;;  *   which closures run compiled are to run as themselves
 ;;  *   (`debugger-interpretation`).
 ;;  * @property {procedure} release - Lets the asynchronous run waiting on a
 ;;  *   pause go on.
-;;  * @property {procedure} resumed - Says the program resumed, and how: as a
-;;  *   string, "resume", "stepInto", "stepOver" or "stepOut".
+;;  * @property {procedure} resumed - Says a pause ended, and how: as a string,
+;;  *   "resume", "stepInto", "stepOver" or "stepOut" as the program goes on,
+;;  *   or "abort" as its run stops.
 ;;  * @property {procedure} paused - Says the program paused, with what
 ;;  *   `pause-info` makes.
 ;;  * @property {procedure} bindings - An environment's own bindings, as a list
@@ -277,7 +279,8 @@
 ;;  *   depth it began at.
 ;;  * @property {string|boolean} reason - Why it is paused.
 ;;  * @property {*} data - The id of the breakpoint it paused at, or #f.
-;;  * @property {boolean} aborted? - Whether the run was aborted.
+;;  * @property {boolean} aborted? - Whether the last pause ended in an abort,
+;;  *   which the run it released reads, to stop.
 ;;  * @property {boolean} breaks-on-caught? - Whether an exception a handler
 ;;  *   will catch pauses it.
 ;;  * @property {boolean} breaks-on-uncaught? - Whether one none will does.
@@ -540,9 +543,10 @@
   (enter-mode! dbg 'running))
 
 ;; /**
-;;  * The program resumed, which the host is told after releasing the run.
+;;  * A pause ended, which the host is told after releasing the run.
 ;;  * @param {debugger} dbg - The debugger.
-;;  * @param {string} how - "resume", "stepInto", "stepOver" or "stepOut".
+;;  * @param {string} how - "resume", "stepInto", "stepOver" or "stepOut", or
+;;  *   "abort".
 ;;  */
 (define (resumed! dbg how)
   (debugger-changed! dbg)
@@ -570,23 +574,26 @@
   (resumed! dbg "resume"))
 
 ;; /**
-;;  * Aborts the run: released, it stops, which is not a resumption the host
-;;  * is told of.
+;;  * Aborts the paused run: released, it stops. The host is told the pause
+;;  * ended, as for a resumption, so that one keeping whether the program is
+;;  * paused does not go on thinking it is.
 ;;  */
 (define (abort! dbg)
   (set-debugger-aborted! dbg #t)
   (run! dbg)
-  (debugger-changed! dbg)
-  ((host-release (debugger-host dbg))))
+  (resumed! dbg "abort"))
 
 ;; /**
-;;  * Pauses, for a reason, with what goes with it.
+;;  * Pauses, for a reason, with what goes with it. The run paused is not
+;;  * aborted, whatever the last pause ended in: an abort ends the run it
+;;  * releases, which never pauses again.
 ;;  * @param {debugger} dbg - The debugger.
 ;;  * @param {string} reason - Why.
 ;;  * @param {*} data - The id of the breakpoint paused at, or #f.
 ;;  */
 (define (pause! dbg reason data)
   (enter-mode! dbg 'paused)
+  (set-debugger-aborted! dbg #f)
   (set-debugger-pause-reason! dbg reason)
   (set-debugger-pause-data! dbg data))
 
@@ -1043,7 +1050,7 @@
 ;;  */
 (define command-table
   (list (cons "debug" debug-command)
-        (cons "abort" abort-command) (cons "a" abort-command)
+        (cons "abort" (when-paused abort-command)) (cons "a" (when-paused abort-command))
         (cons "break" break-command)
         (cons "unbreak" unbreak-command)
         (cons "breakpoints" breakpoints-command)

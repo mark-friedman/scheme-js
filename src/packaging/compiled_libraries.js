@@ -26,7 +26,7 @@ import { Flonum } from '../core/interpreter/number_representation.js';
 /** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, span?: Object, make: Function}>, declaration?: string, restore?: Array<{procedure: string}|{core: string}|{form: string}>}>} */
 export const LIBRARIES = {
   "scheme-js.debugger": {
-    fingerprint: "82d50eb7",
+    fingerprint: "3cef5ac6",
     runtime: "44e2108e",
     files: ["debugger.sld","debugger.scm"],
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"debugger\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"make-debugger-host\",\"make-debugger\",\"debugger?\",\"debugger-enabled?\",\"set-debugger-enabled!\",\"debugger-debugging?\",\"debugger-interpretation\",\"debugger-changed!\",\"reset-debugger!\",\"add-breakpoint!\",\"remove-breakpoint!\",\"clear-breakpoints!\",\"debugger-breakpoints\",\"breakpoint-at\",\"breakpoint-id\",\"breakpoint-filename\",\"breakpoint-line\",\"breakpoint-column\",\"enter-activation!\",\"replace-activation!\",\"exit-activation!\",\"debugger-activations\",\"debugger-depth\",\"activation-name\",\"activation-source\",\"activation-env\",\"activation-tail-calls\",\"debugger-mode\",\"debugger-paused?\",\"debugger-aborted?\",\"debugger-target-depth\",\"debugger-pause-reason\",\"debugger-pause-data\",\"step-into!\",\"step-over!\",\"step-out!\",\"resume!\",\"abort!\",\"pause!\",\"step-stops?\",\"should-pause?\",\"pause-at!\",\"pause-on-exception!\",\"breaks-on-exception?\",\"debugger-breaks-on-caught?\",\"set-debugger-breaks-on-caught!\",\"debugger-breaks-on-uncaught?\",\"set-debugger-breaks-on-uncaught!\",\"span-contains?\",\"innermost-holding\",\"compiled-procedure-at\",\"transformer-at\",\"breakpoints->js\",\"activations->js\",\"pause-state->js\",\"debugger-command?\",\"debugger-command\",\"debugger-input\",\"reset-frame-selection!\",\"eval-answer\",\"eval-failure\",\"pause-message\"],[\"l\",\"include\",[\"s\",\"debugger.scm\"]]]",
@@ -2215,7 +2215,7 @@ export const LIBRARIES = {
         params: ["host_$2015"],
         rest: null,
         constants: [intern("running"), intern("running")],
-        span: {"filename":"debugger.scm","line":312,"column":1,"endLine":313,"endColumn":70},
+        span: {"filename":"debugger.scm","line":315,"column":1,"endLine":316,"endColumn":70},
         make: (R, E, K) => {
         const $MAKES = R.RECORD_MAKES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%make-debugger")).v;
@@ -2246,7 +2246,7 @@ export const LIBRARIES = {
         params: ["dbg_$2016"],
         rest: null,
         constants: [intern("running"), intern("running")],
-        span: {"filename":"debugger.scm","line":323,"column":1,"endLine":326,"endColumn":55},
+        span: {"filename":"debugger.scm","line":326,"column":1,"endLine":329,"endColumn":55},
         make: (R, E, K) => {
         const $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-enabled?")).v;
@@ -2317,7 +2317,7 @@ export const LIBRARIES = {
         params: ["dbg_$2018"],
         rest: null,
         constants: [intern("running"), intern("running")],
-        span: {"filename":"debugger.scm","line":342,"column":1,"endLine":347,"endColumn":20},
+        span: {"filename":"debugger.scm","line":345,"column":1,"endLine":350,"endColumn":20},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
@@ -2444,7 +2444,7 @@ export const LIBRARIES = {
         params: ["dbg_$2020","span_$2021"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":355,"column":1,"endLine":360,"endColumn":12},
+        span: {"filename":"debugger.scm","line":358,"column":1,"endLine":363,"endColumn":12},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "location?")).v;
@@ -2576,7 +2576,7 @@ export const LIBRARIES = {
         params: ["dbg_$2023"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":366,"column":1,"endLine":369,"endColumn":35},
+        span: {"filename":"debugger.scm","line":369,"column":1,"endLine":372,"endColumn":35},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "host-changed")).v;
@@ -2684,7 +2684,7 @@ export const LIBRARIES = {
         params: ["dbg_$2024","enabled?_$2025"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":374,"column":1,"endLine":376,"endColumn":27},
+        span: {"filename":"debugger.scm","line":377,"column":1,"endLine":379,"endColumn":27},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%set-debugger-enabled!")).v;
@@ -2721,7 +2721,7 @@ export const LIBRARIES = {
         params: ["dbg_$2026"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":382,"column":1,"endLine":392,"endColumn":27},
+        span: {"filename":"debugger.scm","line":385,"column":1,"endLine":395,"endColumn":27},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-debugger-breakpoints!")).v;
@@ -2853,7 +2853,7 @@ export const LIBRARIES = {
         params: ["dbg_$2027","filename_$2028","line_$2029","column_$2030"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":406,"column":1,"endLine":414,"endColumn":9},
+        span: {"filename":"debugger.scm","line":409,"column":1,"endLine":417,"endColumn":9},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $MAKES = R.RECORD_MAKES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-next-breakpoint")).v;
@@ -3061,7 +3061,7 @@ export const LIBRARIES = {
         params: ["dbg_$2033","id_$2034"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":419,"column":1,"endLine":421,"endColumn":96},
+        span: {"filename":"debugger.scm","line":422,"column":1,"endLine":424,"endColumn":96},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string?")).v;
@@ -3142,7 +3142,7 @@ export const LIBRARIES = {
         params: ["dbg_$2036","id_$2037"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":429,"column":1,"endLine":436,"endColumn":18},
+        span: {"filename":"debugger.scm","line":432,"column":1,"endLine":439,"endColumn":18},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "breakpoint-with-id")).v;
@@ -3279,7 +3279,7 @@ export const LIBRARIES = {
         params: ["dbg_$2040"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":441,"column":1,"endLine":443,"endColumn":27},
+        span: {"filename":"debugger.scm","line":444,"column":1,"endLine":446,"endColumn":27},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-debugger-breakpoints!")).v;
@@ -3316,7 +3316,7 @@ export const LIBRARIES = {
         params: ["dbg_$2041","filename_$2042","line_$2043","column_$2044"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":455,"column":1,"endLine":461,"endColumn":43},
+        span: {"filename":"debugger.scm","line":458,"column":1,"endLine":464,"endColumn":43},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "first-that")).v;
@@ -3480,7 +3480,7 @@ export const LIBRARIES = {
         params: ["dbg_$2047","location_$2048"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":469,"column":1,"endLine":474,"endColumn":53},
+        span: {"filename":"debugger.scm","line":472,"column":1,"endLine":477,"endColumn":53},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "location?")).v;
@@ -3650,7 +3650,7 @@ export const LIBRARIES = {
         params: ["dbg_$2049","name_$2050","source_$2051","env_$2052"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":492,"column":1,"endLine":494,"endColumn":56},
+        span: {"filename":"debugger.scm","line":495,"column":1,"endLine":497,"endColumn":56},
         make: (R, E, K) => {
         const $add = R.add, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $MAKES = R.RECORD_MAKES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-debugger-activations!")).v;
@@ -3711,7 +3711,7 @@ export const LIBRARIES = {
         params: ["dbg_$2053","name_$2054","source_$2055","env_$2056"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":499,"column":1,"endLine":505,"endColumn":42},
+        span: {"filename":"debugger.scm","line":502,"column":1,"endLine":508,"endColumn":42},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $MAKES = R.RECORD_MAKES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-activations")).v;
@@ -3791,7 +3791,7 @@ export const LIBRARIES = {
         params: ["dbg_$2058"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":510,"column":1,"endLine":515,"endColumn":67},
+        span: {"filename":"debugger.scm","line":513,"column":1,"endLine":518,"endColumn":67},
         make: (R, E, K) => {
         const $sub = R.sub, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-activations")).v;
@@ -3861,7 +3861,7 @@ export const LIBRARIES = {
         params: ["dbg_$2060"],
         rest: null,
         constants: [intern("paused"), intern("paused")],
-        span: {"filename":"debugger.scm","line":524,"column":1,"endLine":525,"endColumn":37},
+        span: {"filename":"debugger.scm","line":527,"column":1,"endLine":528,"endColumn":37},
         make: (R, E, K) => {
         const $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -3896,7 +3896,7 @@ export const LIBRARIES = {
         params: ["dbg_$2061","mode_$2062"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":530,"column":1,"endLine":534,"endColumn":37},
+        span: {"filename":"debugger.scm","line":533,"column":1,"endLine":537,"endColumn":37},
         make: (R, E, K) => {
         const $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-debugger-mode!")).v;
@@ -3948,7 +3948,7 @@ export const LIBRARIES = {
         params: ["dbg_$2063"],
         rest: null,
         constants: [intern("running"), intern("running")],
-        span: {"filename":"debugger.scm","line":539,"column":1,"endLine":540,"endColumn":30},
+        span: {"filename":"debugger.scm","line":542,"column":1,"endLine":543,"endColumn":30},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "enter-mode!")).v;
@@ -3978,7 +3978,7 @@ export const LIBRARIES = {
         params: ["dbg_$2064","how_$2065"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":547,"column":1,"endLine":550,"endColumn":44},
+        span: {"filename":"debugger.scm","line":551,"column":1,"endLine":554,"endColumn":44},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-changed!")).v;
@@ -4069,7 +4069,7 @@ export const LIBRARIES = {
         params: ["dbg_$2066","mode_$2067","how_$2068"],
         rest: null,
         constants: [intern("into"), intern("into")],
-        span: {"filename":"debugger.scm","line":556,"column":1,"endLine":559,"endColumn":22},
+        span: {"filename":"debugger.scm","line":560,"column":1,"endLine":563,"endColumn":22},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "enter-mode!")).v;
@@ -4155,7 +4155,7 @@ export const LIBRARIES = {
         params: ["dbg_$2069"],
         rest: null,
         constants: [intern("into"), intern("into")],
-        span: {"filename":"debugger.scm","line":561,"column":1,"endLine":561,"endColumn":55},
+        span: {"filename":"debugger.scm","line":565,"column":1,"endLine":565,"endColumn":55},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "step!")).v;
@@ -4185,7 +4185,7 @@ export const LIBRARIES = {
         params: ["dbg_$2070"],
         rest: null,
         constants: [intern("over"), intern("over")],
-        span: {"filename":"debugger.scm","line":562,"column":1,"endLine":562,"endColumn":55},
+        span: {"filename":"debugger.scm","line":566,"column":1,"endLine":566,"endColumn":55},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "step!")).v;
@@ -4215,7 +4215,7 @@ export const LIBRARIES = {
         params: ["dbg_$2071"],
         rest: null,
         constants: [intern("out"), intern("out")],
-        span: {"filename":"debugger.scm","line":563,"column":1,"endLine":563,"endColumn":52},
+        span: {"filename":"debugger.scm","line":567,"column":1,"endLine":567,"endColumn":52},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "step!")).v;
@@ -4245,7 +4245,7 @@ export const LIBRARIES = {
         params: ["dbg_$2072"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":568,"column":1,"endLine":570,"endColumn":27},
+        span: {"filename":"debugger.scm","line":572,"column":1,"endLine":574,"endColumn":27},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "run!")).v;
@@ -4298,18 +4298,16 @@ export const LIBRARIES = {
         params: ["dbg_$2073"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":576,"column":1,"endLine":580,"endColumn":40},
+        span: {"filename":"debugger.scm","line":581,"column":1,"endLine":584,"endColumn":26},
         make: (R, E, K) => {
-        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-debugger-aborted!")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "run!")).v;
-        let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "debugger-changed!")).v;
-        let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "host-release")).v;
-        let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "debugger-host")).v;
+        let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "resumed!")).v;
         const $proc = { "abort!": function (dbg) {
-          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15;
+          let $t0, $t1, $t2, $t3, $t4, $t5, $t6;
           if (arguments.length !== 1) R.wrongArity("abort!", 1, false, arguments.length);
-          const $d = $stack.room - 25;
+          const $d = $stack.room - 16;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [dbg]);
           $t0 = (C0.v ?? G0());
           $t1 = $t0?.[$WRITES] === "aborted?" && dbg instanceof $t0[$RTYPE] ? (dbg["aborted?"] = true, (typeof true === 'number' || true instanceof R.Flonum) && R.noteSchemeStore(dbg, "aborted?", true), undefined) : R.callBinding($t0, [dbg, true]);
@@ -4320,27 +4318,15 @@ export const LIBRARIES = {
           $stack.room = $d;
           $t4 = $t3 === undefined ? ($t2[$PRIM] === true ? $t2(dbg) : $foreign($t2, [dbg])) : $t3(dbg);
           while ($t4 instanceof $TailCall) { $stack.room = $d; $t4 = $step($t4); }
-          if ($t4 === $UNWIND) { R.reify($proc$r, 1, { $t11, $t13, dbg }); return $UNWIND; }
+          if ($t4 === $UNWIND) { R.reify($proc$r, 1, { dbg }); return $UNWIND; }
           $t4;
           $t5 = (C2.v ?? G2());
-          if (typeof $t5 !== 'function') $notProc($t5);
-          $t6 = $t5[$RAW];
-          $stack.room = $d;
-          $t7 = $t6 === undefined ? ($t5[$PRIM] === true ? $t5(dbg) : $foreign($t5, [dbg])) : $t6(dbg);
-          while ($t7 instanceof $TailCall) { $stack.room = $d; $t7 = $step($t7); }
-          if ($t7 === $UNWIND) { R.reify($proc$r, 2, { $t11, $t13, dbg }); return $UNWIND; }
-          $t7;
-          $t8 = (C3.v ?? G3());
-          $t9 = (C4.v ?? G4());
-          $t10 = $t9?.[$READS] === "host" && dbg instanceof $t9[$RTYPE] ? (($t11 = dbg["host"]), typeof $t11 === 'number' ? R.storedToScheme(dbg, "host", $t11) : $t11) : R.callBinding($t9, [dbg]);
-          $t12 = $t8?.[$READS] === "release" && $t10 instanceof $t8[$RTYPE] ? (($t13 = $t10["release"]), typeof $t13 === 'number' ? R.storedToScheme($t10, "release", $t13) : $t13) : R.callBinding($t8, [$t10]);
-          $t14 = $t12;
-          if ($d > 0 && ($t15 = $t14?.[$RAW] ?? $t14)?.[$PRIM] === true) { $stack.room = $d; return $t15(); } return $tailCall($t14, []);
+          if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6(dbg, "abort"); } return $tailCall($t5, [dbg, "abort"]);
         } }["abort!"];
         const $proc$r = { "abort!": function ($pc, $f) {
-          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, dbg, $r;
-          ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, dbg, $r } = $f);
-          const $d = $stack.room - 25;
+          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, dbg, $r;
+          ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, dbg, $r } = $f);
+          const $d = $stack.room - 16;
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
@@ -4352,30 +4338,14 @@ export const LIBRARIES = {
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? ($t2[$PRIM] === true ? $t2(dbg) : $foreign($t2, [dbg])) : $t3(dbg);
                 while ($t4 instanceof $TailCall) { $stack.room = $d; $t4 = $step($t4); }
-                if ($t4 === $UNWIND) { R.reify($proc$r, 1, { $t11, $t13, dbg }); return $UNWIND; }
+                if ($t4 === $UNWIND) { R.reify($proc$r, 1, { dbg }); return $UNWIND; }
                 $r = $t4;
                 $pc = 1; continue;
               case 1:
                 $t4 = $r;
                 $t4;
                 $t5 = (C2.v ?? G2());
-                if (typeof $t5 !== 'function') $notProc($t5);
-                $t6 = $t5[$RAW];
-                $stack.room = $d;
-                $t7 = $t6 === undefined ? ($t5[$PRIM] === true ? $t5(dbg) : $foreign($t5, [dbg])) : $t6(dbg);
-                while ($t7 instanceof $TailCall) { $stack.room = $d; $t7 = $step($t7); }
-                if ($t7 === $UNWIND) { R.reify($proc$r, 2, { $t11, $t13, dbg }); return $UNWIND; }
-                $r = $t7;
-                $pc = 2; continue;
-              case 2:
-                $t7 = $r;
-                $t7;
-                $t8 = (C3.v ?? G3());
-                $t9 = (C4.v ?? G4());
-                $t10 = $t9?.[$READS] === "host" && dbg instanceof $t9[$RTYPE] ? (($t11 = dbg["host"]), typeof $t11 === 'number' ? R.storedToScheme(dbg, "host", $t11) : $t11) : R.callBinding($t9, [dbg]);
-                $t12 = $t8?.[$READS] === "release" && $t10 instanceof $t8[$RTYPE] ? (($t13 = $t10["release"]), typeof $t13 === 'number' ? R.storedToScheme($t10, "release", $t13) : $t13) : R.callBinding($t8, [$t10]);
-                $t14 = $t12;
-                return $tailCall($t14, []);
+                return $tailCall($t5, [dbg, "abort"]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
         } }["abort!"];
@@ -4388,16 +4358,17 @@ export const LIBRARIES = {
         params: ["dbg_$2074","reason_$2075","data_$2076"],
         rest: null,
         constants: [intern("paused"), intern("paused")],
-        span: {"filename":"debugger.scm","line":588,"column":1,"endLine":591,"endColumn":39},
+        span: {"filename":"debugger.scm","line":594,"column":1,"endLine":598,"endColumn":39},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "enter-mode!")).v;
-        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "set-debugger-pause-reason!")).v;
-        let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "set-debugger-pause-data!")).v;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "set-debugger-aborted!")).v;
+        let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "set-debugger-pause-reason!")).v;
+        let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "set-debugger-pause-data!")).v;
         const $proc = { "pause!": function (dbg, reason, data) {
-          let $t0, $t1, $t2, $t3, $t4, $t5, $t6;
+          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8;
           if (arguments.length !== 3) R.wrongArity("pause!", 3, false, arguments.length);
-          const $d = $stack.room - 18;
+          const $d = $stack.room - 20;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [dbg, reason, data]);
           $t0 = (C0.v ?? G0());
           if (typeof $t0 !== 'function') $notProc($t0);
@@ -4408,16 +4379,19 @@ export const LIBRARIES = {
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, { dbg, reason, data }); return $UNWIND; }
           $t2;
           $t3 = (C1.v ?? G1());
-          $t4 = $t3?.[$WRITES] === "reason" && dbg instanceof $t3[$RTYPE] ? (dbg["reason"] = reason, (typeof reason === 'number' || reason instanceof R.Flonum) && R.noteSchemeStore(dbg, "reason", reason), undefined) : R.callBinding($t3, [dbg, reason]);
+          $t4 = $t3?.[$WRITES] === "aborted?" && dbg instanceof $t3[$RTYPE] ? (dbg["aborted?"] = false, (typeof false === 'number' || false instanceof R.Flonum) && R.noteSchemeStore(dbg, "aborted?", false), undefined) : R.callBinding($t3, [dbg, false]);
           $t4;
           $t5 = (C2.v ?? G2());
-          $t6 = $t5?.[$WRITES] === "data" && dbg instanceof $t5[$RTYPE] ? (dbg["data"] = data, (typeof data === 'number' || data instanceof R.Flonum) && R.noteSchemeStore(dbg, "data", data), undefined) : R.callBinding($t5, [dbg, data]);
-          return $t6;
+          $t6 = $t5?.[$WRITES] === "reason" && dbg instanceof $t5[$RTYPE] ? (dbg["reason"] = reason, (typeof reason === 'number' || reason instanceof R.Flonum) && R.noteSchemeStore(dbg, "reason", reason), undefined) : R.callBinding($t5, [dbg, reason]);
+          $t6;
+          $t7 = (C3.v ?? G3());
+          $t8 = $t7?.[$WRITES] === "data" && dbg instanceof $t7[$RTYPE] ? (dbg["data"] = data, (typeof data === 'number' || data instanceof R.Flonum) && R.noteSchemeStore(dbg, "data", data), undefined) : R.callBinding($t7, [dbg, data]);
+          return $t8;
         } }["pause!"];
         const $proc$r = { "pause!": function ($pc, $f) {
-          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, dbg, reason, data, $r;
-          ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, dbg, reason, data, $r } = $f);
-          const $d = $stack.room - 18;
+          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, dbg, reason, data, $r;
+          ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, dbg, reason, data, $r } = $f);
+          const $d = $stack.room - 20;
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
@@ -4433,11 +4407,14 @@ export const LIBRARIES = {
                 $t2 = $r;
                 $t2;
                 $t3 = (C1.v ?? G1());
-                $t4 = $t3?.[$WRITES] === "reason" && dbg instanceof $t3[$RTYPE] ? (dbg["reason"] = reason, (typeof reason === 'number' || reason instanceof R.Flonum) && R.noteSchemeStore(dbg, "reason", reason), undefined) : R.callBinding($t3, [dbg, reason]);
+                $t4 = $t3?.[$WRITES] === "aborted?" && dbg instanceof $t3[$RTYPE] ? (dbg["aborted?"] = false, (typeof false === 'number' || false instanceof R.Flonum) && R.noteSchemeStore(dbg, "aborted?", false), undefined) : R.callBinding($t3, [dbg, false]);
                 $t4;
                 $t5 = (C2.v ?? G2());
-                $t6 = $t5?.[$WRITES] === "data" && dbg instanceof $t5[$RTYPE] ? (dbg["data"] = data, (typeof data === 'number' || data instanceof R.Flonum) && R.noteSchemeStore(dbg, "data", data), undefined) : R.callBinding($t5, [dbg, data]);
-                return $t6;
+                $t6 = $t5?.[$WRITES] === "reason" && dbg instanceof $t5[$RTYPE] ? (dbg["reason"] = reason, (typeof reason === 'number' || reason instanceof R.Flonum) && R.noteSchemeStore(dbg, "reason", reason), undefined) : R.callBinding($t5, [dbg, reason]);
+                $t6;
+                $t7 = (C3.v ?? G3());
+                $t8 = $t7?.[$WRITES] === "data" && dbg instanceof $t7[$RTYPE] ? (dbg["data"] = data, (typeof data === 'number' || data instanceof R.Flonum) && R.noteSchemeStore(dbg, "data", data), undefined) : R.callBinding($t7, [dbg, data]);
+                return $t8;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
         } }["pause!"];
@@ -4450,7 +4427,7 @@ export const LIBRARIES = {
         params: ["dbg_$2077"],
         rest: null,
         constants: [intern("into"), intern("over"), intern("out"), intern("into"), intern("over"), intern("out"), {library: ["scheme","control"]}],
-        span: {"filename":"debugger.scm","line":599,"column":1,"endLine":604,"endColumn":16},
+        span: {"filename":"debugger.scm","line":606,"column":1,"endLine":611,"endColumn":16},
         make: (R, E, K) => {
         const $lt = R.lt, $le = R.le, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-mode")).v;
@@ -4541,7 +4518,7 @@ export const LIBRARIES = {
         params: ["dbg_$2079","filename_$2080","line_$2081","column_$2082"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":616,"column":1,"endLine":621,"endColumn":32},
+        span: {"filename":"debugger.scm","line":623,"column":1,"endLine":628,"endColumn":32},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-enabled?")).v;
@@ -4667,7 +4644,7 @@ export const LIBRARIES = {
         params: ["dbg_$2084","reason_$2085","breakpoint_$2086","location_$2087","env_$2088","exception_$2089","continuable?_$2090"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":627,"column":1,"endLine":634,"endColumn":39},
+        span: {"filename":"debugger.scm","line":634,"column":1,"endLine":641,"endColumn":39},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "js-obj")).v;
@@ -4792,7 +4769,7 @@ export const LIBRARIES = {
         params: ["dbg_$2093","location_$2094","env_$2095","reason_$2096"],
         rest: null,
         constants: [new Cons(intern("into"), new Cons(intern("over"), new Cons(intern("out"), null))), new Cons(intern("into"), new Cons(intern("over"), new Cons(intern("out"), null)))],
-        span: {"filename":"debugger.scm","line":645,"column":1,"endLine":654,"endColumn":98},
+        span: {"filename":"debugger.scm","line":652,"column":1,"endLine":661,"endColumn":98},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
@@ -5020,7 +4997,7 @@ export const LIBRARIES = {
         params: ["dbg_$2100","location_$2101","env_$2102","exception_$2103","continuable?_$2104"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":665,"column":1,"endLine":669,"endColumn":6},
+        span: {"filename":"debugger.scm","line":672,"column":1,"endLine":676,"endColumn":6},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pause!")).v;
@@ -5140,7 +5117,7 @@ export const LIBRARIES = {
         params: ["dbg_$2105","caught?_$2106"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":683,"column":1,"endLine":685,"endColumn":90},
+        span: {"filename":"debugger.scm","line":690,"column":1,"endLine":692,"endColumn":90},
         make: (R, E, K) => {
         const $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-enabled?")).v;
@@ -5197,7 +5174,7 @@ export const LIBRARIES = {
         params: ["dbg_$2107","breaks?_$2108"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":687,"column":1,"endLine":688,"endColumn":49},
+        span: {"filename":"debugger.scm","line":694,"column":1,"endLine":695,"endColumn":49},
         make: (R, E, K) => {
         const $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%set-debugger-breaks-on-caught!")).v;
@@ -5228,7 +5205,7 @@ export const LIBRARIES = {
         params: ["dbg_$2109","breaks?_$2110"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":690,"column":1,"endLine":691,"endColumn":51},
+        span: {"filename":"debugger.scm","line":697,"column":1,"endLine":698,"endColumn":51},
         make: (R, E, K) => {
         const $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%set-debugger-breaks-on-uncaught!")).v;
@@ -5259,7 +5236,7 @@ export const LIBRARIES = {
         params: ["dbg_$2111","filename_$2112","line_$2113","column_$2114"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":713,"column":1,"endLine":715,"endColumn":83},
+        span: {"filename":"debugger.scm","line":720,"column":1,"endLine":722,"endColumn":83},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "named-span->js")).v;
@@ -5379,7 +5356,7 @@ export const LIBRARIES = {
         params: ["dbg_$2115","filename_$2116","line_$2117","column_$2118"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":721,"column":1,"endLine":723,"endColumn":83},
+        span: {"filename":"debugger.scm","line":728,"column":1,"endLine":730,"endColumn":83},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "named-span->js")).v;
@@ -5499,7 +5476,7 @@ export const LIBRARIES = {
         params: ["named_$2119"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":728,"column":1,"endLine":729,"endColumn":67},
+        span: {"filename":"debugger.scm","line":735,"column":1,"endLine":736,"endColumn":67},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "js-obj")).v;
@@ -5551,7 +5528,7 @@ export const LIBRARIES = {
         params: ["dbg_$2120","filename_$2121","line_$2122","column_$2123"],
         rest: null,
         constants: [intern("procedure"), intern("transformer"), intern("procedure"), intern("transformer")],
-        span: {"filename":"debugger.scm","line":740,"column":1,"endLine":746,"endColumn":70},
+        span: {"filename":"debugger.scm","line":747,"column":1,"endLine":753,"endColumn":70},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "innermost-holding")).v;
@@ -5708,7 +5685,7 @@ export const LIBRARIES = {
         params: ["dbg_$2126"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":756,"column":1,"endLine":763,"endColumn":38},
+        span: {"filename":"debugger.scm","line":763,"column":1,"endLine":770,"endColumn":38},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list->vector")).v;
@@ -5883,7 +5860,7 @@ export const LIBRARIES = {
         params: ["dbg_$2128"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":769,"column":1,"endLine":776,"endColumn":48},
+        span: {"filename":"debugger.scm","line":776,"column":1,"endLine":783,"endColumn":48},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list->vector")).v;
@@ -6080,7 +6057,7 @@ export const LIBRARIES = {
         params: ["dbg_$2130"],
         rest: null,
         constants: [intern("running"), intern("paused"), intern("running"), intern("paused"), {library: ["scheme","control"]}],
-        span: {"filename":"debugger.scm","line":782,"column":1,"endLine":788,"endColumn":54},
+        span: {"filename":"debugger.scm","line":789,"column":1,"endLine":795,"endColumn":54},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "js-obj")).v;
@@ -6197,7 +6174,7 @@ export const LIBRARIES = {
         params: ["line_$2134"],
         rest: null,
         constants: [new Char(58), new Char(58)],
-        span: {"filename":"debugger.scm","line":805,"column":1,"endLine":807,"endColumn":72},
+        span: {"filename":"debugger.scm","line":812,"column":1,"endLine":814,"endColumn":72},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $gt = R.gt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "trimmed")).v;
@@ -6301,7 +6278,7 @@ export const LIBRARIES = {
         params: ["dbg_$2136"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":812,"column":1,"endLine":816,"endColumn":65},
+        span: {"filename":"debugger.scm","line":819,"column":1,"endLine":823,"endColumn":65},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $gt = R.gt, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-depth")).v;
@@ -6373,7 +6350,7 @@ export const LIBRARIES = {
         params: ["dbg_$2139","n_$2140"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":821,"column":1,"endLine":822,"endColumn":70},
+        span: {"filename":"debugger.scm","line":828,"column":1,"endLine":829,"endColumn":70},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list-ref")).v;
@@ -6439,7 +6416,7 @@ export const LIBRARIES = {
         params: ["dbg_$2141"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":827,"column":1,"endLine":828,"endColumn":41},
+        span: {"filename":"debugger.scm","line":834,"column":1,"endLine":835,"endColumn":41},
         make: (R, E, K) => {
         const $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-debugger-selected-frame!")).v;
@@ -6470,7 +6447,7 @@ export const LIBRARIES = {
         params: ["text_$2142"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":835,"column":1,"endLine":835,"endColumn":63},
+        span: {"filename":"debugger.scm","line":842,"column":1,"endLine":842,"endColumn":63},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-append")).v;
@@ -6500,7 +6477,7 @@ export const LIBRARIES = {
         params: ["message_$2143"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":836,"column":1,"endLine":836,"endColumn":81},
+        span: {"filename":"debugger.scm","line":843,"column":1,"endLine":843,"endColumn":81},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-append")).v;
@@ -6530,7 +6507,7 @@ export const LIBRARIES = {
         params: ["dbg_$2144","line_$2145"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":845,"column":1,"endLine":853,"endColumn":99},
+        span: {"filename":"debugger.scm","line":852,"column":1,"endLine":860,"endColumn":99},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "trimmed")).v;
@@ -6786,7 +6763,7 @@ export const LIBRARIES = {
         params: ["dbg_$2153","line_$2154"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":863,"column":1,"endLine":864,"endColumn":91},
+        span: {"filename":"debugger.scm","line":870,"column":1,"endLine":871,"endColumn":91},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-command")).v;
@@ -6871,7 +6848,7 @@ export const LIBRARIES = {
         params: ["run_$2155"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":871,"column":1,"endLine":873,"endColumn":70},
+        span: {"filename":"debugger.scm","line":878,"column":1,"endLine":880,"endColumn":70},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-paused?")).v;
@@ -6950,7 +6927,7 @@ export const LIBRARIES = {
         params: ["dbg_$2159","args_$2160","rest_$2161"],
         rest: null,
         constants: [intern("browser"), intern("browser")],
-        span: {"filename":"debugger.scm","line":875,"column":1,"endLine":888,"endColumn":43},
+        span: {"filename":"debugger.scm","line":882,"column":1,"endLine":895,"endColumn":43},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -7209,7 +7186,7 @@ export const LIBRARIES = {
         params: ["dbg_$2162","args_$2163","rest_$2164"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":890,"column":1,"endLine":892,"endColumn":27},
+        span: {"filename":"debugger.scm","line":897,"column":1,"endLine":899,"endColumn":27},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "abort!")).v;
@@ -7259,7 +7236,7 @@ export const LIBRARIES = {
         params: ["filename_$2165","line_$2166","column_$2167"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":897,"column":1,"endLine":899,"endColumn":78},
+        span: {"filename":"debugger.scm","line":904,"column":1,"endLine":906,"endColumn":78},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-append")).v;
@@ -7367,7 +7344,7 @@ export const LIBRARIES = {
         params: ["dbg_$2168","args_$2169","rest_$2170"],
         rest: null,
         constants: [intern("procedure"), intern("procedure")],
-        span: {"filename":"debugger.scm","line":901,"column":1,"endLine":919,"endColumn":129},
+        span: {"filename":"debugger.scm","line":908,"column":1,"endLine":926,"endColumn":129},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "<")).v;
@@ -7746,7 +7723,7 @@ export const LIBRARIES = {
         params: ["dbg_$2178","args_$2179","rest_$2180"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":921,"column":1,"endLine":924,"endColumn":74},
+        span: {"filename":"debugger.scm","line":928,"column":1,"endLine":931,"endColumn":74},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -7837,7 +7814,7 @@ export const LIBRARIES = {
         params: ["dbg_$2181","args_$2182","rest_$2183"],
         rest: null,
         constants: [intern("procedure"), intern("procedure")],
-        span: {"filename":"debugger.scm","line":926,"column":1,"endLine":946,"endColumn":17},
+        span: {"filename":"debugger.scm","line":933,"column":1,"endLine":953,"endColumn":17},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -8124,7 +8101,7 @@ export const LIBRARIES = {
         params: ["step_$2189","message_$2190"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":951,"column":1,"endLine":952,"endColumn":61},
+        span: {"filename":"debugger.scm","line":958,"column":1,"endLine":959,"endColumn":61},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "when-paused")).v;
@@ -8198,7 +8175,7 @@ export const LIBRARIES = {
         params: ["dbg_$2194","args_$2195","rest_$2196"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":954,"column":1,"endLine":970,"endColumn":20},
+        span: {"filename":"debugger.scm","line":961,"column":1,"endLine":977,"endColumn":20},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-depth")).v;
@@ -8507,7 +8484,7 @@ export const LIBRARIES = {
         params: ["bindings_$2203"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":978,"column":1,"endLine":981,"endColumn":49},
+        span: {"filename":"debugger.scm","line":985,"column":1,"endLine":988,"endColumn":49},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -8622,7 +8599,7 @@ export const LIBRARIES = {
         params: ["dbg_$2204","args_$2205","rest_$2206"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":983,"column":1,"endLine":996,"endColumn":35},
+        span: {"filename":"debugger.scm","line":990,"column":1,"endLine":1003,"endColumn":35},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "selected-frame")).v;
@@ -8924,7 +8901,7 @@ export const LIBRARIES = {
         params: ["dbg_$2210","args_$2211","rest_$2212"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":998,"column":1,"endLine":1002,"endColumn":98},
+        span: {"filename":"debugger.scm","line":1005,"column":1,"endLine":1009,"endColumn":98},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "selected-frame")).v;
@@ -9046,7 +9023,7 @@ export const LIBRARIES = {
         params: ["dbg_$2214","args_$2215","rest_$2216"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":1004,"column":1,"endLine":1010,"endColumn":40},
+        span: {"filename":"debugger.scm","line":1011,"column":1,"endLine":1017,"endColumn":40},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $gt = R.gt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "selected-frame")).v;
@@ -9162,7 +9139,7 @@ export const LIBRARIES = {
         params: ["dbg_$2218","args_$2219","rest_$2220"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":1012,"column":1,"endLine":1018,"endColumn":40},
+        span: {"filename":"debugger.scm","line":1019,"column":1,"endLine":1025,"endColumn":40},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "selected-frame")).v;
@@ -9287,7 +9264,7 @@ export const LIBRARIES = {
         params: ["dbg_$2222","args_$2223","rest_$2224"],
         rest: null,
         constants: [new Cons(";; Debug Commands:", new Cons(";;   :debug on|off     - Enable/disable debugging", new Cons(";;   :break <file> <l> [c] - Set breakpoint", new Cons(";;   :unbreak <id>     - Remove breakpoint", new Cons(";;   :breakpoints      - List all breakpoints", new Cons(";;   :step / :s        - Step into", new Cons(";;   :next / :n        - Step over", new Cons(";;   :finish / :fin    - Step out", new Cons(";;   :continue / :c    - Resume execution", new Cons(";;   :bt / :backtrace  - Show backtrace", new Cons(";;   :locals           - Show local variables", new Cons(";;   :eval <expr>      - Evaluate in selected frame's scope", new Cons(";;   :abort / :a       - Abort current evaluation and return to prompt", new Cons(";;   :up / :u          - Move up the stack", new Cons(";;   :down / :d        - Move down the stack", new Cons(";;   :help / :h / :?   - Show this help", null)))))))))))))))), new Cons(";; Debug Commands:", new Cons(";;   :debug on|off     - Enable/disable debugging", new Cons(";;   :break <file> <l> [c] - Set breakpoint", new Cons(";;   :unbreak <id>     - Remove breakpoint", new Cons(";;   :breakpoints      - List all breakpoints", new Cons(";;   :step / :s        - Step into", new Cons(";;   :next / :n        - Step over", new Cons(";;   :finish / :fin    - Step out", new Cons(";;   :continue / :c    - Resume execution", new Cons(";;   :bt / :backtrace  - Show backtrace", new Cons(";;   :locals           - Show local variables", new Cons(";;   :eval <expr>      - Evaluate in selected frame's scope", new Cons(";;   :abort / :a       - Abort current evaluation and return to prompt", new Cons(";;   :up / :u          - Move up the stack", new Cons(";;   :down / :d        - Move down the stack", new Cons(";;   :help / :h / :?   - Show this help", null))))))))))))))))],
-        span: {"filename":"debugger.scm","line":1020,"column":1,"endLine":1038,"endColumn":10},
+        span: {"filename":"debugger.scm","line":1027,"column":1,"endLine":1045,"endColumn":10},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "joined")).v;
@@ -9317,7 +9294,7 @@ export const LIBRARIES = {
         params: ["info_$2225"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":1071,"column":1,"endLine":1079,"endColumn":86},
+        span: {"filename":"debugger.scm","line":1078,"column":1,"endLine":1086,"endColumn":86},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "js-ref")).v;
@@ -9625,7 +9602,7 @@ export const LIBRARIES = {
       {procedure: "up-command"},
       {procedure: "down-command"},
       {procedure: "help-command"},
-      {core: "[\"l\",\"define\",\"command-table\",[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"debug\"]],[\"l\",\"var\",\"debug-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"abort\"]],[\"l\",\"var\",\"abort-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"a\"]],[\"l\",\"var\",\"abort-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"break\"]],[\"l\",\"var\",\"break-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"unbreak\"]],[\"l\",\"var\",\"unbreak-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"breakpoints\"]],[\"l\",\"var\",\"breakpoints-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"step\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-into!\"],[\"l\",\"lit\",[\"s\",\";; Stepping into...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"s\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-into!\"],[\"l\",\"lit\",[\"s\",\";; Stepping into...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"next\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-over!\"],[\"l\",\"lit\",[\"s\",\";; Stepping over...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"n\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-over!\"],[\"l\",\"lit\",[\"s\",\";; Stepping over...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"finish\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-out!\"],[\"l\",\"lit\",[\"s\",\";; Stepping out...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"fin\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-out!\"],[\"l\",\"lit\",[\"s\",\";; Stepping out...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"continue\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"resume!\"],[\"l\",\"lit\",[\"s\",\";; Continuing...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"c\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"resume!\"],[\"l\",\"lit\",[\"s\",\";; Continuing...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"bt\"]],[\"l\",\"var\",\"backtrace-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"backtrace\"]],[\"l\",\"var\",\"backtrace-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"locals\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"locals-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"eval\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"eval-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"up\"]],[\"l\",\"var\",\"up-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"u\"]],[\"l\",\"var\",\"up-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"down\"]],[\"l\",\"var\",\"down-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"d\"]],[\"l\",\"var\",\"down-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"help\"]],[\"l\",\"var\",\"help-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"h\"]],[\"l\",\"var\",\"help-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"?\"]],[\"l\",\"var\",\"help-command\"]]]]]]"},
+      {core: "[\"l\",\"define\",\"command-table\",[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"debug\"]],[\"l\",\"var\",\"debug-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"abort\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"abort-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"a\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"abort-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"break\"]],[\"l\",\"var\",\"break-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"unbreak\"]],[\"l\",\"var\",\"unbreak-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"breakpoints\"]],[\"l\",\"var\",\"breakpoints-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"step\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-into!\"],[\"l\",\"lit\",[\"s\",\";; Stepping into...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"s\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-into!\"],[\"l\",\"lit\",[\"s\",\";; Stepping into...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"next\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-over!\"],[\"l\",\"lit\",[\"s\",\";; Stepping over...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"n\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-over!\"],[\"l\",\"lit\",[\"s\",\";; Stepping over...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"finish\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-out!\"],[\"l\",\"lit\",[\"s\",\";; Stepping out...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"fin\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-out!\"],[\"l\",\"lit\",[\"s\",\";; Stepping out...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"continue\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"resume!\"],[\"l\",\"lit\",[\"s\",\";; Continuing...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"c\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"resume!\"],[\"l\",\"lit\",[\"s\",\";; Continuing...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"bt\"]],[\"l\",\"var\",\"backtrace-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"backtrace\"]],[\"l\",\"var\",\"backtrace-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"locals\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"locals-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"eval\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"eval-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"up\"]],[\"l\",\"var\",\"up-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"u\"]],[\"l\",\"var\",\"up-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"down\"]],[\"l\",\"var\",\"down-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"d\"]],[\"l\",\"var\",\"down-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"help\"]],[\"l\",\"var\",\"help-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"h\"]],[\"l\",\"var\",\"help-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"?\"]],[\"l\",\"var\",\"help-command\"]]]]]]"},
       {procedure: "pause-message"}
     ]
   },

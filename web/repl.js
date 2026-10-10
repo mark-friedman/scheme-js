@@ -372,10 +372,10 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
         inputArea.focus();
     });
 
-    // Reset on resume
+    // Reset when the pause ends, resumed or aborted
     const originalOnResume = debugBackend.onResume.bind(debugBackend);
-    debugBackend.onResume = () => {
-        originalOnResume();
+    debugBackend.onResume = (action) => {
+        originalOnResume(action);
 
         // If we are still in the middle of a long evaluation, hide the prompt again
         if (isEvaluating) {
@@ -624,8 +624,11 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
                 }
             }
 
-            // Only add result if we didn't terminate (paused or aborted)
-            if (!debugBackend.isPaused() && !interpreter.debugRuntime?.isAborted()) {
+            // Only add result if we didn't terminate (paused). An aborted
+            // run raises, and so never comes here; the debugger's record of
+            // the abort lasts until its next pause, so it says nothing of
+            // the runs after it.
+            if (!debugBackend.isPaused()) {
                 addToHistory(prettyPrint(result), 'result');
             }
 

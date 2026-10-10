@@ -26,6 +26,17 @@ function compiledForm(ast, thunk) {
 }
 
 /**
+ * What an asynchronous run stops with when the pause it waited on ended in an
+ * abort. It goes past the program's exception handlers: an abort ends the run,
+ * and a handler given it could carry on as though it had not.
+ */
+class EvaluationAborted extends SchemeError {
+  constructor() {
+    super('Evaluation aborted');
+  }
+}
+
+/**
  * Wraps a JS Error as a SchemeError if not already one.
  * @param {Error} e - The error to wrap
  * @returns {SchemeError} A SchemeError instance
@@ -728,7 +739,7 @@ export class Interpreter {
 
               // Check if evaluation was aborted while paused
               if (this.debugRuntime.isAborted()) {
-                throw new SchemeError("Evaluation aborted");
+                throw new EvaluationAborted();
               }
             }
 
@@ -754,6 +765,8 @@ export class Interpreter {
           continue;
 
         } catch (e) {
+          if (e instanceof EvaluationAborted) throw e;
+
           if (e.constructor.name === 'ContinuationUnwind') {
             if (this.depth > 1) throw e;
 
@@ -786,9 +799,13 @@ export class Interpreter {
             continue;
           }
 
-          // Check if debugger has paused on this exception
+          // Check if debugger has paused on this exception, which an abort
+          // there ends the run at, as at any other pause
           if (this.debugRuntime?.isPaused()) {
             await this.debugRuntime.waitForResume();
+            if (this.debugRuntime.isAborted()) {
+              throw new EvaluationAborted();
+            }
           }
 
           const handlerIndex = handlerInForce(registers[FSTACK]);
