@@ -29,6 +29,7 @@
     "benchmark:r7rs-implementations": "node benchmarks/compare_r7rs.js",
     "test:programs": "node tests/programs/run_program_correctness.mjs",
     "benchmark:self-host": "node repl.js --no-compile -I scripts/lib benchmarks/run_self_host.scm",
+    "benchmark:evaluator": "node benchmarks/run_evaluator.js",
     "benchmark:hash-tables": "node benchmarks/run_hash_tables.js",
     "benchmark:codegen": "node benchmarks/run_codegen.js",
     "benchmark:tier": "node benchmarks/run_tier.js",

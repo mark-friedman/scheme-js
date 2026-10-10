@@ -15157,3 +15157,47 @@ With it, 54 is done: (a) characters and the type predicates, (b) record accessor
 optional arguments without a rest list, all compiled inline; over the three, the canonical `read1` 15.3 to
 6.2 ms, `parsing` 25.4 to 17.0, `dynamic` 88.3 to about 47.5, and `run_tier.js`'s corpus 3,133 to about
 2,840 ms.
+
+# Task 68's ceiling: the evaluator in Scheme, measured (2026-10-10)
+
+Asked by the user: whether compiled Scheme is fast enough for task 68, the evaluator written in Scheme,
+which the plan made wait on "compiled Scheme close enough to hand-written JavaScript on hot code", with
+no threshold, and with the ports before it -- 1.1 to 2.8 times the JavaScript each replaced, the lowering
+18 -- as the only evidence, none of them code like the evaluator's.
+
+**What was built.** `benchmarks/run_evaluator.scm` is an evaluator in Scheme to the interpreter's own
+design, so that what differs is the language and its compiler: the same core forms from the expander
+made the same nodes (`assembler.js`); the same machine of a control, an answer, an environment and a
+stack of frames; the same short cuts, a literal or variable operand or test evaluated in place and the
+last of a sequence with no frame beneath it; environments of a frame of names and values a call, `let`
+and `letrec`, searched by name up the chain, then a global hash table (SRFI 125); a check on each step
+whether the program is debugged, and each call's arity. Left out, so that it is a ceiling:
+continuations, exception handlers, `dynamic-wind`, `this`, a JavaScript function's conversion, the tier's
+count of calls, the debugger's records of frames, and the name map JavaScript makes on every call; and a
+system global is looked up once where JavaScript looks in two environments. `benchmarks/evaluator/
+kernels.scm` holds six programs both evaluators run -- calls (`fib`, `tak`), a named `let`, lists built
+and walked, `let`s, a closure that assigns -- and `benchmarks/evaluator/interpreted.scm` runs them on the
+interpreter under `--no-compile`; `benchmarks/run_evaluator.js` (`npm run benchmark:evaluator`) runs
+both, and the kernels compiled, and checks every answer.
+
+**Measured.** The evaluator in Scheme takes 1.72 to 1.97 times the interpreter's time, 1.78 and 1.80 in
+the geometric mean over two runs: `fib 20` 17 against 29 ms, `tak` 58 against 102, the named `let` 96
+against 170, the lists 49 against 89, the `let`s 265 against 454, the closure 121 against 236. Its
+profile: the loop 27%, much of it a `cond` of record predicates, each a call; searching frames 15%;
+making records 15%; evaluating operands in place 9.5%; `make-vector` and `vector-copy` 8%; the global
+table 3%. A record of four fields costs compiled code 119 ns to make, a vector of four 65, a pair 4.6:
+the constructor takes its arguments as a rest list into a class that takes them as another, stores each
+field by a computed name in code every record type shares, and notes each field in the table of
+inexacts. Measured apart, in the scratch directory: with nodes and frames as tagged pairs, read by `car`
+and `cdr`, and dispatch by `case` on the tag, which compiled code does inline, it takes 1.31 to 1.47 times
+the interpreter's time, and what remains is searching frames by name (20%), evaluating operands in place
+(11%), `make-vector` and `vector-copy` (9.5%) and the global table (5%).
+
+So compiled Scheme would make the evaluator about 1.8 times slower today, and about 1.4 with records made
+and tested inline -- an item of its own, which would serve the reader, the printer, the expander, the
+debugger and the compiler, all written with records, as well. Whether either is close enough for task 68
+is the user's to decide; the plan's row says so.
+
+The first run had the evaluator in Scheme 5 to 9 times slower: its global lookup called `eval` for a name
+not yet in its table, and the tier declines a procedure naming `eval`, so every lookup ran interpreted.
+The system's globals are put in the table before anything runs now.
