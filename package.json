@@ -39,6 +39,7 @@
   },
   "private": true,
   "devDependencies": {
+    "puppeteer": "^24.39.0",
     "rollup": "^4.54.0"
   }
 }
