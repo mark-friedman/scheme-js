@@ -285,6 +285,28 @@
           globals))
 
 ;; /**
+;;  * The globals among a procedure's that hold a record's accessor or modifier
+;;  * where it will run -- for a library's binding, in the library's
+;;  * environment -- each as (global kind . field) (`%record-procedure-field`):
+;;  * a call of one reads or writes the field inline ("Records" in emit.scm),
+;;  * checking as it runs that the global still holds one of that field.
+;;  * @param {list} globals - The procedure's globals, as symbols.
+;;  * @param {list} library-globals - (key name . env) for each that is a
+;;  *   library's binding.
+;;  * @param {object|boolean} env - The environment it will run in, or #f.
+;;  * @returns {list}
+;;  */
+(define (record-globals globals library-globals env)
+  (filter-map (lambda (g)
+                (let* ((library (assq g library-globals))
+                       (holder (if library (cddr library) env))
+                       (value (and holder
+                                   (environment-value holder (symbol->string (if library (cadr library) g)))))
+                       (field (and value (%record-procedure-field value))))
+                  (and field (cons g field))))
+              globals))
+
+;; /**
 ;;  * Generates a lowered procedure's JavaScript.
 ;;  * @param {lowered-lambda|lowering-failure} lowered - What `lower-lambda`
 ;;  *   answered.
@@ -310,7 +332,8 @@
   (let* ((globals (lowered-globals lowered))
          (library-globals (lowered-library-globals lowered))
          (unit (generate-unit (lowered-ir lowered) globals library-globals name
-                              (guarded-globals globals library-globals env) for-devtools? for-devtools?))
+                              (guarded-globals globals library-globals env) for-devtools? for-devtools?
+                              (record-globals globals library-globals env)))
          (source (car unit)))
     (cond ((source-too-large source) => (lambda (reason) (make-declined name reason #f)))
           (else (make-generated name closure env span source (cadr unit) globals (caddr unit)

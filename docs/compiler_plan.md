@@ -257,11 +257,16 @@ to (5) are 97 to 99, ranked first. 99's command and output are the user's to spe
   `read1` 0.62, `parsing` 0.72, `dynamic` 0.75, nothing else beyond noise; `run_codegen.js`'s new
   `characters` group 65.6 to 13.4 ns for a letter test, a `case` on eight characters 107 to 6;
   `run_tier.js` corpus 3,133 to 3,019 ms, page 184 to 177.
-- **(b) Record accessors and predicates inline -- to do.** Compiled code calls an accessor through the
-  generic path, and an integer field's read looks the record up in the table of inexacts stored as
-  numbers (`storedToScheme` in `js_interop.js`), as each store of one does. The compiler can know from
-  the environment that a global holds an accessor, and generated code check the callee's field and
-  type as it runs, which a prebuilt table can hold.
+- **(b) Record accessors and modifiers inline -- done 2026-10-10.** Every accessor is one function, so
+  its read of a field named as it runs saw every record type and field, and V8 read it by hashing:
+  10 ns a call compiled, a modifier 11, where `car` costs 3. A call of a global that holds an accessor
+  or modifier as the code is compiled (`record-globals` in `driver.scm`) reads or writes the field
+  itself, by name, checking as it runs the callee's field and type, which an accessor and a modifier
+  now carry (`src/core/primitives/record.js`), and calling it otherwise ("Records" in `emit.scm`); a
+  number goes through the table of inexacts stored as numbers as before. A predicate already cost
+  what `car` does, and is left alone. Measured: `run_codegen.js`'s `records` group 10.0 to 3.7 ns, an
+  integer field 12.4 to 6.5, a modifier 11.2 to 5.9; canonical `read1` 0.87, `dynamic` 0.93, nothing
+  else beyond noise; `run_tier.js` corpus 3,036 to 2,784 ms, page 177 to 159.
 - **(c) Optional arguments without a rest list -- to do.** `read-char`, `peek-char`, `write-char`.
 - **(d) A known callee entered past the arity test -- to do.** The test costs call-heavy code 2-5%.
 

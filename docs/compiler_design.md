@@ -574,6 +574,15 @@ predicates a printer and a reader ask of every value -- `char?`, `symbol?`, `str
 sources in 0.69 of the time for it, and a `case` on eight characters went from 107 to 6 ns (task 54).
 A name may have an expansion for each of several arities.
 
+A record's accessors are one function, made over a field's name, so its read of the field is one
+site for every record type and field there is, which V8 reads by hashing. A call of a global that
+holds an accessor or a modifier as the code is compiled -- which the driver asks the environment
+(`record-globals`) -- reads or writes the field itself, by name, a site of its own: as it runs it
+checks that the global still holds an accessor or modifier of that field, whose record type it
+carries, and that the record is of that type, and calls what the global holds otherwise ("Records" in
+`emit.scm`). Only the field's name is in the code, so a prebuilt table holds it; a number goes through
+the table of inexacts stored as numbers, as the accessor's own read does. 10 ns a read became 3.7.
+
 The obvious guard asks the environment on every use: read the global, compare it with the
 primitive. That is a hash lookup per `car`, and it was most of what compiled code did. Removing
 every guard outright, unsoundly, made the `call` and `fixnum` classes about 1.95x faster.

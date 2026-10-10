@@ -163,6 +163,28 @@ const GROUPS = [
     ]
   },
   {
+    name: 'records',
+    about: 'a record\'s accessor, modifier and predicate, beside car, a field read inline (task 54)',
+    definitions: `
+      (define-record-type point (make-point x y) point? (x point-x set-point-x!) (y point-y set-point-y!))
+      (define (one x) 1)
+      (define (symbol-field p) (if (eq? (point-x p) 'a) 0 1))
+      (define (integer-field p) (if (= (point-y p) 0) 0 1))
+      (define (store-integer p) (set-point-y! p 2) 1)
+      (define (of-type p) (if (point? p) 1 0))
+      (define (pair-field p) (if (eq? (car p) 'a) 0 1))
+      (define key-a 'a)
+      (define a-point (make-point 'b 2))
+      (define a-pair (cons 'b 2))`,
+    workloads: [
+      ['an accessor: a field holding a symbol', '(symbol-field a-point)'],
+      ['an accessor: a field holding an integer', '(integer-field a-point)'],
+      ['a modifier: storing an integer', '(store-integer a-point)'],
+      ['a predicate', '(of-type a-point)'],
+      ['car, a field read inline, for comparison', '(pair-field a-pair)']
+    ]
+  },
+  {
     name: 'vectors',
     about: 'vector-ref, vector-set! and vector-length on an array and an exact index in range',
     definitions: `

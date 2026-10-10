@@ -179,7 +179,7 @@ export async function runPrebuiltLibraryTests(logger) {
     const wrong = procedures
       .map((p) => p.make.toString())
       .filter((code) => namedIn(code).sort().join() !== declaredIn(code).sort().join());
-    assert(logger, 'every runtime value is declared by some procedure', runtimeNames.size, 20);
+    assert(logger, 'every runtime value is declared by some procedure', runtimeNames.size, 23);
     assert(logger, 'and each procedure declares exactly those its code names', wrong.length, 0);
   }
 

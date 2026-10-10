@@ -46,6 +46,11 @@ export { TailCall, Cons, SCHEME_RAW_CALL, SCHEME_PRIMITIVE, UNWIND, reify, Schem
 export { Char } from '../core/primitives/char_class.js';
 export { Symbol as SchemeSymbol } from '../core/interpreter/symbol.js';
 export { SchemeString } from '../core/primitives/string_class.js';
+// What a record's accessor and modifier carry, and what reading and writing a
+// field does with a number, for compiled code that reads and writes the field
+// itself ("Records" in emit.scm).
+export { RECORD_READS, RECORD_WRITES, RECORD_TYPE } from '../core/primitives/record.js';
+export { storedToScheme, noteSchemeStore } from '../core/interpreter/js_interop.js';
 
 // =============================================================================
 // A way back to the interpreter, for the REPL's debugger

@@ -15038,3 +15038,46 @@ character, and every type predicate on every kind of value).
 JavaScript added, each with what requires it: `runtime.js`'s three re-exports, what generated code
 tests a value against, which is `runtime.js`'s; `char.js`, `apply.js` and `type_check.js`, fixed in
 place (`npm run audit:languages -- HEAD`: Scheme 109 added and 22 removed, JavaScript 23 and 17).
+
+# Task 54 (b): a record's accessors and modifiers compiled inline (2026-10-10)
+
+The second of 54's items. With (a) in, a profile of the compiled reader had record accessors at 7.8% of
+its time, and `run_codegen.js`'s new `records` group found why: an accessor call cost compiled code 10 ns,
+a modifier's 11, where `car`, a field read inline, costs 3. Every accessor is one function, made over a
+field's name (`record-accessor` in `src/core/primitives/record.js`), so its read of the field, a property
+named as it runs, is one site for every record type and field there is, which V8 reads by hashing. A
+predicate, a test with `instanceof`, already costs what `car` does, and is left alone.
+
+**What is inline now** ("Records" in `src/compiler/emit.scm`). An accessor and a modifier carry their
+field's name and their record type (`RECORD_READS`, `RECORD_WRITES`, `RECORD_TYPE`), and
+`%record-procedure-field` reads which a procedure is, for the compiler. The driver asks the environment
+which of a procedure's globals hold one as the procedure is compiled -- a library's binding in the
+library's environment -- as it asks which hold their primitive (`record-globals` in `driver.scm`), and
+the emitter, at a call of one, reads or writes the field itself, by name, a site of its own. As it runs
+it checks that what the global holds is still an accessor or modifier of that field, and that the record
+is of the type it carries; otherwise it calls what the global holds, which signals the accessor's error,
+or is whatever the name was bound to since -- run, as a primitive's binding is when its expansion falls
+back, with no resume point beneath it. A number read or written goes through the table of inexacts stored
+as numbers, as the accessor's own read does (`storedToScheme`, `noteSchemeStore`). Only the field's name
+is written into the code, so the prebuilt tables hold it: 149 sites in the shipped libraries. Making an
+operand an expansion may read twice became `emit-repeatable!`, which the primitives' expansions use too.
+
+**Measured**, two copies side by side. The `records` group, compiled: an accessor reading a symbol 10.0
+to 3.7 ns, an integer 12.4 to 6.5 (the table of inexacts, which the accessor consults too), a modifier
+storing an integer 11.2 to 5.9. The canonical suite, compiled: `read1` 0.87 of its time, `dynamic` 0.93,
+the rest level -- five a first run had 3-7% slower measured level over three runs each at a longer target.
+`run_tier.js --set all`: canonical 4,110 to 3,959 ms, corpus 3,036 to 2,784, page 177 to 159.
+
+Tested in `tests/compiler/emit_tests.scm` (an accessor's read and a modifier's write, the checks, the
+table of inexacts, the call otherwise, a field's name as a string, not at another arity nor for a global
+that held none), `tests/compiler/driver_tests.scm` (`%record-procedure-field` on an accessor, a modifier
+and what is neither) and `tests/tiers/record_tests.scm` (new, both tiers: fields holding a symbol, an
+exact integer, an inexact integer Scheme stored and an integer JavaScript wrote; the accessor's and the
+modifier's errors; the name rebound to another type's accessor of the same field, to another field's,
+to a procedure that is no accessor, and back). `prebuilt_library_tests.js` counts three more runtime
+values the tables declare.
+
+JavaScript added, each with what requires it: `record.js`'s marks and `%record-procedure-field`, the
+record values' representation and a primitive on it; `runtime.js`'s re-exports, what generated code
+reads, which is `runtime.js`'s (`npm run audit:languages -- HEAD`: Scheme 137 added and 17 removed,
+JavaScript 33 and 1).

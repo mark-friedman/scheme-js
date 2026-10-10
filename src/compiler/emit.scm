@@ -801,8 +801,10 @@
 ;;  * far, where each call site resumes, the runtime values its code names
 ;;  * (see `runtime`), each of its functions' locals' names (see
 ;;  * `function-names`), whether each procedure its code makes can be made
-;;  * an interpreted closure again (see `way-back`), and the scopes of its
-;;  * Scheme, or #f if its source map is to have none (see scopes.scm).
+;;  * an interpreted closure again (see `way-back`), the scopes of its
+;;  * Scheme, or #f if its source map is to have none (see scopes.scm), and its
+;;  * globals that hold a record's accessor or modifier, as (global kind .
+;;  * field) (see "Records").
 ;;  *
 ;;  * A call site's resume block and saved locals are decided by the twin,
 ;;  * which is generated first, and read by the fast form, which has to spill
@@ -810,7 +812,7 @@
 ;;  */
 (define-record-type unit
   (make-unit plan globals library-globals global-indices guarded constants factories emitted resume-points
-             runtime names ways-back? source-scopes)
+             runtime names ways-back? source-scopes records)
   unit?
   (plan unit-plan)
   (globals unit-globals)
@@ -824,7 +826,8 @@
   (runtime unit-runtime set-unit-runtime!)
   (names unit-names)
   (ways-back? unit-ways-back?)
-  (source-scopes unit-source-scopes))
+  (source-scopes unit-source-scopes)
+  (records unit-records))
 
 ;; /**
 ;;  * The local name generated code knows a runtime value by, noted as one its
@@ -1449,7 +1452,8 @@
 ;;  */
 (define (emit-inline! form node)
   (or (and (pair? (form-doubles form)) (emit-double-inline form node))
-      (emit-guarded-inline! form node)))
+      (emit-guarded-inline! form node)
+      (emit-record-access! form node)))
 
 ;; /**
 ;;  * An inline expansion of a call to a primitive whose binding is guarded, or
@@ -1466,14 +1470,7 @@
                      (inline-expansion (global-written-name (unit-library-globals u) (cadr fn))
                                        (caddr node)))))
     (and entry
-         (let* ((operands (map-in-order (lambda (arg)
-                                 (let ((value (emit-value! form arg)))
-                                   (if (repeatable? value)
-                                       value
-                                       (let ((t (temp! form)))
-                                         (emit! form (list 'assign (js t) value))
-                                         (js t)))))
-                               (caddr node)))
+         (let* ((operands (map-in-order (lambda (arg) (emit-repeatable! form arg)) (caddr node)))
                 (index (global-index u (cadr fn)))
                 (read (global-read u (cadr fn)))
                 (shape ((caddr entry) operands))
@@ -1490,6 +1487,101 @@
                                  " ? (" fast ") : R.callBinding(" read ", ["
                                  (join-exprs operands ", ") "])")))
            (js result)))))
+
+;; /**
+;;  * Emits an operand an inline expansion reads, as an expression it may read
+;;  * more than once: a temporary holding it, unless it is one already.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - The operand's IR node.
+;;  * @returns {list} The expression.
+;;  */
+(define (emit-repeatable! form node)
+  (let ((value (emit-value! form node)))
+    (if (repeatable? value)
+        value
+        (let ((t (temp! form)))
+          (emit! form (list 'assign (js t) value))
+          (js t)))))
+
+;; ---------------------------------------------------------------------------
+;; Records
+;; ---------------------------------------------------------------------------
+;;
+;; Every record accessor is one function, made over a field's name, so the
+;; read inside it, of a property named as it runs, is one site for every
+;; record type and field there is, which V8 reads by hashing: a call of one
+;; cost compiled code 10 ns, a modifier's 11, where `car`'s field read costs
+;; 3 (`run_codegen.js`'s `records` group). So a call of a global that held an
+;; accessor or a modifier as the code was compiled (`record-globals` in
+;; driver.scm) reads or writes the field itself, a site of its own, by the
+;; field's name. As it runs it checks that the global still holds an accessor
+;; or modifier of that field, whose record type it carries
+;; (`src/core/primitives/record.js`), and that the record is of that type --
+;; and otherwise calls what the global holds, which signals the accessor's
+;; error, or is what the name was bound to since. Only the name is written
+;; into the code, so a prebuilt table holds it. A number read or written goes
+;; through the table of inexacts stored as numbers, as the accessor's does
+;; (`storedToScheme`, `noteSchemeStore` in js_interop.js). As for a primitive
+;; expanded inline, a procedure the name was bound to since runs with no
+;; resume point beneath it (`callBinding` in runtime.js).
+
+;; /**
+;;  * The inline read or write of a record's field, for a call of a global
+;;  * holding its accessor or modifier, or #f.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - A `call` IR node.
+;;  * @returns {list|boolean} The expression holding the value, or #f.
+;;  */
+(define (emit-record-access! form node)
+  (let* ((fn (cadr node))
+         (u (form-unit form))
+         (record (and (eq? (car fn) 'global) (assq (cadr fn) (unit-records u))))
+         (args (caddr node)))
+    (and record
+         (= (length args) (if (eq? (cadr record) 'accessor) 1 2))
+         (let ((callee (temp! form)))
+           (emit! form (list 'assign (js callee) (js (global-read u (cadr fn)))))
+           (let* ((operands (map-in-order (lambda (arg) (emit-repeatable! form arg)) args))
+                  (key (js-string (symbol->string (cddr record))))
+                  (result (temp! form)))
+             (emit! form (list 'assign (js result)
+                               (if (eq? (cadr record) 'accessor)
+                                   (record-read form callee (car operands) key)
+                                   (record-write form callee (car operands) (cadr operands) key))))
+             (js result))))))
+
+;; /**
+;;  * The read of a field by its accessor, held in a temporary.
+;;  * @param {form} form - The emission.
+;;  * @param {symbol} callee - The temporary holding what the global holds.
+;;  * @param {list} record - The record's expression.
+;;  * @param {string} key - The field's name, as a JavaScript string literal.
+;;  * @returns {list} The expression.
+;;  */
+(define (record-read form callee record key)
+  (let ((value (temp! form)))
+    (js callee "?.[" (runtime form '$READS) "] === " key
+        " && " record " instanceof " callee "[" (runtime form '$RTYPE) "]"
+        " ? ((" value " = " (property-object record) "[" key "]), typeof " value " === 'number'"
+        " ? R.storedToScheme(" record ", " key ", " value ") : " value ")"
+        " : R.callBinding(" callee ", [" record "])")))
+
+;; /**
+;;  * The write of a field by its modifier, held in a temporary.
+;;  * @param {form} form - The emission.
+;;  * @param {symbol} callee - The temporary holding what the global holds.
+;;  * @param {list} record - The record's expression.
+;;  * @param {list} value - The value's expression.
+;;  * @param {string} key - The field's name, as a JavaScript string literal.
+;;  * @returns {list} The expression.
+;;  */
+(define (record-write form callee record value key)
+  (js callee "?.[" (runtime form '$WRITES) "] === " key
+      " && " record " instanceof " callee "[" (runtime form '$RTYPE) "]"
+      " ? (" (property-object record) "[" key "] = " value
+      ", (typeof " value " === 'number' || " value " instanceof R.Flonum) && R.noteSchemeStore("
+      record ", " key ", " value "), undefined)"
+      " : R.callBinding(" callee ", [" record ", " value "])"))
 
 ;; /**
 ;;  * Emits a call whose value is wanted.
@@ -3025,7 +3117,8 @@
     ($lt . "R.lt") ($gt . "R.gt") ($le . "R.le") ($ge . "R.ge") ($numEq . "R.numEq")
     ($stack . "R.stack") ($flush . "R.flush") ($tailCall . "R.tailCall") ($PRIM . "R.SCHEME_PRIMITIVE")
     ($notProc . "R.notAProcedure") ($foreign . "R.callForeign")
-    ($dbg . "R.debuggingCell(E)")))
+    ($dbg . "R.debuggingCell(E)")
+    ($READS . "R.RECORD_READS") ($WRITES . "R.RECORD_WRITES") ($RTYPE . "R.RECORD_TYPE")))
 
 ;; /**
 ;;  * The declaration of the runtime values a unit's code uses, in the order
@@ -3073,6 +3166,8 @@
 ;;  *   be made an interpreted closure again (`way-back`); not, by default.
 ;;  * @param {boolean} [scopes?] - Whether its source map is to have the scopes
 ;;  *   of its Scheme (scopes.scm); not, by default.
+;;  * @param {list} [records] - The globals that hold a record's accessor or
+;;  *   modifier where it will run, as (global kind . field); none, by default.
 ;;  * @returns {list} (source constants spans scopes): the source, its
 ;;  *   constants, the span of each of its lines, or #f, which its source map
 ;;  *   is written from, and the scopes it gives, or #f (`unit-scopes`).
@@ -3080,9 +3175,11 @@
 (define (generate-unit ir globals library-globals name guarded . options)
   (let* ((ways-back? (and (pair? options) (car options)))
          (scopes? (and (pair? options) (pair? (cdr options)) (cadr options)))
+         (records (if (and (pair? options) (pair? (cdr options)) (pair? (cddr options))) (caddr options) '()))
          (u (make-unit (plan-lifting ir) globals library-globals (global-indices globals) guarded
                        '() '() '() '() '() (make-weak-table) ways-back?
-                       (and scopes? (original-scopes ir globals library-globals))))
+                       (and scopes? (original-scopes ir globals library-globals))
+                       records))
          ;; The twin first: generating it decides where each call site resumes
          ;; and what a frame saves there, which the fast form needs in order to
          ;; suspend itself.

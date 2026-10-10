@@ -659,3 +659,28 @@
           (eq? s-call (span-of lines "$t0 = (C0.v ?? G0())")))
     (test "and its own line, after the call, is not placed again" #f
           (span-of lines "if ($t2 !== false)"))))
+
+;; A call of a global that holds a record's accessor or modifier as the unit is
+;; compiled reads or writes the field inline, checking as it runs that the
+;; callee is still one of that field and the record of its type, and calling
+;; it otherwise. The globals come to `generate-unit` as (global kind . field).
+(test-group "records - a record's accessor and modifier inline"
+  (define (unit-with records definition)
+    (let ((lowered (lower-lambda (analyze-lambda definition))))
+      (car (generate-unit (lowered-ir lowered) (lowered-globals lowered) (lowered-library-globals lowered)
+                          "f" '() #f #f records))))
+  (define (has? text part) (and (string-contains text part) #t))
+  (define accessing (unit-with '((point-x accessor . x)) '(define (f p) (point-x p))))
+  (define modifying (unit-with '((set-point-x! modifier . x)) '(define (f p v) (set-point-x! p v))))
+  (test "an accessor's call reads the field, the callee checked to be the field's and the record its type's"
+        '(#t #t #t)
+        (list (has? accessing "?.[$READS] === \"x\"") (has? accessing "instanceof") (has? accessing "p[\"x\"]")))
+  (test "a number read through the table of inexacts stored as numbers" #t (has? accessing "R.storedToScheme(p, \"x\", "))
+  (test "and anything else is the call" #t (has? accessing "R.callBinding("))
+  (test "a modifier's call writes the field" '(#t #t)
+        (list (has? modifying "?.[$WRITES] === \"x\"") (has? modifying "p[\"x\"] = v")))
+  (test "noting a number stored" #t (has? modifying "R.noteSchemeStore(p, \"x\", v)"))
+  (test "a field's name JavaScript would not take as a property's is a string" #t
+        (has? (unit-with '((line-starts accessor . line-starts)) '(define (f r) (line-starts r))) "r[\"line-starts\"]"))
+  (test "not at another arity" #f (has? (unit-with '((point-x accessor . x)) '(define (f p) (point-x p p))) "$READS"))
+  (test "nor of a global that held no accessor" #f (has? (unit-with '() '(define (f p) (point-x p))) "$READS")))

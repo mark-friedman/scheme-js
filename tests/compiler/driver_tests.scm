@@ -222,3 +222,10 @@
   (test "compiled while DevTools debugs, a procedure's code has the scopes of its Scheme" #t
         (unit-scopes? (generated-scopes (generated-for #t))))
   (test "and otherwise none" #f (generated-scopes (generated-for #f))))
+
+(test-group "driver - which globals hold a record's accessor or modifier"
+  (define-record-type spot (make-spot x) spot? (x spot-x set-spot-x!))
+  (test "an accessor, by its field" '(accessor . x) (%record-procedure-field spot-x))
+  (test "a modifier, by its field" '(modifier . x) (%record-procedure-field set-spot-x!))
+  (test "neither: a predicate, a constructor, another procedure, no procedure" '(#f #f #f #f)
+        (map %record-procedure-field (list spot? make-spot car 'x))))

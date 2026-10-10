@@ -5,7 +5,8 @@
  */
 
 import { isString, stringValue } from './string_class.js';
-import { toArray } from '../interpreter/cons.js';
+import { toArray, Cons } from '../interpreter/cons.js';
+import { intern } from '../interpreter/symbol.js';
 import { assertString, assertList, assertSymbol } from '../interpreter/type_check.js';
 import { SchemeError, SchemeTypeError, SchemeArityError } from '../interpreter/errors.js';
 import { noteSchemeStore, storedToScheme } from '../interpreter/js_interop.js';
@@ -17,6 +18,14 @@ import { SCHEME_PRIMITIVE } from '../interpreter/values.js';
 
 // The field names of a record type made by make-record-type, in field order.
 export const RECORD_FIELDS = Symbol('record-fields');
+
+// What a record's accessor and modifier carry, for compiled code that reads
+// or writes the field itself where it calls one ("Records" in emit.scm): the
+// field's name, under one key for an accessor and another for a modifier,
+// and the record type.
+export const RECORD_READS = Symbol('record-reads');
+export const RECORD_WRITES = Symbol('record-writes');
+export const RECORD_TYPE = Symbol('record-type');
 
 /**
  * Notes each constructor argument as a Scheme store into its field, so that
@@ -197,6 +206,8 @@ export const recordPrimitives = {
             return typeof value === 'number' ? storedToScheme(obj, fieldName, value) : value;
         };
         acc[SCHEME_PRIMITIVE] = true;
+        acc[RECORD_READS] = fieldName;
+        acc[RECORD_TYPE] = rtd;
         return acc;
     },
 
@@ -216,6 +227,22 @@ export const recordPrimitives = {
             noteSchemeStore(obj, fieldName, val);
         };
         mod[SCHEME_PRIMITIVE] = true;
+        mod[RECORD_WRITES] = fieldName;
+        mod[RECORD_TYPE] = rtd;
         return mod;
+    },
+
+    /**
+     * What a procedure reads or writes of a record, for the compiler: an
+     * accessor's field as `(accessor . field)`, a modifier's as
+     * `(modifier . field)`; #f for anything else.
+     * @param {*} proc - The value.
+     * @returns {Cons|boolean}
+     */
+    '%record-procedure-field': (proc) => {
+        if (typeof proc !== 'function') return false;
+        if (proc[RECORD_READS] !== undefined) return new Cons(intern('accessor'), intern(proc[RECORD_READS]));
+        if (proc[RECORD_WRITES] !== undefined) return new Cons(intern('modifier'), intern(proc[RECORD_WRITES]));
+        return false;
     }
 };
