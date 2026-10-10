@@ -597,8 +597,10 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
         addToHistory(code, 'input');
 
         try {
-            // Check for debug commands
-            if (code.startsWith(':')) {
+            // A debug command is the debugger's, and so is any line while
+            // paused: one that is not a command is evaluated in the selected
+            // frame, as `:eval` evaluates it, as the CLI's REPL takes it.
+            if (code.startsWith(':') || debugBackend.isPaused()) {
                 const result = await debugCommands.execute(code);
                 if (result) {
                     addToHistory(result, 'result');
@@ -606,13 +608,6 @@ export function setupRepl(interpreter, globalEnv, rootElement = document, deps =
 
                 // If the command was :abort, the main runAsync will throw and be caught below.
                 // If it was just :continue or something else, we let the finally block reset the UI.
-                return;
-            }
-
-            // If paused, any input is treated as a debug eval
-            if (debugBackend.isPaused()) {
-                const result = await debugCommands.handleEval(code);
-                addToHistory(result, 'result');
                 return;
             }
 

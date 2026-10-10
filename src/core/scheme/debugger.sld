@@ -42,6 +42,6 @@
     ;; What the host's JavaScript reads
     breakpoints->js activations->js pause-state->js
     ;; The REPL
-    debugger-command? debugger-command reset-frame-selection! eval-answer eval-failure
+    debugger-command? debugger-command debugger-input reset-frame-selection! eval-answer eval-failure
     pause-message)
   (include "debugger.scm"))

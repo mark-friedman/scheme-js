@@ -353,7 +353,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │      ├── scheme_debug_runtime.js # The evaluator's hooks, each a call into (scheme-js debugger); the paused run's promise
 │      ├── debug_backend.js    # Abstract backend interface
 │      ├── repl_debug_backend.js # REPL-specific backend adapter
-│      ├── repl_debug_commands.js # Hands :commands to the Scheme; evaluates :eval in a frame
+│      ├── repl_debug_commands.js # Hands :commands, and any line while paused, to the Scheme; evaluates :eval in a frame
 │      └── instrumentation.js  # Deterministic evaluator step counting
 │
 │   └── extras/                     # Extension libraries (non-R7RS)
@@ -492,6 +492,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── native_unwind_tests.js  # Which unwinds the driver finishes, which it takes by a jump, which go to the interpreter
 │   │   ├── runtime_separation_tests.js # What compiled code needs as it runs, bundled with none of the interpreter or library system (Node only)
 │   │   ├── ahead_program_tests.js  # Programs built ahead of time with the CLI and run with no interpreter, and those refused (Node only)
+│   │   ├── web_repl_debug_tests.js # The browser REPL typed at while a program is paused (browser only)
 │   │   └── ...
 │   │
 │   ├── integration/                # Library system tests

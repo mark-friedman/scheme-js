@@ -15257,3 +15257,37 @@ JavaScript under `src/`: `record.js`'s marks for constructors and predicates, th
 reading them, which are the value representation's; the class constructor, the constructors and their
 noting of inexacts fixed in place; re-exports in `runtime.js`. 62 lines of JavaScript added and 18
 removed, 122 of Scheme and 35.
+
+# The browser REPL evaluates a line typed while paused (2026-10-10)
+
+Typing an expression at the browser REPL's `debug>` prompt showed `Error: debugCommands.handleEval is
+not a function`. Task 67 moved the REPL's debug commands into `(scheme-js debugger)` and removed
+`ReplDebugCommands.handleEval`, and `web/repl.js` still called it for any line that was not a `:`
+command while the program was paused. The CLI's REPL took such a line as `:eval` of it, adding the
+prefix itself at two places in `repl.js`.
+
+**What changed.** The rule is the debugger's now: `debugger-input` in `debugger.scm` runs a debug command,
+or any other line as `:eval` of it, which says `;; Not paused` when the program is running.
+`ReplDebugCommands.execute` calls it, so both REPLs give it the line as typed: the browser's in one
+branch for a command or any line while paused, the CLI's paused loop and its top level without the
+`:eval ` prefix. The CLI's top-level path now waits for the answer; it had handed its REPL a promise.
+
+**Tests.** `tests/functional/web_repl_debug_tests.js` mounts the browser REPL on an element of its own,
+types lines and presses Enter: an uncaught `raise` pauses inside a procedure, `x` and `(+ x 1)` answer
+`;; result: 5` and `6`, `:bt` is still a command, and after `:c` the prompt is `>` and `(+ 1 2)` is 3.
+Against the code before the fix it failed with the error above. It needs a DOM, so it runs only in the
+browser, under a new `browserOnly` flag in the test manifest beside `nodeOnly`. The rule is tested in both
+environments: `debugger-input` in `tests/core/scheme/debugger_tests.scm`, and
+`ReplDebugCommands.execute` given a line with no colon while paused and while running in
+`tests/unit/repl_debug_commands_tests.js`. Node 9,642 passed, 0 failed, under `npm test`; the browser 9,308
+passed, 0 failed, headless.
+
+**Left as found.** After `:abort` the browser REPL stays at `debug>`, and a line typed there answers
+`;; Not paused` (before this change it showed the same error): `abort!` does not tell the backend, so
+`ReplDebugBackend.isPaused()` stays true. The old `PauseController.abort` did not tell it either. With
+its input piped, the CLI's REPL stops answering once its `debug>` loop closes, after `:c` as after
+`:abort`; `tests/functional/repl_debug.mjs` types nothing after `:c`.
+
+JavaScript under `src/`: `ReplDebugCommands.execute` calls `debugger-input` rather than
+`debugger-command`, fixed in place in a door into the Scheme. 7 lines of JavaScript added and 4 removed,
+almost all of them comments; 14 of Scheme and 2.

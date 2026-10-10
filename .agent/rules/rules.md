@@ -29,7 +29,7 @@ The system is to be as much Scheme as it can be, the interpreter as much as the 
   - Use `if (typeof process !== 'undefined')` to guard Node.js-specific code (like `process.exitCode` or `import.meta.url` checks).
 - **Structure**: Place new tests in `tests/` and register them in `tests/test_manifest.js`.
   - **Scheme tests** are `.scm` files using the harness in `tests/core/scheme/test.scm`, registered by path: tests of the Scheme libraries in `tests/core/scheme/`, listed in `schemeTestFiles`; tests of the compiler's Scheme in `tests/compiler/`, listed in `compilerSchemeTestFiles`, which run in the compiler's own library environment so that its internal procedures are in scope.
-  - **JavaScript tests** are modules registered by path and function, marked `nodeOnly` when they cannot run in the browser.
+  - **JavaScript tests** are modules registered by path and function, marked `nodeOnly` when they cannot run in the browser, or `browserOnly` when they need its DOM.
 - **Execution**:
   - Run `node run_tests_node.js` to verify changes locally.
   - Verify browser compatibility via `http://localhost:8080/ui.html`.

@@ -98,6 +98,8 @@ export const functionalTests = [
     { path: 'debug/async_interop_tests.js', fn: 'runAsyncInteropTests', async: true },
     { path: 'debug/async_mode_functional_tests.js', fn: 'runAsyncModeFunctionalTests', async: true },
     { path: 'functional/exception_debugging_tests.js', fn: 'runExceptionDebuggingTests', async: true },
+    // The browser REPL's page, typed at: it needs a DOM
+    { path: 'functional/web_repl_debug_tests.js', fn: 'runWebReplDebugTests', async: true, needsInterpreter: false, browserOnly: true },
 ];
 
 // Integration Tests
@@ -246,10 +248,14 @@ export const schemeTestFiles = [
  * @param {Function} loader - File loader (for tests that need it)
  */
 export async function runTestModule(pathPrefix, test, interpreter, logger, loader) {
-    // Skip Node.js-only tests in the browser
+    // Skip Node.js-only tests in the browser, and browser-only ones in Node.js
     const inBrowser = typeof process === 'undefined';
     if (test.nodeOnly && inBrowser) {
         logger.skip(`${test.path} (Node.js only)`);
+        return;
+    }
+    if (test.browserOnly && !inBrowser) {
+        logger.skip(`${test.path} (browser only)`);
         return;
     }
 

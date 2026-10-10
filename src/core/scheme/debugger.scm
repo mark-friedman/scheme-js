@@ -794,7 +794,8 @@
 ;; A debug command is a line beginning with a colon, which comes back as the
 ;; text to show -- or, for `:eval`, as an expression for the host to evaluate
 ;; in the selected frame's environment, which only the host can analyze
-;; there. Frames are numbered from the oldest, #0.
+;; there. While the program is paused, a line that is not a command is taken
+;; as `:eval` of it. Frames are numbered from the oldest, #0.
 
 ;; /**
 ;;  * Whether a line is a debug command.
@@ -850,6 +851,17 @@
     (cond ((assoc name command-table)
            => (lambda (entry) ((cdr entry) dbg args (after-first-word body))))
           (else (string-append ";; Unknown debug command: " name ". Type :help for commands.")))))
+
+;; /**
+;;  * Runs a line given to the debugger: a debug command, or any other line as
+;;  * `:eval` of it, an expression to evaluate in the selected frame. A REPL
+;;  * gives it the commands, and, while the program is paused, every line.
+;;  * @param {debugger} dbg - The debugger.
+;;  * @param {string} line - The line.
+;;  * @returns {string|object} As `debugger-command` returns.
+;;  */
+(define (debugger-input dbg line)
+  (debugger-command dbg (if (debugger-command? line) line (string-append ":eval " line))))
 
 ;; /**
 ;;  * A command that only a paused program can take.

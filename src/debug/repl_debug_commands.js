@@ -1,7 +1,8 @@
 /**
- * @fileoverview The REPL's debug commands: lines beginning with `:`.
+ * @fileoverview The REPL's debug commands: lines beginning with `:`, and,
+ * while the program is paused, any line, taken as `:eval` of it.
  *
- * Each is run by the debugger's Scheme (`debugger-command` in
+ * Each is run by the debugger's Scheme (`debugger-input` in
  * src/core/scheme/debugger.scm), which answers with the text to show. Only
  * `:eval` comes back to be done here: an expression to evaluate in a frame's
  * environment, which needs the expander to see that frame's renamed locals.
@@ -47,12 +48,14 @@ export class ReplDebugCommands {
     }
 
     /**
-     * Runs a debug command.
+     * Runs a debug command, or any other line as `:eval` of it: a REPL gives
+     * the debugger every line typed while the program is paused, and a line
+     * that is not a command is evaluated in the selected frame.
      * @param {string} input
      * @returns {Promise<string>} What to show.
      */
     async execute(input) {
-        const answer = debuggerCall('debugger-command', this.debugRuntime.scheme, input);
+        const answer = debuggerCall('debugger-input', this.debugRuntime.scheme, input);
         if (answer !== null && typeof answer === 'object' && 'expression' in answer) {
             return this.evaluate(String(answer.expression), answer.env);
         }

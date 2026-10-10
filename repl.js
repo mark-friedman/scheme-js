@@ -346,20 +346,16 @@ async function startRepl() {
                 return;
             }
 
-            if (commands.isDebugCommand(line)) {
-                const output = await commands.execute(line);
-                console.log(output);
+            // Every line is the debugger's: one that is not a command is
+            // evaluated in the selected frame, as `:eval` evaluates it.
+            const output = await commands.execute(line);
+            console.log(output);
 
-                const cmd = line.slice(1).split(/\s+/)[0].toLowerCase();
-                const resumeCmds = ['continue', 'c', 'step', 's', 'next', 'n', 'finish', 'fin', 'abort', 'a'];
-                if (resumeCmds.includes(cmd)) {
-                    rl.close();
-                } else {
-                    rl.prompt();
-                }
+            const cmd = commands.isDebugCommand(line) ? line.slice(1).split(/\s+/)[0].toLowerCase() : '';
+            const resumeCmds = ['continue', 'c', 'step', 's', 'next', 'n', 'finish', 'fin', 'abort', 'a'];
+            if (resumeCmds.includes(cmd)) {
+                rl.close();
             } else {
-                const output = await commands.execute(':eval ' + line);
-                console.log(output);
                 rl.prompt();
             }
         });
@@ -473,9 +469,9 @@ async function startRepl() {
 
             try {
                 // If already paused (unlikely to get here if nested loop is active),
-                // treat as eval.
+                // the line is the debugger's, evaluated in the selected frame.
                 if (backend.isPaused()) {
-                    const output = commands.execute(':eval ' + cmd);
+                    const output = await commands.execute(cmd);
                     return callback(null, output);
                 }
 

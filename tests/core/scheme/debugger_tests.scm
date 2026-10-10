@@ -266,8 +266,17 @@
         (let ((request (debugger-command dbg ":eval (+ debug-var   8)")))
           (list (js-ref request "expression") (js-ref request "env"))))
   (test "with nothing to evaluate" ";; Usage: :eval <expression>" (debugger-command dbg ":eval"))
+  ;; A REPL gives the debugger every line typed while the program is paused.
+  (test "a line that is not a command is an expression to evaluate in the frame, as :eval's"
+        '("(+ debug-var   8)" env-1)
+        (let ((request (debugger-input dbg "  (+ debug-var   8) ")))
+          (list (js-ref request "expression") (js-ref request "env"))))
+  (test "a symbol alone is one" "debug-var" (js-ref (debugger-input dbg "debug-var") "expression"))
+  (test "a command is run as one" ";; Already at newest frame" (debugger-input dbg ":down"))
   (test "stepping" ";; Stepping over..." (debugger-command dbg ":next"))
   (test "the step is told" '(resumed "stepOver") (car (reverse ((cdr recording)))))
+  (test "a line that is not a command, while running, is not evaluated" ";; Not paused"
+        (debugger-input dbg "debug-var"))
   (test "an unknown command" ";; Unknown debug command: frob. Type :help for commands."
         (debugger-command dbg ":frob"))
   ;; In a browser, a run that is not being debugged holds the page until it

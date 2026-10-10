@@ -96,8 +96,18 @@ export async function runReplDebugCommandsTests(interpreter, logger) {
         assert(logger, 'eval error handling',
             evalError.includes('Error during eval'), true);
 
+        // Both REPLs give the debugger every line typed while paused, and one
+        // that is not a command is evaluated in the selected frame.
+        assert(logger, 'a line that is not a command, while paused, is evaluated in scope',
+            await commands.execute('(+ debug-var #e8)'), ';; result: 50');
+        assert(logger, 'a variable alone, while paused',
+            await commands.execute('debug-var'), ';; result: 42');
+
         runtime.exitFrame();
         runtime.resume();
+
+        assert(logger, 'a line that is not a command, while running, is not evaluated',
+            await commands.execute('debug-var'), ';; Not paused');
     }
 
     // Test: Stack Navigation
