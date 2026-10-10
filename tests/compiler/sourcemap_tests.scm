@@ -50,19 +50,31 @@
   (test "each file a span names is a source, in the order first named"
         "{\"version\":3,\"sources\":[\"a.scm\",\"b.scm\"],\"names\":[],\"mappings\":\"AAAA;ACAA;ADAA\"}"
         (source-map (list (span "a.scm" 1 1) (span "b.scm" 1 1) (span "a.scm" 1 1)) 0 no-text))
-  (test "a file's name escaped for the URL the map goes into"
-        "{\"version\":3,\"sources\":[\"my%20file.scm\"],\"names\":[],\"mappings\":\"AAAA\"}"
+  (test "a file's name as it is"
+        "{\"version\":3,\"sources\":[\"my file.scm\"],\"names\":[],\"mappings\":\"AAAA\"}"
         (source-map (list (span "my file.scm" 1 1)) 0 no-text))
   (test "a span from no file maps nothing" #f
         (source-map (list (span "<unknown>" 1 1)) 0 no-text))
   (test "no spans, no map" #f (source-map (list #f) 0 no-text))
   ;; A source a debugger cannot fetch -- a page's inline script -- has its
-  ;; text in the map, and any other a null beside it; the text escaped for
-  ;; the URL as a file's name is.
+  ;; text in the map, and any other a null beside it.
   (test "a file's text, where it is known, in the map's sourcesContent"
-        "{\"version\":3,\"sources\":[\"page.html%23scheme-1\",\"b.scm\"],\"sourcesContent\":[\"(f%20%23t)\\n\",null],\"names\":[],\"mappings\":\"AAAA;ACAA\"}"
+        "{\"version\":3,\"sources\":[\"page.html#scheme-1\",\"b.scm\"],\"sourcesContent\":[\"(f #t)\\n\",null],\"names\":[],\"mappings\":\"AAAA;ACAA\"}"
         (source-map (list (span "page.html#scheme-1" 1 1) (span "b.scm" 1 1)) 0
                     (lambda (file) (and (string=? file "page.html#scheme-1") "(f #t)\n"))))
   (test "as a URL a script can name its map by"
         "data:application/json;charset=utf-8,{}"
-        (source-map-url "{}")))
+        (source-map-url "{}"))
+  (test "escaped for it: what would end the URL or change its meaning"
+        "data:application/json;charset=utf-8,{\"sources\":[\"my%20file%23%3F%25.scm\"]}"
+        (source-map-url "{\"sources\":[\"my file#?%.scm\"]}"))
+  ;; A map written to a file of its own, a prebuilt table's or a built
+  ;; program's, names a file by its path from the map, and ignore-lists the
+  ;; system's.
+  (test "a file named by a path of the caller's"
+        "{\"version\":3,\"sources\":[\"../core/a.scm\"],\"names\":[],\"mappings\":\"AAAA\"}"
+        (source-map (list (span "a.scm" 1 1)) 0 no-text (lambda (file) (string-append "../core/" file))))
+  (test "and ignore-listed, those the caller says"
+        "{\"version\":3,\"sources\":[\"a.scm\",\"b.scm\"],\"x_google_ignoreList\":[1],\"names\":[],\"mappings\":\"AAAA;ACAA\"}"
+        (source-map (list (span "a.scm" 1 1) (span "b.scm" 1 1)) 0 no-text (lambda (file) file)
+                    (lambda (file) (string=? file "b.scm")))))

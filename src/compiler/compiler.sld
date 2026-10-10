@@ -36,7 +36,7 @@
     ;; Lowering
     lower-lambda control-globals
     ;; Code generation
-    generate-unit inline-expansion-names make-local-names local-name
+    generate-unit inline-expansion-names make-local-names local-name source-map
     ;; What to compile
     compile-definition compile-expression compile-closure
     generate-environment compile-environment compile-program
@@ -44,6 +44,7 @@
     program-unsafe-definitions
     ;; What they answer with
     generated? generated-name generated-closure generated-source generated-constants generated-globals
+    generated-spans
     generated-env generated-library-globals
     compiled? compiled-name compiled-procedure compiled-source
     declined? declined-name declined-reason

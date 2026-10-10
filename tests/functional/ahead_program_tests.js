@@ -317,6 +317,21 @@ export async function runAheadProgramTests(logger) {
     const own = build(beside, 'own', '(import (scheme base) (scheme write) (my tools))\n(write (list (tally (list 1 2 3)) (inexact 1/2)))\n');
     assert(logger, 'and a library of the program\'s, in its directory, the file it includes there',
       own.file === null ? own.refusals : run(own.file), ['(3 0.5)', '', 0]);
+    // The source map beside the module places the program's code in its
+    // Scheme, and the system's in the system's, ignore-listed, each where the
+    // build found it: the file the program's library includes, named like one
+    // of the system's, is the program's.
+    const ownMap = own.file === null ? null : JSON.parse(fs.readFileSync(`${own.file}.map`, 'utf8'));
+    const named = (file) => (ownMap === null ? null : ownMap.sources
+      .map((source, i) => [path.resolve(beside, source), ownMap.x_google_ignoreList.includes(i), ownMap.sourcesContent[i] !== null])
+      .filter(([source]) => source === file)
+      .map(([, ignored, text]) => [ignored, text]));
+    assert(logger, "the built program's source map names its files, and the system's, ignore-listed, each with its text",
+      [named(path.join(beside, 'own.scm')), named(path.join(beside, 'list.scm')),
+        named(path.join(ROOT, 'src/core/scheme/printer.scm'))],
+      [[[false, true]], [[false, true]], [[true, true]]]);
+    assert(logger, 'and ends naming it', fs.readFileSync(own.file, 'utf8').trimEnd().endsWith('//# sourceMappingURL=own.mjs.map'),
+      true);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

@@ -195,11 +195,13 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── scheme_compiler.js      # The compiler, as loadCompiler() fetches it after start-up
 │   │   ├── scheme_repl_wc.js       # Web Component entry point
 │   │   ├── html_adapter.js         # HTML script tag adapter
-│   │   ├── ahead_bundle.js         # A program compiled ahead of time and its runtime as one ES module, with rollup (node repl.js --build)
+│   │   ├── ahead_bundle.js         # A program compiled ahead of time and its runtime as one ES module, with rollup (node repl.js --build), and its source map
 │   │   ├── bundled_libraries.js    # GENERATED: library sources, for the browser
 │   │   ├── compiler_sources.js     # GENERATED: the compiler library's sources
 │   │   ├── compiled_libraries.js   # GENERATED: each shipped library, compiled; its other forms as core forms and its define-library form, as JSON
+│   │   ├── compiled_libraries.js.map # GENERATED: its source map, placing its code in the libraries' Scheme, ignore-listed
 │   │   ├── compiled_compiler.js    # GENERATED: the compiler's library, compiled
+│   │   ├── compiled_compiler.js.map # GENERATED: its source map, placing its code in the compiler's Scheme
 │   │   └── pinned_seed.js          # GENERATED on purpose, not by the build: what the seed reads and expands with when its tables are stale
 │   │
 │   └── core/                       # The Core (JS Interpreter + Scheme subset)
@@ -458,7 +460,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   ├── devtools/                   # Debugging Scheme and JavaScript together in DevTools, by driving its own front end in a headless Chrome (Node only, through Puppeteer)
 │   │   ├── devtools_driver.js      # What the tests ask of DevTools' front end: breakpoints in a source, steps, where a pause is shown, the locals it lists, what is ignore-listed
 │   │   ├── stepping_tests.js       # Stepping between Scheme and JavaScript, never pausing in the system's code, and through code that calls nothing; every procedure compiled before its first call, by the page's URL or the console: over the modules, and over a bundle built for it
-│   │   └── fixtures/               # A page whose Scheme and JavaScript call each other, Scheme whose lines call nothing, and a page whose Scheme is in its own scripts
+│   │   └── fixtures/               # A page whose Scheme and JavaScript call each other, Scheme whose lines call nothing, a page whose Scheme is in its own scripts, and a program built ahead of time
 │   │
 │   ├── fuzz/                       # Differential fuzzer: generated programs, both tiers
 │   │   ├── program_generator.scm       # Builds a program, and what to compile, from a seed

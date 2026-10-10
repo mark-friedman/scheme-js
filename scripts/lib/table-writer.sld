@@ -12,7 +12,8 @@
           (only (scheme inexact) nan? infinite?)
           (only (srfi 152) string-split string-join)
           (only (scheme-js interop) js-undefined? js-ref))
-  (export render-tables constants-expression constant-expression json-datum
+  (export render-tables render-tables-with-spans make-code-piece pieces-text pieces-spans join-pieces
+          constants-expression constant-expression json-datum
           json-string json-strings
           procedure-definition-name macro-definition-name restore-sequence restore-writable?)
   (include "table_writer.scm"))

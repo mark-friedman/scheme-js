@@ -294,30 +294,32 @@
 ;;  * The generated code is a function body that declares the procedure, marks
 ;;  * it and returns it; wrapped in an arrow, it is a value the module can
 ;;  * export, with no `new Function` anywhere.
-;;  * @param {list} entry - `(name params rest constants source span)`: the
-;;  *   procedure's name, its parameters' names, its rest parameter's name or
-;;  *   #f, its constant pool, its code, and, for a procedure restored from the
-;;  *   table, the span of its source as a JavaScript object literal, or #f.
-;;  *   Every constant can be written down.
-;;  * @returns {string}
+;;  * @param {list} entry - `(name params rest constants source span [lines])`:
+;;  *   the procedure's name, its parameters' names, its rest parameter's name
+;;  *   or #f, its constant pool, its code, for a procedure restored from the
+;;  *   table the span of its source as a JavaScript object literal, or #f, and,
+;;  *   if the module is to have a source map, its code's lines' spans, as the
+;;  *   compiler gave them. Every constant can be written down.
+;;  * @returns {list} Pieces (`code-piece`).
 ;;  */
-(define (entry-text entry)
+(define (entry-pieces entry)
   (let ((name (list-ref entry 0))
         (params (list-ref entry 1))
         (rest (list-ref entry 2))
         (constants (list-ref entry 3))
         (source (list-ref entry 4))
-        (span (list-ref entry 5)))
-    (string-append
-      "      " (json-string name) ": {\n"
-      "        params: " (json-strings params) ",\n"
-      "        rest: " (if rest (json-string rest) "null") ",\n"
-      "        constants: " (constants-expression constants) ",\n"
-      (if span (string-append "        span: " span ",\n") "")
-      "        make: (R, E, K) => {\n"
-      (string-join (map (lambda (line) (string-append "        " line)) (string-split source "\n")) "\n")
-      "\n        }\n"
-      "      }")))
+        (span (list-ref entry 5))
+        (lines (if (> (length entry) 6) (list-ref entry 6) '())))
+    (list
+      (string-append
+        "      " (json-string name) ": {\n"
+        "        params: " (json-strings params) ",\n"
+        "        rest: " (if rest (json-string rest) "null") ",\n"
+        "        constants: " (constants-expression constants) ",\n"
+        (if span (string-append "        span: " span ",\n") "")
+        "        make: (R, E, K) => {\n")
+      (make-code-piece source lines "        ")
+      "\n        }\n      }")))
 
 ;; /**
 ;;  * A library's restore sequence, as the text of an array: each top-level
@@ -341,6 +343,93 @@
       ",\n")
     "\n    ]\n"))
 
+;; ---------------------------------------------------------------------------
+;; A module's text, and each of its lines' spans
+;; ---------------------------------------------------------------------------
+;;
+;; A module is written as pieces: text, and generated code, each of whose
+;; lines carries the span of the source it was generated from. Its text is the
+;; pieces one after another; its lines' spans -- those of its code's lines,
+;; none for the rest -- are what its source map is made of.
+
+;; /**
+;;  * Generated code, as a piece of a module: its text, each line indented, and
+;;  * the spans of its lines, as many as it has, or fewer.
+;;  */
+(define-record-type code-piece
+  (make-code-piece source spans indent)
+  code-piece?
+  (source code-piece-source)
+  (spans code-piece-spans)
+  (indent code-piece-indent))
+
+;; /**
+;;  * A piece of code's lines, indented.
+;;  * @param {code-piece} piece - The piece.
+;;  * @returns {list} The lines.
+;;  */
+(define (code-piece-lines piece)
+  (map (lambda (line) (string-append (code-piece-indent piece) line))
+       (string-split (code-piece-source piece) "\n")))
+
+;; /**
+;;  * A module's text, from its pieces.
+;;  * @param {list} pieces - Strings and `code-piece`s.
+;;  * @returns {string}
+;;  */
+(define (pieces-text pieces)
+  (apply string-append
+         (map (lambda (piece) (if (code-piece? piece) (string-join (code-piece-lines piece) "\n") piece))
+              pieces)))
+
+;; /**
+;;  * Each line of a module's text's span, or #f, from its pieces: a piece of
+;;  * code begins where the text before it left off, at the start of a line.
+;;  * @param {list} pieces - Strings and `code-piece`s.
+;;  * @returns {list}
+;;  */
+(define (pieces-spans pieces)
+  ;; `current` is the span of the line being written; `done` those of the
+  ;; lines before it, latest first.
+  (let loop ((pieces pieces) (current #f) (done '()))
+    (cond ((null? pieces) (reverse (cons current done)))
+          ((code-piece? (car pieces))
+           (let code ((spans (code-piece-spans (car pieces)))
+                      (lines (length (code-piece-lines (car pieces))))
+                      (current current) (done done) (first? #t))
+             (if (zero? lines)
+                 (loop (cdr pieces) current done)
+                 (let ((span (and (pair? spans) (car spans))))
+                   (code (if (pair? spans) (cdr spans) '()) (- lines 1) span
+                         (if first? done (cons current done)) #f)))))
+          (else
+           (let text ((newlines (newlines-in (car pieces))) (current current) (done done))
+             (if (zero? newlines)
+                 (loop (cdr pieces) current done)
+                 (text (- newlines 1) #f (cons current done))))))))
+
+;; /**
+;;  * How many line breaks a string holds.
+;;  * @param {string} s - The string.
+;;  * @returns {integer}
+;;  */
+(define (newlines-in s)
+  (let loop ((i 0) (n 0))
+    (cond ((= i (string-length s)) n)
+          ((char=? (string-ref s i) #\newline) (loop (+ i 1) (+ n 1)))
+          (else (loop (+ i 1) n)))))
+
+;; /**
+;;  * Pieces with others between them, as `string-join` puts a string.
+;;  * @param {list} groups - Lists of pieces.
+;;  * @param {string} between - What goes between two.
+;;  * @returns {list} Pieces.
+;;  */
+(define (join-pieces groups between)
+  (if (null? groups)
+      '()
+      (apply append (car groups) (map (lambda (group) (cons between group)) (cdr groups)))))
+
 ;; /**
 ;;  * One library's table, as the text of an object property.
 ;;  * @param {string} runtime - The fingerprint of the runtime interface.
@@ -352,20 +441,24 @@
 ;;  *   `define-library` form, or #f: what the library system's seed takes
 ;;  *   instead of reading the `.sld`, which before the reader is loaded it
 ;;  *   could not.
-;;  * @returns {string}
+;;  * @returns {list} Pieces.
 ;;  */
-(define (table-text runtime library)
+(define (table-pieces runtime library)
   (let ((restore (list-ref library 4))
         (declaration (list-ref library 5)))
-    (string-append
-      "  " (json-string (list-ref library 0)) ": {\n"
-      "    fingerprint: " (json-string (list-ref library 1)) ",\n"
-      "    runtime: " (json-string runtime) ",\n"
-      "    files: " (json-strings (list-ref library 2)) ",\n"
-      (if declaration (string-append "    declaration: " (json-string (json-datum declaration)) ",\n") "")
-      "    procedures: {\n" (string-join (map entry-text (list-ref library 3)) ",\n") "\n    }"
-      (if restore (string-append ",\n" (restore-text restore)) "\n")
-      "  }")))
+    (append
+      (list (string-append
+              "  " (json-string (list-ref library 0)) ": {\n"
+              "    fingerprint: " (json-string (list-ref library 1)) ",\n"
+              "    runtime: " (json-string runtime) ",\n"
+              "    files: " (json-strings (list-ref library 2)) ",\n"
+              (if declaration (string-append "    declaration: " (json-string (json-datum declaration)) ",\n") "")
+              "    procedures: {\n"))
+      (join-pieces (map entry-pieces (list-ref library 3)) ",\n")
+      (list (string-append
+              "\n    }"
+              (if restore (string-append ",\n" (restore-text restore)) "\n")
+              "  }")))))
 
 ;; /**
 ;;  * Whether a constant is, or holds inside its pairs, a value a predicate is
@@ -458,8 +551,26 @@
 ;;  * @returns {string} The module's text.
 ;;  */
 (define (render-tables generator title runtime libraries)
+  (pieces-text (module-pieces generator title runtime libraries)))
+
+;; /**
+;;  * `render-tables`, and each line of the module's span, or #f, for its
+;;  * source map: the spans of its entries' code, given as each entry's seventh
+;;  * element.
+;;  * @returns {pair} `(text . spans)`.
+;;  */
+(define (render-tables-with-spans generator title runtime libraries)
+  (let ((pieces (module-pieces generator title runtime libraries)))
+    (cons (pieces-text pieces) (pieces-spans pieces))))
+
+;; /**
+;;  * The pieces of a module of tables (`render-tables`).
+;;  * @returns {list} Pieces.
+;;  */
+(define (module-pieces generator title runtime libraries)
   (let ((imports (import-lines libraries)))
-    (string-append
+    (append
+     (list (string-append
       "// Auto-generated by " generator " - do not edit manually\n"
       "//\n"
       "// " title "\n"
@@ -482,8 +593,8 @@
       (if (null? imports) "" (string-append "\n" (string-join imports "\n") "\n"))
       "\n"
       "/** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, span?: Object, make: Function}>, declaration?: string, restore?: Array<{procedure: string}|{core: string}|{form: string}>}>} */\n"
-      "export const LIBRARIES = {\n"
-      (string-join (map (lambda (library) (table-text runtime library)) libraries) ",\n")
-      "\n};\n"
-      "\n"
-      "export default LIBRARIES;\n")))
+      "export const LIBRARIES = {\n"))
+     (join-pieces (map (lambda (library) (table-pieces runtime library)) libraries) ",\n")
+     (list "\n};\n"
+           "\n"
+           "export default LIBRARIES;\n"))))

@@ -14876,3 +14876,48 @@ JavaScript under `src/` added, each with what requires it: `devtools.js`, the ho
 formatter -- DevTools' API, the paused frame's stack, a record's and a procedure's reflection;
 `scheme_entry.js` and `repl.js`, start-up, registering it and the console's switch; `RECORD_FIELDS`
 exported from `record.js`, fixed in place.
+
+# Task 84 (g): the prebuilt tables and built programs mapped to their Scheme (2026-10-09)
+
+Stage (g) of 84, with programs built ahead of time added to it with the user. The prebuilt tables are
+modules of generated JavaScript, which the bundle's source map placed in those modules: a frame of
+`map` showed as a line of `compiled_libraries.js`. And a program built ahead of time had no map at all:
+DevTools showed the program's own code as generated JavaScript.
+
+**The tables.** The table writer writes a module as pieces -- its text, and generated code, each line of
+which carries the span the compiler gave it, as an entry's seventh element -- so that the module's text
+and each of its lines' spans come from the same pieces (`render-tables-with-spans` in
+`scripts/lib/table_writer.scm`; the text is as before). `write-tables!` (`scripts/lib/prebuild.scm`)
+writes a map beside each table of those spans (`source-map`, which can now name a file by a path of the
+caller's and ignore-list some), naming each file by its path from the module, holding its text, as a
+bundle served without the sources needs, and ignore-listing every one. A span names its file only,
+which is found where the build finds the libraries' files (`source-locator`), the shipped libraries'
+names being each one file's; a span of code written in a `define-library` form names the library, and
+is found as its `.sld`. Rollup chains the bundle's map to the tables' (`tableMaps` in
+`rollup.config.js`): a frame of `map` shows in `src/core/scheme/list.scm`, ignore-listed, in the modules
+and in the bundle, and `dist/scheme.js.map` is 9.2 MB, half what it was, the tables' generated code in it
+replaced by their Scheme. The two maps are committed beside their tables, 909 KB and 585 KB.
+
+**Built programs.** `node repl.js --build PROGRAM -o OUTPUT` writes `OUTPUT.map` beside the module. The
+build gives each span of a unit's code the path of its file as the build found it -- the program's in
+its directory, a library's beside the library's file, as a file it includes is -- so a file a library
+of the program's includes, named like one of the system's, is the program's in the map, as it is in the
+build since task 107 (`span-placer` in `scripts/lib/ahead.scm`). `build-program-file` answers the text
+and the map; the bundler chains the bundle's map through the table's and ignore-lists the system's
+sources, under `src/`, and the module it makes to start the program (`src/packaging/ahead_bundle.js`).
+
+On the way: `source-map` escaped the names and texts it wrote for the `data:` URL the tier's maps go
+into, which in a map of its own would have been wrong; `source-map-url` escapes the whole JSON now,
+which comes to the same, since only its strings can hold what it escapes.
+
+Tested in `tests/compiler/sourcemap_tests.scm` (a file named by a caller's path, the ignore list, the
+escaping in the URL), `tests/scripts/table_writer_tests.scm` (the text as before, a span for each line,
+an entry's code lines carrying its spans), `tests/functional/ahead_program_tests.js` (a built program's
+map naming its files, the program's library's `list.scm` the program's, the system's `printer.scm`
+ignore-listed, each with its text), and the DevTools tests: paused in a procedure the system's `map`
+calls, `map`'s frame is in `list.scm`, ignore-listed, over the modules and the bundle; and a program the
+test builds, served in a page -- its Scheme listed, a breakpoint in it pausing it, a step over going to
+the next line, `map`'s frame in `list.scm`, never a pause in the system. The driver gained `stack`.
+
+JavaScript added, each with what requires it: `rollup.config.js`'s `tableMaps` and `ahead_bundle.js`'s
+map and ignore list, the build's bundling, which is rollup's; `repl.js` passing the map on, the CLI.

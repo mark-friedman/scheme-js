@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>A program built ahead of time</title>
+<!--
+  The page the DevTools tests open a built program in
+  (tests/devtools/stepping_tests.js): the module `node repl.js --build` made
+  of built.scm, which the tests serve under /built/, and which runs as it
+  loads, giving the page procedures to call.
+-->
+<script type="module" src="/built/built.mjs"></script>
+</head>
+<body>
+</body>
+</html>

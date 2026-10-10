@@ -45,3 +45,11 @@
 ;; here.
 (define (vectoring v)
   (vector-length v))
+
+;; A procedure the system's `map` calls: paused in it, the frame beneath is
+;; `map`'s, which the prebuilt tables' source maps place in the system's
+;; Scheme.
+(define (doubling items)
+  (map (lambda (x)
+         (* x 2))
+       items))

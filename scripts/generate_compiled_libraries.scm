@@ -133,5 +133,5 @@
   (let ((sorted (map (lambda (key) (find (lambda (table) (string=? (library-table-key table) key)) kept))
                      (sort-strings (map library-table-key kept)))))
     (write-tables! output "scripts/generate_compiled_libraries.scm"
-                   "The libraries the bundle ships, compiled." sorted)
+                   "The libraries the bundle ships, compiled." sorted (source-locator library-dirs))
     (report sorted)))

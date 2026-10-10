@@ -200,6 +200,10 @@ while paused in JavaScript; `schemeJS.values('scheme')` in the console draws eve
 a primitive for -- `#t`, `#f`, the empty list, a number -- is drawn as JavaScript draws it: `true`,
 `false`, `null`, `3`.
 
+A program built ahead of time (`node repl.js --build PROGRAM -o OUTPUT`) is debugged the same way, with
+no switch, every procedure in it being compiled: the build writes `OUTPUT.map` beside the module, which
+places its code in the program's Scheme and the system's in the system's, ignore-listed.
+
 ---
 ### Debugging Tools
 See the [Debugger Manual](./docs/debugger_manual.md) for more details.

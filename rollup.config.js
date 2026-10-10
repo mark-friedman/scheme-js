@@ -1,3 +1,23 @@
+import fs from 'fs';
+
+/**
+ * Reads a prebuilt table with the source map written beside it, which places
+ * its code in the system's Scheme (`write-tables!` in scripts/lib/prebuild.scm),
+ * so that the bundle's map places it there too: a frame of a library's
+ * procedure shows at its Scheme in DevTools, ignore-listed. The table's own
+ * `sourceMappingURL` comment is left out, since a script's last one is its map.
+ */
+const tableMaps = {
+  name: 'table-maps',
+  load(id) {
+    if (!/compiled_(libraries|compiler)\.js$/.test(id) || !fs.existsSync(`${id}.map`)) return null;
+    return {
+      code: fs.readFileSync(id, 'utf8').replace(/\n\/\/# sourceMappingURL=.*\n?$/, '\n'),
+      map: fs.readFileSync(`${id}.map`, 'utf8')
+    };
+  }
+};
+
 /**
  * Leaves the pinned seed out of a bundle: a bundle is built with its prebuilt
  * tables, so the library system's seed never needs it there, and it is the
@@ -25,7 +45,7 @@ const SYSTEM_MAP = { sourcemap: true, sourcemapIgnoreList: () => true };
 export default [
   {
     input: 'src/packaging/scheme_entry.js',
-    plugins: [withoutPinnedSeed],
+    plugins: [withoutPinnedSeed, tableMaps],
     // The compiler's chunk imports what it shares with the bundle from
     // `scheme.js` itself, rather than both importing a third, shared chunk.
     preserveEntrySignatures: 'allow-extension',

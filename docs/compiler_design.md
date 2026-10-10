@@ -144,7 +144,16 @@ escaped. Only code read under a name is mapped. A page's scripts are read under 
 (`html_adapter.js`): one with a `src` under its URL, which a debugger fetches, and an inline one as
 `<page>#scheme-<n>`, whose text the page keeps (`source_texts.js`), for nothing could fetch it, and
 the map carries as its `sourcesContent`. A file named by a URL is placed in the `scheme:///` URL by
-its path. The prebuilt tables, which are modules, have no map of their own yet.
+its path. The prebuilt tables, which are modules, have maps of their own, beside them: the table
+writer writes a module as pieces, its text and its generated code, each line of which carries the
+span the compiler gave it (`render-tables-with-spans` in `scripts/lib/table_writer.scm`), and the
+build makes the map of those spans, naming each file by its path from the module, holding its text,
+and ignore-listing every one, being the system's (`write-tables!` in `scripts/lib/prebuild.scm`); a
+span names its file only, which is found where the build finds the libraries' files, the shipped
+libraries' names being each one file's. The bundle's map is chained to them (`tableMaps` in
+`rollup.config.js`), so a frame of `map` shows in the system's `list.scm`, ignore-listed, and the
+bundle's map is half what it was, the tables' generated code replaced by their Scheme. A program
+built ahead of time gets a map of its own the same way (below).
 
 ## A compiled procedure faces JavaScript; its code faces Scheme
 
@@ -833,8 +842,13 @@ A program can be built so that it runs with no interpreter, expander, reader or 
 loads with `<script type="module">` (tasks 98 and 99). The build, `(scheme-js ahead)` in
 `scripts/lib/ahead.scm`, writes a table of the program's code, which imports nothing; rollup bundles
 it with the runtime, `runMain` in `src/compiler/ahead.js`, which runs it as the module loads and
-reports a raise nobody handles as the CLI reports one (`src/packaging/ahead_bundle.js`). Three things
-make that possible, and each is a choice the rest of the system has to keep true.
+reports a raise nobody handles as the CLI reports one (`src/packaging/ahead_bundle.js`). The module
+has a source map beside it, `OUTPUT.map`, chained through the table's, which the build makes of each
+line's span, each span given the path of its file as the build found it -- the program's in its
+directory, a library's beside the library's file -- so a file a library of the program's includes,
+named like one of the system's, is the program's (`span-placer` in `ahead.scm`); the system's sources,
+its libraries' Scheme and the runtime's JavaScript, are ignore-listed. Three things make running it so
+possible, and each is a choice the rest of the system has to keep true.
 
 **Every form that runs is compiled, and nothing else is needed.** The build loads the program's
 libraries from their source in a registry of its own, noting each top-level form with the core form

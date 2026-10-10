@@ -116,7 +116,7 @@
         (say "  run scripts/generate_compiled_libraries.scm first for a much faster build")))
   (write-tables! output "scripts/generate_compiled_compiler.scm"
                  "The compiler's own library, compiled -- the step where it compiles itself."
-                 (list table))
+                 (list table) (source-locator source-dirs))
   (say "Compiled the compiler -> " output)
   (say "  " (length (library-table-entries table)) " procedures, " (round (/ bytes 1024))
        " KB of generated code")

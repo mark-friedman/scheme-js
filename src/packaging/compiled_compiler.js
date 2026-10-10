@@ -26,13 +26,13 @@ import { Flonum } from '../core/interpreter/number_representation.js';
 /** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, span?: Object, make: Function}>, declaration?: string, restore?: Array<{procedure: string}|{core: string}|{form: string}>}>} */
 export const LIBRARIES = {
   "scheme-js.compiler": {
-    fingerprint: "503eebb9",
+    fingerprint: "ab255284",
     runtime: "c3a8b8d9",
     files: ["compiler.sld","ir.scm","lift.scm","inline.scm","liveness.scm","emit.scm","sourcemap.scm","driver.scm","safety.scm","tier.scm"],
-    declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"compiler\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"emergency-exit\",\"eval\",\"exit\"],[\"l\",\"scheme\",\"char\"],[\"l\",\"scheme\",\"cxr\"],[\"l\",\"srfi\",1],[\"l\",\"srfi\",151],[\"l\",\"srfi\",152],[\"l\",\"scheme-js\",\"interop\"],[\"l\",\"scheme-js\",\"compiler\",\"host\"]],[\"l\",\"export\",\"lower-lambda\",\"control-globals\",\"generate-unit\",\"inline-expansion-names\",\"make-local-names\",\"local-name\",\"compile-definition\",\"compile-expression\",\"compile-closure\",\"generate-environment\",\"compile-environment\",\"compile-program\",\"generate-lambda\",\"expression-thunk\",\"program-unsafe-definitions\",\"generated?\",\"generated-name\",\"generated-closure\",\"generated-source\",\"generated-constants\",\"generated-globals\",\"generated-env\",\"generated-library-globals\",\"compiled?\",\"compiled-name\",\"compiled-procedure\",\"compiled-source\",\"declined?\",\"declined-name\",\"declined-reason\",\"program-run-compiled\",\"program-run-declined\",\"program-run-unsafe\",\"program-run-expressions\",\"program-run-value\",\"take-compiler-failures!\",\"make-tier\",\"tier-bound!\",\"tier-due!\",\"tier-top-level-procedure\",\"tier-compile-eagerly!\",\"note-resume\",\"first-resume-to-ask\"],[\"l\",\"include\",[\"s\",\"ir.scm\"],[\"s\",\"lift.scm\"],[\"s\",\"inline.scm\"],[\"s\",\"liveness.scm\"],[\"s\",\"emit.scm\"],[\"s\",\"sourcemap.scm\"],[\"s\",\"driver.scm\"],[\"s\",\"safety.scm\"],[\"s\",\"tier.scm\"]]]",
+    declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"compiler\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"emergency-exit\",\"eval\",\"exit\"],[\"l\",\"scheme\",\"char\"],[\"l\",\"scheme\",\"cxr\"],[\"l\",\"srfi\",1],[\"l\",\"srfi\",151],[\"l\",\"srfi\",152],[\"l\",\"scheme-js\",\"interop\"],[\"l\",\"scheme-js\",\"compiler\",\"host\"]],[\"l\",\"export\",\"lower-lambda\",\"control-globals\",\"generate-unit\",\"inline-expansion-names\",\"make-local-names\",\"local-name\",\"source-map\",\"compile-definition\",\"compile-expression\",\"compile-closure\",\"generate-environment\",\"compile-environment\",\"compile-program\",\"generate-lambda\",\"expression-thunk\",\"program-unsafe-definitions\",\"generated?\",\"generated-name\",\"generated-closure\",\"generated-source\",\"generated-constants\",\"generated-globals\",\"generated-spans\",\"generated-env\",\"generated-library-globals\",\"compiled?\",\"compiled-name\",\"compiled-procedure\",\"compiled-source\",\"declined?\",\"declined-name\",\"declined-reason\",\"program-run-compiled\",\"program-run-declined\",\"program-run-unsafe\",\"program-run-expressions\",\"program-run-value\",\"take-compiler-failures!\",\"make-tier\",\"tier-bound!\",\"tier-due!\",\"tier-top-level-procedure\",\"tier-compile-eagerly!\",\"note-resume\",\"first-resume-to-ask\"],[\"l\",\"include\",[\"s\",\"ir.scm\"],[\"s\",\"lift.scm\"],[\"s\",\"inline.scm\"],[\"s\",\"liveness.scm\"],[\"s\",\"emit.scm\"],[\"s\",\"sourcemap.scm\"],[\"s\",\"driver.scm\"],[\"s\",\"safety.scm\"],[\"s\",\"tier.scm\"]]]",
     procedures: {
       "make-scope": {
-        params: ["parent_$1499"],
+        params: ["parent_$1559"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":139,"column":1,"endLine":140,"endColumn":30},
@@ -84,7 +84,7 @@ export const LIBRARIES = {
         }
       },
       "scope-declare!": {
-        params: ["scope_$1500","name_$1501","callable_$1502"],
+        params: ["scope_$1560","name_$1561","callable_$1562"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":152,"column":1,"endLine":154,"endColumn":77},
@@ -130,7 +130,7 @@ export const LIBRARIES = {
         }
       },
       "scope-lookup": {
-        params: ["scope_$1504","name_$1505"],
+        params: ["scope_$1564","name_$1565"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":162,"column":1,"endLine":166,"endColumn":56},
@@ -223,7 +223,7 @@ export const LIBRARIES = {
         }
       },
       "scope-has?": {
-        params: ["scope_$1507","name_$1508"],
+        params: ["scope_$1567","name_$1568"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":173,"column":1,"endLine":174,"endColumn":40},
@@ -279,7 +279,7 @@ export const LIBRARIES = {
         }
       },
       "assigned-names": {
-        params: ["form_$1512","found_$1513"],
+        params: ["form_$1572","found_$1573"],
         rest: null,
         constants: [intern("set"), intern("library-set"), intern("define"), intern("if"), intern("seq"), intern("app"), intern("lambda"), intern("letrec"), intern("set"), intern("library-set"), intern("define"), intern("if"), intern("seq"), intern("app"), intern("lambda"), intern("letrec"), {library: ["scheme","control"]}],
         span: {"filename":"ir.scm","line":200,"column":1,"endLine":210,"endColumn":19},
@@ -674,7 +674,7 @@ export const LIBRARIES = {
         }
       },
       "assigned-names-in": {
-        params: ["forms_$1515","found_$1516"],
+        params: ["forms_$1575","found_$1576"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":218,"column":1,"endLine":219,"endColumn":37},
@@ -705,7 +705,7 @@ export const LIBRARIES = {
         }
       },
       "constant-binding": {
-        params: ["name_$1517","init_$1518","st_$1519"],
+        params: ["name_$1577","init_$1578","st_$1579"],
         rest: null,
         constants: [intern("lambda"), intern("const"), intern("const"), intern("lambda"), intern("const"), intern("const")],
         span: {"filename":"ir.scm","line":233,"column":1,"endLine":237,"endColumn":20},
@@ -858,7 +858,7 @@ export const LIBRARIES = {
         }
       },
       "state-globals": {
-        params: ["st_$1520"],
+        params: ["st_$1580"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":272,"column":1,"endLine":272,"endColumn":46},
@@ -888,7 +888,7 @@ export const LIBRARIES = {
         }
       },
       "state-calls-unknown?": {
-        params: ["st_$1521"],
+        params: ["st_$1581"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":273,"column":1,"endLine":273,"endColumn":53},
@@ -918,7 +918,7 @@ export const LIBRARIES = {
         }
       },
       "state-captures?": {
-        params: ["st_$1522"],
+        params: ["st_$1582"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":274,"column":1,"endLine":274,"endColumn":48},
@@ -948,7 +948,7 @@ export const LIBRARIES = {
         }
       },
       "state-add-global!": {
-        params: ["st_$1523","name_$1524"],
+        params: ["st_$1583","name_$1584"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":282,"column":1,"endLine":285,"endColumn":57},
@@ -1020,7 +1020,7 @@ export const LIBRARIES = {
         }
       },
       "library-global-key": {
-        params: ["st_$1525","name_$1526","env_$1527"],
+        params: ["st_$1585","name_$1586","env_$1587"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":300,"column":1,"endLine":308,"endColumn":18},
@@ -1264,7 +1264,7 @@ export const LIBRARIES = {
         }
       },
       "library-key-of": {
-        params: ["env_$1531"],
+        params: ["env_$1591"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":316,"column":1,"endLine":321,"endColumn":21},
@@ -1442,7 +1442,7 @@ export const LIBRARIES = {
         }
       },
       "state-calls-unknown!": {
-        params: ["st_$1536"],
+        params: ["st_$1596"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":328,"column":1,"endLine":328,"endColumn":57},
@@ -1472,7 +1472,7 @@ export const LIBRARIES = {
         }
       },
       "state-captures!": {
-        params: ["st_$1537"],
+        params: ["st_$1597"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":335,"column":1,"endLine":335,"endColumn":52},
@@ -1502,7 +1502,7 @@ export const LIBRARIES = {
         }
       },
       "state-suspends!": {
-        params: ["st_$1538"],
+        params: ["st_$1598"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":343,"column":1,"endLine":343,"endColumn":52},
@@ -1532,7 +1532,7 @@ export const LIBRARIES = {
         }
       },
       "state-called-local!": {
-        params: ["st_$1539","name_$1540"],
+        params: ["st_$1599","name_$1600"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":351,"column":1,"endLine":354,"endColumn":57},
@@ -1604,7 +1604,7 @@ export const LIBRARIES = {
         }
       },
       "state-assigned-local!": {
-        params: ["st_$1541","name_$1542"],
+        params: ["st_$1601","name_$1602"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":362,"column":1,"endLine":365,"endColumn":57},
@@ -1676,7 +1676,7 @@ export const LIBRARIES = {
         }
       },
       "fail!": {
-        params: ["st_$1543","reason_$1544"],
+        params: ["st_$1603","reason_$1604"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":375,"column":1,"endLine":376,"endColumn":54},
@@ -1730,7 +1730,7 @@ export const LIBRARIES = {
         }
       },
       "state-pending-self!": {
-        params: ["st_$1545","kind_$1546","name_$1547"],
+        params: ["st_$1605","kind_$1606","name_$1607"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":412,"column":1,"endLine":413,"endColumn":39},
@@ -1764,7 +1764,7 @@ export const LIBRARIES = {
         }
       },
       "take-self!": {
-        params: ["st_$1548","node_$1549"],
+        params: ["st_$1608","node_$1609"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":422,"column":1,"endLine":427,"endColumn":14},
@@ -1902,7 +1902,7 @@ export const LIBRARIES = {
         }
       },
       "loop-kind": {
-        params: ["fn_$1551","args_$1552","tail_$1553","st_$1554"],
+        params: ["fn_$1611","args_$1612","tail_$1613","st_$1614"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":437,"column":1,"endLine":445,"endColumn":14},
@@ -2091,7 +2091,7 @@ export const LIBRARIES = {
         }
       },
       "inline-loop?": {
-        params: ["names_$1556","inits_$1557","body_$1558","tail_$1559","st_$1560"],
+        params: ["names_$1616","inits_$1617","body_$1618","tail_$1619","st_$1620"],
         rest: null,
         constants: [intern("call"), intern("local"), intern("call"), intern("local")],
         span: {"filename":"ir.scm","line":468,"column":1,"endLine":483,"endColumn":67},
@@ -2536,7 +2536,7 @@ export const LIBRARIES = {
         }
       },
       "mentions": {
-        params: ["name_$1564","node_$1565","counts_$1566"],
+        params: ["name_$1624","node_$1625","counts_$1626"],
         rest: null,
         constants: [intern("const"), intern("global"), intern("local"), intern("call"), intern("local"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("capture"), intern("const"), intern("global"), intern("local"), intern("call"), intern("local"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("capture")],
         span: {"filename":"ir.scm","line":494,"column":1,"endLine":519,"endColumn":59},
@@ -3254,7 +3254,7 @@ export const LIBRARIES = {
         }
       },
       "mentions-all": {
-        params: ["name_$1569","nodes_$1570","counts_$1571"],
+        params: ["name_$1629","nodes_$1630","counts_$1631"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":528,"column":1,"endLine":531,"endColumn":75},
@@ -3333,7 +3333,7 @@ export const LIBRARIES = {
         }
       },
       "looping-calls": {
-        params: ["name_$1572","lam_$1573"],
+        params: ["name_$1632","lam_$1633"],
         rest: null,
         constants: [intern("call"), intern("local"), intern("if"), intern("seq"), intern("let"), intern("letrec"), intern("call"), intern("local"), intern("if"), intern("seq"), intern("let"), intern("letrec")],
         span: {"filename":"ir.scm","line":541,"column":1,"endLine":554,"endColumn":25},
@@ -3761,7 +3761,7 @@ export const LIBRARIES = {
         }
       },
       "state-defined!": {
-        params: ["st_$1578","name_$1579"],
+        params: ["st_$1638","name_$1639"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":563,"column":1,"endLine":564,"endColumn":54},
@@ -3799,7 +3799,7 @@ export const LIBRARIES = {
         }
       },
       "confirm-local-loops!": {
-        params: ["st_$1580"],
+        params: ["st_$1640"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":572,"column":1,"endLine":583,"endColumn":28},
@@ -4032,7 +4032,7 @@ export const LIBRARIES = {
         }
       },
       "ast-tag": {
-        params: ["node_$1587"],
+        params: ["node_$1647"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":589,"column":1,"endLine":589,"endColumn":35},
@@ -4061,7 +4061,7 @@ export const LIBRARIES = {
         }
       },
       "ast-1": {
-        params: ["node_$1588"],
+        params: ["node_$1648"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":590,"column":1,"endLine":590,"endColumn":34},
@@ -4091,7 +4091,7 @@ export const LIBRARIES = {
         }
       },
       "ast-2": {
-        params: ["node_$1589"],
+        params: ["node_$1649"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":591,"column":1,"endLine":591,"endColumn":35},
@@ -4121,7 +4121,7 @@ export const LIBRARIES = {
         }
       },
       "ast-3": {
-        params: ["node_$1590"],
+        params: ["node_$1650"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":592,"column":1,"endLine":592,"endColumn":36},
@@ -4151,7 +4151,7 @@ export const LIBRARIES = {
         }
       },
       "ast-4": {
-        params: ["node_$1591"],
+        params: ["node_$1651"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":593,"column":1,"endLine":593,"endColumn":42},
@@ -4203,7 +4203,7 @@ export const LIBRARIES = {
         }
       },
       "core-span": {
-        params: ["node_$1592"],
+        params: ["node_$1652"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":601,"column":1,"endLine":603,"endColumn":61},
@@ -4314,7 +4314,7 @@ export const LIBRARIES = {
         }
       },
       "node-span": {
-        params: ["node_$1595"],
+        params: ["node_$1655"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":618,"column":1,"endLine":618,"endColumn":59},
@@ -4345,7 +4345,7 @@ export const LIBRARIES = {
         }
       },
       "lambda-core": {
-        params: ["lam_$1596"],
+        params: ["lam_$1656"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":635,"column":1,"endLine":635,"endColumn":61},
@@ -4376,7 +4376,7 @@ export const LIBRARIES = {
         }
       },
       "constant-origin": {
-        params: ["node_$1597"],
+        params: ["node_$1657"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":643,"column":1,"endLine":643,"endColumn":71},
@@ -4407,7 +4407,7 @@ export const LIBRARIES = {
         }
       },
       "ir-callable?": {
-        params: ["node_$1598"],
+        params: ["node_$1658"],
         rest: null,
         constants: [intern("local"), intern("global"), intern("lambda"), intern("if"), intern("seq"), intern("let"), intern("letrec"), intern("local"), intern("global"), intern("lambda"), intern("if"), intern("seq"), intern("let"), intern("letrec")],
         span: {"filename":"ir.scm","line":657,"column":1,"endLine":666,"endColumn":23},
@@ -4622,7 +4622,7 @@ export const LIBRARIES = {
         }
       },
       "lower-node": {
-        params: ["node_$1600","scope_$1601","tail_$1602","st_$1603"],
+        params: ["node_$1660","scope_$1661","tail_$1662","st_$1663"],
         rest: null,
         constants: [intern("call"), intern("lambda"), intern("lambda"), intern("call"), intern("lambda"), intern("lambda")],
         span: {"filename":"ir.scm","line":682,"column":1,"endLine":691,"endColumn":9},
@@ -4859,7 +4859,7 @@ export const LIBRARIES = {
         }
       },
       "lower-core-form": {
-        params: ["node_$1606","scope_$1607","tail_$1608","st_$1609"],
+        params: ["node_$1666","scope_$1667","tail_$1668","st_$1669"],
         rest: null,
         constants: [intern("lit"), intern("const"), intern("var"), intern("this"), intern("global"), intern("const"), intern("local"), intern("if"), intern("if"), intern("seq"), intern("seq"), intern("lambda"), intern("lambda"), intern("let"), intern("let"), intern("letrec"), intern("letrec"), intern("library-var"), intern("global"), intern("library-set"), intern("set"), intern("set"), intern("set"), intern("define"), intern("lambda"), intern("local"), intern("lambda"), intern("define"), intern("app"), intern("not-this-shape"), intern("not-this-shape"), intern("not-this-shape"), intern("lit"), intern("const"), intern("var"), intern("this"), intern("global"), intern("const"), intern("local"), intern("if"), intern("if"), intern("seq"), intern("seq"), intern("lambda"), intern("lambda"), intern("let"), intern("let"), intern("letrec"), intern("letrec"), intern("library-var"), intern("global"), intern("library-set"), intern("set"), intern("set"), intern("set"), intern("define"), intern("lambda"), intern("local"), intern("lambda"), intern("define"), intern("app"), intern("not-this-shape"), intern("not-this-shape"), intern("not-this-shape")],
         span: {"filename":"ir.scm","line":701,"column":1,"endLine":828,"endColumn":58},
@@ -7194,7 +7194,7 @@ export const LIBRARIES = {
         }
       },
       "unsupported-form-reason": {
-        params: ["node_$1639"],
+        params: ["node_$1699"],
         rest: null,
         constants: [intern("other"), intern("scoped-var"), intern("other"), intern("scoped-var"), {library: ["scheme","control"]}],
         span: {"filename":"ir.scm","line":835,"column":1,"endLine":839,"endColumn":82},
@@ -7315,7 +7315,7 @@ export const LIBRARIES = {
         }
       },
       "lower-call-cc": {
-        params: ["node_$1641","scope_$1642","tail_$1643","st_$1644"],
+        params: ["node_$1701","scope_$1702","tail_$1703","st_$1704"],
         rest: null,
         constants: [new Cons(intern("var"), new Cons(intern("library-var"), null)), intern("not-this-shape"), intern("call/cc"), intern("call-with-current-continuation"), intern("not-this-shape"), intern("var"), intern("not-this-shape"), intern("not-this-shape"), intern("capture"), new Cons(intern("var"), new Cons(intern("library-var"), null)), intern("not-this-shape"), intern("call/cc"), intern("call-with-current-continuation"), intern("not-this-shape"), intern("var"), intern("not-this-shape"), intern("not-this-shape"), intern("capture")],
         span: {"filename":"ir.scm","line":857,"column":1,"endLine":878,"endColumn":59},
@@ -7727,7 +7727,7 @@ export const LIBRARIES = {
         }
       },
       "lower-call-with-values": {
-        params: ["node_$1647","scope_$1648","tail_$1649","st_$1650"],
+        params: ["node_$1707","scope_$1708","tail_$1709","st_$1710"],
         rest: null,
         constants: [new Cons(intern("var"), new Cons(intern("library-var"), null)), intern("call-with-values"), intern("var"), intern("not-this-shape"), intern("let"), intern("call"), intern("global"), intern("%apply"), intern("call"), intern("global"), intern("%values->list"), intern("call"), intern("local"), new Cons(intern("var"), new Cons(intern("library-var"), null)), intern("call-with-values"), intern("var"), intern("not-this-shape"), intern("let"), intern("call"), intern("global"), intern("%apply"), intern("call"), intern("global"), intern("%values->list"), intern("call"), intern("local")],
         span: {"filename":"ir.scm","line":905,"column":1,"endLine":932,"endColumn":32},
@@ -8315,7 +8315,7 @@ export const LIBRARIES = {
         }
       },
       "synthesized-name!": {
-        params: ["st_$1655"],
+        params: ["st_$1715"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":939,"column":1,"endLine":942,"endColumn":65},
@@ -8407,7 +8407,7 @@ export const LIBRARIES = {
         }
       },
       "mentions-this?": {
-        params: ["form_$1657"],
+        params: ["form_$1717"],
         rest: null,
         constants: [intern("var"), intern("this"), intern("library-set"), intern("var"), intern("this"), intern("library-set"), {library: ["scheme","control"]}],
         span: {"filename":"ir.scm","line":966,"column":1,"endLine":970,"endColumn":50},
@@ -8556,7 +8556,7 @@ export const LIBRARIES = {
         }
       },
       "receiver-name!": {
-        params: ["st_$1659"],
+        params: ["st_$1719"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":977,"column":1,"endLine":980,"endColumn":66},
@@ -8648,7 +8648,7 @@ export const LIBRARIES = {
         }
       },
       "receiver-binding": {
-        params: ["receiver_$1661","outer_$1662","body_$1663"],
+        params: ["receiver_$1721","outer_$1722","body_$1723"],
         rest: null,
         constants: [intern("let"), intern("call"), intern("global"), intern("%this-at"), intern("local"), intern("let"), intern("call"), intern("global"), intern("%this-at"), intern("local")],
         span: {"filename":"ir.scm","line":992,"column":1,"endLine":995,"endColumn":49},
@@ -8803,7 +8803,7 @@ export const LIBRARIES = {
         }
       },
       "receiver-read": {
-        params: ["receiver_$1664","tail_$1665","st_$1666"],
+        params: ["receiver_$1724","tail_$1725","st_$1726"],
         rest: null,
         constants: [intern("let"), intern("call"), intern("global"), intern("%this-of"), intern("local"), intern("local"), intern("let"), intern("call"), intern("global"), intern("%this-of"), intern("local"), intern("local")],
         span: {"filename":"ir.scm","line":1005,"column":1,"endLine":1008,"endColumn":46},
@@ -8952,7 +8952,7 @@ export const LIBRARIES = {
         }
       },
       "lower-direct-application": {
-        params: ["node_$1668","scope_$1669","tail_$1670","st_$1671"],
+        params: ["node_$1728","scope_$1729","tail_$1730","st_$1731"],
         rest: null,
         constants: [intern("lambda"), intern("not-this-shape"), intern("not-this-shape"), intern("not-this-shape"), intern("lambda"), intern("not-this-shape"), intern("not-this-shape"), intern("not-this-shape")],
         span: {"filename":"ir.scm","line":1030,"column":1,"endLine":1045,"endColumn":102},
@@ -9263,7 +9263,7 @@ export const LIBRARIES = {
         }
       },
       "declare-bindings!": {
-        params: ["scope_$1677","params_$1678","inits_$1679","st_$1680"],
+        params: ["scope_$1737","params_$1738","inits_$1739","st_$1740"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":1056,"column":1,"endLine":1061,"endColumn":65},
@@ -9371,7 +9371,7 @@ export const LIBRARIES = {
         }
       },
       "wrap-bindings": {
-        params: ["params_$1681","inits_$1682","body_$1683","tail_$1684"],
+        params: ["params_$1741","inits_$1742","body_$1743","tail_$1744"],
         rest: null,
         constants: [intern("let"), intern("let")],
         span: {"filename":"ir.scm","line":1071,"column":1,"endLine":1076,"endColumn":50},
@@ -9484,7 +9484,7 @@ export const LIBRARIES = {
         }
       },
       "lower-ordinary-application": {
-        params: ["node_$1686","scope_$1687","tail_$1688","st_$1689"],
+        params: ["node_$1746","scope_$1747","tail_$1748","st_$1749"],
         rest: null,
         constants: [intern("local"), intern("call"), intern("local"), intern("local"), intern("call"), intern("local")],
         span: {"filename":"ir.scm","line":1087,"column":1,"endLine":1102,"endColumn":22},
@@ -9886,7 +9886,7 @@ export const LIBRARIES = {
         }
       },
       "named-let-operator?": {
-        params: ["fn_$1694"],
+        params: ["fn_$1754"],
         rest: null,
         constants: [intern("letrec"), intern("local"), intern("letrec"), intern("local")],
         span: {"filename":"ir.scm","line":1110,"column":1,"endLine":1114,"endColumn":50},
@@ -10057,7 +10057,7 @@ export const LIBRARIES = {
         }
       },
       "lower-named-let-call": {
-        params: ["fn_$1695","args_$1696","tail_$1697","span_$1698","st_$1699"],
+        params: ["fn_$1755","args_$1756","tail_$1757","span_$1758","st_$1759"],
         rest: null,
         constants: [intern("call"), intern("letrec"), intern("call"), intern("letrec")],
         span: {"filename":"ir.scm","line":1134,"column":1,"endLine":1141,"endColumn":53},
@@ -10254,7 +10254,7 @@ export const LIBRARIES = {
         }
       },
       "declare-all!": {
-        params: ["scope_$1703","names_$1704"],
+        params: ["scope_$1763","names_$1764"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":1149,"column":1,"endLine":1153,"endColumn":49},
@@ -10335,7 +10335,7 @@ export const LIBRARIES = {
         }
       },
       "declare-all-callable!": {
-        params: ["scope_$1705","names_$1706"],
+        params: ["scope_$1765","names_$1766"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":1161,"column":1,"endLine":1165,"endColumn":58},
@@ -10416,7 +10416,7 @@ export const LIBRARIES = {
         }
       },
       "last-of": {
-        params: ["lst_$1707"],
+        params: ["lst_$1767"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":1171,"column":1,"endLine":1172,"endColumn":56},
@@ -10474,7 +10474,7 @@ export const LIBRARIES = {
         }
       },
       "lower-each": {
-        params: ["nodes_$1708","scope_$1709","st_$1710"],
+        params: ["nodes_$1768","scope_$1769","st_$1770"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":1181,"column":1,"endLine":1185,"endColumn":57},
@@ -10571,7 +10571,7 @@ export const LIBRARIES = {
         }
       },
       "lower-letrec-inits": {
-        params: ["names_$1712","inits_$1713","scope_$1714","st_$1715"],
+        params: ["names_$1772","inits_$1773","scope_$1774","st_$1775"],
         rest: null,
         constants: [intern("local"), intern("local")],
         span: {"filename":"ir.scm","line":1196,"column":1,"endLine":1202,"endColumn":80},
@@ -10695,7 +10695,7 @@ export const LIBRARIES = {
         }
       },
       "lower-sequence": {
-        params: ["nodes_$1717","scope_$1718","tail_$1719","st_$1720"],
+        params: ["nodes_$1777","scope_$1778","tail_$1779","st_$1780"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":1212,"column":1,"endLine":1217,"endColumn":66},
@@ -10811,7 +10811,7 @@ export const LIBRARIES = {
         }
       },
       "lower-body": {
-        params: ["node_$1723","scope_$1724","st_$1725"],
+        params: ["node_$1783","scope_$1784","st_$1785"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":1232,"column":1,"endLine":1233,"endColumn":36},
@@ -10841,7 +10841,7 @@ export const LIBRARIES = {
         }
       },
       "lower-body-in": {
-        params: ["node_$1726","scope_$1727","st_$1728","tail_$1729"],
+        params: ["node_$1786","scope_$1787","st_$1788","tail_$1789"],
         rest: null,
         constants: [intern("seq"), intern("define"), intern("lambda"), intern("seq"), intern("define"), intern("lambda")],
         span: {"filename":"ir.scm","line":1247,"column":1,"endLine":1253,"endColumn":38},
@@ -11032,7 +11032,7 @@ export const LIBRARIES = {
         }
       },
       "predeclare-definitions!": {
-        params: ["exprs_$1731","scope_$1732"],
+        params: ["exprs_$1791","scope_$1792"],
         rest: null,
         constants: [intern("define"), intern("lambda"), intern("define"), intern("lambda")],
         span: {"filename":"ir.scm","line":1261,"column":1,"endLine":1269,"endColumn":55},
@@ -11201,7 +11201,7 @@ export const LIBRARIES = {
         }
       },
       "global-written-name": {
-        params: ["library-globals_$1733","global_$1734"],
+        params: ["library-globals_$1793","global_$1794"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":1299,"column":1,"endLine":1301,"endColumn":37},
@@ -11262,7 +11262,7 @@ export const LIBRARIES = {
         }
       },
       "lower-lambda": {
-        params: ["node_$1736"],
+        params: ["node_$1796"],
         rest: null,
         constants: [intern("global"), intern("global")],
         span: {"filename":"ir.scm","line":1323,"column":1,"endLine":1331,"endColumn":33},
@@ -11455,7 +11455,7 @@ export const LIBRARIES = {
         }
       },
       "lower-top-lambda": {
-        params: ["node_$1738","st_$1739"],
+        params: ["node_$1798","st_$1799"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":1339,"column":1,"endLine":1351,"endColumn":55},
@@ -11706,7 +11706,7 @@ export const LIBRARIES = {
         }
       },
       "any-assigned?": {
-        params: ["called_$1742","assigned_$1743"],
+        params: ["called_$1802","assigned_$1803"],
         rest: null,
         constants: [],
         span: {"filename":"ir.scm","line":1359,"column":1,"endLine":1364,"endColumn":51},
@@ -11793,7 +11793,7 @@ export const LIBRARIES = {
         }
       },
       "plan-free-of": {
-        params: ["plan_$1744","lam_$1745"],
+        params: ["plan_$1804","lam_$1805"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":74,"column":1,"endLine":75,"endColumn":58},
@@ -11876,7 +11876,7 @@ export const LIBRARIES = {
         }
       },
       "plan-self-of": {
-        params: ["plan_$1747","lam_$1748"],
+        params: ["plan_$1807","lam_$1808"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":83,"column":1,"endLine":84,"endColumn":58},
@@ -11959,7 +11959,7 @@ export const LIBRARIES = {
         }
       },
       "boxed?": {
-        params: ["plan_$1750","name_$1751"],
+        params: ["plan_$1810","name_$1811"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":92,"column":1,"endLine":92,"endColumn":58},
@@ -12012,7 +12012,7 @@ export const LIBRARIES = {
         }
       },
       "ir-children": {
-        params: ["node_$1752"],
+        params: ["node_$1812"],
         rest: null,
         constants: [intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("call"), intern("capture"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("call"), intern("capture"), {library: ["scheme","control"]}],
         span: {"filename":"lift.scm","line":108,"column":1,"endLine":119,"endColumn":17},
@@ -12433,7 +12433,7 @@ export const LIBRARIES = {
         }
       },
       "lambda-params": {
-        params: ["lam_$1754"],
+        params: ["lam_$1814"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":121,"column":1,"endLine":121,"endColumn":40},
@@ -12463,7 +12463,7 @@ export const LIBRARIES = {
         }
       },
       "lambda-rest": {
-        params: ["lam_$1755"],
+        params: ["lam_$1815"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":122,"column":1,"endLine":122,"endColumn":39},
@@ -12493,7 +12493,7 @@ export const LIBRARIES = {
         }
       },
       "lambda-name": {
-        params: ["lam_$1756"],
+        params: ["lam_$1816"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":123,"column":1,"endLine":123,"endColumn":40},
@@ -12523,7 +12523,7 @@ export const LIBRARIES = {
         }
       },
       "lambda-body": {
-        params: ["lam_$1757"],
+        params: ["lam_$1817"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":124,"column":1,"endLine":124,"endColumn":46},
@@ -12575,7 +12575,7 @@ export const LIBRARIES = {
         }
       },
       "lambda-bound": {
-        params: ["lam_$1758"],
+        params: ["lam_$1818"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":131,"column":1,"endLine":134,"endColumn":28},
@@ -12674,7 +12674,7 @@ export const LIBRARIES = {
         }
       },
       "ir-find": {
-        params: ["keep?_$1759","node_$1760"],
+        params: ["keep?_$1819","node_$1820"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":142,"column":1,"endLine":144,"endColumn":48},
@@ -12800,7 +12800,7 @@ export const LIBRARIES = {
         }
       },
       "outermost-lambdas": {
-        params: ["node_$1763"],
+        params: ["node_$1823"],
         rest: null,
         constants: [intern("lambda"), intern("lambda")],
         span: {"filename":"lift.scm","line":152,"column":1,"endLine":155,"endColumn":58},
@@ -12875,7 +12875,7 @@ export const LIBRARIES = {
         }
       },
       "tagged?": {
-        params: ["tag_$1764"],
+        params: ["tag_$1824"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":157,"column":1,"endLine":157,"endColumn":60},
@@ -12929,7 +12929,7 @@ export const LIBRARIES = {
         }
       },
       "mentions?": {
-        params: ["node_$1766","name_$1767"],
+        params: ["node_$1826","name_$1827"],
         rest: null,
         constants: [intern("local"), intern("set"), intern("local"), intern("set"), {library: ["scheme","control"]}],
         span: {"filename":"lift.scm","line":167,"column":1,"endLine":172,"endColumn":78},
@@ -13147,7 +13147,7 @@ export const LIBRARIES = {
         }
       },
       "free-variables": {
-        params: ["lam_$1771"],
+        params: ["lam_$1831"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":184,"column":1,"endLine":185,"endColumn":64},
@@ -13240,7 +13240,7 @@ export const LIBRARIES = {
         }
       },
       "free-in": {
-        params: ["node_$1772","bound_$1773","found_$1774"],
+        params: ["node_$1832","bound_$1833","found_$1834"],
         rest: null,
         constants: [intern("local"), intern("set"), intern("lambda"), intern("let"), intern("letrec"), intern("seq"), intern("define"), intern("local"), intern("set"), intern("lambda"), intern("let"), intern("letrec"), intern("seq"), intern("define"), {library: ["scheme","control"]}],
         span: {"filename":"lift.scm","line":202,"column":1,"endLine":217,"endColumn":55},
@@ -13950,7 +13950,7 @@ export const LIBRARIES = {
         }
       },
       "plan-lifting": {
-        params: ["ir_$1785"],
+        params: ["ir_$1845"],
         rest: null,
         constants: [intern("letrec"), intern("letrec")],
         span: {"filename":"lift.scm","line":233,"column":1,"endLine":240,"endColumn":63},
@@ -14169,7 +14169,7 @@ export const LIBRARIES = {
         }
       },
       "assigned-locals": {
-        params: ["ir_$1789"],
+        params: ["ir_$1849"],
         rest: null,
         constants: [intern("set"), intern("set")],
         span: {"filename":"lift.scm","line":254,"column":1,"endLine":255,"endColumn":57},
@@ -14270,7 +14270,7 @@ export const LIBRARIES = {
         }
       },
       "sibling-references": {
-        params: ["groups_$1790"],
+        params: ["groups_$1850"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":263,"column":1,"endLine":271,"endColumn":13},
@@ -14435,7 +14435,7 @@ export const LIBRARIES = {
         }
       },
       "defined-and-captured": {
-        params: ["ir_$1797"],
+        params: ["ir_$1857"],
         rest: null,
         constants: [intern("lambda"), intern("define"), intern("lambda"), intern("define")],
         span: {"filename":"lift.scm","line":284,"column":1,"endLine":287,"endColumn":57},
@@ -14642,7 +14642,7 @@ export const LIBRARIES = {
         }
       },
       "self-bindings": {
-        params: ["groups_$1801","boxed_$1802"],
+        params: ["groups_$1861","boxed_$1862"],
         rest: null,
         constants: [intern("lambda"), intern("lambda")],
         span: {"filename":"lift.scm","line":297,"column":1,"endLine":303,"endColumn":13},
@@ -14802,7 +14802,7 @@ export const LIBRARIES = {
         }
       },
       "filter-pairs": {
-        params: ["keep?_$1806","names_$1807","inits_$1808"],
+        params: ["keep?_$1866","names_$1867","inits_$1868"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":312,"column":1,"endLine":317,"endColumn":62},
@@ -14945,7 +14945,7 @@ export const LIBRARIES = {
         }
       },
       "factory-parameters": {
-        params: ["lam_$1809","self_$1810"],
+        params: ["lam_$1869","self_$1870"],
         rest: null,
         constants: [],
         span: {"filename":"lift.scm","line":326,"column":1,"endLine":332,"endColumn":44},
@@ -15173,7 +15173,7 @@ export const LIBRARIES = {
         }
       },
       "all-of": {
-        params: ["exprs_$1817"],
+        params: ["exprs_$1877"],
         rest: null,
         constants: [],
         span: {"filename":"inline.scm","line":54,"column":1,"endLine":57,"endColumn":74},
@@ -15252,7 +15252,7 @@ export const LIBRARIES = {
         }
       },
       "inline-expansion": {
-        params: ["name_$1897","args_$1898"],
+        params: ["name_$1957","args_$1958"],
         rest: null,
         constants: [],
         span: {"filename":"inline.scm","line":276,"column":1,"endLine":282,"endColumn":18},
@@ -15464,7 +15464,7 @@ export const LIBRARIES = {
         }
       },
       "local-bit": {
-        params: ["numbering_$1902","local_$1903"],
+        params: ["numbering_$1962","local_$1963"],
         rest: null,
         constants: [],
         span: {"filename":"liveness.scm","line":51,"column":1,"endLine":57,"endColumn":13},
@@ -15678,7 +15678,7 @@ export const LIBRARIES = {
         }
       },
       "set-of": {
-        params: ["numbering_$1906","locals_$1907"],
+        params: ["numbering_$1966","locals_$1967"],
         rest: null,
         constants: [],
         span: {"filename":"liveness.scm","line":65,"column":1,"endLine":67,"endColumn":19},
@@ -15777,7 +15777,7 @@ export const LIBRARIES = {
         }
       },
       "statement-transfer": {
-        params: ["st_$1910","numbering_$1911"],
+        params: ["st_$1970","numbering_$1971"],
         rest: null,
         constants: [],
         span: {"filename":"liveness.scm","line":91,"column":1,"endLine":95,"endColumn":43},
@@ -15965,7 +15965,7 @@ export const LIBRARIES = {
         }
       },
       "live-in": {
-        params: ["blocks_$1913"],
+        params: ["blocks_$1973"],
         rest: null,
         constants: [],
         span: {"filename":"liveness.scm","line":124,"column":1,"endLine":152,"endColumn":64},
@@ -16509,7 +16509,7 @@ export const LIBRARIES = {
         }
       },
       "block-entry": {
-        params: ["transfers_$1931","exit_$1932","live_$1933"],
+        params: ["transfers_$1991","exit_$1992","live_$1993"],
         rest: null,
         constants: [],
         span: {"filename":"liveness.scm","line":161,"column":1,"endLine":167,"endColumn":20},
@@ -16665,7 +16665,7 @@ export const LIBRARIES = {
         }
       },
       "live-among": {
-        params: ["liveness_$1937","block_$1938","locals_$1939"],
+        params: ["liveness_$1997","block_$1998","locals_$1999"],
         rest: null,
         constants: [],
         span: {"filename":"liveness.scm","line":176,"column":1,"endLine":182,"endColumn":22},
@@ -16820,7 +16820,7 @@ export const LIBRARIES = {
         }
       },
       "statement-def": {
-        params: ["st_$1946"],
+        params: ["st_$2006"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
         span: {"filename":"liveness.scm","line":199,"column":1,"endLine":202,"endColumn":75},
@@ -16935,7 +16935,7 @@ export const LIBRARIES = {
         }
       },
       "statement-reads": {
-        params: ["st_$1948"],
+        params: ["st_$2008"],
         rest: null,
         constants: [intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("branch"), intern("spill"), intern("guarded"), intern("tail"), intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("branch"), intern("spill"), intern("guarded"), intern("tail"), {library: ["scheme","control"]}],
         span: {"filename":"liveness.scm","line":209,"column":1,"endLine":221,"endColumn":17},
@@ -17436,7 +17436,7 @@ export const LIBRARIES = {
         }
       },
       "statement-mentions": {
-        params: ["st_$1950"],
+        params: ["st_$2010"],
         rest: null,
         constants: [intern("assign"), intern("assign"), {library: ["scheme","control"]}],
         span: {"filename":"liveness.scm","line":228,"column":1,"endLine":231,"endColumn":34},
@@ -17570,7 +17570,7 @@ export const LIBRARIES = {
         }
       },
       "statement-spill": {
-        params: ["st_$1952"],
+        params: ["st_$2012"],
         rest: null,
         constants: [intern("spill"), intern("spill")],
         span: {"filename":"liveness.scm","line":239,"column":1,"endLine":240,"endColumn":42},
@@ -17616,7 +17616,7 @@ export const LIBRARIES = {
         }
       },
       "block-successors": {
-        params: ["stmts_$1953","index_$1954"],
+        params: ["stmts_$2013","index_$2014"],
         rest: null,
         constants: [new Cons(intern("return"), new Cons(intern("goto"), new Cons(intern("branch"), new Cons(intern("tail"), null)))), new Cons(intern("return"), new Cons(intern("goto"), new Cons(intern("branch"), new Cons(intern("tail"), null))))],
         span: {"filename":"liveness.scm","line":250,"column":1,"endLine":254,"endColumn":81},
@@ -17821,7 +17821,7 @@ export const LIBRARIES = {
         }
       },
       "statement-jumps": {
-        params: ["st_$1957"],
+        params: ["st_$2017"],
         rest: null,
         constants: [intern("goto"), intern("branch"), intern("guarded"), intern("goto"), intern("branch"), intern("guarded"), {library: ["scheme","control"]}],
         span: {"filename":"liveness.scm","line":261,"column":1,"endLine":266,"endColumn":17},
@@ -18051,7 +18051,7 @@ export const LIBRARIES = {
         }
       },
       "local-name": {
-        params: ["names_$1959","local_$1960"],
+        params: ["names_$2019","local_$2020"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":125,"column":1,"endLine":130,"endColumn":16},
@@ -18273,7 +18273,7 @@ export const LIBRARIES = {
         }
       },
       "untaken-name": {
-        params: ["names_$1963","wanted_$1964"],
+        params: ["names_$2023","wanted_$2024"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":139,"column":1,"endLine":144,"endColumn":19},
@@ -18442,7 +18442,7 @@ export const LIBRARIES = {
         }
       },
       "readable-name": {
-        params: ["local_$1968"],
+        params: ["local_$2028"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":154,"column":1,"endLine":161,"endColumn":16},
@@ -18706,7 +18706,7 @@ export const LIBRARIES = {
         }
       },
       "written-name": {
-        params: ["s_$1973"],
+        params: ["s_$2033"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":169,"column":1,"endLine":175,"endColumn":13},
@@ -18871,7 +18871,7 @@ export const LIBRARIES = {
         }
       },
       "spell-identifier": {
-        params: ["s_$1975"],
+        params: ["s_$2035"],
         rest: null,
         constants: [new Char(45), new Char(62), new Char(45), new Char(62)],
         span: {"filename":"emit.scm","line":184,"column":1,"endLine":189,"endColumn":84},
@@ -19108,7 +19108,7 @@ export const LIBRARIES = {
         }
       },
       "spell-character": {
-        params: ["c_$1979"],
+        params: ["c_$2039"],
         rest: null,
         constants: [new Char(95), new Char(95)],
         span: {"filename":"emit.scm","line":205,"column":1,"endLine":210,"endColumn":75},
@@ -19351,7 +19351,7 @@ export const LIBRARIES = {
         }
       },
       "emitter-name?": {
-        params: ["name_$1983"],
+        params: ["name_$2043"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":234,"column":1,"endLine":237,"endColumn":45},
@@ -19483,7 +19483,7 @@ export const LIBRARIES = {
         }
       },
       "function-names": {
-        params: ["u_$1984","lam_$1985"],
+        params: ["u_$2044","lam_$2045"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":247,"column":1,"endLine":251,"endColumn":17},
@@ -19624,7 +19624,7 @@ export const LIBRARIES = {
         }
       },
       "local-names-for": {
-        params: ["u_$1988","lam_$1989"],
+        params: ["u_$2048","lam_$2049"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":263,"column":1,"endLine":271,"endColumn":12},
@@ -19861,7 +19861,7 @@ export const LIBRARIES = {
         }
       },
       "parameters-in-order": {
-        params: ["lam_$1993"],
+        params: ["lam_$2053"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":278,"column":1,"endLine":281,"endColumn":28},
@@ -19982,7 +19982,7 @@ export const LIBRARIES = {
         }
       },
       "bound-in-order": {
-        params: ["node_$1994"],
+        params: ["node_$2054"],
         rest: null,
         constants: [intern("lambda"), intern("let"), intern("define"), intern("letrec"), intern("lambda"), intern("let"), intern("define"), intern("letrec"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":291,"column":1,"endLine":303,"endColumn":27},
@@ -20354,7 +20354,7 @@ export const LIBRARIES = {
         }
       },
       "js-name": {
-        params: ["form_$1998","name_$1999"],
+        params: ["form_$2058","name_$2059"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":311,"column":1,"endLine":312,"endColumn":70},
@@ -20447,7 +20447,7 @@ export const LIBRARIES = {
         }
       },
       "js-local": {
-        params: ["form_$2000","name_$2001"],
+        params: ["form_$2060","name_$2061"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":320,"column":1,"endLine":320,"endColumn":67},
@@ -20500,7 +20500,7 @@ export const LIBRARIES = {
         }
       },
       "js-string": {
-        params: ["s_$2002"],
+        params: ["s_$2062"],
         rest: null,
         constants: [new Char(34), new Char(34), new Char(92), new Char(48), new Char(34), new Char(92), new Char(48), new Char(34), new Char(34), new Char(34)],
         span: {"filename":"emit.scm","line":332,"column":1,"endLine":352,"endColumn":30},
@@ -20872,7 +20872,7 @@ export const LIBRARIES = {
         }
       },
       "js-number": {
-        params: ["x_$2006"],
+        params: ["x_$2066"],
         rest: null,
         constants: [new Flonum(1.0), new Flonum(-1.0), new Flonum(1.0), new Flonum(-1.0)],
         span: {"filename":"emit.scm","line":361,"column":1,"endLine":369,"endColumn":27},
@@ -21094,7 +21094,7 @@ export const LIBRARIES = {
       },
       "js": {
         params: [],
-        rest: "parts_$2009",
+        rest: "parts_$2069",
         constants: [],
         span: {"filename":"emit.scm","line":381,"column":1,"endLine":386,"endColumn":22},
         make: (R, E, K) => {
@@ -21261,7 +21261,7 @@ export const LIBRARIES = {
         }
       },
       "expr->string": {
-        params: ["expr_$2012"],
+        params: ["expr_$2072"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":393,"column":1,"endLine":395,"endColumn":85},
@@ -21371,7 +21371,7 @@ export const LIBRARIES = {
         }
       },
       "expr-locals": {
-        params: ["expr_$2014"],
+        params: ["expr_$2074"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":402,"column":1,"endLine":402,"endColumn":50},
@@ -21402,7 +21402,7 @@ export const LIBRARIES = {
         }
       },
       "repeatable?": {
-        params: ["expr_$2015"],
+        params: ["expr_$2075"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":410,"column":1,"endLine":413,"endColumn":62},
@@ -21501,7 +21501,7 @@ export const LIBRARIES = {
         }
       },
       "settled?": {
-        params: ["expr_$2017"],
+        params: ["expr_$2077"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":422,"column":1,"endLine":427,"endColumn":80},
@@ -21638,7 +21638,7 @@ export const LIBRARIES = {
         }
       },
       "temporary?": {
-        params: ["sym_$2019"],
+        params: ["sym_$2079"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":434,"column":1,"endLine":438,"endColumn":75},
@@ -21813,7 +21813,7 @@ export const LIBRARIES = {
         }
       },
       "literal-text?": {
-        params: ["s_$2021"],
+        params: ["s_$2081"],
         rest: null,
         constants: [new Cons("null", new Cons("true", new Cons("false", null))), new Char(45), new Char(110), new Char(93), new Cons("null", new Cons("true", new Cons("false", null))), new Char(45), new Char(110), new Char(93)],
         span: {"filename":"emit.scm","line":446,"column":1,"endLine":458,"endColumn":51},
@@ -22349,7 +22349,7 @@ export const LIBRARIES = {
         }
       },
       "render-statement": {
-        params: ["form_$2029","st_$2030"],
+        params: ["form_$2089","st_$2090"],
         rest: null,
         constants: [intern("$UNWIND"), intern("$UNWIND"), intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("text"), intern("goto"), intern("branch"), intern("spill"), intern("guarded"), intern("suspend"), intern("tail"), intern("$tailCall"), intern("$RAW"), intern("$PRIM"), intern("$stack"), intern("assign"), intern("eval"), intern("return"), intern("raw"), intern("text"), intern("goto"), intern("branch"), intern("spill"), intern("guarded"), intern("suspend"), intern("tail"), intern("$tailCall"), intern("$RAW"), intern("$PRIM"), intern("$stack"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":468,"column":1,"endLine":510,"endColumn":53},
@@ -23774,7 +23774,7 @@ export const LIBRARIES = {
         }
       },
       "frame-size": {
-        params: ["form_$2042"],
+        params: ["form_$2102"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":522,"column":1,"endLine":527,"endColumn":12},
@@ -23941,7 +23941,7 @@ export const LIBRARIES = {
         }
       },
       "depth-entry": {
-        params: ["form_$2044","args_$2045"],
+        params: ["form_$2104","args_$2105"],
         rest: null,
         constants: [intern("$stack"), intern("$stack"), intern("call"), intern("$stack"), intern("$flush"), intern("call"), intern("$stack"), intern("$flush")],
         span: {"filename":"emit.scm","line":563,"column":1,"endLine":577,"endColumn":35},
@@ -24437,7 +24437,7 @@ export const LIBRARIES = {
         }
       },
       "goto-text": {
-        params: ["n_$2049"],
+        params: ["n_$2109"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":579,"column":1,"endLine":579,"endColumn":81},
@@ -24492,7 +24492,7 @@ export const LIBRARIES = {
         }
       },
       "frame-literal": {
-        params: ["slots_$2050"],
+        params: ["slots_$2110"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":581,"column":1,"endLine":582,"endColumn":75},
@@ -24569,7 +24569,7 @@ export const LIBRARIES = {
         }
       },
       "statement-lines": {
-        params: ["form_$2051","st_$2052"],
+        params: ["form_$2111","st_$2112"],
         rest: null,
         constants: [intern("if"), intern("if")],
         span: {"filename":"emit.scm","line":607,"column":1,"endLine":614,"endColumn":72},
@@ -24958,7 +24958,7 @@ export const LIBRARIES = {
         }
       },
       "spanned": {
-        params: ["text_$2055","span_$2056"],
+        params: ["text_$2115","span_$2116"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":622,"column":1,"endLine":622,"endColumn":61},
@@ -24995,7 +24995,7 @@ export const LIBRARIES = {
         }
       },
       "render-items": {
-        params: ["items_$2057"],
+        params: ["items_$2117"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":632,"column":1,"endLine":646,"endColumn":51},
@@ -25324,7 +25324,7 @@ export const LIBRARIES = {
         }
       },
       "runtime": {
-        params: ["form_$2069","name_$2070"],
+        params: ["form_$2129","name_$2130"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":691,"column":1,"endLine":695,"endColumn":28},
@@ -25479,7 +25479,7 @@ export const LIBRARIES = {
         }
       },
       "global-read": {
-        params: ["u_$2072","name_$2073"],
+        params: ["u_$2132","name_$2133"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":717,"column":1,"endLine":720,"endColumn":61},
@@ -25566,7 +25566,7 @@ export const LIBRARIES = {
         }
       },
       "global-index": {
-        params: ["u_$2076","name_$2077"],
+        params: ["u_$2136","name_$2137"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":728,"column":1,"endLine":730,"endColumn":55},
@@ -25648,7 +25648,7 @@ export const LIBRARIES = {
         }
       },
       "global-indices": {
-        params: ["globals_$2079"],
+        params: ["globals_$2139"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":739,"column":1,"endLine":743,"endColumn":12},
@@ -25809,7 +25809,7 @@ export const LIBRARIES = {
         }
       },
       "constant": {
-        params: ["u_$2083","v_$2084"],
+        params: ["u_$2143","v_$2144"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":756,"column":1,"endLine":774,"endColumn":63},
@@ -26222,7 +26222,7 @@ export const LIBRARIES = {
         }
       },
       "new-form": {
-        params: ["name_$2086","ir_$2087","u_$2088","mode_$2089","path_$2090"],
+        params: ["name_$2146","ir_$2147","u_$2148","mode_$2149","path_$2150"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":833,"column":1,"endLine":834,"endColumn":83},
@@ -26252,7 +26252,7 @@ export const LIBRARIES = {
         }
       },
       "twin?": {
-        params: ["form_$2091"],
+        params: ["form_$2151"],
         rest: null,
         constants: [intern("twin"), intern("twin")],
         span: {"filename":"emit.scm","line":836,"column":1,"endLine":836,"endColumn":51},
@@ -26304,7 +26304,7 @@ export const LIBRARIES = {
         }
       },
       "plan-of": {
-        params: ["form_$2092"],
+        params: ["form_$2152"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":837,"column":1,"endLine":837,"endColumn":53},
@@ -26357,7 +26357,7 @@ export const LIBRARIES = {
         }
       },
       "statement-span": {
-        params: ["st_$2093"],
+        params: ["st_$2153"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":854,"column":1,"endLine":854,"endColumn":65},
@@ -26388,7 +26388,7 @@ export const LIBRARIES = {
         }
       },
       "emit!": {
-        params: ["form_$2094","st_$2095"],
+        params: ["form_$2154","st_$2155"],
         rest: null,
         constants: [intern("text"), intern("text")],
         span: {"filename":"emit.scm","line":864,"column":1,"endLine":869,"endColumn":50},
@@ -26594,7 +26594,7 @@ export const LIBRARIES = {
         }
       },
       "with-node-placed": {
-        params: ["form_$2099","node_$2100","emit_$2101"],
+        params: ["form_$2159","node_$2160","emit_$2161"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":884,"column":1,"endLine":892,"endColumn":24},
@@ -26775,7 +26775,7 @@ export const LIBRARIES = {
         }
       },
       "with-call-span": {
-        params: ["form_$2105","node_$2106","emit_$2107"],
+        params: ["form_$2165","node_$2166","emit_$2167"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":904,"column":1,"endLine":914,"endColumn":24},
@@ -26942,7 +26942,7 @@ export const LIBRARIES = {
         }
       },
       "declare!": {
-        params: ["form_$2111","sym_$2112"],
+        params: ["form_$2171","sym_$2172"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":922,"column":1,"endLine":924,"endColumn":66},
@@ -27050,7 +27050,7 @@ export const LIBRARIES = {
         }
       },
       "next-number!": {
-        params: ["form_$2113"],
+        params: ["form_$2173"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":932,"column":1,"endLine":935,"endColumn":8},
@@ -27127,7 +27127,7 @@ export const LIBRARIES = {
         }
       },
       "temp!": {
-        params: ["form_$2115"],
+        params: ["form_$2175"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":944,"column":1,"endLine":947,"endColumn":10},
@@ -27288,7 +27288,7 @@ export const LIBRARIES = {
         }
       },
       "nested-name!": {
-        params: ["form_$2117"],
+        params: ["form_$2177"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":958,"column":1,"endLine":962,"endColumn":45},
@@ -27475,7 +27475,7 @@ export const LIBRARIES = {
         }
       },
       "collect-statements": {
-        params: ["form_$2120","thunk_$2121"],
+        params: ["form_$2180","thunk_$2181"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":972,"column":1,"endLine":983,"endColumn":19},
@@ -27689,7 +27689,7 @@ export const LIBRARIES = {
         }
       },
       "boxed-local?": {
-        params: ["form_$2125","name_$2126"],
+        params: ["form_$2185","name_$2186"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":987,"column":1,"endLine":987,"endColumn":63},
@@ -27742,7 +27742,7 @@ export const LIBRARIES = {
         }
       },
       "read-local": {
-        params: ["form_$2127","name_$2128"],
+        params: ["form_$2187","name_$2188"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":995,"column":1,"endLine":998,"endColumn":34},
@@ -27844,7 +27844,7 @@ export const LIBRARIES = {
         }
       },
       "bind-local": {
-        params: ["form_$2129","name_$2130","value_$2131"],
+        params: ["form_$2189","name_$2190","value_$2191"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
         span: {"filename":"emit.scm","line":1008,"column":1,"endLine":1011,"endColumn":65},
@@ -28009,7 +28009,7 @@ export const LIBRARIES = {
         }
       },
       "emit-define-boxes!": {
-        params: ["form_$2132","body_$2133"],
+        params: ["form_$2192","body_$2193"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
         span: {"filename":"emit.scm","line":1024,"column":1,"endLine":1030,"endColumn":36},
@@ -28259,7 +28259,7 @@ export const LIBRARIES = {
         }
       },
       "definitions-in": {
-        params: ["node_$2136"],
+        params: ["node_$2196"],
         rest: null,
         constants: [intern("lambda"), intern("define"), intern("lambda"), intern("define"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":1038,"column":1,"endLine":1042,"endColumn":60},
@@ -28386,7 +28386,7 @@ export const LIBRARIES = {
         }
       },
       "emit-value!": {
-        params: ["form_$2138","node_$2139"],
+        params: ["form_$2198","node_$2199"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":1055,"column":1,"endLine":1056,"endColumn":71},
@@ -28441,7 +28441,7 @@ export const LIBRARIES = {
         }
       },
       "emit-value-of!": {
-        params: ["form_$2140","node_$2141"],
+        params: ["form_$2200","node_$2201"],
         rest: null,
         constants: [intern("const"), intern("local"), intern("global"), intern("lambda"), intern("set"), intern("define"), intern("seq"), intern("if"), intern("let"), intern("letrec"), intern("capture"), intern("call"), intern("const"), intern("local"), intern("global"), intern("lambda"), intern("set"), intern("define"), intern("seq"), intern("if"), intern("let"), intern("letrec"), intern("capture"), intern("call"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":1064,"column":1,"endLine":1091,"endColumn":60},
@@ -29380,7 +29380,7 @@ export const LIBRARIES = {
         }
       },
       "emit-operands!": {
-        params: ["form_$2147","nodes_$2148"],
+        params: ["form_$2207","nodes_$2208"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
         span: {"filename":"emit.scm","line":1114,"column":1,"endLine":1125,"endColumn":32},
@@ -29646,7 +29646,7 @@ export const LIBRARIES = {
         }
       },
       "effectful?": {
-        params: ["node_$2154"],
+        params: ["node_$2214"],
         rest: null,
         constants: [new Cons(intern("const"), new Cons(intern("local"), new Cons(intern("global"), new Cons(intern("lambda"), null)))), new Cons(intern("const"), new Cons(intern("local"), new Cons(intern("global"), new Cons(intern("lambda"), null))))],
         span: {"filename":"emit.scm","line":1133,"column":1,"endLine":1134,"endColumn":56},
@@ -29704,7 +29704,7 @@ export const LIBRARIES = {
         }
       },
       "emit-closure!": {
-        params: ["form_$2155","lam_$2156"],
+        params: ["form_$2215","lam_$2216"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
         span: {"filename":"emit.scm","line":1142,"column":1,"endLine":1149,"endColumn":18},
@@ -30039,7 +30039,7 @@ export const LIBRARIES = {
         }
       },
       "join-exprs": {
-        params: ["exprs_$2162","separator_$2163"],
+        params: ["exprs_$2222","separator_$2223"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":1157,"column":1,"endLine":1160,"endColumn":77},
@@ -30116,7 +30116,7 @@ export const LIBRARIES = {
         }
       },
       "emit-assignment!": {
-        params: ["form_$2166","node_$2167"],
+        params: ["form_$2226","node_$2227"],
         rest: null,
         constants: [intern("assign"), intern("eval"), intern("eval"), intern("assign"), intern("eval"), intern("eval")],
         span: {"filename":"emit.scm","line":1168,"column":1,"endLine":1178,"endColumn":23},
@@ -30604,7 +30604,7 @@ export const LIBRARIES = {
         }
       },
       "emit-definition!": {
-        params: ["form_$2172","node_$2173"],
+        params: ["form_$2232","node_$2233"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
         span: {"filename":"emit.scm","line":1188,"column":1,"endLine":1197,"endColumn":23},
@@ -30932,7 +30932,7 @@ export const LIBRARIES = {
         }
       },
       "emit-letrec-bindings!": {
-        params: ["form_$2177","node_$2178"],
+        params: ["form_$2237","node_$2238"],
         rest: null,
         constants: [intern("assign"), intern("assign"), intern("assign"), intern("assign")],
         span: {"filename":"emit.scm","line":1211,"column":1,"endLine":1225,"endColumn":36},
@@ -31404,7 +31404,7 @@ export const LIBRARIES = {
         }
       },
       "emit-value-if!": {
-        params: ["form_$2185","node_$2186"],
+        params: ["form_$2245","node_$2246"],
         rest: null,
         constants: [intern("assign"), intern("assign"), intern("if"), intern("if")],
         span: {"filename":"emit.scm","line":1234,"column":1,"endLine":1245,"endColumn":18},
@@ -31732,7 +31732,7 @@ export const LIBRARIES = {
         }
       },
       "emit-inline!": {
-        params: ["form_$2194","node_$2195"],
+        params: ["form_$2254","node_$2255"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":1263,"column":1,"endLine":1265,"endColumn":41},
@@ -31829,7 +31829,7 @@ export const LIBRARIES = {
         }
       },
       "emit-guarded-inline!": {
-        params: ["form_$2197","node_$2198"],
+        params: ["form_$2257","node_$2258"],
         rest: null,
         constants: [intern("global"), intern("assign"), intern("assign"), intern("assign"), intern("global"), intern("assign")],
         span: {"filename":"emit.scm","line":1274,"column":1,"endLine":1305,"endColumn":27},
@@ -32808,7 +32808,7 @@ export const LIBRARIES = {
         }
       },
       "emit-call!": {
-        params: ["form_$2213","node_$2214"],
+        params: ["form_$2273","node_$2274"],
         rest: null,
         constants: [intern("assign"), intern("raw"), intern("$notProc"), intern("assign"), intern("$RAW"), intern("call"), intern("text"), intern("$stack"), intern("assign"), intern("$PRIM"), intern("$foreign"), intern("raw"), intern("$TailCall"), intern("$stack"), intern("$step"), intern("assign"), intern("raw"), intern("$notProc"), intern("assign"), intern("$RAW"), intern("call"), intern("text"), intern("$stack"), intern("assign"), intern("$PRIM"), intern("$foreign"), intern("raw"), intern("$TailCall"), intern("$stack"), intern("$step")],
         span: {"filename":"emit.scm","line":1340,"column":1,"endLine":1367,"endColumn":18},
@@ -33712,7 +33712,7 @@ export const LIBRARIES = {
         }
       },
       "emit-capture!": {
-        params: ["form_$2222","node_$2223"],
+        params: ["form_$2282","node_$2283"],
         rest: null,
         constants: [intern("eval"), intern("spill"), intern("return"), intern("$UNWIND"), intern("assign"), intern("eval"), intern("spill"), intern("return"), intern("$UNWIND"), intern("assign")],
         span: {"filename":"emit.scm","line":1376,"column":1,"endLine":1388,"endColumn":18},
@@ -34194,7 +34194,7 @@ export const LIBRARIES = {
         }
       },
       "suspension": {
-        params: ["form_$2227","node_$2228","result_$2229"],
+        params: ["form_$2287","node_$2288","result_$2289"],
         rest: null,
         constants: [intern("suspend"), intern("text"), intern("$UNWIND"), intern("suspend"), intern("text"), intern("$UNWIND")],
         span: {"filename":"emit.scm","line":1401,"column":1,"endLine":1411,"endColumn":57},
@@ -34417,7 +34417,7 @@ export const LIBRARIES = {
         }
       },
       "emit-statement!": {
-        params: ["form_$2231","node_$2232"],
+        params: ["form_$2291","node_$2292"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":1425,"column":1,"endLine":1426,"endColumn":75},
@@ -34472,7 +34472,7 @@ export const LIBRARIES = {
         }
       },
       "emit-statement-of!": {
-        params: ["form_$2233","node_$2234"],
+        params: ["form_$2293","node_$2294"],
         rest: null,
         constants: [intern("eval"), intern("if"), intern("seq"), intern("return"), intern("let"), intern("letrec"), intern("call"), intern("return"), intern("eval"), intern("if"), intern("seq"), intern("return"), intern("let"), intern("letrec"), intern("call"), intern("return"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":1434,"column":1,"endLine":1456,"endColumn":70},
@@ -35234,7 +35234,7 @@ export const LIBRARIES = {
         }
       },
       "node-tail?": {
-        params: ["node_$2238"],
+        params: ["node_$2298"],
         rest: null,
         constants: [intern("const"), intern("local"), intern("global"), intern("capture"), intern("call"), intern("set"), intern("define"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("const"), intern("local"), intern("global"), intern("capture"), intern("call"), intern("set"), intern("define"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":1464,"column":1,"endLine":1474,"endColumn":16},
@@ -35505,7 +35505,7 @@ export const LIBRARIES = {
         }
       },
       "letrec-inline?": {
-        params: ["node_$2240"],
+        params: ["node_$2300"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":1476,"column":1,"endLine":1476,"endColumn":58},
@@ -35557,7 +35557,7 @@ export const LIBRARIES = {
         }
       },
       "emit-tail-if!": {
-        params: ["form_$2241","node_$2242"],
+        params: ["form_$2301","node_$2302"],
         rest: null,
         constants: [intern("if"), intern("if")],
         span: {"filename":"emit.scm","line":1485,"column":1,"endLine":1489,"endColumn":46},
@@ -35788,7 +35788,7 @@ export const LIBRARIES = {
         }
       },
       "emit-tail-call!": {
-        params: ["form_$2246","node_$2247"],
+        params: ["form_$2306","node_$2307"],
         rest: null,
         constants: [intern("return"), intern("local"), intern("guarded"), intern("return"), intern("local"), intern("guarded")],
         span: {"filename":"emit.scm","line":1505,"column":1,"endLine":1530,"endColumn":54},
@@ -36529,7 +36529,7 @@ export const LIBRARIES = {
         }
       },
       "emit-transfer!": {
-        params: ["form_$2258","fn_$2259","args_$2260"],
+        params: ["form_$2318","fn_$2319","args_$2320"],
         rest: null,
         constants: [intern("tail"), intern("assign"), intern("tail"), intern("tail"), intern("assign"), intern("tail")],
         span: {"filename":"emit.scm","line":1570,"column":1,"endLine":1575,"endColumn":60},
@@ -36813,7 +36813,7 @@ export const LIBRARIES = {
         }
       },
       "procedure-name": {
-        params: ["form_$2263"],
+        params: ["form_$2323"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":1582,"column":1,"endLine":1586,"endColumn":16},
@@ -36993,7 +36993,7 @@ export const LIBRARIES = {
         }
       },
       "procedure-value-name": {
-        params: ["form_$2266"],
+        params: ["form_$2326"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":1597,"column":1,"endLine":1598,"endColumn":47},
@@ -37046,7 +37046,7 @@ export const LIBRARIES = {
         }
       },
       "loop-target": {
-        params: ["form_$2267"],
+        params: ["form_$2327"],
         rest: null,
         constants: [intern("assign"), intern("assign"), intern("goto"), intern("text"), intern("goto"), intern("text")],
         span: {"filename":"emit.scm","line":1625,"column":1,"endLine":1640,"endColumn":78},
@@ -37414,7 +37414,7 @@ export const LIBRARIES = {
         }
       },
       "loop-back!": {
-        params: ["form_$2271","args_$2272","target_$2273"],
+        params: ["form_$2331","args_$2332","target_$2333"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
         span: {"filename":"emit.scm","line":1654,"column":1,"endLine":1668,"endColumn":84},
@@ -37900,7 +37900,7 @@ export const LIBRARIES = {
         }
       },
       "call-loop": {
-        params: ["node_$2282"],
+        params: ["node_$2342"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":1676,"column":1,"endLine":1678,"endColumn":36},
@@ -37966,7 +37966,7 @@ export const LIBRARIES = {
         }
       },
       "call-span": {
-        params: ["node_$2284"],
+        params: ["node_$2344"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":1686,"column":1,"endLine":1688,"endColumn":56},
@@ -38045,7 +38045,7 @@ export const LIBRARIES = {
         }
       },
       "emit-inline-loop!": {
-        params: ["form_$2286","node_$2287"],
+        params: ["form_$2346","node_$2347"],
         rest: null,
         constants: [intern("assign"), intern("assign"), intern("assign"), intern("assign"), intern("text"), intern("text")],
         span: {"filename":"emit.scm","line":1703,"column":1,"endLine":1728,"endColumn":63},
@@ -39031,7 +39031,7 @@ export const LIBRARIES = {
         }
       },
       "enter-inline-loop!": {
-        params: ["form_$2297","params_$2298"],
+        params: ["form_$2357","params_$2358"],
         rest: null,
         constants: [intern("assign"), intern("assign"), intern("goto"), intern("goto"), intern("text"), intern("text"), intern("goto"), intern("goto"), intern("text"), intern("text")],
         span: {"filename":"emit.scm","line":1738,"column":1,"endLine":1748,"endColumn":103},
@@ -39474,7 +39474,7 @@ export const LIBRARIES = {
         }
       },
       "double-arithmetic?": {
-        params: ["name_$2304"],
+        params: ["name_$2364"],
         rest: null,
         constants: [new Cons(intern("+"), new Cons(intern("-"), new Cons(intern("*"), null))), new Cons(intern("+"), new Cons(intern("-"), new Cons(intern("*"), null)))],
         span: {"filename":"emit.scm","line":1784,"column":1,"endLine":1785,"endColumn":33},
@@ -39530,7 +39530,7 @@ export const LIBRARIES = {
         }
       },
       "operator-text": {
-        params: ["name_$2305"],
+        params: ["name_$2365"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":1792,"column":1,"endLine":1793,"endColumn":38},
@@ -39583,7 +39583,7 @@ export const LIBRARIES = {
         }
       },
       "inlined-operator": {
-        params: ["form_$2306","node_$2307"],
+        params: ["form_$2366","node_$2367"],
         rest: null,
         constants: [intern("global"), intern("global")],
         span: {"filename":"emit.scm","line":1803,"column":1,"endLine":1809,"endColumn":63},
@@ -39844,7 +39844,7 @@ export const LIBRARIES = {
         }
       },
       "double-node?": {
-        params: ["form_$2311","node_$2312","doubles_$2313"],
+        params: ["form_$2371","node_$2372","doubles_$2373"],
         rest: null,
         constants: [intern("const"), intern("local"), intern("call"), intern("const"), intern("local"), intern("call"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":1821,"column":1,"endLine":1831,"endColumn":16},
@@ -40294,7 +40294,7 @@ export const LIBRARIES = {
         }
       },
       "real-operand?": {
-        params: ["form_$2319","node_$2320","doubles_$2321"],
+        params: ["form_$2379","node_$2380","doubles_$2381"],
         rest: null,
         constants: [intern("const"), intern("const")],
         span: {"filename":"emit.scm","line":1842,"column":1,"endLine":1844,"endColumn":67},
@@ -40392,7 +40392,7 @@ export const LIBRARIES = {
         }
       },
       "emit-double": {
-        params: ["form_$2323","node_$2324"],
+        params: ["form_$2383","node_$2384"],
         rest: null,
         constants: [intern("const"), intern("local"), intern("const"), intern("local"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":1854,"column":1,"endLine":1861,"endColumn":51},
@@ -40692,7 +40692,7 @@ export const LIBRARIES = {
         }
       },
       "double-let?": {
-        params: ["form_$2327","node_$2328"],
+        params: ["form_$2387","node_$2388"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":1870,"column":1,"endLine":1872,"endColumn":62},
@@ -40794,7 +40794,7 @@ export const LIBRARIES = {
         }
       },
       "with-double": {
-        params: ["form_$2329","name_$2330","init_$2331","thunk_$2332"],
+        params: ["form_$2389","name_$2390","init_$2391","thunk_$2392"],
         rest: null,
         constants: [intern("assign"), intern("assign")],
         span: {"filename":"emit.scm","line":1883,"column":1,"endLine":1889,"endColumn":16},
@@ -41014,7 +41014,7 @@ export const LIBRARIES = {
         }
       },
       "emit-double-inline": {
-        params: ["form_$2335","node_$2336"],
+        params: ["form_$2395","node_$2396"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":1899,"column":1,"endLine":1912,"endColumn":23},
@@ -41590,7 +41590,7 @@ export const LIBRARIES = {
         }
       },
       "inexact-constant?": {
-        params: ["node_$2343"],
+        params: ["node_$2403"],
         rest: null,
         constants: [intern("const"), intern("if"), intern("seq"), intern("let"), intern("call"), intern("const"), intern("if"), intern("seq"), intern("let"), intern("call"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":1922,"column":1,"endLine":1929,"endColumn":16},
@@ -41935,7 +41935,7 @@ export const LIBRARIES = {
         }
       },
       "pure-loop-body?": {
-        params: ["form_$2347","node_$2348"],
+        params: ["form_$2407","node_$2408"],
         rest: null,
         constants: [intern("const"), intern("local"), intern("global"), intern("if"), intern("seq"), intern("let"), intern("call"), intern("local"), intern("const"), intern("local"), intern("global"), intern("if"), intern("seq"), intern("let"), intern("call"), intern("local"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":1938,"column":1,"endLine":1948,"endColumn":16},
@@ -42424,7 +42424,7 @@ export const LIBRARIES = {
         }
       },
       "double-loop-variables": {
-        params: ["form_$2353","params_$2354","entries_$2355","body_$2356"],
+        params: ["form_$2413","params_$2414","entries_$2415","body_$2416"],
         rest: null,
         constants: [intern("const"), intern("const")],
         span: {"filename":"emit.scm","line":1964,"column":1,"endLine":1986,"endColumn":28},
@@ -42974,7 +42974,7 @@ export const LIBRARIES = {
         }
       },
       "double-fixed-point": {
-        params: ["form_$2370","params_$2371","body_$2372","candidates_$2373"],
+        params: ["form_$2430","params_$2431","body_$2432","candidates_$2433"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":1998,"column":1,"endLine":2003,"endColumn":94},
@@ -43111,7 +43111,7 @@ export const LIBRARIES = {
         }
       },
       "operand-locals": {
-        params: ["form_$2376","node_$2377","bound_$2378"],
+        params: ["form_$2436","node_$2437","bound_$2438"],
         rest: null,
         constants: [intern("if"), intern("seq"), intern("let"), intern("call"), intern("local"), intern("local"), intern("if"), intern("seq"), intern("let"), intern("call"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":2013,"column":1,"endLine":2029,"endColumn":23},
@@ -43768,7 +43768,7 @@ export const LIBRARIES = {
         }
       },
       "loop-back-failures": {
-        params: ["form_$2389","params_$2390","candidates_$2391","node_$2392"],
+        params: ["form_$2449","params_$2450","candidates_$2451","node_$2452"],
         rest: null,
         constants: [intern("if"), intern("seq"), intern("let"), intern("call"), intern("if"), intern("seq"), intern("let"), intern("call"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":2041,"column":1,"endLine":2060,"endColumn":20},
@@ -44433,7 +44433,7 @@ export const LIBRARIES = {
         }
       },
       "operator-indices": {
-        params: ["form_$2403","node_$2404"],
+        params: ["form_$2463","node_$2464"],
         rest: null,
         constants: [intern("if"), intern("seq"), intern("let"), intern("call"), intern("if"), intern("seq"), intern("let"), intern("call"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":2069,"column":1,"endLine":2080,"endColumn":17},
@@ -45012,7 +45012,7 @@ export const LIBRARIES = {
         }
       },
       "emit-double-loop!": {
-        params: ["form_$2410","params_$2411","doubles_$2412","body_$2413"],
+        params: ["form_$2470","params_$2471","doubles_$2472","body_$2473"],
         rest: null,
         constants: [intern("assign"), intern("assign"), intern("text"), intern("text"), intern("assign"), intern("assign"), intern("text"), intern("text"), intern("guarded"), intern("text"), intern("text"), intern("text"), intern("assign"), intern("assign"), intern("if"), intern("text"), intern("text"), intern("guarded"), intern("text"), intern("text"), intern("text"), intern("if")],
         span: {"filename":"emit.scm","line":2103,"column":1,"endLine":2153,"endColumn":103},
@@ -46491,7 +46491,7 @@ export const LIBRARIES = {
         }
       },
       "return-count": {
-        params: ["statements_$2432"],
+        params: ["statements_$2492"],
         rest: null,
         constants: [intern("return"), intern("if"), intern("guarded"), intern("return"), intern("if"), intern("guarded"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":2161,"column":1,"endLine":2169,"endColumn":21},
@@ -46721,7 +46721,7 @@ export const LIBRARIES = {
         }
       },
       "deferred-exits": {
-        params: ["statements_$2436","label_$2437","note_$2438"],
+        params: ["statements_$2496","label_$2497","note_$2498"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2183,"column":1,"endLine":2185,"endColumn":42},
@@ -46867,7 +46867,7 @@ export const LIBRARIES = {
         }
       },
       "deferred-exits-in": {
-        params: ["statements_$2441","label_$2442","note_$2443","found_$2444"],
+        params: ["statements_$2501","label_$2502","note_$2503","found_$2504"],
         rest: null,
         constants: [intern("return"), intern("text"), intern("if"), intern("if"), intern("if"), intern("guarded"), intern("guarded"), intern("guarded"), intern("return"), intern("text"), intern("if"), intern("guarded"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":2196,"column":1,"endLine":2221,"endColumn":61},
@@ -47659,7 +47659,7 @@ export const LIBRARIES = {
         }
       },
       "exit-statements": {
-        params: ["note_$2457","returns_$2458"],
+        params: ["note_$2517","returns_$2518"],
         rest: null,
         constants: [intern("guarded"), intern("guarded")],
         span: {"filename":"emit.scm","line":2231,"column":1,"endLine":2236,"endColumn":56},
@@ -47857,7 +47857,7 @@ export const LIBRARIES = {
         }
       },
       "with-span-of": {
-        params: ["old_$2462","new_$2463"],
+        params: ["old_$2522","new_$2523"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2244,"column":1,"endLine":2247,"endColumn":10},
@@ -47942,7 +47942,7 @@ export const LIBRARIES = {
         }
       },
       "new-block!": {
-        params: ["form_$2465"],
+        params: ["form_$2525"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2258,"column":1,"endLine":2261,"endColumn":8},
@@ -48019,7 +48019,7 @@ export const LIBRARIES = {
         }
       },
       "switch-to!": {
-        params: ["form_$2467","n_$2468"],
+        params: ["form_$2527","n_$2528"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2270,"column":1,"endLine":2274,"endColumn":28},
@@ -48179,7 +48179,7 @@ export const LIBRARIES = {
         }
       },
       "note-resume-site!": {
-        params: ["form_$2469","node_$2470","block_$2471"],
+        params: ["form_$2529","node_$2530","block_$2531"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2284,"column":1,"endLine":2285,"endColumn":69},
@@ -48238,7 +48238,7 @@ export const LIBRARIES = {
         }
       },
       "resume-after!": {
-        params: ["form_$2472","node_$2473","result_$2474"],
+        params: ["form_$2532","node_$2533","result_$2534"],
         rest: null,
         constants: [intern("spill"), intern("assign"), intern("goto"), intern("assign"), intern("spill"), intern("assign"), intern("goto"), intern("assign")],
         span: {"filename":"emit.scm","line":2296,"column":1,"endLine":2303,"endColumn":56},
@@ -48571,7 +48571,7 @@ export const LIBRARIES = {
         }
       },
       "emit-twin-tail-if!": {
-        params: ["form_$2476","node_$2477"],
+        params: ["form_$2536","node_$2537"],
         rest: null,
         constants: [intern("branch"), intern("branch")],
         span: {"filename":"emit.scm","line":2311,"column":1,"endLine":2319,"endColumn":43},
@@ -48831,7 +48831,7 @@ export const LIBRARIES = {
         }
       },
       "emit-twin-value-if!": {
-        params: ["form_$2481","node_$2482"],
+        params: ["form_$2541","node_$2542"],
         rest: null,
         constants: [intern("assign"), intern("goto"), intern("assign"), intern("goto"), intern("branch"), intern("branch")],
         span: {"filename":"emit.scm","line":2330,"column":1,"endLine":2345,"endColumn":18},
@@ -49276,7 +49276,7 @@ export const LIBRARIES = {
         }
       },
       "arity-guard": {
-        params: ["ir_$2492"],
+        params: ["ir_$2552"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2364,"column":1,"endLine":2372,"endColumn":57},
@@ -49545,7 +49545,7 @@ export const LIBRARIES = {
         }
       },
       "named-function": {
-        params: ["binding_$2496","key_$2497","header_$2498","body_$2499"],
+        params: ["binding_$2556","key_$2557","header_$2558","body_$2559"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2394,"column":1,"endLine":2397,"endColumn":42},
@@ -49658,7 +49658,7 @@ export const LIBRARIES = {
         }
       },
       "with-entry-placed": {
-        params: ["items_$2500"],
+        params: ["items_$2560"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2409,"column":1,"endLine":2411,"endColumn":60},
@@ -49739,7 +49739,7 @@ export const LIBRARIES = {
         }
       },
       "first-span": {
-        params: ["items_$2502"],
+        params: ["items_$2562"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2418,"column":1,"endLine":2423,"endColumn":15},
@@ -49845,7 +49845,7 @@ export const LIBRARIES = {
         }
       },
       "place-until-span": {
-        params: ["items_$2504","span_$2505"],
+        params: ["items_$2564","span_$2565"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2432,"column":1,"endLine":2445,"endColumn":76},
@@ -50097,7 +50097,7 @@ export const LIBRARIES = {
         }
       },
       "fast-form": {
-        params: ["name_$2510","shown_$2511","ir_$2512","u_$2513","path_$2514"],
+        params: ["name_$2570","shown_$2571","ir_$2572","u_$2573","path_$2574"],
         rest: null,
         constants: [intern("fast"), intern("fast")],
         span: {"filename":"emit.scm","line":2464,"column":1,"endLine":2500,"endColumn":86},
@@ -51404,7 +51404,7 @@ export const LIBRARIES = {
         }
       },
       "way-back": {
-        params: ["form_$2531","lam_$2532","proc_$2533","arguments_$2534"],
+        params: ["form_$2591","lam_$2592","proc_$2593","arguments_$2594"],
         rest: null,
         constants: [intern("$dbg"), intern("$tailCall"), intern("$dbg"), intern("$tailCall")],
         span: {"filename":"emit.scm","line":2530,"column":1,"endLine":2540,"endColumn":32},
@@ -51627,7 +51627,7 @@ export const LIBRARIES = {
         }
       },
       "way-back-frame": {
-        params: ["form_$2538","lam_$2539"],
+        params: ["form_$2598","lam_$2599"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2553,"column":1,"endLine":2562,"endColumn":57},
@@ -52127,7 +52127,7 @@ export const LIBRARIES = {
         }
       },
       "constants-read-within": {
-        params: ["lam_$2552"],
+        params: ["lam_$2612"],
         rest: null,
         constants: [intern("const"), intern("const")],
         span: {"filename":"emit.scm","line":2569,"column":1,"endLine":2576,"endColumn":106},
@@ -52469,7 +52469,7 @@ export const LIBRARIES = {
         }
       },
       "binding-node?": {
-        params: ["node_$2559"],
+        params: ["node_$2619"],
         rest: null,
         constants: [new Cons(intern("lambda"), new Cons(intern("let"), new Cons(intern("letrec"), new Cons(intern("define"), null)))), new Cons(intern("lambda"), new Cons(intern("let"), new Cons(intern("letrec"), new Cons(intern("define"), null))))],
         span: {"filename":"emit.scm","line":2583,"column":1,"endLine":2583,"endColumn":85},
@@ -52531,7 +52531,7 @@ export const LIBRARIES = {
         }
       },
       "names-bound-by": {
-        params: ["node_$2560"],
+        params: ["node_$2620"],
         rest: null,
         constants: [intern("lambda"), intern("let"), intern("define"), intern("letrec"), intern("lambda"), intern("let"), intern("define"), intern("letrec"), {library: ["scheme","control"]}],
         span: {"filename":"emit.scm","line":2590,"column":1,"endLine":2595,"endColumn":17},
@@ -52642,7 +52642,7 @@ export const LIBRARIES = {
         }
       },
       "twin-form": {
-        params: ["name_$2562","shown_$2563","ir_$2564","u_$2565","path_$2566"],
+        params: ["name_$2622","shown_$2623","ir_$2624","u_$2625","path_$2626"],
         rest: null,
         constants: [intern("twin"), new Cons(intern("$r"), null), intern("twin"), new Cons(intern("$r"), null)],
         span: {"filename":"emit.scm","line":2617,"column":1,"endLine":2658,"endColumn":35},
@@ -53817,7 +53817,7 @@ export const LIBRARIES = {
         }
       },
       "form-frame": {
-        params: ["form_$2583","block_$2584"],
+        params: ["form_$2643","block_$2644"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2666,"column":1,"endLine":2667,"endColumn":62},
@@ -53900,7 +53900,7 @@ export const LIBRARIES = {
         }
       },
       "sort-blocks": {
-        params: ["blocks_$2586"],
+        params: ["blocks_$2646"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2674,"column":1,"endLine":2677,"endColumn":27},
@@ -54024,7 +54024,7 @@ export const LIBRARIES = {
         }
       },
       "factory-for!": {
-        params: ["u_$2589","proc_$2590","path_$2591","lam_$2592"],
+        params: ["u_$2649","proc_$2650","path_$2651","lam_$2652"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2694,"column":1,"endLine":2700,"endColumn":19},
@@ -54255,7 +54255,7 @@ export const LIBRARIES = {
         }
       },
       "render-factory": {
-        params: ["u_$2597","factory_$2598","proc_$2599","path_$2600","lam_$2601"],
+        params: ["u_$2657","factory_$2658","proc_$2659","path_$2660","lam_$2661"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2717,"column":1,"endLine":2740,"endColumn":17},
@@ -55032,7 +55032,7 @@ export const LIBRARIES = {
         }
       },
       "runtime-prelude": {
-        params: ["used_$2616"],
+        params: ["used_$2676"],
         rest: null,
         constants: [],
         span: {"filename":"emit.scm","line":2774,"column":1,"endLine":2782,"endColumn":31},
@@ -55230,8 +55230,8 @@ export const LIBRARIES = {
         }
       },
       "generate-unit": {
-        params: ["ir_$2620","globals_$2621","library-globals_$2622","name_$2623","guarded_$2624"],
-        rest: "ways-back_$2625",
+        params: ["ir_$2680","globals_$2681","library-globals_$2682","name_$2683","guarded_$2684"],
+        rest: "ways-back_$2685",
         constants: [],
         span: {"filename":"emit.scm","line":2806,"column":1,"endLine":2841,"endColumn":72},
         make: (R, E, K) => {
@@ -56118,10 +56118,10 @@ export const LIBRARIES = {
         }
       },
       "encode-vlq": {
-        params: ["n_$2639"],
+        params: ["n_$2699"],
         rest: null,
         constants: [],
-        span: {"filename":"sourcemap.scm","line":39,"column":1,"endLine":44,"endColumn":78},
+        span: {"filename":"sourcemap.scm","line":40,"column":1,"endLine":45,"endColumn":78},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $mul = R.mul, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "remainder")).v;
@@ -56318,10 +56318,10 @@ export const LIBRARIES = {
         }
       },
       "vlq": {
-        params: ["n_$2645"],
+        params: ["n_$2705"],
         rest: null,
         constants: [],
-        span: {"filename":"sourcemap.scm","line":58,"column":1,"endLine":65,"endColumn":23},
+        span: {"filename":"sourcemap.scm","line":59,"column":1,"endLine":66,"endColumn":23},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $vectorRef = R.vectorRef, $vectorSet = R.vectorSet, $add = R.add, $lt = R.lt, $ge = R.ge, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, ">=")).v;
@@ -56430,10 +56430,10 @@ export const LIBRARIES = {
         }
       },
       "url-path-special?": {
-        params: ["c_$2649"],
+        params: ["c_$2709"],
         rest: null,
         constants: [new Char(37), new Char(63), new Char(35), new Char(32), new Char(37), new Char(63), new Char(35), new Char(32), {library: ["scheme","control"]}],
-        span: {"filename":"sourcemap.scm","line":73,"column":1,"endLine":74,"endColumn":49},
+        span: {"filename":"sourcemap.scm","line":74,"column":1,"endLine":75,"endColumn":49},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(K[8], "eqv?")).v;
@@ -56582,10 +56582,10 @@ export const LIBRARIES = {
         }
       },
       "url-path-escape": {
-        params: ["text_$2651"],
+        params: ["text_$2711"],
         rest: null,
         constants: [new Char(37), new Char(63), new Char(35), new Char(32), new Char(37), new Char(63), new Char(35), new Char(32), {library: ["scheme","control"]}],
-        span: {"filename":"sourcemap.scm","line":83,"column":1,"endLine":91,"endColumn":13},
+        span: {"filename":"sourcemap.scm","line":84,"column":1,"endLine":92,"endColumn":13},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-index")).v;
@@ -56819,10 +56819,10 @@ export const LIBRARIES = {
         }
       },
       "span-file": {
-        params: ["span_$2654"],
+        params: ["span_$2714"],
         rest: null,
         constants: [],
-        span: {"filename":"sourcemap.scm","line":103,"column":1,"endLine":105,"endColumn":66},
+        span: {"filename":"sourcemap.scm","line":104,"column":1,"endLine":106,"endColumn":66},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "js-ref")).v;
@@ -56927,410 +56927,569 @@ export const LIBRARIES = {
         }
       },
       "source-map": {
-        params: ["spans_$2656","offset_$2657","text-of_$2658"],
-        rest: null,
+        params: ["spans_$2716","offset_$2717","text-of_$2718"],
+        rest: "options_$2719",
         constants: [new Char(59), new Char(59)],
-        span: {"filename":"sourcemap.scm","line":130,"column":1,"endLine":169,"endColumn":70},
+        span: {"filename":"sourcemap.scm","line":137,"column":1,"endLine":184,"endColumn":71},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
-        let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
-        const W0 = R.primitiveCell("null?"), P0 = W0.primitive;
-        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "pair?")).v;
-        const W1 = R.primitiveCell("pair?"), P1 = W1.primitive;
-        let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "reverse")).v;
-        let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "map")).v;
-        let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "string-join")).v;
-        let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "url-path-escape")).v;
-        let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "js-string")).v;
-        let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "string-append")).v;
-        let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "any")).v;
-        let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "car")).v;
-        const W9 = R.primitiveCell("car"), P9 = W9.primitive;
-        let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "eq?")).v;
-        const W10 = R.primitiveCell("eq?"), P10 = W10.primitive;
-        let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "cdr")).v;
-        const W11 = R.primitiveCell("cdr"), P11 = W11.primitive;
-        let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "not")).v;
-        const W12 = R.primitiveCell("not"), P12 = W12.primitive;
-        let C13 = R.UNRESOLVED; const G13 = () => (C13 = R.globalCell(E, "span-file")).v;
-        let C14 = R.UNRESOLVED; const G14 = () => (C14 = R.globalCell(E, "member")).v;
-        let C15 = R.UNRESOLVED; const G15 = () => (C15 = R.globalCell(E, "cons")).v;
-        const W15 = R.primitiveCell("cons"), P15 = W15.primitive;
-        let C16 = R.UNRESOLVED; const G16 = () => (C16 = R.globalCell(E, "-")).v;
-        const W16 = R.primitiveCell("-"), P16 = W16.primitive;
-        let C17 = R.UNRESOLVED; const G17 = () => (C17 = R.globalCell(E, "length")).v;
-        let C18 = R.UNRESOLVED; const G18 = () => (C18 = R.globalCell(E, "js-ref")).v;
-        let C19 = R.UNRESOLVED; const G19 = () => (C19 = R.globalCell(E, "vlq")).v;
-        let C20 = R.UNRESOLVED; const G20 = () => (C20 = R.globalCell(E, "make-string")).v;
-        function $mk$fn11_1() {
-          const $fn11_1 = { "anonymous": function (s) {
-            let $t0, $t1, $t2, $t3, $t4, $t5;
+        let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pair?")).v;
+        const W0 = R.primitiveCell("pair?"), P0 = W0.primitive;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "car")).v;
+        const W1 = R.primitiveCell("car"), P1 = W1.primitive;
+        let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "cdr")).v;
+        const W2 = R.primitiveCell("cdr"), P2 = W2.primitive;
+        let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "cadr")).v;
+        let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "null?")).v;
+        const W4 = R.primitiveCell("null?"), P4 = W4.primitive;
+        let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "reverse")).v;
+        let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "map")).v;
+        let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "filter-map")).v;
+        let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "iota")).v;
+        let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "length")).v;
+        let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "string-join")).v;
+        let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "js-string")).v;
+        let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "string-append")).v;
+        let C13 = R.UNRESOLVED; const G13 = () => (C13 = R.globalCell(E, "any")).v;
+        let C14 = R.UNRESOLVED; const G14 = () => (C14 = R.globalCell(E, "number->string")).v;
+        let C15 = R.UNRESOLVED; const G15 = () => (C15 = R.globalCell(E, "eq?")).v;
+        const W15 = R.primitiveCell("eq?"), P15 = W15.primitive;
+        let C16 = R.UNRESOLVED; const G16 = () => (C16 = R.globalCell(E, "not")).v;
+        const W16 = R.primitiveCell("not"), P16 = W16.primitive;
+        let C17 = R.UNRESOLVED; const G17 = () => (C17 = R.globalCell(E, "span-file")).v;
+        let C18 = R.UNRESOLVED; const G18 = () => (C18 = R.globalCell(E, "member")).v;
+        let C19 = R.UNRESOLVED; const G19 = () => (C19 = R.globalCell(E, "cons")).v;
+        const W19 = R.primitiveCell("cons"), P19 = W19.primitive;
+        let C20 = R.UNRESOLVED; const G20 = () => (C20 = R.globalCell(E, "-")).v;
+        const W20 = R.primitiveCell("-"), P20 = W20.primitive;
+        let C21 = R.UNRESOLVED; const G21 = () => (C21 = R.globalCell(E, "js-ref")).v;
+        let C22 = R.UNRESOLVED; const G22 = () => (C22 = R.globalCell(E, "vlq")).v;
+        let C23 = R.UNRESOLVED; const G23 = () => (C23 = R.globalCell(E, "make-string")).v;
+        function $mk$fn3() {
+          const $fn3 = { "anonymous": function (file) {
             if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
-            const $d = $stack.room - 15;
-            if ($d < 0 && $stack.flushable) return $flush($fn11_1$js, [s]);
+            return file;
+          } }["anonymous"];
+          const $fn3$js = R.markProcedure($fn3, "anonymous", E);
+          const $fn3$r = { "anonymous": function ($pc, $f) {
+            let file, $r;
+            ({ file, $r } = $f);
+            for (;;) switch ($pc) {
+                case 0:
+                  return file;
+                default: throw new Error('$fn3$r: bad resume point ' + $pc);
+            }
+          } }["anonymous"];
+          $fn3$js.$resume = $fn3$r;
+          return $fn3$js;
+        }
+        function $mk$fn13() {
+          const $fn13 = { "anonymous": function (file) {
+            if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
+            return false;
+          } }["anonymous"];
+          const $fn13$js = R.markProcedure($fn13, "anonymous", E);
+          const $fn13$r = { "anonymous": function ($pc, $f) {
+            let file, $r;
+            ({ file, $r } = $f);
+            for (;;) switch ($pc) {
+                case 0:
+                  return false;
+                default: throw new Error('$fn13$r: bad resume point ' + $pc);
+            }
+          } }["anonymous"];
+          $fn13$js.$resume = $fn13$r;
+          return $fn13$js;
+        }
+        function $mk$fn27(ignored_p) {
+          const $fn27 = { "anonymous": function (file, index) {
+            let $t0, $t1, $t2;
+            if (arguments.length !== 2) R.wrongArity("anonymous", 2, false, arguments.length);
+            const $d = $stack.room - 13;
+            if ($d < 0 && $stack.flushable) return $flush($fn27$js, [file, index]);
+            $t0 = ignored_p;
+            if (typeof $t0 !== 'function') $notProc($t0);
+            $t1 = $t0[$RAW];
+            $stack.room = $d;
+            $t2 = $t1 === undefined ? ($t0[$PRIM] === true ? $t0(file) : $foreign($t0, [file])) : $t1(file);
+            while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
+            if ($t2 === $UNWIND) { R.reify($fn27$r, 1, { index }); return $UNWIND; }
+            if ($t2 !== false) {
+              return index;
+            } else {
+              return false;
+            }
+          } }["anonymous"];
+          const $fn27$js = R.markProcedure($fn27, "anonymous", E);
+          const $fn27$r = { "anonymous": function ($pc, $f) {
+            let $t0, $t1, $t2, file, index, $r;
+            ({ $t0, $t1, $t2, file, index, $r } = $f);
+            const $d = $stack.room - 13;
+            for (;;) switch ($pc) {
+                case 0:
+                  $t0 = ignored_p;
+                  if (typeof $t0 !== 'function') $notProc($t0);
+                  $t1 = $t0[$RAW];
+                  $stack.room = $d;
+                  $t2 = $t1 === undefined ? ($t0[$PRIM] === true ? $t0(file) : $foreign($t0, [file])) : $t1(file);
+                  while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
+                  if ($t2 === $UNWIND) { R.reify($fn27$r, 1, { index }); return $UNWIND; }
+                  $r = $t2;
+                  $pc = 1; continue;
+                case 1:
+                  $t2 = $r;
+                  if ($t2 !== false) { $pc = 2; continue; } $pc = 3; continue;
+                case 2:
+                  return index;
+                case 3:
+                  return false;
+                default: throw new Error('$fn27$r: bad resume point ' + $pc);
+            }
+          } }["anonymous"];
+          $fn27$js.$resume = $fn27$r;
+          return $fn27$js;
+        }
+        function $mk$fn39_1() {
+          const $fn39_1 = { "anonymous": function (s) {
+            let $t0, $t1;
+            if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
+            const $d = $stack.room - 11;
             if (s !== false) {
-              $t0 = (C5.v ?? G5());
-              $t1 = (C6.v ?? G6());
-              if (typeof $t1 !== 'function') $notProc($t1);
-              $t2 = $t1[$RAW];
-              $stack.room = $d;
-              $t3 = $t2 === undefined ? ($t1[$PRIM] === true ? $t1(s) : $foreign($t1, [s])) : $t2(s);
-              while ($t3 instanceof $TailCall) { $stack.room = $d; $t3 = $step($t3); }
-              if ($t3 === $UNWIND) { R.reify($fn11_1$r, 3, { $t0 }); return $UNWIND; }
-              $t4 = $t0;
-              if ($d > 0 && ($t5 = $t4?.[$RAW] ?? $t4)?.[$PRIM] === true) { $stack.room = $d; return $t5($t3); } return $tailCall($t4, [$t3]);
+              $t0 = (C11.v ?? G11());
+              if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1(s); } return $tailCall($t0, [s]);
             } else {
               return "null";
             }
           } }["anonymous"];
-          const $fn11_1$js = R.markProcedure($fn11_1, "anonymous", E);
-          const $fn11_1$r = { "anonymous": function ($pc, $f) {
-            let $t0, $t1, $t2, $t3, $t4, $t5, s, $r;
-            ({ $t0, $t1, $t2, $t3, $t4, $t5, s, $r } = $f);
-            const $d = $stack.room - 15;
+          const $fn39_1$js = R.markProcedure($fn39_1, "anonymous", E);
+          const $fn39_1$r = { "anonymous": function ($pc, $f) {
+            let $t0, $t1, s, $r;
+            ({ $t0, $t1, s, $r } = $f);
             for (;;) switch ($pc) {
                 case 0:
                   if (s !== false) { $pc = 1; continue; } $pc = 2; continue;
                 case 1:
-                  $t0 = (C5.v ?? G5());
-                  $t1 = (C6.v ?? G6());
-                  if (typeof $t1 !== 'function') $notProc($t1);
-                  $t2 = $t1[$RAW];
-                  $stack.room = $d;
-                  $t3 = $t2 === undefined ? ($t1[$PRIM] === true ? $t1(s) : $foreign($t1, [s])) : $t2(s);
-                  while ($t3 instanceof $TailCall) { $stack.room = $d; $t3 = $step($t3); }
-                  if ($t3 === $UNWIND) { R.reify($fn11_1$r, 3, { $t0 }); return $UNWIND; }
-                  $r = $t3;
-                  $pc = 3; continue;
+                  $t0 = (C11.v ?? G11());
+                  return $tailCall($t0, [s]);
                 case 2:
                   return "null";
-                case 3:
-                  $t3 = $r;
-                  $t4 = $t0;
-                  return $tailCall($t4, [$t3]);
-                default: throw new Error('$fn11_1$r: bad resume point ' + $pc);
+                default: throw new Error('$fn39_1$r: bad resume point ' + $pc);
             }
           } }["anonymous"];
-          $fn11_1$js.$resume = $fn11_1$r;
-          return $fn11_1$js;
+          $fn39_1$js.$resume = $fn39_1$r;
+          return $fn39_1$js;
         }
-        function $mk$fn11() {
-          const $fn11 = { "anonymous": function (strings) {
+        function $mk$fn39() {
+          const $fn39 = { "anonymous": function (strings) {
             let $t0, $t2, $t3, $t4, $t5, $t6, $t7;
             if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
             const $d = $stack.room - 16;
-            if ($d < 0 && $stack.flushable) return $flush($fn11$js, [strings]);
-            $t0 = (C4.v ?? G4());
-            $t2 = $mk$fn11_1();
-            $t3 = (C3.v ?? G3());
+            if ($d < 0 && $stack.flushable) return $flush($fn39$js, [strings]);
+            $t0 = (C10.v ?? G10());
+            $t2 = $mk$fn39_1();
+            $t3 = (C6.v ?? G6());
             if (typeof $t3 !== 'function') $notProc($t3);
             $t4 = $t3[$RAW];
             $stack.room = $d;
             $t5 = $t4 === undefined ? ($t3[$PRIM] === true ? $t3($t2, strings) : $foreign($t3, [$t2, strings])) : $t4($t2, strings);
             while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
-            if ($t5 === $UNWIND) { R.reify($fn11$r, 1, { $t0 }); return $UNWIND; }
+            if ($t5 === $UNWIND) { R.reify($fn39$r, 1, { $t0 }); return $UNWIND; }
             $t6 = $t0;
             if ($d > 0 && ($t7 = $t6?.[$RAW] ?? $t6)?.[$PRIM] === true) { $stack.room = $d; return $t7($t5, ","); } return $tailCall($t6, [$t5, ","]);
           } }["anonymous"];
-          const $fn11$js = R.markProcedure($fn11, "anonymous", E);
-          const $fn11$r = { "anonymous": function ($pc, $f) {
+          const $fn39$js = R.markProcedure($fn39, "anonymous", E);
+          const $fn39$r = { "anonymous": function ($pc, $f) {
             let $t0, $t2, $t3, $t4, $t5, $t6, $t7, strings, $r;
             ({ $t0, $t2, $t3, $t4, $t5, $t6, $t7, strings, $r } = $f);
             const $d = $stack.room - 16;
             for (;;) switch ($pc) {
                 case 0:
-                  $t0 = (C4.v ?? G4());
-                  $t2 = $mk$fn11_1();
-                  $t3 = (C3.v ?? G3());
+                  $t0 = (C10.v ?? G10());
+                  $t2 = $mk$fn39_1();
+                  $t3 = (C6.v ?? G6());
                   if (typeof $t3 !== 'function') $notProc($t3);
                   $t4 = $t3[$RAW];
                   $stack.room = $d;
                   $t5 = $t4 === undefined ? ($t3[$PRIM] === true ? $t3($t2, strings) : $foreign($t3, [$t2, strings])) : $t4($t2, strings);
                   while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
-                  if ($t5 === $UNWIND) { R.reify($fn11$r, 1, { $t0 }); return $UNWIND; }
+                  if ($t5 === $UNWIND) { R.reify($fn39$r, 1, { $t0 }); return $UNWIND; }
                   $r = $t5;
                   $pc = 1; continue;
                 case 1:
                   $t5 = $r;
                   $t6 = $t0;
                   return $tailCall($t6, [$t5, ","]);
-                default: throw new Error('$fn11$r: bad resume point ' + $pc);
+                default: throw new Error('$fn39$r: bad resume point ' + $pc);
             }
           } }["anonymous"];
-          $fn11$js.$resume = $fn11$r;
-          return $fn11$js;
+          $fn39$js.$resume = $fn39$r;
+          return $fn39$js;
         }
-        function $mk$fn19() {
-          const $fn19 = { "anonymous": function (text) {
+        function $mk$fn50() {
+          const $fn50 = { "anonymous": function (text) {
             if (arguments.length !== 1) R.wrongArity("anonymous", 1, false, arguments.length);
             return text;
           } }["anonymous"];
-          const $fn19$js = R.markProcedure($fn19, "anonymous", E);
-          const $fn19$r = { "anonymous": function ($pc, $f) {
+          const $fn50$js = R.markProcedure($fn50, "anonymous", E);
+          const $fn50$r = { "anonymous": function ($pc, $f) {
             let text, $r;
             ({ text, $r } = $f);
             for (;;) switch ($pc) {
                 case 0:
                   return text;
-                default: throw new Error('$fn19$r: bad resume point ' + $pc);
+                default: throw new Error('$fn50$r: bad resume point ' + $pc);
             }
           } }["anonymous"];
-          $fn19$js.$resume = $fn19$r;
-          return $fn19$js;
+          $fn50$js.$resume = $fn50$r;
+          return $fn50$js;
         }
-        const $proc = { "source-map": function (spans, offset, text_of) {
-          let $t0, $t1, $t2, spans_2, first_p, mappings, sources, source, line, column, previous, $t3, $t4, $t5, $t6, $t7, files, $t8, $t9, $t10, texts, $t12, json_list, $t13, $t14, $t15, $t16, $t17, $t18, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, span, $t36, $t37, $t38, $t39, mappings_2, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, file, $t57, $t58, $t59, $t60, $t61, sources_2, $t62, $t63, $t64, $t65, $t66, $t67, $t68, $t69, index, $t70, $t71, $t72, $t73, span_line, $t74, $t75, $t76, $t77, span_column, $t78, $t79, $t80, $t81, $t82, $t83, $t84, $t85, $t86, $t87, $t88, $t89, $t90, $t91, $t92, $t93, $t94, $t95, $t96, $t97, $t98, $t99, $t100, $t101, $t102, $t103;
-          if (arguments.length !== 3) R.wrongArity("source-map", 3, false, arguments.length);
-          const $d = $stack.room - 131;
-          if ($d < 0 && $stack.flushable) return $flush($proc$js, [spans, offset, text_of]);
-          $t0 = (C20.v ?? G20());
-          if (typeof $t0 !== 'function') $notProc($t0);
-          $t1 = $t0[$RAW];
+        const $proc = { "source-map": function (spans, offset, text_of, ...options$raw) {
+          let $t0, $t1, $t2, $t4, name_of, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t14, ignored_p, $t15, $t16, $t17, spans_2, first_p, mappings, sources, source, line, column, previous, $t18, $t19, $t20, $t21, $t22, files, $t23, $t24, $t25, texts, $t26, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, ignore_list, $t40, json_list, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67, $t68, $t69, $t70, $t71, $t72, $t73, $t74, $t75, $t76, $t77, $t78, $t79, $t80, span, $t81, $t82, $t83, $t84, mappings_2, $t85, $t86, $t87, $t88, $t89, $t90, $t91, $t92, $t93, $t94, $t95, $t96, $t97, $t98, $t99, $t100, $t101, file, $t102, $t103, $t104, $t105, $t106, sources_2, $t107, $t108, $t109, $t110, $t111, $t112, $t113, $t114, index, $t115, $t116, $t117, $t118, span_line, $t119, $t120, $t121, $t122, span_column, $t123, $t124, $t125, $t126, $t127, $t128, $t129, $t130, $t131, $t132, $t133, $t134, $t135, $t136, $t137, $t138, $t139, $t140, $t141, $t142, $t143, $t144, $t145, $t146, $t147, $t148;
+          if (arguments.length < 3) R.wrongArity("source-map", 3, true, arguments.length);
+          const $d = $stack.room - 177 - options$raw.length;
+          if ($d < 0 && $stack.flushable) return $flush($proc$js, [spans, offset, text_of, ...options$raw]);
+          let options = R.listFrom(options$raw);
+          $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? (options instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [options]);
+          if ($t0 !== false) {
+            $t2 = (W1.intact || (C1.v ?? G1()) === P1) && (options instanceof R.Cons) ? (options.car) : R.callBinding((C1.v ?? G1()), [options]);
+            $t1 = $t2;
+          } else {
+            $t4 = $mk$fn3();
+            $t1 = $t4;
+          }
+          name_of = $t1;
+          $t5 = (W0.intact || (C0.v ?? G0()) === P0) ? (options instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [options]);
+          if ($t5 !== false) {
+            $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (options instanceof R.Cons) ? (options.cdr) : R.callBinding((C2.v ?? G2()), [options]);
+            $t8 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t7 instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [$t7]);
+            $t6 = $t8;
+          } else {
+            $t6 = false;
+          }
+          if ($t6 !== false) {
+            $t10 = (C3.v ?? G3());
+            if (typeof $t10 !== 'function') $notProc($t10);
+            $t11 = $t10[$RAW];
+            $stack.room = $d;
+            $t12 = $t11 === undefined ? ($t10[$PRIM] === true ? $t10(options) : $foreign($t10, [options])) : $t11(options);
+            while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
+            if ($t12 === $UNWIND) { R.reify($proc$r, 10, { name_of, spans, offset, text_of }); return $UNWIND; }
+            $t9 = $t12;
+          } else {
+            $t14 = $mk$fn13();
+            $t9 = $t14;
+          }
+          ignored_p = $t9;
+          $t15 = (C23.v ?? G23());
+          if (typeof $t15 !== 'function') $notProc($t15);
+          $t16 = $t15[$RAW];
           $stack.room = $d;
-          $t2 = $t1 === undefined ? ($t0[$PRIM] === true ? $t0(offset, K[1]) : $foreign($t0, [offset, K[1]])) : $t1(offset, K[1]);
-          while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
-          if ($t2 === $UNWIND) { R.reify($proc$r, 1, { spans, text_of }); return $UNWIND; }
+          $t17 = $t16 === undefined ? ($t15[$PRIM] === true ? $t15(offset, K[1]) : $foreign($t15, [offset, K[1]])) : $t16(offset, K[1]);
+          while ($t17 instanceof $TailCall) { $stack.room = $d; $t17 = $step($t17); }
+          if ($t17 === $UNWIND) { R.reify($proc$r, 11, { name_of, ignored_p, spans, text_of }); return $UNWIND; }
           spans_2 = spans;
           first_p = true;
-          mappings = $t2;
+          mappings = $t17;
           sources = null;
           source = 0;
           line = 0;
           column = 0;
           previous = false;
           $loop1: for (;;) {
-          $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? (spans_2 === null) : R.callBinding((C0.v ?? G0()), [spans_2]);
-          if ($t3 !== false) {
-            $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? (sources instanceof R.Cons) : R.callBinding((C1.v ?? G1()), [sources]);
-            if ($t4 !== false) {
-              $t5 = (C2.v ?? G2());
-              if (typeof $t5 !== 'function') $notProc($t5);
-              $t6 = $t5[$RAW];
+          $t18 = (W4.intact || (C4.v ?? G4()) === P4) ? (spans_2 === null) : R.callBinding((C4.v ?? G4()), [spans_2]);
+          if ($t18 !== false) {
+            $t19 = (W0.intact || (C0.v ?? G0()) === P0) ? (sources instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [sources]);
+            if ($t19 !== false) {
+              $t20 = (C5.v ?? G5());
+              if (typeof $t20 !== 'function') $notProc($t20);
+              $t21 = $t20[$RAW];
               $stack.room = $d;
-              $t7 = $t6 === undefined ? ($t5[$PRIM] === true ? $t5(sources) : $foreign($t5, [sources])) : $t6(sources);
-              while ($t7 instanceof $TailCall) { $stack.room = $d; $t7 = $step($t7); }
-              if ($t7 === $UNWIND) { R.reify($proc$r, 7, { mappings, text_of }); return $UNWIND; }
-              files = $t7;
-              $t8 = (C3.v ?? G3());
-              if (typeof $t8 !== 'function') $notProc($t8);
-              $t9 = $t8[$RAW];
+              $t22 = $t21 === undefined ? ($t20[$PRIM] === true ? $t20(sources) : $foreign($t20, [sources])) : $t21(sources);
+              while ($t22 instanceof $TailCall) { $stack.room = $d; $t22 = $step($t22); }
+              if ($t22 === $UNWIND) { R.reify($proc$r, 17, { name_of, ignored_p, mappings, text_of }); return $UNWIND; }
+              files = $t22;
+              $t23 = (C6.v ?? G6());
+              if (typeof $t23 !== 'function') $notProc($t23);
+              $t24 = $t23[$RAW];
               $stack.room = $d;
-              $t10 = $t9 === undefined ? ($t8[$PRIM] === true ? $t8(text_of, files) : $foreign($t8, [text_of, files])) : $t9(text_of, files);
-              while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
-              if ($t10 === $UNWIND) { R.reify($proc$r, 8, { mappings, files }); return $UNWIND; }
-              texts = $t10;
-              $t12 = $mk$fn11();
-              json_list = $t12;
-              $t13 = (C7.v ?? G7());
-              $t14 = "{\"version\":3,\"sources\":[";
-              $t15 = json_list;
-              if (typeof $t15 !== 'function') $notProc($t15);
-              $t16 = $t15[$RAW];
+              $t25 = $t24 === undefined ? ($t23[$PRIM] === true ? $t23(text_of, files) : $foreign($t23, [text_of, files])) : $t24(text_of, files);
+              while ($t25 instanceof $TailCall) { $stack.room = $d; $t25 = $step($t25); }
+              if ($t25 === $UNWIND) { R.reify($proc$r, 18, { name_of, ignored_p, mappings, files }); return $UNWIND; }
+              texts = $t25;
+              $t26 = (C7.v ?? G7());
+              $t28 = $mk$fn27(ignored_p);
+              $t29 = (C8.v ?? G8());
+              $t30 = (C9.v ?? G9());
+              if (typeof $t30 !== 'function') $notProc($t30);
+              $t31 = $t30[$RAW];
               $stack.room = $d;
-              $t17 = $t16 === undefined ? ($t15[$PRIM] === true ? $t15(files) : $foreign($t15, [files])) : $t16(files);
-              while ($t17 instanceof $TailCall) { $stack.room = $d; $t17 = $step($t17); }
-              if ($t17 === $UNWIND) { R.reify($proc$r, 9, { mappings, texts, json_list, $t13, $t14 }); return $UNWIND; }
-              $t18 = "]";
-              $t20 = $mk$fn19();
-              $t21 = (C8.v ?? G8());
-              if (typeof $t21 !== 'function') $notProc($t21);
-              $t22 = $t21[$RAW];
+              $t32 = $t31 === undefined ? ($t30[$PRIM] === true ? $t30(files) : $foreign($t30, [files])) : $t31(files);
+              while ($t32 instanceof $TailCall) { $stack.room = $d; $t32 = $step($t32); }
+              if ($t32 === $UNWIND) { R.reify($proc$r, 19, { name_of, mappings, files, texts, $t26, $t28, $t29 }); return $UNWIND; }
+              $t33 = $t29;
+              if (typeof $t33 !== 'function') $notProc($t33);
+              $t34 = $t33[$RAW];
               $stack.room = $d;
-              $t23 = $t22 === undefined ? ($t21[$PRIM] === true ? $t21($t20, texts) : $foreign($t21, [$t20, texts])) : $t22($t20, texts);
-              while ($t23 instanceof $TailCall) { $stack.room = $d; $t23 = $step($t23); }
-              if ($t23 === $UNWIND) { R.reify($proc$r, 10, { mappings, texts, json_list, $t13, $t14, $t17, $t18 }); return $UNWIND; }
-              if ($t23 !== false) {
-                $t25 = (C7.v ?? G7());
-                $t26 = ",\"sourcesContent\":[";
-                $t27 = json_list;
-                if (typeof $t27 !== 'function') $notProc($t27);
-                $t28 = $t27[$RAW];
+              $t35 = $t34 === undefined ? ($t33[$PRIM] === true ? $t33($t32) : $foreign($t33, [$t32])) : $t34($t32);
+              while ($t35 instanceof $TailCall) { $stack.room = $d; $t35 = $step($t35); }
+              if ($t35 === $UNWIND) { R.reify($proc$r, 20, { name_of, mappings, files, texts, $t26, $t28 }); return $UNWIND; }
+              $t36 = $t26;
+              if (typeof $t36 !== 'function') $notProc($t36);
+              $t37 = $t36[$RAW];
+              $stack.room = $d;
+              $t38 = $t37 === undefined ? ($t36[$PRIM] === true ? $t36($t28, files, $t35) : $foreign($t36, [$t28, files, $t35])) : $t37($t28, files, $t35);
+              while ($t38 instanceof $TailCall) { $stack.room = $d; $t38 = $step($t38); }
+              if ($t38 === $UNWIND) { R.reify($proc$r, 21, { name_of, mappings, files, texts }); return $UNWIND; }
+              ignore_list = $t38;
+              $t40 = $mk$fn39();
+              json_list = $t40;
+              $t41 = (C12.v ?? G12());
+              $t42 = "{\"version\":3,\"sources\":[";
+              $t43 = (C6.v ?? G6());
+              if (typeof $t43 !== 'function') $notProc($t43);
+              $t44 = $t43[$RAW];
+              $stack.room = $d;
+              $t45 = $t44 === undefined ? ($t43[$PRIM] === true ? $t43(name_of, files) : $foreign($t43, [name_of, files])) : $t44(name_of, files);
+              while ($t45 instanceof $TailCall) { $stack.room = $d; $t45 = $step($t45); }
+              if ($t45 === $UNWIND) { R.reify($proc$r, 22, { mappings, texts, ignore_list, json_list, $t41, $t42 }); return $UNWIND; }
+              $t46 = json_list;
+              if (typeof $t46 !== 'function') $notProc($t46);
+              $t47 = $t46[$RAW];
+              $stack.room = $d;
+              $t48 = $t47 === undefined ? ($t46[$PRIM] === true ? $t46($t45) : $foreign($t46, [$t45])) : $t47($t45);
+              while ($t48 instanceof $TailCall) { $stack.room = $d; $t48 = $step($t48); }
+              if ($t48 === $UNWIND) { R.reify($proc$r, 23, { mappings, texts, ignore_list, json_list, $t41, $t42 }); return $UNWIND; }
+              $t49 = "]";
+              $t51 = $mk$fn50();
+              $t52 = (C13.v ?? G13());
+              if (typeof $t52 !== 'function') $notProc($t52);
+              $t53 = $t52[$RAW];
+              $stack.room = $d;
+              $t54 = $t53 === undefined ? ($t52[$PRIM] === true ? $t52($t51, texts) : $foreign($t52, [$t51, texts])) : $t53($t51, texts);
+              while ($t54 instanceof $TailCall) { $stack.room = $d; $t54 = $step($t54); }
+              if ($t54 === $UNWIND) { R.reify($proc$r, 24, { mappings, texts, ignore_list, json_list, $t41, $t42, $t48, $t49 }); return $UNWIND; }
+              if ($t54 !== false) {
+                $t56 = (C12.v ?? G12());
+                $t57 = ",\"sourcesContent\":[";
+                $t58 = json_list;
+                if (typeof $t58 !== 'function') $notProc($t58);
+                $t59 = $t58[$RAW];
                 $stack.room = $d;
-                $t29 = $t28 === undefined ? ($t27[$PRIM] === true ? $t27(texts) : $foreign($t27, [texts])) : $t28(texts);
-                while ($t29 instanceof $TailCall) { $stack.room = $d; $t29 = $step($t29); }
-                if ($t29 === $UNWIND) { R.reify($proc$r, 14, { mappings, $t13, $t14, $t17, $t18, $t25, $t26 }); return $UNWIND; }
-                $t30 = $t25;
-                if (typeof $t30 !== 'function') $notProc($t30);
-                $t31 = $t30[$RAW];
+                $t60 = $t59 === undefined ? ($t58[$PRIM] === true ? $t58(texts) : $foreign($t58, [texts])) : $t59(texts);
+                while ($t60 instanceof $TailCall) { $stack.room = $d; $t60 = $step($t60); }
+                if ($t60 === $UNWIND) { R.reify($proc$r, 28, { mappings, ignore_list, $t41, $t42, $t48, $t49, $t56, $t57 }); return $UNWIND; }
+                $t61 = $t56;
+                if (typeof $t61 !== 'function') $notProc($t61);
+                $t62 = $t61[$RAW];
                 $stack.room = $d;
-                $t32 = $t31 === undefined ? ($t30[$PRIM] === true ? $t30($t26, $t29, "]") : $foreign($t30, [$t26, $t29, "]"])) : $t31($t26, $t29, "]");
-                while ($t32 instanceof $TailCall) { $stack.room = $d; $t32 = $step($t32); }
-                if ($t32 === $UNWIND) { R.reify($proc$r, 15, { mappings, $t13, $t14, $t17, $t18 }); return $UNWIND; }
-                $t24 = $t32;
+                $t63 = $t62 === undefined ? ($t61[$PRIM] === true ? $t61($t57, $t60, "]") : $foreign($t61, [$t57, $t60, "]"])) : $t62($t57, $t60, "]");
+                while ($t63 instanceof $TailCall) { $stack.room = $d; $t63 = $step($t63); }
+                if ($t63 === $UNWIND) { R.reify($proc$r, 29, { mappings, ignore_list, $t41, $t42, $t48, $t49 }); return $UNWIND; }
+                $t55 = $t63;
               } else {
-                $t24 = "";
+                $t55 = "";
               }
-              $t33 = $t13;
-              if ($d > 0 && ($t34 = $t33?.[$RAW] ?? $t33)?.[$PRIM] === true) { $stack.room = $d; return $t34($t14, $t17, $t18, $t24, ",\"names\":[],\"mappings\":\"", mappings, "\"}"); } return $tailCall($t33, [$t14, $t17, $t18, $t24, ",\"names\":[],\"mappings\":\"", mappings, "\"}"]);
+              $t64 = (W0.intact || (C0.v ?? G0()) === P0) ? (ignore_list instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [ignore_list]);
+              if ($t64 !== false) {
+                $t66 = (C12.v ?? G12());
+                $t67 = ",\"x_google_ignoreList\":[";
+                $t68 = (C10.v ?? G10());
+                $t69 = (C6.v ?? G6());
+                if (typeof $t69 !== 'function') $notProc($t69);
+                $t70 = $t69[$RAW];
+                $stack.room = $d;
+                $t71 = $t70 === undefined ? ($t69[$PRIM] === true ? $t69((C14.v ?? G14()), ignore_list) : $foreign($t69, [(C14.v ?? G14()), ignore_list])) : $t70((C14.v ?? G14()), ignore_list);
+                while ($t71 instanceof $TailCall) { $stack.room = $d; $t71 = $step($t71); }
+                if ($t71 === $UNWIND) { R.reify($proc$r, 33, { mappings, $t41, $t42, $t48, $t49, $t55, $t66, $t67, $t68 }); return $UNWIND; }
+                $t72 = $t68;
+                if (typeof $t72 !== 'function') $notProc($t72);
+                $t73 = $t72[$RAW];
+                $stack.room = $d;
+                $t74 = $t73 === undefined ? ($t72[$PRIM] === true ? $t72($t71, ",") : $foreign($t72, [$t71, ","])) : $t73($t71, ",");
+                while ($t74 instanceof $TailCall) { $stack.room = $d; $t74 = $step($t74); }
+                if ($t74 === $UNWIND) { R.reify($proc$r, 34, { mappings, $t41, $t42, $t48, $t49, $t55, $t66, $t67 }); return $UNWIND; }
+                $t75 = $t66;
+                if (typeof $t75 !== 'function') $notProc($t75);
+                $t76 = $t75[$RAW];
+                $stack.room = $d;
+                $t77 = $t76 === undefined ? ($t75[$PRIM] === true ? $t75($t67, $t74, "]") : $foreign($t75, [$t67, $t74, "]"])) : $t76($t67, $t74, "]");
+                while ($t77 instanceof $TailCall) { $stack.room = $d; $t77 = $step($t77); }
+                if ($t77 === $UNWIND) { R.reify($proc$r, 35, { mappings, $t41, $t42, $t48, $t49, $t55 }); return $UNWIND; }
+                $t65 = $t77;
+              } else {
+                $t65 = "";
+              }
+              $t78 = $t41;
+              if ($d > 0 && ($t79 = $t78?.[$RAW] ?? $t78)?.[$PRIM] === true) { $stack.room = $d; return $t79($t42, $t48, $t49, $t55, $t65, ",\"names\":[],\"mappings\":\"", mappings, "\"}"); } return $tailCall($t78, [$t42, $t48, $t49, $t55, $t65, ",\"names\":[],\"mappings\":\"", mappings, "\"}"]);
             } else {
               return false;
             }
           } else {
-            $t35 = (W9.intact || (C9.v ?? G9()) === P9) && (spans_2 instanceof R.Cons) ? (spans_2.car) : R.callBinding((C9.v ?? G9()), [spans_2]);
-            span = $t35;
+            $t80 = (W1.intact || (C1.v ?? G1()) === P1) && (spans_2 instanceof R.Cons) ? (spans_2.car) : R.callBinding((C1.v ?? G1()), [spans_2]);
+            span = $t80;
             if (first_p !== false) {
-              $t36 = mappings;
+              $t81 = mappings;
             } else {
-              $t37 = (C7.v ?? G7());
-              if (typeof $t37 !== 'function') $notProc($t37);
-              $t38 = $t37[$RAW];
+              $t82 = (C12.v ?? G12());
+              if (typeof $t82 !== 'function') $notProc($t82);
+              $t83 = $t82[$RAW];
               $stack.room = $d;
-              $t39 = $t38 === undefined ? ($t37[$PRIM] === true ? $t37(mappings, ";") : $foreign($t37, [mappings, ";"])) : $t38(mappings, ";");
-              while ($t39 instanceof $TailCall) { $stack.room = $d; $t39 = $step($t39); }
-              if ($t39 === $UNWIND) { R.reify($proc$r, 19, { spans_2, sources, source, line, column, previous, span, text_of }); return $UNWIND; }
-              $t36 = $t39;
+              $t84 = $t83 === undefined ? ($t82[$PRIM] === true ? $t82(mappings, ";") : $foreign($t82, [mappings, ";"])) : $t83(mappings, ";");
+              while ($t84 instanceof $TailCall) { $stack.room = $d; $t84 = $step($t84); }
+              if ($t84 === $UNWIND) { R.reify($proc$r, 39, { name_of, ignored_p, spans_2, sources, source, line, column, previous, span, text_of }); return $UNWIND; }
+              $t81 = $t84;
             }
-            mappings_2 = $t36;
+            mappings_2 = $t81;
             if (span !== false) {
-              $t41 = (W10.intact || (C10.v ?? G10()) === P10) ? (span === previous) : R.callBinding((C10.v ?? G10()), [span, previous]);
-              $t40 = $t41;
+              $t86 = (W15.intact || (C15.v ?? G15()) === P15) ? (span === previous) : R.callBinding((C15.v ?? G15()), [span, previous]);
+              $t85 = $t86;
             } else {
-              $t40 = false;
+              $t85 = false;
             }
-            if ($t40 !== false) {
-              $t42 = (W11.intact || (C11.v ?? G11()) === P11) && (spans_2 instanceof R.Cons) ? (spans_2.cdr) : R.callBinding((C11.v ?? G11()), [spans_2]);
-              $t43 = (C7.v ?? G7());
-              if (typeof $t43 !== 'function') $notProc($t43);
-              $t44 = $t43[$RAW];
+            if ($t85 !== false) {
+              $t87 = (W2.intact || (C2.v ?? G2()) === P2) && (spans_2 instanceof R.Cons) ? (spans_2.cdr) : R.callBinding((C2.v ?? G2()), [spans_2]);
+              $t88 = (C12.v ?? G12());
+              if (typeof $t88 !== 'function') $notProc($t88);
+              $t89 = $t88[$RAW];
               $stack.room = $d;
-              $t45 = $t44 === undefined ? ($t43[$PRIM] === true ? $t43(mappings_2, "AAAA") : $foreign($t43, [mappings_2, "AAAA"])) : $t44(mappings_2, "AAAA");
-              while ($t45 instanceof $TailCall) { $stack.room = $d; $t45 = $step($t45); }
-              if ($t45 === $UNWIND) { R.reify($proc$r, 25, { sources, source, line, column, span, $t42, text_of }); return $UNWIND; }
-              $t46 = span;
-              spans_2 = $t42;
+              $t90 = $t89 === undefined ? ($t88[$PRIM] === true ? $t88(mappings_2, "AAAA") : $foreign($t88, [mappings_2, "AAAA"])) : $t89(mappings_2, "AAAA");
+              while ($t90 instanceof $TailCall) { $stack.room = $d; $t90 = $step($t90); }
+              if ($t90 === $UNWIND) { R.reify($proc$r, 45, { name_of, ignored_p, sources, source, line, column, span, $t87, text_of }); return $UNWIND; }
+              $t91 = span;
+              spans_2 = $t87;
               first_p = false;
-              mappings = $t45;
-              previous = $t46;
+              mappings = $t90;
+              previous = $t91;
               continue $loop1;
             } else {
               if (span !== false) {
-                $t48 = (C13.v ?? G13());
-                if (typeof $t48 !== 'function') $notProc($t48);
-                $t49 = $t48[$RAW];
-                $stack.room = $d;
-                $t50 = $t49 === undefined ? ($t48[$PRIM] === true ? $t48(span) : $foreign($t48, [span])) : $t49(span);
-                while ($t50 instanceof $TailCall) { $stack.room = $d; $t50 = $step($t50); }
-                if ($t50 === $UNWIND) { R.reify($proc$r, 29, { spans_2, sources, source, line, column, previous, span, mappings_2, text_of }); return $UNWIND; }
-                $t47 = $t50;
-              } else {
-                $t47 = false;
-              }
-              $t51 = (W12.intact || (C12.v ?? G12()) === P12) ? ($t47 === false) : R.callBinding((C12.v ?? G12()), [$t47]);
-              if ($t51 !== false) {
-                $t52 = (W11.intact || (C11.v ?? G11()) === P11) && (spans_2 instanceof R.Cons) ? (spans_2.cdr) : R.callBinding((C11.v ?? G11()), [spans_2]);
-                $t53 = mappings_2;
-                spans_2 = $t52;
-                first_p = false;
-                mappings = $t53;
-                continue $loop1;
-              } else {
-                $t54 = (C13.v ?? G13());
-                if (typeof $t54 !== 'function') $notProc($t54);
-                $t55 = $t54[$RAW];
-                $stack.room = $d;
-                $t56 = $t55 === undefined ? ($t54[$PRIM] === true ? $t54(span) : $foreign($t54, [span])) : $t55(span);
-                while ($t56 instanceof $TailCall) { $stack.room = $d; $t56 = $step($t56); }
-                if ($t56 === $UNWIND) { R.reify($proc$r, 32, { spans_2, sources, source, line, column, span, mappings_2, text_of }); return $UNWIND; }
-                file = $t56;
-                $t57 = (C14.v ?? G14());
-                if (typeof $t57 !== 'function') $notProc($t57);
-                $t58 = $t57[$RAW];
-                $stack.room = $d;
-                $t59 = $t58 === undefined ? ($t57[$PRIM] === true ? $t57(file, sources) : $foreign($t57, [file, sources])) : $t58(file, sources);
-                while ($t59 instanceof $TailCall) { $stack.room = $d; $t59 = $step($t59); }
-                if ($t59 === $UNWIND) { R.reify($proc$r, 33, { spans_2, sources, source, line, column, span, mappings_2, file, text_of }); return $UNWIND; }
-                if ($t59 !== false) {
-                  $t60 = sources;
-                } else {
-                  $t61 = (W15.intact || (C15.v ?? G15()) === P15) ? (new R.Cons(file, sources)) : R.callBinding((C15.v ?? G15()), [file, sources]);
-                  $t60 = $t61;
-                }
-                sources_2 = $t60;
-                $t62 = (C17.v ?? G17());
-                $t63 = (C14.v ?? G14());
-                if (typeof $t63 !== 'function') $notProc($t63);
-                $t64 = $t63[$RAW];
-                $stack.room = $d;
-                $t65 = $t64 === undefined ? ($t63[$PRIM] === true ? $t63(file, sources_2) : $foreign($t63, [file, sources_2])) : $t64(file, sources_2);
-                while ($t65 instanceof $TailCall) { $stack.room = $d; $t65 = $step($t65); }
-                if ($t65 === $UNWIND) { R.reify($proc$r, 37, { spans_2, source, line, column, span, mappings_2, sources_2, $t62, text_of }); return $UNWIND; }
-                $t66 = $t62;
-                if (typeof $t66 !== 'function') $notProc($t66);
-                $t67 = $t66[$RAW];
-                $stack.room = $d;
-                $t68 = $t67 === undefined ? ($t66[$PRIM] === true ? $t66($t65) : $foreign($t66, [$t65])) : $t67($t65);
-                while ($t68 instanceof $TailCall) { $stack.room = $d; $t68 = $step($t68); }
-                if ($t68 === $UNWIND) { R.reify($proc$r, 38, { spans_2, source, line, column, span, mappings_2, sources_2, text_of }); return $UNWIND; }
-                $t69 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof $t68 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t68 - 1)) || (Number.isSafeInteger(($t68 - 1)) && Number.isInteger($t68) && Number.isInteger(1)))) ? ($t68 - 1) : $sub($t68, 1)) : R.callBinding((C16.v ?? G16()), [$t68, 1]);
-                index = $t69;
-                $t70 = (C18.v ?? G18());
-                if (typeof $t70 !== 'function') $notProc($t70);
-                $t71 = $t70[$RAW];
-                $stack.room = $d;
-                $t72 = $t71 === undefined ? ($t70[$PRIM] === true ? $t70(span, "line") : $foreign($t70, [span, "line"])) : $t71(span, "line");
-                while ($t72 instanceof $TailCall) { $stack.room = $d; $t72 = $step($t72); }
-                if ($t72 === $UNWIND) { R.reify($proc$r, 39, { spans_2, source, line, column, span, mappings_2, sources_2, index, text_of }); return $UNWIND; }
-                $t73 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof $t72 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t72 - 1)) || (Number.isSafeInteger(($t72 - 1)) && Number.isInteger($t72) && Number.isInteger(1)))) ? ($t72 - 1) : $sub($t72, 1)) : R.callBinding((C16.v ?? G16()), [$t72, 1]);
-                span_line = $t73;
-                $t74 = (C18.v ?? G18());
-                if (typeof $t74 !== 'function') $notProc($t74);
-                $t75 = $t74[$RAW];
-                $stack.room = $d;
-                $t76 = $t75 === undefined ? ($t74[$PRIM] === true ? $t74(span, "column") : $foreign($t74, [span, "column"])) : $t75(span, "column");
-                while ($t76 instanceof $TailCall) { $stack.room = $d; $t76 = $step($t76); }
-                if ($t76 === $UNWIND) { R.reify($proc$r, 40, { spans_2, source, line, column, span, mappings_2, sources_2, index, span_line, text_of }); return $UNWIND; }
-                $t77 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof $t76 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t76 - 1)) || (Number.isSafeInteger(($t76 - 1)) && Number.isInteger($t76) && Number.isInteger(1)))) ? ($t76 - 1) : $sub($t76, 1)) : R.callBinding((C16.v ?? G16()), [$t76, 1]);
-                span_column = $t77;
-                $t78 = (W11.intact || (C11.v ?? G11()) === P11) && (spans_2 instanceof R.Cons) ? (spans_2.cdr) : R.callBinding((C11.v ?? G11()), [spans_2]);
-                $t79 = (C7.v ?? G7());
-                $t80 = "A";
-                $t81 = (C19.v ?? G19());
-                $t82 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof index === 'number' && typeof source === 'number' && (!Number.isInteger((index - source)) || (Number.isSafeInteger((index - source)) && Number.isInteger(index) && Number.isInteger(source)))) ? (index - source) : $sub(index, source)) : R.callBinding((C16.v ?? G16()), [index, source]);
-                $t83 = $t81;
-                if (typeof $t83 !== 'function') $notProc($t83);
-                $t84 = $t83[$RAW];
-                $stack.room = $d;
-                $t85 = $t84 === undefined ? ($t83[$PRIM] === true ? $t83($t82) : $foreign($t83, [$t82])) : $t84($t82);
-                while ($t85 instanceof $TailCall) { $stack.room = $d; $t85 = $step($t85); }
-                if ($t85 === $UNWIND) { R.reify($proc$r, 41, { line, column, span, mappings_2, sources_2, index, span_line, span_column, $t78, $t79, $t80, text_of }); return $UNWIND; }
-                $t86 = (C19.v ?? G19());
-                $t87 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof span_line === 'number' && typeof line === 'number' && (!Number.isInteger((span_line - line)) || (Number.isSafeInteger((span_line - line)) && Number.isInteger(span_line) && Number.isInteger(line)))) ? (span_line - line) : $sub(span_line, line)) : R.callBinding((C16.v ?? G16()), [span_line, line]);
-                $t88 = $t86;
-                if (typeof $t88 !== 'function') $notProc($t88);
-                $t89 = $t88[$RAW];
-                $stack.room = $d;
-                $t90 = $t89 === undefined ? ($t88[$PRIM] === true ? $t88($t87) : $foreign($t88, [$t87])) : $t89($t87);
-                while ($t90 instanceof $TailCall) { $stack.room = $d; $t90 = $step($t90); }
-                if ($t90 === $UNWIND) { R.reify($proc$r, 42, { column, span, mappings_2, sources_2, index, span_line, span_column, $t78, $t79, $t80, $t85, text_of }); return $UNWIND; }
-                $t91 = (C19.v ?? G19());
-                $t92 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof span_column === 'number' && typeof column === 'number' && (!Number.isInteger((span_column - column)) || (Number.isSafeInteger((span_column - column)) && Number.isInteger(span_column) && Number.isInteger(column)))) ? (span_column - column) : $sub(span_column, column)) : R.callBinding((C16.v ?? G16()), [span_column, column]);
-                $t93 = $t91;
+                $t93 = (C17.v ?? G17());
                 if (typeof $t93 !== 'function') $notProc($t93);
                 $t94 = $t93[$RAW];
                 $stack.room = $d;
-                $t95 = $t94 === undefined ? ($t93[$PRIM] === true ? $t93($t92) : $foreign($t93, [$t92])) : $t94($t92);
+                $t95 = $t94 === undefined ? ($t93[$PRIM] === true ? $t93(span) : $foreign($t93, [span])) : $t94(span);
                 while ($t95 instanceof $TailCall) { $stack.room = $d; $t95 = $step($t95); }
-                if ($t95 === $UNWIND) { R.reify($proc$r, 43, { span, mappings_2, sources_2, index, span_line, span_column, $t78, $t79, $t80, $t85, $t90, text_of }); return $UNWIND; }
-                $t96 = $t79;
-                if (typeof $t96 !== 'function') $notProc($t96);
-                $t97 = $t96[$RAW];
-                $stack.room = $d;
-                $t98 = $t97 === undefined ? ($t96[$PRIM] === true ? $t96(mappings_2, $t80, $t85, $t90, $t95) : $foreign($t96, [mappings_2, $t80, $t85, $t90, $t95])) : $t97(mappings_2, $t80, $t85, $t90, $t95);
-                while ($t98 instanceof $TailCall) { $stack.room = $d; $t98 = $step($t98); }
-                if ($t98 === $UNWIND) { R.reify($proc$r, 44, { span, sources_2, index, span_line, span_column, $t78, text_of }); return $UNWIND; }
-                $t99 = sources_2;
-                $t100 = index;
-                $t101 = span_line;
-                $t102 = span_column;
-                $t103 = span;
-                spans_2 = $t78;
+                if ($t95 === $UNWIND) { R.reify($proc$r, 49, { name_of, ignored_p, spans_2, sources, source, line, column, previous, span, mappings_2, text_of }); return $UNWIND; }
+                $t92 = $t95;
+              } else {
+                $t92 = false;
+              }
+              $t96 = (W16.intact || (C16.v ?? G16()) === P16) ? ($t92 === false) : R.callBinding((C16.v ?? G16()), [$t92]);
+              if ($t96 !== false) {
+                $t97 = (W2.intact || (C2.v ?? G2()) === P2) && (spans_2 instanceof R.Cons) ? (spans_2.cdr) : R.callBinding((C2.v ?? G2()), [spans_2]);
+                $t98 = mappings_2;
+                spans_2 = $t97;
                 first_p = false;
                 mappings = $t98;
-                sources = $t99;
-                source = $t100;
-                line = $t101;
-                column = $t102;
-                previous = $t103;
+                continue $loop1;
+              } else {
+                $t99 = (C17.v ?? G17());
+                if (typeof $t99 !== 'function') $notProc($t99);
+                $t100 = $t99[$RAW];
+                $stack.room = $d;
+                $t101 = $t100 === undefined ? ($t99[$PRIM] === true ? $t99(span) : $foreign($t99, [span])) : $t100(span);
+                while ($t101 instanceof $TailCall) { $stack.room = $d; $t101 = $step($t101); }
+                if ($t101 === $UNWIND) { R.reify($proc$r, 52, { name_of, ignored_p, spans_2, sources, source, line, column, span, mappings_2, text_of }); return $UNWIND; }
+                file = $t101;
+                $t102 = (C18.v ?? G18());
+                if (typeof $t102 !== 'function') $notProc($t102);
+                $t103 = $t102[$RAW];
+                $stack.room = $d;
+                $t104 = $t103 === undefined ? ($t102[$PRIM] === true ? $t102(file, sources) : $foreign($t102, [file, sources])) : $t103(file, sources);
+                while ($t104 instanceof $TailCall) { $stack.room = $d; $t104 = $step($t104); }
+                if ($t104 === $UNWIND) { R.reify($proc$r, 53, { name_of, ignored_p, spans_2, sources, source, line, column, span, mappings_2, file, text_of }); return $UNWIND; }
+                if ($t104 !== false) {
+                  $t105 = sources;
+                } else {
+                  $t106 = (W19.intact || (C19.v ?? G19()) === P19) ? (new R.Cons(file, sources)) : R.callBinding((C19.v ?? G19()), [file, sources]);
+                  $t105 = $t106;
+                }
+                sources_2 = $t105;
+                $t107 = (C9.v ?? G9());
+                $t108 = (C18.v ?? G18());
+                if (typeof $t108 !== 'function') $notProc($t108);
+                $t109 = $t108[$RAW];
+                $stack.room = $d;
+                $t110 = $t109 === undefined ? ($t108[$PRIM] === true ? $t108(file, sources_2) : $foreign($t108, [file, sources_2])) : $t109(file, sources_2);
+                while ($t110 instanceof $TailCall) { $stack.room = $d; $t110 = $step($t110); }
+                if ($t110 === $UNWIND) { R.reify($proc$r, 57, { name_of, ignored_p, spans_2, source, line, column, span, mappings_2, sources_2, $t107, text_of }); return $UNWIND; }
+                $t111 = $t107;
+                if (typeof $t111 !== 'function') $notProc($t111);
+                $t112 = $t111[$RAW];
+                $stack.room = $d;
+                $t113 = $t112 === undefined ? ($t111[$PRIM] === true ? $t111($t110) : $foreign($t111, [$t110])) : $t112($t110);
+                while ($t113 instanceof $TailCall) { $stack.room = $d; $t113 = $step($t113); }
+                if ($t113 === $UNWIND) { R.reify($proc$r, 58, { name_of, ignored_p, spans_2, source, line, column, span, mappings_2, sources_2, text_of }); return $UNWIND; }
+                $t114 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof $t113 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t113 - 1)) || (Number.isSafeInteger(($t113 - 1)) && Number.isInteger($t113) && Number.isInteger(1)))) ? ($t113 - 1) : $sub($t113, 1)) : R.callBinding((C20.v ?? G20()), [$t113, 1]);
+                index = $t114;
+                $t115 = (C21.v ?? G21());
+                if (typeof $t115 !== 'function') $notProc($t115);
+                $t116 = $t115[$RAW];
+                $stack.room = $d;
+                $t117 = $t116 === undefined ? ($t115[$PRIM] === true ? $t115(span, "line") : $foreign($t115, [span, "line"])) : $t116(span, "line");
+                while ($t117 instanceof $TailCall) { $stack.room = $d; $t117 = $step($t117); }
+                if ($t117 === $UNWIND) { R.reify($proc$r, 59, { name_of, ignored_p, spans_2, source, line, column, span, mappings_2, sources_2, index, text_of }); return $UNWIND; }
+                $t118 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof $t117 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t117 - 1)) || (Number.isSafeInteger(($t117 - 1)) && Number.isInteger($t117) && Number.isInteger(1)))) ? ($t117 - 1) : $sub($t117, 1)) : R.callBinding((C20.v ?? G20()), [$t117, 1]);
+                span_line = $t118;
+                $t119 = (C21.v ?? G21());
+                if (typeof $t119 !== 'function') $notProc($t119);
+                $t120 = $t119[$RAW];
+                $stack.room = $d;
+                $t121 = $t120 === undefined ? ($t119[$PRIM] === true ? $t119(span, "column") : $foreign($t119, [span, "column"])) : $t120(span, "column");
+                while ($t121 instanceof $TailCall) { $stack.room = $d; $t121 = $step($t121); }
+                if ($t121 === $UNWIND) { R.reify($proc$r, 60, { name_of, ignored_p, spans_2, source, line, column, span, mappings_2, sources_2, index, span_line, text_of }); return $UNWIND; }
+                $t122 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof $t121 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t121 - 1)) || (Number.isSafeInteger(($t121 - 1)) && Number.isInteger($t121) && Number.isInteger(1)))) ? ($t121 - 1) : $sub($t121, 1)) : R.callBinding((C20.v ?? G20()), [$t121, 1]);
+                span_column = $t122;
+                $t123 = (W2.intact || (C2.v ?? G2()) === P2) && (spans_2 instanceof R.Cons) ? (spans_2.cdr) : R.callBinding((C2.v ?? G2()), [spans_2]);
+                $t124 = (C12.v ?? G12());
+                $t125 = "A";
+                $t126 = (C22.v ?? G22());
+                $t127 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof index === 'number' && typeof source === 'number' && (!Number.isInteger((index - source)) || (Number.isSafeInteger((index - source)) && Number.isInteger(index) && Number.isInteger(source)))) ? (index - source) : $sub(index, source)) : R.callBinding((C20.v ?? G20()), [index, source]);
+                $t128 = $t126;
+                if (typeof $t128 !== 'function') $notProc($t128);
+                $t129 = $t128[$RAW];
+                $stack.room = $d;
+                $t130 = $t129 === undefined ? ($t128[$PRIM] === true ? $t128($t127) : $foreign($t128, [$t127])) : $t129($t127);
+                while ($t130 instanceof $TailCall) { $stack.room = $d; $t130 = $step($t130); }
+                if ($t130 === $UNWIND) { R.reify($proc$r, 61, { name_of, ignored_p, line, column, span, mappings_2, sources_2, index, span_line, span_column, $t123, $t124, $t125, text_of }); return $UNWIND; }
+                $t131 = (C22.v ?? G22());
+                $t132 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof span_line === 'number' && typeof line === 'number' && (!Number.isInteger((span_line - line)) || (Number.isSafeInteger((span_line - line)) && Number.isInteger(span_line) && Number.isInteger(line)))) ? (span_line - line) : $sub(span_line, line)) : R.callBinding((C20.v ?? G20()), [span_line, line]);
+                $t133 = $t131;
+                if (typeof $t133 !== 'function') $notProc($t133);
+                $t134 = $t133[$RAW];
+                $stack.room = $d;
+                $t135 = $t134 === undefined ? ($t133[$PRIM] === true ? $t133($t132) : $foreign($t133, [$t132])) : $t134($t132);
+                while ($t135 instanceof $TailCall) { $stack.room = $d; $t135 = $step($t135); }
+                if ($t135 === $UNWIND) { R.reify($proc$r, 62, { name_of, ignored_p, column, span, mappings_2, sources_2, index, span_line, span_column, $t123, $t124, $t125, $t130, text_of }); return $UNWIND; }
+                $t136 = (C22.v ?? G22());
+                $t137 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof span_column === 'number' && typeof column === 'number' && (!Number.isInteger((span_column - column)) || (Number.isSafeInteger((span_column - column)) && Number.isInteger(span_column) && Number.isInteger(column)))) ? (span_column - column) : $sub(span_column, column)) : R.callBinding((C20.v ?? G20()), [span_column, column]);
+                $t138 = $t136;
+                if (typeof $t138 !== 'function') $notProc($t138);
+                $t139 = $t138[$RAW];
+                $stack.room = $d;
+                $t140 = $t139 === undefined ? ($t138[$PRIM] === true ? $t138($t137) : $foreign($t138, [$t137])) : $t139($t137);
+                while ($t140 instanceof $TailCall) { $stack.room = $d; $t140 = $step($t140); }
+                if ($t140 === $UNWIND) { R.reify($proc$r, 63, { name_of, ignored_p, span, mappings_2, sources_2, index, span_line, span_column, $t123, $t124, $t125, $t130, $t135, text_of }); return $UNWIND; }
+                $t141 = $t124;
+                if (typeof $t141 !== 'function') $notProc($t141);
+                $t142 = $t141[$RAW];
+                $stack.room = $d;
+                $t143 = $t142 === undefined ? ($t141[$PRIM] === true ? $t141(mappings_2, $t125, $t130, $t135, $t140) : $foreign($t141, [mappings_2, $t125, $t130, $t135, $t140])) : $t142(mappings_2, $t125, $t130, $t135, $t140);
+                while ($t143 instanceof $TailCall) { $stack.room = $d; $t143 = $step($t143); }
+                if ($t143 === $UNWIND) { R.reify($proc$r, 64, { name_of, ignored_p, span, sources_2, index, span_line, span_column, $t123, text_of }); return $UNWIND; }
+                $t144 = sources_2;
+                $t145 = index;
+                $t146 = span_line;
+                $t147 = span_column;
+                $t148 = span;
+                spans_2 = $t123;
+                first_p = false;
+                mappings = $t143;
+                sources = $t144;
+                source = $t145;
+                line = $t146;
+                column = $t147;
+                previous = $t148;
                 continue $loop1;
               }
             }
@@ -57338,389 +57497,551 @@ export const LIBRARIES = {
           }
         } }["source-map"];
         const $proc$r = { "source-map": function ($pc, $f) {
-          let $t0, $t1, $t2, spans_2, first_p, mappings, sources, source, line, column, previous, $t3, $t4, $t5, $t6, $t7, files, $t8, $t9, $t10, texts, $t12, json_list, $t13, $t14, $t15, $t16, $t17, $t18, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, span, $t36, $t37, $t38, $t39, mappings_2, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, file, $t57, $t58, $t59, $t60, $t61, sources_2, $t62, $t63, $t64, $t65, $t66, $t67, $t68, $t69, index, $t70, $t71, $t72, $t73, span_line, $t74, $t75, $t76, $t77, span_column, $t78, $t79, $t80, $t81, $t82, $t83, $t84, $t85, $t86, $t87, $t88, $t89, $t90, $t91, $t92, $t93, $t94, $t95, $t96, $t97, $t98, $t99, $t100, $t101, $t102, $t103, spans, offset, text_of, $r;
-          ({ $t0, $t1, $t2, spans_2, first_p, mappings, sources, source, line, column, previous, $t3, $t4, $t5, $t6, $t7, files, $t8, $t9, $t10, texts, $t12, json_list, $t13, $t14, $t15, $t16, $t17, $t18, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, span, $t36, $t37, $t38, $t39, mappings_2, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, file, $t57, $t58, $t59, $t60, $t61, sources_2, $t62, $t63, $t64, $t65, $t66, $t67, $t68, $t69, index, $t70, $t71, $t72, $t73, span_line, $t74, $t75, $t76, $t77, span_column, $t78, $t79, $t80, $t81, $t82, $t83, $t84, $t85, $t86, $t87, $t88, $t89, $t90, $t91, $t92, $t93, $t94, $t95, $t96, $t97, $t98, $t99, $t100, $t101, $t102, $t103, spans, offset, text_of, $r } = $f);
-          const $d = $stack.room - 131;
+          let $t0, $t1, $t2, $t4, name_of, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t14, ignored_p, $t15, $t16, $t17, spans_2, first_p, mappings, sources, source, line, column, previous, $t18, $t19, $t20, $t21, $t22, files, $t23, $t24, $t25, texts, $t26, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, ignore_list, $t40, json_list, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67, $t68, $t69, $t70, $t71, $t72, $t73, $t74, $t75, $t76, $t77, $t78, $t79, $t80, span, $t81, $t82, $t83, $t84, mappings_2, $t85, $t86, $t87, $t88, $t89, $t90, $t91, $t92, $t93, $t94, $t95, $t96, $t97, $t98, $t99, $t100, $t101, file, $t102, $t103, $t104, $t105, $t106, sources_2, $t107, $t108, $t109, $t110, $t111, $t112, $t113, $t114, index, $t115, $t116, $t117, $t118, span_line, $t119, $t120, $t121, $t122, span_column, $t123, $t124, $t125, $t126, $t127, $t128, $t129, $t130, $t131, $t132, $t133, $t134, $t135, $t136, $t137, $t138, $t139, $t140, $t141, $t142, $t143, $t144, $t145, $t146, $t147, $t148, spans, offset, text_of, options, $r;
+          ({ $t0, $t1, $t2, $t4, name_of, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t14, ignored_p, $t15, $t16, $t17, spans_2, first_p, mappings, sources, source, line, column, previous, $t18, $t19, $t20, $t21, $t22, files, $t23, $t24, $t25, texts, $t26, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, ignore_list, $t40, json_list, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60, $t61, $t62, $t63, $t64, $t65, $t66, $t67, $t68, $t69, $t70, $t71, $t72, $t73, $t74, $t75, $t76, $t77, $t78, $t79, $t80, span, $t81, $t82, $t83, $t84, mappings_2, $t85, $t86, $t87, $t88, $t89, $t90, $t91, $t92, $t93, $t94, $t95, $t96, $t97, $t98, $t99, $t100, $t101, file, $t102, $t103, $t104, $t105, $t106, sources_2, $t107, $t108, $t109, $t110, $t111, $t112, $t113, $t114, index, $t115, $t116, $t117, $t118, span_line, $t119, $t120, $t121, $t122, span_column, $t123, $t124, $t125, $t126, $t127, $t128, $t129, $t130, $t131, $t132, $t133, $t134, $t135, $t136, $t137, $t138, $t139, $t140, $t141, $t142, $t143, $t144, $t145, $t146, $t147, $t148, spans, offset, text_of, options, $r } = $f);
+          const $d = $stack.room - 177;
           for (;;) switch ($pc) {
               case 0:
-                $t0 = (C20.v ?? G20());
-                if (typeof $t0 !== 'function') $notProc($t0);
-                $t1 = $t0[$RAW];
-                $stack.room = $d;
-                $t2 = $t1 === undefined ? ($t0[$PRIM] === true ? $t0(offset, K[0]) : $foreign($t0, [offset, K[0]])) : $t1(offset, K[0]);
-                while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
-                if ($t2 === $UNWIND) { R.reify($proc$r, 1, { spans, text_of }); return $UNWIND; }
-                $r = $t2;
-                $pc = 1; continue;
+                $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? (options instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [options]);
+                if ($t0 !== false) { $pc = 1; continue; } $pc = 2; continue;
               case 1:
-                $t2 = $r;
+                $t2 = (W1.intact || (C1.v ?? G1()) === P1) && (options instanceof R.Cons) ? (options.car) : R.callBinding((C1.v ?? G1()), [options]);
+                $t1 = $t2;
+                $pc = 3; continue;
+              case 2:
+                $t4 = $mk$fn3();
+                $t1 = $t4;
+                $pc = 3; continue;
+              case 3:
+                name_of = $t1;
+                $t5 = (W0.intact || (C0.v ?? G0()) === P0) ? (options instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [options]);
+                if ($t5 !== false) { $pc = 4; continue; } $pc = 5; continue;
+              case 4:
+                $t7 = (W2.intact || (C2.v ?? G2()) === P2) && (options instanceof R.Cons) ? (options.cdr) : R.callBinding((C2.v ?? G2()), [options]);
+                $t8 = (W0.intact || (C0.v ?? G0()) === P0) ? ($t7 instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [$t7]);
+                $t6 = $t8;
+                $pc = 6; continue;
+              case 5:
+                $t6 = false;
+                $pc = 6; continue;
+              case 6:
+                if ($t6 !== false) { $pc = 7; continue; } $pc = 8; continue;
+              case 7:
+                $t10 = (C3.v ?? G3());
+                if (typeof $t10 !== 'function') $notProc($t10);
+                $t11 = $t10[$RAW];
+                $stack.room = $d;
+                $t12 = $t11 === undefined ? ($t10[$PRIM] === true ? $t10(options) : $foreign($t10, [options])) : $t11(options);
+                while ($t12 instanceof $TailCall) { $stack.room = $d; $t12 = $step($t12); }
+                if ($t12 === $UNWIND) { R.reify($proc$r, 10, { name_of, spans, offset, text_of }); return $UNWIND; }
+                $r = $t12;
+                $pc = 10; continue;
+              case 8:
+                $t14 = $mk$fn13();
+                $t9 = $t14;
+                $pc = 9; continue;
+              case 9:
+                ignored_p = $t9;
+                $t15 = (C23.v ?? G23());
+                if (typeof $t15 !== 'function') $notProc($t15);
+                $t16 = $t15[$RAW];
+                $stack.room = $d;
+                $t17 = $t16 === undefined ? ($t15[$PRIM] === true ? $t15(offset, K[0]) : $foreign($t15, [offset, K[0]])) : $t16(offset, K[0]);
+                while ($t17 instanceof $TailCall) { $stack.room = $d; $t17 = $step($t17); }
+                if ($t17 === $UNWIND) { R.reify($proc$r, 11, { name_of, ignored_p, spans, text_of }); return $UNWIND; }
+                $r = $t17;
+                $pc = 11; continue;
+              case 10:
+                $t12 = $r;
+                $t9 = $t12;
+                $pc = 9; continue;
+              case 11:
+                $t17 = $r;
                 spans_2 = spans;
                 first_p = true;
-                mappings = $t2;
+                mappings = $t17;
                 sources = null;
                 source = 0;
                 line = 0;
                 column = 0;
                 previous = false;
-                $pc = 2; continue;
-              case 2:
-                $t3 = (W0.intact || (C0.v ?? G0()) === P0) ? (spans_2 === null) : R.callBinding((C0.v ?? G0()), [spans_2]);
-                if ($t3 !== false) { $pc = 3; continue; } $pc = 4; continue;
-              case 3:
-                $t4 = (W1.intact || (C1.v ?? G1()) === P1) ? (sources instanceof R.Cons) : R.callBinding((C1.v ?? G1()), [sources]);
-                if ($t4 !== false) { $pc = 5; continue; } $pc = 6; continue;
-              case 4:
-                $t35 = (W9.intact || (C9.v ?? G9()) === P9) && (spans_2 instanceof R.Cons) ? (spans_2.car) : R.callBinding((C9.v ?? G9()), [spans_2]);
-                span = $t35;
-                if (first_p !== false) { $pc = 16; continue; } $pc = 17; continue;
-              case 5:
-                $t5 = (C2.v ?? G2());
-                if (typeof $t5 !== 'function') $notProc($t5);
-                $t6 = $t5[$RAW];
-                $stack.room = $d;
-                $t7 = $t6 === undefined ? ($t5[$PRIM] === true ? $t5(sources) : $foreign($t5, [sources])) : $t6(sources);
-                while ($t7 instanceof $TailCall) { $stack.room = $d; $t7 = $step($t7); }
-                if ($t7 === $UNWIND) { R.reify($proc$r, 7, { mappings, text_of }); return $UNWIND; }
-                $r = $t7;
-                $pc = 7; continue;
-              case 6:
-                return false;
-              case 7:
-                $t7 = $r;
-                files = $t7;
-                $t8 = (C3.v ?? G3());
-                if (typeof $t8 !== 'function') $notProc($t8);
-                $t9 = $t8[$RAW];
-                $stack.room = $d;
-                $t10 = $t9 === undefined ? ($t8[$PRIM] === true ? $t8(text_of, files) : $foreign($t8, [text_of, files])) : $t9(text_of, files);
-                while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
-                if ($t10 === $UNWIND) { R.reify($proc$r, 8, { mappings, files }); return $UNWIND; }
-                $r = $t10;
-                $pc = 8; continue;
-              case 8:
-                $t10 = $r;
-                texts = $t10;
-                $t12 = $mk$fn11();
-                json_list = $t12;
-                $t13 = (C7.v ?? G7());
-                $t14 = "{\"version\":3,\"sources\":[";
-                $t15 = json_list;
-                if (typeof $t15 !== 'function') $notProc($t15);
-                $t16 = $t15[$RAW];
-                $stack.room = $d;
-                $t17 = $t16 === undefined ? ($t15[$PRIM] === true ? $t15(files) : $foreign($t15, [files])) : $t16(files);
-                while ($t17 instanceof $TailCall) { $stack.room = $d; $t17 = $step($t17); }
-                if ($t17 === $UNWIND) { R.reify($proc$r, 9, { mappings, texts, json_list, $t13, $t14 }); return $UNWIND; }
-                $r = $t17;
-                $pc = 9; continue;
-              case 9:
-                $t17 = $r;
-                $t18 = "]";
-                $t20 = $mk$fn19();
-                $t21 = (C8.v ?? G8());
-                if (typeof $t21 !== 'function') $notProc($t21);
-                $t22 = $t21[$RAW];
-                $stack.room = $d;
-                $t23 = $t22 === undefined ? ($t21[$PRIM] === true ? $t21($t20, texts) : $foreign($t21, [$t20, texts])) : $t22($t20, texts);
-                while ($t23 instanceof $TailCall) { $stack.room = $d; $t23 = $step($t23); }
-                if ($t23 === $UNWIND) { R.reify($proc$r, 10, { mappings, texts, json_list, $t13, $t14, $t17, $t18 }); return $UNWIND; }
-                $r = $t23;
-                $pc = 10; continue;
-              case 10:
-                $t23 = $r;
-                if ($t23 !== false) { $pc = 11; continue; } $pc = 12; continue;
-              case 11:
-                $t25 = (C7.v ?? G7());
-                $t26 = ",\"sourcesContent\":[";
-                $t27 = json_list;
-                if (typeof $t27 !== 'function') $notProc($t27);
-                $t28 = $t27[$RAW];
-                $stack.room = $d;
-                $t29 = $t28 === undefined ? ($t27[$PRIM] === true ? $t27(texts) : $foreign($t27, [texts])) : $t28(texts);
-                while ($t29 instanceof $TailCall) { $stack.room = $d; $t29 = $step($t29); }
-                if ($t29 === $UNWIND) { R.reify($proc$r, 14, { mappings, $t13, $t14, $t17, $t18, $t25, $t26 }); return $UNWIND; }
-                $r = $t29;
-                $pc = 14; continue;
+                $pc = 12; continue;
               case 12:
-                $t24 = "";
-                $pc = 13; continue;
+                $t18 = (W4.intact || (C4.v ?? G4()) === P4) ? (spans_2 === null) : R.callBinding((C4.v ?? G4()), [spans_2]);
+                if ($t18 !== false) { $pc = 13; continue; } $pc = 14; continue;
               case 13:
-                $t33 = $t13;
-                return $tailCall($t33, [$t14, $t17, $t18, $t24, ",\"names\":[],\"mappings\":\"", mappings, "\"}"]);
+                $t19 = (W0.intact || (C0.v ?? G0()) === P0) ? (sources instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [sources]);
+                if ($t19 !== false) { $pc = 15; continue; } $pc = 16; continue;
               case 14:
-                $t29 = $r;
-                $t30 = $t25;
+                $t80 = (W1.intact || (C1.v ?? G1()) === P1) && (spans_2 instanceof R.Cons) ? (spans_2.car) : R.callBinding((C1.v ?? G1()), [spans_2]);
+                span = $t80;
+                if (first_p !== false) { $pc = 36; continue; } $pc = 37; continue;
+              case 15:
+                $t20 = (C5.v ?? G5());
+                if (typeof $t20 !== 'function') $notProc($t20);
+                $t21 = $t20[$RAW];
+                $stack.room = $d;
+                $t22 = $t21 === undefined ? ($t20[$PRIM] === true ? $t20(sources) : $foreign($t20, [sources])) : $t21(sources);
+                while ($t22 instanceof $TailCall) { $stack.room = $d; $t22 = $step($t22); }
+                if ($t22 === $UNWIND) { R.reify($proc$r, 17, { name_of, ignored_p, mappings, text_of }); return $UNWIND; }
+                $r = $t22;
+                $pc = 17; continue;
+              case 16:
+                return false;
+              case 17:
+                $t22 = $r;
+                files = $t22;
+                $t23 = (C6.v ?? G6());
+                if (typeof $t23 !== 'function') $notProc($t23);
+                $t24 = $t23[$RAW];
+                $stack.room = $d;
+                $t25 = $t24 === undefined ? ($t23[$PRIM] === true ? $t23(text_of, files) : $foreign($t23, [text_of, files])) : $t24(text_of, files);
+                while ($t25 instanceof $TailCall) { $stack.room = $d; $t25 = $step($t25); }
+                if ($t25 === $UNWIND) { R.reify($proc$r, 18, { name_of, ignored_p, mappings, files }); return $UNWIND; }
+                $r = $t25;
+                $pc = 18; continue;
+              case 18:
+                $t25 = $r;
+                texts = $t25;
+                $t26 = (C7.v ?? G7());
+                $t28 = $mk$fn27(ignored_p);
+                $t29 = (C8.v ?? G8());
+                $t30 = (C9.v ?? G9());
                 if (typeof $t30 !== 'function') $notProc($t30);
                 $t31 = $t30[$RAW];
                 $stack.room = $d;
-                $t32 = $t31 === undefined ? ($t30[$PRIM] === true ? $t30($t26, $t29, "]") : $foreign($t30, [$t26, $t29, "]"])) : $t31($t26, $t29, "]");
+                $t32 = $t31 === undefined ? ($t30[$PRIM] === true ? $t30(files) : $foreign($t30, [files])) : $t31(files);
                 while ($t32 instanceof $TailCall) { $stack.room = $d; $t32 = $step($t32); }
-                if ($t32 === $UNWIND) { R.reify($proc$r, 15, { mappings, $t13, $t14, $t17, $t18 }); return $UNWIND; }
+                if ($t32 === $UNWIND) { R.reify($proc$r, 19, { name_of, mappings, files, texts, $t26, $t28, $t29 }); return $UNWIND; }
                 $r = $t32;
-                $pc = 15; continue;
-              case 15:
-                $t32 = $r;
-                $t24 = $t32;
-                $pc = 13; continue;
-              case 16:
-                $t36 = mappings;
-                $pc = 18; continue;
-              case 17:
-                $t37 = (C7.v ?? G7());
-                if (typeof $t37 !== 'function') $notProc($t37);
-                $t38 = $t37[$RAW];
-                $stack.room = $d;
-                $t39 = $t38 === undefined ? ($t37[$PRIM] === true ? $t37(mappings, ";") : $foreign($t37, [mappings, ";"])) : $t38(mappings, ";");
-                while ($t39 instanceof $TailCall) { $stack.room = $d; $t39 = $step($t39); }
-                if ($t39 === $UNWIND) { R.reify($proc$r, 19, { spans_2, sources, source, line, column, previous, span, text_of }); return $UNWIND; }
-                $r = $t39;
                 $pc = 19; continue;
-              case 18:
-                mappings_2 = $t36;
-                if (span !== false) { $pc = 20; continue; } $pc = 21; continue;
               case 19:
-                $t39 = $r;
-                $t36 = $t39;
-                $pc = 18; continue;
+                $t32 = $r;
+                $t33 = $t29;
+                if (typeof $t33 !== 'function') $notProc($t33);
+                $t34 = $t33[$RAW];
+                $stack.room = $d;
+                $t35 = $t34 === undefined ? ($t33[$PRIM] === true ? $t33($t32) : $foreign($t33, [$t32])) : $t34($t32);
+                while ($t35 instanceof $TailCall) { $stack.room = $d; $t35 = $step($t35); }
+                if ($t35 === $UNWIND) { R.reify($proc$r, 20, { name_of, mappings, files, texts, $t26, $t28 }); return $UNWIND; }
+                $r = $t35;
+                $pc = 20; continue;
               case 20:
-                $t41 = (W10.intact || (C10.v ?? G10()) === P10) ? (span === previous) : R.callBinding((C10.v ?? G10()), [span, previous]);
-                $t40 = $t41;
-                $pc = 22; continue;
+                $t35 = $r;
+                $t36 = $t26;
+                if (typeof $t36 !== 'function') $notProc($t36);
+                $t37 = $t36[$RAW];
+                $stack.room = $d;
+                $t38 = $t37 === undefined ? ($t36[$PRIM] === true ? $t36($t28, files, $t35) : $foreign($t36, [$t28, files, $t35])) : $t37($t28, files, $t35);
+                while ($t38 instanceof $TailCall) { $stack.room = $d; $t38 = $step($t38); }
+                if ($t38 === $UNWIND) { R.reify($proc$r, 21, { name_of, mappings, files, texts }); return $UNWIND; }
+                $r = $t38;
+                $pc = 21; continue;
               case 21:
-                $t40 = false;
-                $pc = 22; continue;
-              case 22:
-                if ($t40 !== false) { $pc = 23; continue; } $pc = 24; continue;
-              case 23:
-                $t42 = (W11.intact || (C11.v ?? G11()) === P11) && (spans_2 instanceof R.Cons) ? (spans_2.cdr) : R.callBinding((C11.v ?? G11()), [spans_2]);
-                $t43 = (C7.v ?? G7());
+                $t38 = $r;
+                ignore_list = $t38;
+                $t40 = $mk$fn39();
+                json_list = $t40;
+                $t41 = (C12.v ?? G12());
+                $t42 = "{\"version\":3,\"sources\":[";
+                $t43 = (C6.v ?? G6());
                 if (typeof $t43 !== 'function') $notProc($t43);
                 $t44 = $t43[$RAW];
                 $stack.room = $d;
-                $t45 = $t44 === undefined ? ($t43[$PRIM] === true ? $t43(mappings_2, "AAAA") : $foreign($t43, [mappings_2, "AAAA"])) : $t44(mappings_2, "AAAA");
+                $t45 = $t44 === undefined ? ($t43[$PRIM] === true ? $t43(name_of, files) : $foreign($t43, [name_of, files])) : $t44(name_of, files);
                 while ($t45 instanceof $TailCall) { $stack.room = $d; $t45 = $step($t45); }
-                if ($t45 === $UNWIND) { R.reify($proc$r, 25, { sources, source, line, column, span, $t42, text_of }); return $UNWIND; }
+                if ($t45 === $UNWIND) { R.reify($proc$r, 22, { mappings, texts, ignore_list, json_list, $t41, $t42 }); return $UNWIND; }
                 $r = $t45;
-                $pc = 25; continue;
-              case 24:
-                if (span !== false) { $pc = 26; continue; } $pc = 27; continue;
-              case 25:
+                $pc = 22; continue;
+              case 22:
                 $t45 = $r;
-                $t46 = span;
-                spans_2 = $t42;
-                first_p = false;
-                mappings = $t45;
-                previous = $t46;
-                $pc = 2; continue;
+                $t46 = json_list;
+                if (typeof $t46 !== 'function') $notProc($t46);
+                $t47 = $t46[$RAW];
+                $stack.room = $d;
+                $t48 = $t47 === undefined ? ($t46[$PRIM] === true ? $t46($t45) : $foreign($t46, [$t45])) : $t47($t45);
+                while ($t48 instanceof $TailCall) { $stack.room = $d; $t48 = $step($t48); }
+                if ($t48 === $UNWIND) { R.reify($proc$r, 23, { mappings, texts, ignore_list, json_list, $t41, $t42 }); return $UNWIND; }
+                $r = $t48;
+                $pc = 23; continue;
+              case 23:
+                $t48 = $r;
+                $t49 = "]";
+                $t51 = $mk$fn50();
+                $t52 = (C13.v ?? G13());
+                if (typeof $t52 !== 'function') $notProc($t52);
+                $t53 = $t52[$RAW];
+                $stack.room = $d;
+                $t54 = $t53 === undefined ? ($t52[$PRIM] === true ? $t52($t51, texts) : $foreign($t52, [$t51, texts])) : $t53($t51, texts);
+                while ($t54 instanceof $TailCall) { $stack.room = $d; $t54 = $step($t54); }
+                if ($t54 === $UNWIND) { R.reify($proc$r, 24, { mappings, texts, ignore_list, json_list, $t41, $t42, $t48, $t49 }); return $UNWIND; }
+                $r = $t54;
+                $pc = 24; continue;
+              case 24:
+                $t54 = $r;
+                if ($t54 !== false) { $pc = 25; continue; } $pc = 26; continue;
+              case 25:
+                $t56 = (C12.v ?? G12());
+                $t57 = ",\"sourcesContent\":[";
+                $t58 = json_list;
+                if (typeof $t58 !== 'function') $notProc($t58);
+                $t59 = $t58[$RAW];
+                $stack.room = $d;
+                $t60 = $t59 === undefined ? ($t58[$PRIM] === true ? $t58(texts) : $foreign($t58, [texts])) : $t59(texts);
+                while ($t60 instanceof $TailCall) { $stack.room = $d; $t60 = $step($t60); }
+                if ($t60 === $UNWIND) { R.reify($proc$r, 28, { mappings, ignore_list, $t41, $t42, $t48, $t49, $t56, $t57 }); return $UNWIND; }
+                $r = $t60;
+                $pc = 28; continue;
               case 26:
-                $t48 = (C13.v ?? G13());
-                if (typeof $t48 !== 'function') $notProc($t48);
-                $t49 = $t48[$RAW];
-                $stack.room = $d;
-                $t50 = $t49 === undefined ? ($t48[$PRIM] === true ? $t48(span) : $foreign($t48, [span])) : $t49(span);
-                while ($t50 instanceof $TailCall) { $stack.room = $d; $t50 = $step($t50); }
-                if ($t50 === $UNWIND) { R.reify($proc$r, 29, { spans_2, sources, source, line, column, previous, span, mappings_2, text_of }); return $UNWIND; }
-                $r = $t50;
-                $pc = 29; continue;
+                $t55 = "";
+                $pc = 27; continue;
               case 27:
-                $t47 = false;
-                $pc = 28; continue;
+                $t64 = (W0.intact || (C0.v ?? G0()) === P0) ? (ignore_list instanceof R.Cons) : R.callBinding((C0.v ?? G0()), [ignore_list]);
+                if ($t64 !== false) { $pc = 30; continue; } $pc = 31; continue;
               case 28:
-                $t51 = (W12.intact || (C12.v ?? G12()) === P12) ? ($t47 === false) : R.callBinding((C12.v ?? G12()), [$t47]);
-                if ($t51 !== false) { $pc = 30; continue; } $pc = 31; continue;
-              case 29:
-                $t50 = $r;
-                $t47 = $t50;
-                $pc = 28; continue;
-              case 30:
-                $t52 = (W11.intact || (C11.v ?? G11()) === P11) && (spans_2 instanceof R.Cons) ? (spans_2.cdr) : R.callBinding((C11.v ?? G11()), [spans_2]);
-                $t53 = mappings_2;
-                spans_2 = $t52;
-                first_p = false;
-                mappings = $t53;
-                $pc = 2; continue;
-              case 31:
-                $t54 = (C13.v ?? G13());
-                if (typeof $t54 !== 'function') $notProc($t54);
-                $t55 = $t54[$RAW];
+                $t60 = $r;
+                $t61 = $t56;
+                if (typeof $t61 !== 'function') $notProc($t61);
+                $t62 = $t61[$RAW];
                 $stack.room = $d;
-                $t56 = $t55 === undefined ? ($t54[$PRIM] === true ? $t54(span) : $foreign($t54, [span])) : $t55(span);
-                while ($t56 instanceof $TailCall) { $stack.room = $d; $t56 = $step($t56); }
-                if ($t56 === $UNWIND) { R.reify($proc$r, 32, { spans_2, sources, source, line, column, span, mappings_2, text_of }); return $UNWIND; }
-                $r = $t56;
+                $t63 = $t62 === undefined ? ($t61[$PRIM] === true ? $t61($t57, $t60, "]") : $foreign($t61, [$t57, $t60, "]"])) : $t62($t57, $t60, "]");
+                while ($t63 instanceof $TailCall) { $stack.room = $d; $t63 = $step($t63); }
+                if ($t63 === $UNWIND) { R.reify($proc$r, 29, { mappings, ignore_list, $t41, $t42, $t48, $t49 }); return $UNWIND; }
+                $r = $t63;
+                $pc = 29; continue;
+              case 29:
+                $t63 = $r;
+                $t55 = $t63;
+                $pc = 27; continue;
+              case 30:
+                $t66 = (C12.v ?? G12());
+                $t67 = ",\"x_google_ignoreList\":[";
+                $t68 = (C10.v ?? G10());
+                $t69 = (C6.v ?? G6());
+                if (typeof $t69 !== 'function') $notProc($t69);
+                $t70 = $t69[$RAW];
+                $stack.room = $d;
+                $t71 = $t70 === undefined ? ($t69[$PRIM] === true ? $t69((C14.v ?? G14()), ignore_list) : $foreign($t69, [(C14.v ?? G14()), ignore_list])) : $t70((C14.v ?? G14()), ignore_list);
+                while ($t71 instanceof $TailCall) { $stack.room = $d; $t71 = $step($t71); }
+                if ($t71 === $UNWIND) { R.reify($proc$r, 33, { mappings, $t41, $t42, $t48, $t49, $t55, $t66, $t67, $t68 }); return $UNWIND; }
+                $r = $t71;
+                $pc = 33; continue;
+              case 31:
+                $t65 = "";
                 $pc = 32; continue;
               case 32:
-                $t56 = $r;
-                file = $t56;
-                $t57 = (C14.v ?? G14());
-                if (typeof $t57 !== 'function') $notProc($t57);
-                $t58 = $t57[$RAW];
-                $stack.room = $d;
-                $t59 = $t58 === undefined ? ($t57[$PRIM] === true ? $t57(file, sources) : $foreign($t57, [file, sources])) : $t58(file, sources);
-                while ($t59 instanceof $TailCall) { $stack.room = $d; $t59 = $step($t59); }
-                if ($t59 === $UNWIND) { R.reify($proc$r, 33, { spans_2, sources, source, line, column, span, mappings_2, file, text_of }); return $UNWIND; }
-                $r = $t59;
-                $pc = 33; continue;
+                $t78 = $t41;
+                return $tailCall($t78, [$t42, $t48, $t49, $t55, $t65, ",\"names\":[],\"mappings\":\"", mappings, "\"}"]);
               case 33:
-                $t59 = $r;
-                if ($t59 !== false) { $pc = 34; continue; } $pc = 35; continue;
+                $t71 = $r;
+                $t72 = $t68;
+                if (typeof $t72 !== 'function') $notProc($t72);
+                $t73 = $t72[$RAW];
+                $stack.room = $d;
+                $t74 = $t73 === undefined ? ($t72[$PRIM] === true ? $t72($t71, ",") : $foreign($t72, [$t71, ","])) : $t73($t71, ",");
+                while ($t74 instanceof $TailCall) { $stack.room = $d; $t74 = $step($t74); }
+                if ($t74 === $UNWIND) { R.reify($proc$r, 34, { mappings, $t41, $t42, $t48, $t49, $t55, $t66, $t67 }); return $UNWIND; }
+                $r = $t74;
+                $pc = 34; continue;
               case 34:
-                $t60 = sources;
-                $pc = 36; continue;
+                $t74 = $r;
+                $t75 = $t66;
+                if (typeof $t75 !== 'function') $notProc($t75);
+                $t76 = $t75[$RAW];
+                $stack.room = $d;
+                $t77 = $t76 === undefined ? ($t75[$PRIM] === true ? $t75($t67, $t74, "]") : $foreign($t75, [$t67, $t74, "]"])) : $t76($t67, $t74, "]");
+                while ($t77 instanceof $TailCall) { $stack.room = $d; $t77 = $step($t77); }
+                if ($t77 === $UNWIND) { R.reify($proc$r, 35, { mappings, $t41, $t42, $t48, $t49, $t55 }); return $UNWIND; }
+                $r = $t77;
+                $pc = 35; continue;
               case 35:
-                $t61 = (W15.intact || (C15.v ?? G15()) === P15) ? (new R.Cons(file, sources)) : R.callBinding((C15.v ?? G15()), [file, sources]);
-                $t60 = $t61;
-                $pc = 36; continue;
+                $t77 = $r;
+                $t65 = $t77;
+                $pc = 32; continue;
               case 36:
-                sources_2 = $t60;
-                $t62 = (C17.v ?? G17());
-                $t63 = (C14.v ?? G14());
-                if (typeof $t63 !== 'function') $notProc($t63);
-                $t64 = $t63[$RAW];
-                $stack.room = $d;
-                $t65 = $t64 === undefined ? ($t63[$PRIM] === true ? $t63(file, sources_2) : $foreign($t63, [file, sources_2])) : $t64(file, sources_2);
-                while ($t65 instanceof $TailCall) { $stack.room = $d; $t65 = $step($t65); }
-                if ($t65 === $UNWIND) { R.reify($proc$r, 37, { spans_2, source, line, column, span, mappings_2, sources_2, $t62, text_of }); return $UNWIND; }
-                $r = $t65;
-                $pc = 37; continue;
-              case 37:
-                $t65 = $r;
-                $t66 = $t62;
-                if (typeof $t66 !== 'function') $notProc($t66);
-                $t67 = $t66[$RAW];
-                $stack.room = $d;
-                $t68 = $t67 === undefined ? ($t66[$PRIM] === true ? $t66($t65) : $foreign($t66, [$t65])) : $t67($t65);
-                while ($t68 instanceof $TailCall) { $stack.room = $d; $t68 = $step($t68); }
-                if ($t68 === $UNWIND) { R.reify($proc$r, 38, { spans_2, source, line, column, span, mappings_2, sources_2, text_of }); return $UNWIND; }
-                $r = $t68;
+                $t81 = mappings;
                 $pc = 38; continue;
-              case 38:
-                $t68 = $r;
-                $t69 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof $t68 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t68 - 1)) || (Number.isSafeInteger(($t68 - 1)) && Number.isInteger($t68) && Number.isInteger(1)))) ? ($t68 - 1) : $sub($t68, 1)) : R.callBinding((C16.v ?? G16()), [$t68, 1]);
-                index = $t69;
-                $t70 = (C18.v ?? G18());
-                if (typeof $t70 !== 'function') $notProc($t70);
-                $t71 = $t70[$RAW];
+              case 37:
+                $t82 = (C12.v ?? G12());
+                if (typeof $t82 !== 'function') $notProc($t82);
+                $t83 = $t82[$RAW];
                 $stack.room = $d;
-                $t72 = $t71 === undefined ? ($t70[$PRIM] === true ? $t70(span, "line") : $foreign($t70, [span, "line"])) : $t71(span, "line");
-                while ($t72 instanceof $TailCall) { $stack.room = $d; $t72 = $step($t72); }
-                if ($t72 === $UNWIND) { R.reify($proc$r, 39, { spans_2, source, line, column, span, mappings_2, sources_2, index, text_of }); return $UNWIND; }
-                $r = $t72;
+                $t84 = $t83 === undefined ? ($t82[$PRIM] === true ? $t82(mappings, ";") : $foreign($t82, [mappings, ";"])) : $t83(mappings, ";");
+                while ($t84 instanceof $TailCall) { $stack.room = $d; $t84 = $step($t84); }
+                if ($t84 === $UNWIND) { R.reify($proc$r, 39, { name_of, ignored_p, spans_2, sources, source, line, column, previous, span, text_of }); return $UNWIND; }
+                $r = $t84;
                 $pc = 39; continue;
+              case 38:
+                mappings_2 = $t81;
+                if (span !== false) { $pc = 40; continue; } $pc = 41; continue;
               case 39:
-                $t72 = $r;
-                $t73 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof $t72 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t72 - 1)) || (Number.isSafeInteger(($t72 - 1)) && Number.isInteger($t72) && Number.isInteger(1)))) ? ($t72 - 1) : $sub($t72, 1)) : R.callBinding((C16.v ?? G16()), [$t72, 1]);
-                span_line = $t73;
-                $t74 = (C18.v ?? G18());
-                if (typeof $t74 !== 'function') $notProc($t74);
-                $t75 = $t74[$RAW];
-                $stack.room = $d;
-                $t76 = $t75 === undefined ? ($t74[$PRIM] === true ? $t74(span, "column") : $foreign($t74, [span, "column"])) : $t75(span, "column");
-                while ($t76 instanceof $TailCall) { $stack.room = $d; $t76 = $step($t76); }
-                if ($t76 === $UNWIND) { R.reify($proc$r, 40, { spans_2, source, line, column, span, mappings_2, sources_2, index, span_line, text_of }); return $UNWIND; }
-                $r = $t76;
-                $pc = 40; continue;
+                $t84 = $r;
+                $t81 = $t84;
+                $pc = 38; continue;
               case 40:
-                $t76 = $r;
-                $t77 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof $t76 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t76 - 1)) || (Number.isSafeInteger(($t76 - 1)) && Number.isInteger($t76) && Number.isInteger(1)))) ? ($t76 - 1) : $sub($t76, 1)) : R.callBinding((C16.v ?? G16()), [$t76, 1]);
-                span_column = $t77;
-                $t78 = (W11.intact || (C11.v ?? G11()) === P11) && (spans_2 instanceof R.Cons) ? (spans_2.cdr) : R.callBinding((C11.v ?? G11()), [spans_2]);
-                $t79 = (C7.v ?? G7());
-                $t80 = "A";
-                $t81 = (C19.v ?? G19());
-                $t82 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof index === 'number' && typeof source === 'number' && (!Number.isInteger((index - source)) || (Number.isSafeInteger((index - source)) && Number.isInteger(index) && Number.isInteger(source)))) ? (index - source) : $sub(index, source)) : R.callBinding((C16.v ?? G16()), [index, source]);
-                $t83 = $t81;
-                if (typeof $t83 !== 'function') $notProc($t83);
-                $t84 = $t83[$RAW];
-                $stack.room = $d;
-                $t85 = $t84 === undefined ? ($t83[$PRIM] === true ? $t83($t82) : $foreign($t83, [$t82])) : $t84($t82);
-                while ($t85 instanceof $TailCall) { $stack.room = $d; $t85 = $step($t85); }
-                if ($t85 === $UNWIND) { R.reify($proc$r, 41, { line, column, span, mappings_2, sources_2, index, span_line, span_column, $t78, $t79, $t80, text_of }); return $UNWIND; }
-                $r = $t85;
-                $pc = 41; continue;
+                $t86 = (W15.intact || (C15.v ?? G15()) === P15) ? (span === previous) : R.callBinding((C15.v ?? G15()), [span, previous]);
+                $t85 = $t86;
+                $pc = 42; continue;
               case 41:
-                $t85 = $r;
-                $t86 = (C19.v ?? G19());
-                $t87 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof span_line === 'number' && typeof line === 'number' && (!Number.isInteger((span_line - line)) || (Number.isSafeInteger((span_line - line)) && Number.isInteger(span_line) && Number.isInteger(line)))) ? (span_line - line) : $sub(span_line, line)) : R.callBinding((C16.v ?? G16()), [span_line, line]);
-                $t88 = $t86;
+                $t85 = false;
+                $pc = 42; continue;
+              case 42:
+                if ($t85 !== false) { $pc = 43; continue; } $pc = 44; continue;
+              case 43:
+                $t87 = (W2.intact || (C2.v ?? G2()) === P2) && (spans_2 instanceof R.Cons) ? (spans_2.cdr) : R.callBinding((C2.v ?? G2()), [spans_2]);
+                $t88 = (C12.v ?? G12());
                 if (typeof $t88 !== 'function') $notProc($t88);
                 $t89 = $t88[$RAW];
                 $stack.room = $d;
-                $t90 = $t89 === undefined ? ($t88[$PRIM] === true ? $t88($t87) : $foreign($t88, [$t87])) : $t89($t87);
+                $t90 = $t89 === undefined ? ($t88[$PRIM] === true ? $t88(mappings_2, "AAAA") : $foreign($t88, [mappings_2, "AAAA"])) : $t89(mappings_2, "AAAA");
                 while ($t90 instanceof $TailCall) { $stack.room = $d; $t90 = $step($t90); }
-                if ($t90 === $UNWIND) { R.reify($proc$r, 42, { column, span, mappings_2, sources_2, index, span_line, span_column, $t78, $t79, $t80, $t85, text_of }); return $UNWIND; }
+                if ($t90 === $UNWIND) { R.reify($proc$r, 45, { name_of, ignored_p, sources, source, line, column, span, $t87, text_of }); return $UNWIND; }
                 $r = $t90;
-                $pc = 42; continue;
-              case 42:
+                $pc = 45; continue;
+              case 44:
+                if (span !== false) { $pc = 46; continue; } $pc = 47; continue;
+              case 45:
                 $t90 = $r;
-                $t91 = (C19.v ?? G19());
-                $t92 = (W16.intact || (C16.v ?? G16()) === P16) ? ((typeof span_column === 'number' && typeof column === 'number' && (!Number.isInteger((span_column - column)) || (Number.isSafeInteger((span_column - column)) && Number.isInteger(span_column) && Number.isInteger(column)))) ? (span_column - column) : $sub(span_column, column)) : R.callBinding((C16.v ?? G16()), [span_column, column]);
-                $t93 = $t91;
+                $t91 = span;
+                spans_2 = $t87;
+                first_p = false;
+                mappings = $t90;
+                previous = $t91;
+                $pc = 12; continue;
+              case 46:
+                $t93 = (C17.v ?? G17());
                 if (typeof $t93 !== 'function') $notProc($t93);
                 $t94 = $t93[$RAW];
                 $stack.room = $d;
-                $t95 = $t94 === undefined ? ($t93[$PRIM] === true ? $t93($t92) : $foreign($t93, [$t92])) : $t94($t92);
+                $t95 = $t94 === undefined ? ($t93[$PRIM] === true ? $t93(span) : $foreign($t93, [span])) : $t94(span);
                 while ($t95 instanceof $TailCall) { $stack.room = $d; $t95 = $step($t95); }
-                if ($t95 === $UNWIND) { R.reify($proc$r, 43, { span, mappings_2, sources_2, index, span_line, span_column, $t78, $t79, $t80, $t85, $t90, text_of }); return $UNWIND; }
+                if ($t95 === $UNWIND) { R.reify($proc$r, 49, { name_of, ignored_p, spans_2, sources, source, line, column, previous, span, mappings_2, text_of }); return $UNWIND; }
                 $r = $t95;
-                $pc = 43; continue;
-              case 43:
+                $pc = 49; continue;
+              case 47:
+                $t92 = false;
+                $pc = 48; continue;
+              case 48:
+                $t96 = (W16.intact || (C16.v ?? G16()) === P16) ? ($t92 === false) : R.callBinding((C16.v ?? G16()), [$t92]);
+                if ($t96 !== false) { $pc = 50; continue; } $pc = 51; continue;
+              case 49:
                 $t95 = $r;
-                $t96 = $t79;
-                if (typeof $t96 !== 'function') $notProc($t96);
-                $t97 = $t96[$RAW];
-                $stack.room = $d;
-                $t98 = $t97 === undefined ? ($t96[$PRIM] === true ? $t96(mappings_2, $t80, $t85, $t90, $t95) : $foreign($t96, [mappings_2, $t80, $t85, $t90, $t95])) : $t97(mappings_2, $t80, $t85, $t90, $t95);
-                while ($t98 instanceof $TailCall) { $stack.room = $d; $t98 = $step($t98); }
-                if ($t98 === $UNWIND) { R.reify($proc$r, 44, { span, sources_2, index, span_line, span_column, $t78, text_of }); return $UNWIND; }
-                $r = $t98;
-                $pc = 44; continue;
-              case 44:
-                $t98 = $r;
-                $t99 = sources_2;
-                $t100 = index;
-                $t101 = span_line;
-                $t102 = span_column;
-                $t103 = span;
-                spans_2 = $t78;
+                $t92 = $t95;
+                $pc = 48; continue;
+              case 50:
+                $t97 = (W2.intact || (C2.v ?? G2()) === P2) && (spans_2 instanceof R.Cons) ? (spans_2.cdr) : R.callBinding((C2.v ?? G2()), [spans_2]);
+                $t98 = mappings_2;
+                spans_2 = $t97;
                 first_p = false;
                 mappings = $t98;
-                sources = $t99;
-                source = $t100;
-                line = $t101;
-                column = $t102;
-                previous = $t103;
-                $pc = 2; continue;
+                $pc = 12; continue;
+              case 51:
+                $t99 = (C17.v ?? G17());
+                if (typeof $t99 !== 'function') $notProc($t99);
+                $t100 = $t99[$RAW];
+                $stack.room = $d;
+                $t101 = $t100 === undefined ? ($t99[$PRIM] === true ? $t99(span) : $foreign($t99, [span])) : $t100(span);
+                while ($t101 instanceof $TailCall) { $stack.room = $d; $t101 = $step($t101); }
+                if ($t101 === $UNWIND) { R.reify($proc$r, 52, { name_of, ignored_p, spans_2, sources, source, line, column, span, mappings_2, text_of }); return $UNWIND; }
+                $r = $t101;
+                $pc = 52; continue;
+              case 52:
+                $t101 = $r;
+                file = $t101;
+                $t102 = (C18.v ?? G18());
+                if (typeof $t102 !== 'function') $notProc($t102);
+                $t103 = $t102[$RAW];
+                $stack.room = $d;
+                $t104 = $t103 === undefined ? ($t102[$PRIM] === true ? $t102(file, sources) : $foreign($t102, [file, sources])) : $t103(file, sources);
+                while ($t104 instanceof $TailCall) { $stack.room = $d; $t104 = $step($t104); }
+                if ($t104 === $UNWIND) { R.reify($proc$r, 53, { name_of, ignored_p, spans_2, sources, source, line, column, span, mappings_2, file, text_of }); return $UNWIND; }
+                $r = $t104;
+                $pc = 53; continue;
+              case 53:
+                $t104 = $r;
+                if ($t104 !== false) { $pc = 54; continue; } $pc = 55; continue;
+              case 54:
+                $t105 = sources;
+                $pc = 56; continue;
+              case 55:
+                $t106 = (W19.intact || (C19.v ?? G19()) === P19) ? (new R.Cons(file, sources)) : R.callBinding((C19.v ?? G19()), [file, sources]);
+                $t105 = $t106;
+                $pc = 56; continue;
+              case 56:
+                sources_2 = $t105;
+                $t107 = (C9.v ?? G9());
+                $t108 = (C18.v ?? G18());
+                if (typeof $t108 !== 'function') $notProc($t108);
+                $t109 = $t108[$RAW];
+                $stack.room = $d;
+                $t110 = $t109 === undefined ? ($t108[$PRIM] === true ? $t108(file, sources_2) : $foreign($t108, [file, sources_2])) : $t109(file, sources_2);
+                while ($t110 instanceof $TailCall) { $stack.room = $d; $t110 = $step($t110); }
+                if ($t110 === $UNWIND) { R.reify($proc$r, 57, { name_of, ignored_p, spans_2, source, line, column, span, mappings_2, sources_2, $t107, text_of }); return $UNWIND; }
+                $r = $t110;
+                $pc = 57; continue;
+              case 57:
+                $t110 = $r;
+                $t111 = $t107;
+                if (typeof $t111 !== 'function') $notProc($t111);
+                $t112 = $t111[$RAW];
+                $stack.room = $d;
+                $t113 = $t112 === undefined ? ($t111[$PRIM] === true ? $t111($t110) : $foreign($t111, [$t110])) : $t112($t110);
+                while ($t113 instanceof $TailCall) { $stack.room = $d; $t113 = $step($t113); }
+                if ($t113 === $UNWIND) { R.reify($proc$r, 58, { name_of, ignored_p, spans_2, source, line, column, span, mappings_2, sources_2, text_of }); return $UNWIND; }
+                $r = $t113;
+                $pc = 58; continue;
+              case 58:
+                $t113 = $r;
+                $t114 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof $t113 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t113 - 1)) || (Number.isSafeInteger(($t113 - 1)) && Number.isInteger($t113) && Number.isInteger(1)))) ? ($t113 - 1) : $sub($t113, 1)) : R.callBinding((C20.v ?? G20()), [$t113, 1]);
+                index = $t114;
+                $t115 = (C21.v ?? G21());
+                if (typeof $t115 !== 'function') $notProc($t115);
+                $t116 = $t115[$RAW];
+                $stack.room = $d;
+                $t117 = $t116 === undefined ? ($t115[$PRIM] === true ? $t115(span, "line") : $foreign($t115, [span, "line"])) : $t116(span, "line");
+                while ($t117 instanceof $TailCall) { $stack.room = $d; $t117 = $step($t117); }
+                if ($t117 === $UNWIND) { R.reify($proc$r, 59, { name_of, ignored_p, spans_2, source, line, column, span, mappings_2, sources_2, index, text_of }); return $UNWIND; }
+                $r = $t117;
+                $pc = 59; continue;
+              case 59:
+                $t117 = $r;
+                $t118 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof $t117 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t117 - 1)) || (Number.isSafeInteger(($t117 - 1)) && Number.isInteger($t117) && Number.isInteger(1)))) ? ($t117 - 1) : $sub($t117, 1)) : R.callBinding((C20.v ?? G20()), [$t117, 1]);
+                span_line = $t118;
+                $t119 = (C21.v ?? G21());
+                if (typeof $t119 !== 'function') $notProc($t119);
+                $t120 = $t119[$RAW];
+                $stack.room = $d;
+                $t121 = $t120 === undefined ? ($t119[$PRIM] === true ? $t119(span, "column") : $foreign($t119, [span, "column"])) : $t120(span, "column");
+                while ($t121 instanceof $TailCall) { $stack.room = $d; $t121 = $step($t121); }
+                if ($t121 === $UNWIND) { R.reify($proc$r, 60, { name_of, ignored_p, spans_2, source, line, column, span, mappings_2, sources_2, index, span_line, text_of }); return $UNWIND; }
+                $r = $t121;
+                $pc = 60; continue;
+              case 60:
+                $t121 = $r;
+                $t122 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof $t121 === 'number' && typeof 1 === 'number' && (!Number.isInteger(($t121 - 1)) || (Number.isSafeInteger(($t121 - 1)) && Number.isInteger($t121) && Number.isInteger(1)))) ? ($t121 - 1) : $sub($t121, 1)) : R.callBinding((C20.v ?? G20()), [$t121, 1]);
+                span_column = $t122;
+                $t123 = (W2.intact || (C2.v ?? G2()) === P2) && (spans_2 instanceof R.Cons) ? (spans_2.cdr) : R.callBinding((C2.v ?? G2()), [spans_2]);
+                $t124 = (C12.v ?? G12());
+                $t125 = "A";
+                $t126 = (C22.v ?? G22());
+                $t127 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof index === 'number' && typeof source === 'number' && (!Number.isInteger((index - source)) || (Number.isSafeInteger((index - source)) && Number.isInteger(index) && Number.isInteger(source)))) ? (index - source) : $sub(index, source)) : R.callBinding((C20.v ?? G20()), [index, source]);
+                $t128 = $t126;
+                if (typeof $t128 !== 'function') $notProc($t128);
+                $t129 = $t128[$RAW];
+                $stack.room = $d;
+                $t130 = $t129 === undefined ? ($t128[$PRIM] === true ? $t128($t127) : $foreign($t128, [$t127])) : $t129($t127);
+                while ($t130 instanceof $TailCall) { $stack.room = $d; $t130 = $step($t130); }
+                if ($t130 === $UNWIND) { R.reify($proc$r, 61, { name_of, ignored_p, line, column, span, mappings_2, sources_2, index, span_line, span_column, $t123, $t124, $t125, text_of }); return $UNWIND; }
+                $r = $t130;
+                $pc = 61; continue;
+              case 61:
+                $t130 = $r;
+                $t131 = (C22.v ?? G22());
+                $t132 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof span_line === 'number' && typeof line === 'number' && (!Number.isInteger((span_line - line)) || (Number.isSafeInteger((span_line - line)) && Number.isInteger(span_line) && Number.isInteger(line)))) ? (span_line - line) : $sub(span_line, line)) : R.callBinding((C20.v ?? G20()), [span_line, line]);
+                $t133 = $t131;
+                if (typeof $t133 !== 'function') $notProc($t133);
+                $t134 = $t133[$RAW];
+                $stack.room = $d;
+                $t135 = $t134 === undefined ? ($t133[$PRIM] === true ? $t133($t132) : $foreign($t133, [$t132])) : $t134($t132);
+                while ($t135 instanceof $TailCall) { $stack.room = $d; $t135 = $step($t135); }
+                if ($t135 === $UNWIND) { R.reify($proc$r, 62, { name_of, ignored_p, column, span, mappings_2, sources_2, index, span_line, span_column, $t123, $t124, $t125, $t130, text_of }); return $UNWIND; }
+                $r = $t135;
+                $pc = 62; continue;
+              case 62:
+                $t135 = $r;
+                $t136 = (C22.v ?? G22());
+                $t137 = (W20.intact || (C20.v ?? G20()) === P20) ? ((typeof span_column === 'number' && typeof column === 'number' && (!Number.isInteger((span_column - column)) || (Number.isSafeInteger((span_column - column)) && Number.isInteger(span_column) && Number.isInteger(column)))) ? (span_column - column) : $sub(span_column, column)) : R.callBinding((C20.v ?? G20()), [span_column, column]);
+                $t138 = $t136;
+                if (typeof $t138 !== 'function') $notProc($t138);
+                $t139 = $t138[$RAW];
+                $stack.room = $d;
+                $t140 = $t139 === undefined ? ($t138[$PRIM] === true ? $t138($t137) : $foreign($t138, [$t137])) : $t139($t137);
+                while ($t140 instanceof $TailCall) { $stack.room = $d; $t140 = $step($t140); }
+                if ($t140 === $UNWIND) { R.reify($proc$r, 63, { name_of, ignored_p, span, mappings_2, sources_2, index, span_line, span_column, $t123, $t124, $t125, $t130, $t135, text_of }); return $UNWIND; }
+                $r = $t140;
+                $pc = 63; continue;
+              case 63:
+                $t140 = $r;
+                $t141 = $t124;
+                if (typeof $t141 !== 'function') $notProc($t141);
+                $t142 = $t141[$RAW];
+                $stack.room = $d;
+                $t143 = $t142 === undefined ? ($t141[$PRIM] === true ? $t141(mappings_2, $t125, $t130, $t135, $t140) : $foreign($t141, [mappings_2, $t125, $t130, $t135, $t140])) : $t142(mappings_2, $t125, $t130, $t135, $t140);
+                while ($t143 instanceof $TailCall) { $stack.room = $d; $t143 = $step($t143); }
+                if ($t143 === $UNWIND) { R.reify($proc$r, 64, { name_of, ignored_p, span, sources_2, index, span_line, span_column, $t123, text_of }); return $UNWIND; }
+                $r = $t143;
+                $pc = 64; continue;
+              case 64:
+                $t143 = $r;
+                $t144 = sources_2;
+                $t145 = index;
+                $t146 = span_line;
+                $t147 = span_column;
+                $t148 = span;
+                spans_2 = $t123;
+                first_p = false;
+                mappings = $t143;
+                sources = $t144;
+                source = $t145;
+                line = $t146;
+                column = $t147;
+                previous = $t148;
+                $pc = 12; continue;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
         } }["source-map"];
-        const $proc$js = R.markProcedure($proc, "source-map", E);
+        const $proc$js = R.markProcedure($proc, "source-map", E, true);
         $proc$js.$resume = $proc$r;
         return $proc$js;
         }
       },
       "source-map-url": {
-        params: ["json_$2681"],
+        params: ["json_$2749"],
         rest: null,
         constants: [],
-        span: {"filename":"sourcemap.scm","line":177,"column":1,"endLine":178,"endColumn":63},
+        span: {"filename":"sourcemap.scm","line":192,"column":1,"endLine":193,"endColumn":81},
         make: (R, E, K) => {
-        const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-append")).v;
+        let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "url-path-escape")).v;
         const $proc = { "source-map-url": function (json) {
-          let $t0, $t1;
+          let $t0, $t1, $t2, $t3, $t4, $t5, $t6;
           if (arguments.length !== 1) R.wrongArity("source-map-url", 1, false, arguments.length);
-          const $d = $stack.room - 11;
+          const $d = $stack.room - 16;
+          if ($d < 0 && $stack.flushable) return $flush($proc$js, [json]);
           $t0 = (C0.v ?? G0());
-          if ($d > 0 && ($t1 = $t0?.[$RAW] ?? $t0)?.[$PRIM] === true) { $stack.room = $d; return $t1("data:application/json;charset=utf-8,", json); } return $tailCall($t0, ["data:application/json;charset=utf-8,", json]);
+          $t1 = "data:application/json;charset=utf-8,";
+          $t2 = (C1.v ?? G1());
+          if (typeof $t2 !== 'function') $notProc($t2);
+          $t3 = $t2[$RAW];
+          $stack.room = $d;
+          $t4 = $t3 === undefined ? ($t2[$PRIM] === true ? $t2(json) : $foreign($t2, [json])) : $t3(json);
+          while ($t4 instanceof $TailCall) { $stack.room = $d; $t4 = $step($t4); }
+          if ($t4 === $UNWIND) { R.reify($proc$r, 1, { $t0, $t1 }); return $UNWIND; }
+          $t5 = $t0;
+          if ($d > 0 && ($t6 = $t5?.[$RAW] ?? $t5)?.[$PRIM] === true) { $stack.room = $d; return $t6($t1, $t4); } return $tailCall($t5, [$t1, $t4]);
         } }["source-map-url"];
         const $proc$r = { "source-map-url": function ($pc, $f) {
-          let $t0, $t1, json, $r;
-          ({ $t0, $t1, json, $r } = $f);
+          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, json, $r;
+          ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, json, $r } = $f);
+          const $d = $stack.room - 16;
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
-                return $tailCall($t0, ["data:application/json;charset=utf-8,", json]);
+                $t1 = "data:application/json;charset=utf-8,";
+                $t2 = (C1.v ?? G1());
+                if (typeof $t2 !== 'function') $notProc($t2);
+                $t3 = $t2[$RAW];
+                $stack.room = $d;
+                $t4 = $t3 === undefined ? ($t2[$PRIM] === true ? $t2(json) : $foreign($t2, [json])) : $t3(json);
+                while ($t4 instanceof $TailCall) { $stack.room = $d; $t4 = $step($t4); }
+                if ($t4 === $UNWIND) { R.reify($proc$r, 1, { $t0, $t1 }); return $UNWIND; }
+                $r = $t4;
+                $pc = 1; continue;
+              case 1:
+                $t4 = $r;
+                $t5 = $t0;
+                return $tailCall($t5, [$t1, $t4]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
         } }["source-map-url"];
@@ -57730,8 +58051,8 @@ export const LIBRARIES = {
         }
       },
       "control-global-in": {
-        params: ["globals_$2682"],
-        rest: "library-globals_$2683",
+        params: ["globals_$2750"],
+        rest: "library-globals_$2751",
         constants: [],
         span: {"filename":"driver.scm","line":101,"column":1,"endLine":103,"endColumn":81},
         make: (R, E, K) => {
@@ -57787,7 +58108,7 @@ export const LIBRARIES = {
         }
       },
       "control-global-among": {
-        params: ["controls_$2684","globals_$2685","library-globals_$2686"],
+        params: ["controls_$2752","globals_$2753","library-globals_$2754"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":114,"column":1,"endLine":116,"endColumn":87},
@@ -57890,8 +58211,8 @@ export const LIBRARIES = {
         }
       },
       "lowering-decline": {
-        params: ["lowered_$2689","decline-captures?_$2690"],
-        rest: "ordinary_$2691",
+        params: ["lowered_$2757","decline-captures?_$2758"],
+        rest: "ordinary_$2759",
         constants: [],
         span: {"filename":"driver.scm","line":141,"column":1,"endLine":151,"endColumn":16},
         make: (R, E, K) => {
@@ -58136,7 +58457,7 @@ export const LIBRARIES = {
         }
       },
       "subforms": {
-        params: ["form_$2694"],
+        params: ["form_$2762"],
         rest: null,
         constants: [intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("app"), intern("if"), intern("seq"), intern("lambda"), intern("let"), intern("letrec"), intern("set"), intern("define"), intern("app"), {library: ["scheme","control"]}],
         span: {"filename":"driver.scm","line":168,"column":1,"endLine":177,"endColumn":17},
@@ -58500,7 +58821,7 @@ export const LIBRARIES = {
         }
       },
       "contains-kind?": {
-        params: ["tags_$2696","form_$2697"],
+        params: ["tags_$2764","form_$2765"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":185,"column":1,"endLine":188,"endColumn":40},
@@ -58644,7 +58965,7 @@ export const LIBRARIES = {
         }
       },
       "makes-procedures-or-loops?": {
-        params: ["form_$2701"],
+        params: ["form_$2769"],
         rest: null,
         constants: [new Cons(intern("lambda"), new Cons(intern("letrec"), null)), new Cons(intern("lambda"), new Cons(intern("letrec"), null))],
         span: {"filename":"driver.scm","line":197,"column":1,"endLine":197,"endColumn":82},
@@ -58674,7 +58995,7 @@ export const LIBRARIES = {
         }
       },
       "contains-loop?": {
-        params: ["form_$2702"],
+        params: ["form_$2770"],
         rest: null,
         constants: [new Cons(intern("letrec"), null), new Cons(intern("letrec"), null)],
         span: {"filename":"driver.scm","line":204,"column":1,"endLine":204,"endColumn":63},
@@ -58704,7 +59025,7 @@ export const LIBRARIES = {
         }
       },
       "defines-at-top-level?": {
-        params: ["form_$2703"],
+        params: ["form_$2771"],
         rest: null,
         constants: [intern("define"), intern("seq"), intern("define"), intern("seq"), {library: ["scheme","control"]}],
         span: {"filename":"driver.scm","line":212,"column":1,"endLine":216,"endColumn":16},
@@ -58803,7 +59124,7 @@ export const LIBRARIES = {
         }
       },
       "procedure-definition?": {
-        params: ["form_$2705"],
+        params: ["form_$2773"],
         rest: null,
         constants: [intern("define"), intern("lambda"), intern("define"), intern("lambda")],
         span: {"filename":"driver.scm","line":223,"column":1,"endLine":224,"endColumn":75},
@@ -58904,7 +59225,7 @@ export const LIBRARIES = {
         }
       },
       "source-too-large": {
-        params: ["source_$2706"],
+        params: ["source_$2774"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":251,"column":1,"endLine":256,"endColumn":83},
@@ -59015,7 +59336,7 @@ export const LIBRARIES = {
         }
       },
       "guarded-globals": {
-        params: ["globals_$2708","library-globals_$2709","env_$2710"],
+        params: ["globals_$2776","library-globals_$2777","env_$2778"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":276,"column":1,"endLine":282,"endColumn":20},
@@ -59208,7 +59529,7 @@ export const LIBRARIES = {
         }
       },
       "emit-lowered": {
-        params: ["lowered_$2714","name_$2715","closure_$2716","env_$2717","span_$2718","ways-back?_$2719"],
+        params: ["lowered_$2782","name_$2783","closure_$2784","env_$2785","span_$2786","ways-back?_$2787"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":297,"column":1,"endLine":305,"endColumn":53},
@@ -59478,8 +59799,8 @@ export const LIBRARIES = {
         }
       },
       "lower-and-emit": {
-        params: ["node_$2738","name_$2739","closure_$2740","env_$2741","span_$2742","decline-captures?_$2743","ways-back?_$2744"],
-        rest: "ordinary_$2745",
+        params: ["node_$2806","name_$2807","closure_$2808","env_$2809","span_$2810","decline-captures?_$2811","ways-back?_$2812"],
+        rest: "ordinary_$2813",
         constants: [],
         span: {"filename":"driver.scm","line":385,"column":1,"endLine":390,"endColumn":67},
         make: (R, E, K) => {
@@ -59565,8 +59886,8 @@ export const LIBRARIES = {
         }
       },
       "generate-lambda": {
-        params: ["node_$2748","name_$2749","closure_$2750","env_$2751","span_$2752","decline-captures?_$2753"],
-        rest: "ordinary_$2754",
+        params: ["node_$2816","name_$2817","closure_$2818","env_$2819","span_$2820","decline-captures?_$2821"],
+        rest: "ordinary_$2822",
         constants: [],
         span: {"filename":"driver.scm","line":396,"column":1,"endLine":398,"endColumn":98},
         make: (R, E, K) => {
@@ -59622,7 +59943,7 @@ export const LIBRARIES = {
         }
       },
       "file-place": {
-        params: ["file_$2755"],
+        params: ["file_$2823"],
         rest: null,
         constants: [new Char(47), new Char(47)],
         span: {"filename":"driver.scm","line":407,"column":1,"endLine":411,"endColumn":73},
@@ -59771,7 +60092,7 @@ export const LIBRARIES = {
         }
       },
       "source-url": {
-        params: ["code_$2759"],
+        params: ["code_$2827"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":422,"column":1,"endLine":430,"endColumn":103},
@@ -60051,7 +60372,7 @@ export const LIBRARIES = {
         }
       },
       "script-of": {
-        params: ["code_$2764"],
+        params: ["code_$2832"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":447,"column":1,"endLine":451,"endColumn":97},
@@ -60223,7 +60544,7 @@ export const LIBRARIES = {
         }
       },
       "instantiate-generated": {
-        params: ["code_$2766"],
+        params: ["code_$2834"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":459,"column":1,"endLine":464,"endColumn":66},
@@ -60427,7 +60748,7 @@ export const LIBRARIES = {
         }
       },
       "compile-lambda": {
-        params: ["node_$2769","name_$2770","closure_$2771","env_$2772","span_$2773","decline-captures?_$2774","ways-back?_$2775"],
+        params: ["node_$2837","name_$2838","closure_$2839","env_$2840","span_$2841","decline-captures?_$2842","ways-back?_$2843"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":471,"column":1,"endLine":475,"endColumn":75},
@@ -60532,7 +60853,7 @@ export const LIBRARIES = {
         }
       },
       "compile-definition": {
-        params: ["node_$2777","env_$2778","decline-captures?_$2779"],
+        params: ["node_$2845","env_$2846","decline-captures?_$2847"],
         rest: null,
         constants: [intern("define"), intern("lambda"), intern("define"), intern("lambda")],
         span: {"filename":"driver.scm","line":488,"column":1,"endLine":495,"endColumn":77},
@@ -60795,7 +61116,7 @@ export const LIBRARIES = {
         }
       },
       "expression-thunk": {
-        params: ["form_$2781"],
+        params: ["form_$2849"],
         rest: null,
         constants: [intern("lambda"), intern("lambda")],
         span: {"filename":"driver.scm","line":502,"column":1,"endLine":502,"endColumn":72},
@@ -60825,7 +61146,7 @@ export const LIBRARIES = {
         }
       },
       "compile-expression": {
-        params: ["node_$2782","env_$2783","name_$2784","decline-captures?_$2785"],
+        params: ["node_$2850","env_$2851","name_$2852","decline-captures?_$2853"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":526,"column":1,"endLine":527,"endColumn":91},
@@ -60897,7 +61218,7 @@ export const LIBRARIES = {
         }
       },
       "compile-expression-form": {
-        params: ["form_$2786","env_$2787","span_$2788","name_$2789","decline-captures?_$2790"],
+        params: ["form_$2854","env_$2855","span_$2856","name_$2857","decline-captures?_$2858"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":538,"column":1,"endLine":543,"endColumn":64},
@@ -60992,7 +61313,7 @@ export const LIBRARIES = {
         }
       },
       "compile-thunk": {
-        params: ["form_$2791","env_$2792","span_$2793","decline-captures?_$2794","ways-back?_$2795"],
+        params: ["form_$2859","env_$2860","span_$2861","decline-captures?_$2862","ways-back?_$2863"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":556,"column":1,"endLine":557,"endColumn":97},
@@ -61045,7 +61366,7 @@ export const LIBRARIES = {
         }
       },
       "compile-closure": {
-        params: ["closure_$2796","name_$2797","decline-captures?_$2798","ways-back?_$2799"],
+        params: ["closure_$2864","name_$2865","decline-captures?_$2866","ways-back?_$2867"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":569,"column":1,"endLine":573,"endColumn":61},
@@ -61166,7 +61487,7 @@ export const LIBRARIES = {
         }
       },
       "defined-within?": {
-        params: ["closure_$2800","env_$2801"],
+        params: ["closure_$2868","env_$2869"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":587,"column":1,"endLine":589,"endColumn":73},
@@ -61263,7 +61584,7 @@ export const LIBRARIES = {
         }
       },
       "made-at-top-level?": {
-        params: ["closure_$2805"],
+        params: ["closure_$2873"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":601,"column":1,"endLine":603,"endColumn":83},
@@ -61378,7 +61699,7 @@ export const LIBRARIES = {
         }
       },
       "environment-closures": {
-        params: ["env_$2808","own-only?_$2809"],
+        params: ["env_$2876","own-only?_$2877"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":615,"column":1,"endLine":621,"endColumn":43},
@@ -61563,7 +61884,7 @@ export const LIBRARIES = {
         }
       },
       "generate-environment": {
-        params: ["env_$2813","own-only?_$2814","decline-captures?_$2815","strict?_$2816"],
+        params: ["env_$2881","own-only?_$2882","decline-captures?_$2883","strict?_$2884"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":642,"column":1,"endLine":658,"endColumn":88},
@@ -61967,7 +62288,7 @@ export const LIBRARIES = {
         }
       },
       "compile-environment": {
-        params: ["env_$2824","strict?_$2825"],
+        params: ["env_$2892","strict?_$2893"],
         rest: null,
         constants: [],
         span: {"filename":"driver.scm","line":678,"column":1,"endLine":695,"endColumn":101},
@@ -62396,7 +62717,7 @@ export const LIBRARIES = {
         }
       },
       "run-top-level": {
-        params: ["node_$2834","env_$2835","interpreter_$2836","unsafe_$2837","decline-captures?_$2838"],
+        params: ["node_$2902","env_$2903","interpreter_$2904","unsafe_$2905","decline-captures?_$2906"],
         rest: null,
         constants: [intern("define"), intern("procedure"), intern("interpreted"), intern("expression"), intern("expression"), intern("define"), intern("procedure"), intern("interpreted"), intern("expression"), intern("expression")],
         span: {"filename":"driver.scm","line":751,"column":1,"endLine":779,"endColumn":108},
@@ -63137,7 +63458,7 @@ export const LIBRARIES = {
         }
       },
       "compile-program": {
-        params: ["nodes_$2846","env_$2847","interpreter_$2848","decline-captures?_$2849","strict?_$2850"],
+        params: ["nodes_$2914","env_$2915","interpreter_$2916","decline-captures?_$2917","strict?_$2918"],
         rest: null,
         constants: [intern("procedure"), intern("procedure"), intern("expression"), intern("expression")],
         span: {"filename":"driver.scm","line":794,"column":1,"endLine":810,"endColumn":67},
@@ -63696,7 +64017,7 @@ export const LIBRARIES = {
         }
       },
       "lambda-facts": {
-        params: ["node_$2861"],
+        params: ["node_$2929"],
         rest: null,
         constants: [],
         span: {"filename":"safety.scm","line":60,"column":1,"endLine":66,"endColumn":100},
@@ -63877,7 +64198,7 @@ export const LIBRARIES = {
         }
       },
       "closure-facts": {
-        params: ["closure_$2865","name_$2866"],
+        params: ["closure_$2933","name_$2934"],
         rest: null,
         constants: [],
         span: {"filename":"safety.scm","line":74,"column":1,"endLine":75,"endColumn":65},
@@ -63951,7 +64272,7 @@ export const LIBRARIES = {
         }
       },
       "environment-facts": {
-        params: ["env_$2867"],
+        params: ["env_$2935"],
         rest: null,
         constants: [],
         span: {"filename":"safety.scm","line":84,"column":1,"endLine":87,"endColumn":71},
@@ -64073,7 +64394,7 @@ export const LIBRARIES = {
         }
       },
       "unsafe-from-facts": {
-        params: ["local_$2870","external_$2871","strict?_$2872"],
+        params: ["local_$2938","external_$2939","strict?_$2940"],
         rest: null,
         constants: [],
         span: {"filename":"safety.scm","line":102,"column":1,"endLine":171,"endColumn":68},
@@ -65464,7 +65785,7 @@ export const LIBRARIES = {
         }
       },
       "unsafe-definitions": {
-        params: ["forms_$2904","env_$2905","strict?_$2906"],
+        params: ["forms_$2972","env_$2973","strict?_$2974"],
         rest: null,
         constants: [],
         span: {"filename":"safety.scm","line":181,"column":1,"endLine":189,"endColumn":14},
@@ -65660,7 +65981,7 @@ export const LIBRARIES = {
         }
       },
       "program-unsafe-definitions": {
-        params: ["nodes_$2909","env_$2910","strict?_$2911"],
+        params: ["nodes_$2977","env_$2978","strict?_$2979"],
         rest: null,
         constants: [],
         span: {"filename":"safety.scm","line":197,"column":1,"endLine":198,"endColumn":75},
@@ -65737,7 +66058,7 @@ export const LIBRARIES = {
         }
       },
       "unsafe-closures": {
-        params: ["closures_$2912","env_$2913","strict?_$2914"],
+        params: ["closures_$2980","env_$2981","strict?_$2982"],
         rest: null,
         constants: [],
         span: {"filename":"safety.scm","line":210,"column":1,"endLine":217,"endColumn":14},
@@ -65878,7 +66199,7 @@ export const LIBRARIES = {
         }
       },
       "compiled-when-bound?": {
-        params: ["body_$2917"],
+        params: ["body_$2985"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":77,"column":1,"endLine":77,"endColumn":71},
@@ -65908,7 +66229,7 @@ export const LIBRARIES = {
         }
       },
       "make-tier": {
-        params: ["interpreter_$2918","env_$2919","prebuilt?_$2920","decline-captures?_$2921","outcomes_$2922","eager?_$2923"],
+        params: ["interpreter_$2986","env_$2987","prebuilt?_$2988","decline-captures?_$2989","outcomes_$2990","eager?_$2991"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":149,"column":1,"endLine":161,"endColumn":17},
@@ -66228,7 +66549,7 @@ export const LIBRARIES = {
         }
       },
       "programs-own?": {
-        params: ["closure_$2934","env_$2935"],
+        params: ["closure_$3002","env_$3003"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":171,"column":1,"endLine":175,"endColumn":91},
@@ -66356,7 +66677,7 @@ export const LIBRARIES = {
         }
       },
       "program-environment?": {
-        params: ["tier_$2939","env_$2940"],
+        params: ["tier_$3007","env_$3008"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":186,"column":1,"endLine":188,"endColumn":72},
@@ -66468,7 +66789,7 @@ export const LIBRARIES = {
         }
       },
       "tier-manages?": {
-        params: ["tier_$2942","env_$2943"],
+        params: ["tier_$3010","env_$3011"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":198,"column":1,"endLine":202,"endColumn":73},
@@ -66604,7 +66925,7 @@ export const LIBRARIES = {
         }
       },
       "tier-deferring?": {
-        params: ["tier_$2946"],
+        params: ["tier_$3014"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":210,"column":1,"endLine":211,"endColumn":64},
@@ -66686,7 +67007,7 @@ export const LIBRARIES = {
         }
       },
       "tier-bound!": {
-        params: ["tier_$2948","name_$2949","closure_$2950","env_$2951"],
+        params: ["tier_$3016","name_$3017","closure_$3018","env_$3019"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":223,"column":1,"endLine":231,"endColumn":65},
@@ -66990,7 +67311,7 @@ export const LIBRARIES = {
         }
       },
       "tier-due!": {
-        params: ["tier_$2953","closure_$2954"],
+        params: ["tier_$3021","closure_$3022"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":239,"column":1,"endLine":242,"endColumn":37},
@@ -67052,7 +67373,7 @@ export const LIBRARIES = {
         }
       },
       "tier-compile-eagerly!": {
-        params: ["tier_$2955","eager?_$2956"],
+        params: ["tier_$3023","eager?_$3024"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":254,"column":1,"endLine":261,"endColumn":56},
@@ -67304,7 +67625,7 @@ export const LIBRARIES = {
         }
       },
       "tier-compile!": {
-        params: ["tier_$2959","closure_$2960"],
+        params: ["tier_$3027","closure_$3028"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":270,"column":1,"endLine":281,"endColumn":86},
@@ -67670,7 +67991,7 @@ export const LIBRARIES = {
         }
       },
       "compile-waiting": {
-        params: ["tier_$2965","closure_$2966","name_$2967","env_$2968"],
+        params: ["tier_$3033","closure_$3034","name_$3035","env_$3036"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":290,"column":1,"endLine":295,"endColumn":92},
@@ -67876,7 +68197,7 @@ export const LIBRARIES = {
         }
       },
       "install-compiled!": {
-        params: ["tier_$2970","closure_$2971","procedure_$2972","name_$2973","env_$2974"],
+        params: ["tier_$3038","closure_$3039","procedure_$3040","name_$3041","env_$3042"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":307,"column":1,"endLine":309,"endColumn":75},
@@ -67975,7 +68296,7 @@ export const LIBRARIES = {
         }
       },
       "tier-top-level-procedure": {
-        params: ["tier_$2975","node_$2976","env_$2977"],
+        params: ["tier_$3043","node_$3044","env_$3045"],
         rest: null,
         constants: [intern("define"), intern("lambda"), intern("define"), intern("lambda")],
         span: {"filename":"tier.scm","line":332,"column":1,"endLine":352,"endColumn":50},
@@ -68579,7 +68900,7 @@ export const LIBRARIES = {
         }
       },
       "re-entered?": {
-        params: ["saved_$2980","resumed_$2981"],
+        params: ["saved_$3048","resumed_$3049"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":398,"column":1,"endLine":399,"endColumn":75},
@@ -68629,7 +68950,7 @@ export const LIBRARIES = {
         }
       },
       "next-resume-to-ask": {
-        params: ["saved_$2982","resumed_$2983"],
+        params: ["saved_$3050","resumed_$3051"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":409,"column":1,"endLine":410,"endColumn":63},
@@ -68705,7 +69026,7 @@ export const LIBRARIES = {
         }
       },
       "note-resume": {
-        params: ["twin_$2984","saved_$2985","resumed_$2986"],
+        params: ["twin_$3052","saved_$3053","resumed_$3054"],
         rest: null,
         constants: [],
         span: {"filename":"tier.scm","line":429,"column":1,"endLine":432,"endColumn":43},
@@ -68791,7 +69112,7 @@ export const LIBRARIES = {
       {procedure: "scope-declare!"},
       {procedure: "scope-lookup"},
       {procedure: "scope-has?"},
-      {core: "[\"l\",\"define\",\"scope-callable?\",[\"l\",\"lambda\",[\"l\",\"scope_$1509\",\"name_$1510\"],false,[\"s\",\"scope-callable?\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"hit_$1511\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"hit_$1511\"],[\"l\",\"app\",[\"l\",\"var\",\"eq?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cdr\"],[\"l\",[\"l\",\"var\",\"hit_$1511\"]]],[\"l\",\"lit\",true]]],[\"l\",\"lit\",false]],[\"l\",\"hit\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"scope-lookup\"],[\"l\",[\"l\",\"var\",\"scope_$1509\"],[\"l\",\"var\",\"name_$1510\"]]]]],[\"l\",\"scope\",\"name\"],false]]"},
+      {core: "[\"l\",\"define\",\"scope-callable?\",[\"l\",\"lambda\",[\"l\",\"scope_$1569\",\"name_$1570\"],false,[\"s\",\"scope-callable?\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"hit_$1571\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"hit_$1571\"],[\"l\",\"app\",[\"l\",\"var\",\"eq?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cdr\"],[\"l\",[\"l\",\"var\",\"hit_$1571\"]]],[\"l\",\"lit\",true]]],[\"l\",\"lit\",false]],[\"l\",\"hit\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"scope-lookup\"],[\"l\",[\"l\",\"var\",\"scope_$1569\"],[\"l\",\"var\",\"name_$1570\"]]]]],[\"l\",\"scope\",\"name\"],false]]"},
       {procedure: "assigned-names"},
       {procedure: "assigned-names-in"},
       {procedure: "constant-binding"},
@@ -68884,18 +69205,18 @@ export const LIBRARIES = {
       {procedure: "self-bindings"},
       {procedure: "filter-pairs"},
       {procedure: "factory-parameters"},
-      {core: "[\"l\",\"define\",\"inexact-literal\",[\"l\",\"lambda\",[\"l\",\"node_$1815\"],false,[\"s\",\"inexact-literal\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"eq?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"node_$1815\"]]],[\"l\",\"lit\",\"const\"]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"v_$1816\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"real?\"],[\"l\",[\"l\",\"var\",\"v_$1816\"]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"inexact?\"],[\"l\",[\"l\",\"var\",\"v_$1816\"]]],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"app\",[\"l\",\"var\",\"js-number\"],[\"l\",[\"l\",\"var\",\"v_$1816\"]]],[\"l\",\"lit\",[\"s\",\")\"]]]],[\"l\",\"lit\",false]],[\"l\",\"lit\",false]],[\"l\",\"v\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"node_$1815\"]]]]],[\"l\",\"lit\",false]],[\"l\",\"node\"],false]]"},
+      {core: "[\"l\",\"define\",\"inexact-literal\",[\"l\",\"lambda\",[\"l\",\"node_$1875\"],false,[\"s\",\"inexact-literal\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"eq?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"node_$1875\"]]],[\"l\",\"lit\",\"const\"]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"v_$1876\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"real?\"],[\"l\",[\"l\",\"var\",\"v_$1876\"]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"inexact?\"],[\"l\",[\"l\",\"var\",\"v_$1876\"]]],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"app\",[\"l\",\"var\",\"js-number\"],[\"l\",[\"l\",\"var\",\"v_$1876\"]]],[\"l\",\"lit\",[\"s\",\")\"]]]],[\"l\",\"lit\",false]],[\"l\",\"lit\",false]],[\"l\",\"v\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"node_$1875\"]]]]],[\"l\",\"lit\",false]],[\"l\",\"node\"],false]]"},
       {procedure: "all-of"},
-      {core: "[\"l\",\"define\",\"against-inexact-constant\",[\"l\",\"lambda\",[\"l\",\"ops_$1820\",\"nodes_$1821\",\"op_$1822\",\"helper_$1823\",\"finish_$1824\"],false,[\"s\",\"against-inexact-constant\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"ka_$1825\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"kb_$1826\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"on_$1827\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",null,false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"if\",[\"l\",\"var\",\"ka_$1825\"],[\"l\",\"var\",\"kb_$1826\"],[\"l\",\"lit\",false]],[\"l\",\"app\",[\"l\",\"var\",\"on_$1827\"],[\"l\",[\"l\",\"var\",\"ka_$1825\"],[\"l\",\"var\",\"kb_$1826\"]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1832\",\"on-x_$1833\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(typeof \"]],[\"l\",\"var\",\"x_$1832\"],[\"l\",\"lit\",[\"s\",\" === 'number' ? \"]],[\"l\",\"app\",[\"l\",\"var\",\"on-x_$1833\"],[\"l\",[\"l\",\"var\",\"x_$1832\"]]],[\"l\",\"lit\",[\"s\",\" : \"]],[\"l\",\"var\",\"x_$1832\"],[\"l\",\"lit\",[\"s\",\" instanceof R.Flonum ? \"]],[\"l\",\"app\",[\"l\",\"var\",\"on-x_$1833\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"var\",\"x_$1832\"],[\"l\",\"lit\",[\"s\",\".value\"]]]]]],[\"l\",\"lit\",[\"s\",\" : \"]],[\"l\",\"var\",\"helper_$1823\"],[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1820\"]]],[\"l\",\"lit\",[\"s\",\", \"]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1820\"]]],[\"l\",\"lit\",[\"s\",\"))\"]]]],[\"l\",\"x\",\"on-x\"],false],[\"l\",[\"l\",\"if\",[\"l\",\"var\",\"ka_$1825\"],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1820\"]]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1820\"]]]],[\"l\",\"lambda\",[\"l\",\"v_$1834\"],false,[\"s\",\"anonymous\"],[\"l\",\"if\",[\"l\",\"var\",\"ka_$1825\"],[\"l\",\"app\",[\"l\",\"var\",\"on_$1827\"],[\"l\",[\"l\",\"var\",\"ka_$1825\"],[\"l\",\"var\",\"v_$1834\"]]],[\"l\",\"app\",[\"l\",\"var\",\"on_$1827\"],[\"l\",[\"l\",\"var\",\"v_$1834\"],[\"l\",\"var\",\"kb_$1826\"]]]],[\"l\",\"v\"],false]]]],null,false],null],[\"l\",\"on\"],false],[\"l\",[\"l\",\"lambda\",[\"l\",\"a_$1828\",\"b_$1829\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"finish_$1824\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1830\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$1830\"],[\"l\",\"var\",\"x_$1830\"],[\"l\",\"var\",\"a_$1828\"]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"var\",\"ka_$1825\"]]],[\"l\",\"lit\",[\"s\",\" \"]],[\"l\",\"var\",\"op_$1822\"],[\"l\",\"lit\",[\"s\",\" \"]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1831\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$1831\"],[\"l\",\"var\",\"x_$1831\"],[\"l\",\"var\",\"b_$1829\"]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"var\",\"kb_$1826\"]]]]]]],[\"l\",\"a\",\"b\"],false]]],[\"l\",\"kb\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"inexact-literal\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"nodes_$1821\"]]]]]]],[\"l\",\"ka\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"inexact-literal\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"nodes_$1821\"]]]]]]],[\"l\",\"ops\",\"nodes\",\"op\",\"helper\",\"finish\"],false]]"},
-      {core: "[\"l\",\"define\",\"inexact-constant-operand?\",[\"l\",\"lambda\",[\"l\",\"nodes_$1835\"],false,[\"s\",\"inexact-constant-operand?\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1836\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$1836\"],[\"l\",\"var\",\"x_$1836\"],[\"l\",\"app\",[\"l\",\"var\",\"inexact-literal\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"nodes_$1835\"]]]]]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"inexact-literal\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"nodes_$1835\"]]]]]]],[\"l\",\"nodes\"],false]]"},
-      {core: "[\"l\",\"define\",\"numeric-arithmetic\",[\"l\",\"lambda\",[\"l\",\"name_$1837\",\"op_$1838\",\"local_$1839\"],false,[\"s\",\"numeric-arithmetic\"],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"var\",\"name_$1837\"],[\"l\",\"lit\",2],[\"l\",\"lambda\",[\"l\",\"ops_$1840\"],false,[\"s\",\"anonymous\"],[\"l\",\"lit\",false],[\"l\",\"ops\"],false],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"var\",\"local_$1839\"],[\"l\",\"lambda\",[\"l\",\"ops_$1841\",\"helper_$1842\",\"nodes_$1843\"],false,[\"s\",\"anonymous\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"inexact-constant-operand?\"],[\"l\",[\"l\",\"var\",\"nodes_$1843\"]]],[\"l\",\"app\",[\"l\",\"var\",\"against-inexact-constant\"],[\"l\",[\"l\",\"var\",\"ops_$1841\"],[\"l\",\"var\",\"nodes_$1843\"],[\"l\",\"var\",\"op_$1838\"],[\"l\",\"var\",\"helper_$1842\"],[\"l\",\"lambda\",[\"l\",\"e_$1844\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"R.inexactReal(\"]],[\"l\",\"var\",\"e_$1844\"],[\"l\",\"lit\",[\"s\",\")\"]]]],[\"l\",\"e\"],false]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"a_$1845\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"b_$1846\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"r_$1847\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",null,false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(typeof \"]],[\"l\",\"var\",\"a_$1845\"],[\"l\",\"lit\",[\"s\",\" === 'number' && typeof \"]],[\"l\",\"var\",\"b_$1846\"],[\"l\",\"lit\",[\"s\",\" === 'number'\"]],[\"l\",\"lit\",[\"s\",\" && (!Number.isInteger(\"]],[\"l\",\"var\",\"r_$1847\"],[\"l\",\"lit\",[\"s\",\")\"]],[\"l\",\"lit\",[\"s\",\" || (Number.isSafeInteger(\"]],[\"l\",\"var\",\"r_$1847\"],[\"l\",\"lit\",[\"s\",\")\"]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"string=?\"],[\"l\",[\"l\",\"var\",\"op_$1838\"],[\"l\",\"lit\",[\"s\",\"*\"]]]],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\" && \"]],[\"l\",\"var\",\"r_$1847\"],[\"l\",\"lit\",[\"s\",\" !== 0\"]]]],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"\"]]]]],[\"l\",\"lit\",[\"s\",\" && Number.isInteger(\"]],[\"l\",\"var\",\"a_$1845\"],[\"l\",\"lit\",[\"s\",\") && Number.isInteger(\"]],[\"l\",\"var\",\"b_$1846\"],[\"l\",\"lit\",[\"s\",\"))\"]],[\"l\",\"lit\",[\"s\",\")) ? \"]],[\"l\",\"var\",\"r_$1847\"],[\"l\",\"lit\",[\"s\",\" : \"]],[\"l\",\"var\",\"helper_$1842\"],[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"var\",\"a_$1845\"],[\"l\",\"lit\",[\"s\",\", \"]],[\"l\",\"var\",\"b_$1846\"],[\"l\",\"lit\",[\"s\",\")\"]]]],null,false],null],[\"l\",\"r\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"var\",\"a_$1845\"],[\"l\",\"lit\",[\"s\",\" \"]],[\"l\",\"var\",\"op_$1838\"],[\"l\",\"lit\",[\"s\",\" \"]],[\"l\",\"var\",\"b_$1846\"],[\"l\",\"lit\",[\"s\",\")\"]]]]]],[\"l\",\"b\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1841\"]]]]],[\"l\",\"a\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1841\"]]]]]],[\"l\",\"ops\",\"helper\",\"nodes\"],false]]]]],[\"l\",\"name\",\"op\",\"local\"],false]]"},
-      {core: "[\"l\",\"define\",\"numeric-comparison\",[\"l\",\"lambda\",[\"l\",\"name_$1848\",\"op_$1849\",\"local_$1850\"],false,[\"s\",\"numeric-comparison\"],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"var\",\"name_$1848\"],[\"l\",\"lit\",2],[\"l\",\"lambda\",[\"l\",\"ops_$1851\"],false,[\"s\",\"anonymous\"],[\"l\",\"lit\",false],[\"l\",\"ops\"],false],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"var\",\"local_$1850\"],[\"l\",\"lambda\",[\"l\",\"ops_$1852\",\"helper_$1853\",\"nodes_$1854\"],false,[\"s\",\"anonymous\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"inexact-constant-operand?\"],[\"l\",[\"l\",\"var\",\"nodes_$1854\"]]],[\"l\",\"app\",[\"l\",\"var\",\"against-inexact-constant\"],[\"l\",[\"l\",\"var\",\"ops_$1852\"],[\"l\",\"var\",\"nodes_$1854\"],[\"l\",\"var\",\"op_$1849\"],[\"l\",\"var\",\"helper_$1853\"],[\"l\",\"lambda\",[\"l\",\"e_$1855\"],false,[\"s\",\"anonymous\"],[\"l\",\"var\",\"e_$1855\"],[\"l\",\"e\"],false]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"a_$1856\",\"b_$1857\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(typeof \"]],[\"l\",\"var\",\"a_$1856\"],[\"l\",\"lit\",[\"s\",\" === 'number' && typeof \"]],[\"l\",\"var\",\"b_$1857\"],[\"l\",\"lit\",[\"s\",\" === 'number') ? \"]],[\"l\",\"var\",\"a_$1856\"],[\"l\",\"lit\",[\"s\",\" \"]],[\"l\",\"var\",\"op_$1849\"],[\"l\",\"lit\",[\"s\",\" \"]],[\"l\",\"var\",\"b_$1857\"],[\"l\",\"lit\",[\"s\",\" : \"]],[\"l\",\"var\",\"helper_$1853\"],[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"var\",\"a_$1856\"],[\"l\",\"lit\",[\"s\",\", \"]],[\"l\",\"var\",\"b_$1857\"],[\"l\",\"lit\",[\"s\",\")\"]]]],[\"l\",\"a\",\"b\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1852\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1852\"]]]]]],[\"l\",\"ops\",\"helper\",\"nodes\"],false]]]]],[\"l\",\"name\",\"op\",\"local\"],false]]"},
-      {core: "[\"l\",\"define\",\"total\",[\"l\",\"lambda\",[\"l\",\"name_$1858\",\"arity_$1859\",\"value_$1860\"],false,[\"s\",\"total\"],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"var\",\"name_$1858\"],[\"l\",\"var\",\"arity_$1859\"],[\"l\",\"lambda\",[\"l\",\"ops_$1861\"],false,[\"s\",\"anonymous\"],[\"l\",\"lit\",false],[\"l\",\"ops\"],false],[\"l\",\"var\",\"value_$1860\"]]],[\"l\",\"name\",\"arity\",\"value\"],false]]"},
-      {core: "[\"l\",\"define\",\"helper\",[\"l\",\"lambda\",[\"l\",\"name_$1862\",\"arity_$1863\",\"local_$1864\"],false,[\"s\",\"helper\"],[\"l\",\"app\",[\"l\",\"var\",\"total\"],[\"l\",[\"l\",\"var\",\"name_$1862\"],[\"l\",\"var\",\"arity_$1863\"],[\"l\",\"var\",\"local_$1864\"]]],[\"l\",\"name\",\"arity\",\"local\"],false]]"},
-      {core: "[\"l\",\"define\",\"exact-division-test\",[\"l\",\"lambda\",[\"l\",\"ops_$1865\"],false,[\"s\",\"exact-division-test\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"a_$1866\",\"b_$1867\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"typeof \"]],[\"l\",\"var\",\"a_$1866\"],[\"l\",\"lit\",[\"s\",\" === 'number' && typeof \"]],[\"l\",\"var\",\"b_$1867\"],[\"l\",\"lit\",[\"s\",\" === 'number'\"]],[\"l\",\"lit\",[\"s\",\" && Number.isInteger(\"]],[\"l\",\"var\",\"a_$1866\"],[\"l\",\"lit\",[\"s\",\") && Number.isInteger(\"]],[\"l\",\"var\",\"b_$1867\"],[\"l\",\"lit\",[\"s\",\") && \"]],[\"l\",\"var\",\"b_$1867\"],[\"l\",\"lit\",[\"s\",\" !== 0\"]]]],[\"l\",\"a\",\"b\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1865\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1865\"]]]]],[\"l\",\"ops\"],false]]"},
-      {core: "[\"l\",\"define\",\"identity-constant?\",[\"l\",\"lambda\",[\"l\",\"node_$1868\"],false,[\"s\",\"identity-constant?\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"eq?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"node_$1868\"]]],[\"l\",\"lit\",\"const\"]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"value_$1869\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1870\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$1870\"],[\"l\",\"var\",\"x_$1870\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1871\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$1871\"],[\"l\",\"var\",\"x_$1871\"],[\"l\",\"app\",[\"l\",\"var\",\"null?\"],[\"l\",[\"l\",\"var\",\"value_$1869\"]]]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"boolean?\"],[\"l\",[\"l\",\"var\",\"value_$1869\"]]]]]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"symbol?\"],[\"l\",[\"l\",\"var\",\"value_$1869\"]]]]],[\"l\",\"value\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"node_$1868\"]]]]],[\"l\",\"lit\",false]],[\"l\",\"node\"],false]]"},
-      {core: "[\"l\",\"define\",\"property-object\",[\"l\",\"lambda\",[\"l\",\"op_$1872\"],false,[\"s\",\"property-object\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"first_$1873\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"string?\"],[\"l\",[\"l\",\"var\",\"first_$1873\"]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\">\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string-length\"],[\"l\",[\"l\",\"var\",\"first_$1873\"]]],[\"l\",\"lit\",0]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"c_$1874\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1875\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$1875\"],[\"l\",\"var\",\"x_$1875\"],[\"l\",\"app\",[\"l\",\"var\",\"char=?\"],[\"l\",[\"l\",\"var\",\"c_$1874\"],[\"l\",\"lit\",[\"c\",45]]]]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"char-numeric?\"],[\"l\",[\"l\",\"var\",\"c_$1874\"]]]]],[\"l\",\"c\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string-ref\"],[\"l\",[\"l\",\"var\",\"first_$1873\"],[\"l\",\"lit\",0]]]]],[\"l\",\"lit\",false]],[\"l\",\"lit\",false]],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"var\",\"op_$1872\"],[\"l\",\"lit\",[\"s\",\")\"]]]],[\"l\",\"var\",\"op_$1872\"]],[\"l\",\"first\"],false],[\"l\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"pair?\"],[\"l\",[\"l\",\"var\",\"op_$1872\"]]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"op_$1872\"]]],[\"l\",\"lit\",false]]]],[\"l\",\"op\"],false]]"},
-      {core: "[\"l\",\"define\",\"inline-expansions\",[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"numeric-arithmetic\"],[\"l\",[\"l\",\"lit\",\"+\"],[\"l\",\"lit\",[\"s\",\"+\"]],[\"l\",\"lit\",\"$add\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-arithmetic\"],[\"l\",[\"l\",\"lit\",\"-\"],[\"l\",\"lit\",[\"s\",\"-\"]],[\"l\",\"lit\",\"$sub\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-arithmetic\"],[\"l\",[\"l\",\"lit\",\"*\"],[\"l\",\"lit\",[\"s\",\"*\"]],[\"l\",\"lit\",\"$mul\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-comparison\"],[\"l\",[\"l\",\"lit\",\"<\"],[\"l\",\"lit\",[\"s\",\"<\"]],[\"l\",\"lit\",\"$lt\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-comparison\"],[\"l\",[\"l\",\"lit\",\">\"],[\"l\",\"lit\",[\"s\",\">\"]],[\"l\",\"lit\",\"$gt\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-comparison\"],[\"l\",[\"l\",\"lit\",\"<=\"],[\"l\",\"lit\",[\"s\",\"<=\"]],[\"l\",\"lit\",\"$le\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-comparison\"],[\"l\",[\"l\",\"lit\",\">=\"],[\"l\",\"lit\",[\"s\",\">=\"]],[\"l\",\"lit\",\"$ge\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-comparison\"],[\"l\",[\"l\",\"lit\",\"=\"],[\"l\",\"lit\",[\"s\",\"===\"]],[\"l\",\"lit\",\"$numEq\"]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"car\"],[\"l\",\"lit\",1],[\"l\",\"lambda\",[\"l\",\"ops_$1876\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1876\"]]],[\"l\",\"lit\",[\"s\",\" instanceof R.Cons\"]]]],[\"l\",\"ops\"],false],[\"l\",\"lambda\",[\"l\",\"ops_$1877\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"property-object\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1877\"]]]]],[\"l\",\"lit\",[\"s\",\".car\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"cdr\"],[\"l\",\"lit\",1],[\"l\",\"lambda\",[\"l\",\"ops_$1878\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1878\"]]],[\"l\",\"lit\",[\"s\",\" instanceof R.Cons\"]]]],[\"l\",\"ops\"],false],[\"l\",\"lambda\",[\"l\",\"ops_$1879\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"property-object\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1879\"]]]]],[\"l\",\"lit\",[\"s\",\".cdr\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"total\"],[\"l\",[\"l\",\"lit\",\"cons\"],[\"l\",\"lit\",2],[\"l\",\"lambda\",[\"l\",\"ops_$1880\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"new R.Cons(\"]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1880\"]]],[\"l\",\"lit\",[\"s\",\", \"]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1880\"]]],[\"l\",\"lit\",[\"s\",\")\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"total\"],[\"l\",[\"l\",\"lit\",\"pair?\"],[\"l\",\"lit\",1],[\"l\",\"lambda\",[\"l\",\"ops_$1881\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1881\"]]],[\"l\",\"lit\",[\"s\",\" instanceof R.Cons\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"total\"],[\"l\",[\"l\",\"lit\",\"null?\"],[\"l\",\"lit\",1],[\"l\",\"lambda\",[\"l\",\"ops_$1882\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1882\"]]],[\"l\",\"lit\",[\"s\",\" === null\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"total\"],[\"l\",[\"l\",\"lit\",\"not\"],[\"l\",\"lit\",1],[\"l\",\"lambda\",[\"l\",\"ops_$1883\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1883\"]]],[\"l\",\"lit\",[\"s\",\" === false\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"total\"],[\"l\",[\"l\",\"lit\",\"eq?\"],[\"l\",\"lit\",2],[\"l\",\"lambda\",[\"l\",\"ops_$1884\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1884\"]]],[\"l\",\"lit\",[\"s\",\" === \"]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1884\"]]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"helper\"],[\"l\",[\"l\",\"lit\",\"vector-ref\"],[\"l\",\"lit\",2],[\"l\",\"lit\",\"$vectorRef\"]]],[\"l\",\"app\",[\"l\",\"var\",\"helper\"],[\"l\",[\"l\",\"lit\",\"vector-set!\"],[\"l\",\"lit\",3],[\"l\",\"lit\",\"$vectorSet\"]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"vector-length\"],[\"l\",\"lit\",1],[\"l\",\"lambda\",[\"l\",\"ops_$1885\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"Array.isArray(\"]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1885\"]]],[\"l\",\"lit\",[\"s\",\")\"]]]],[\"l\",\"ops\"],false],[\"l\",\"lambda\",[\"l\",\"ops_$1886\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"property-object\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1886\"]]]]],[\"l\",\"lit\",[\"s\",\".length\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"quotient\"],[\"l\",\"lit\",2],[\"l\",\"var\",\"exact-division-test\"],[\"l\",\"lambda\",[\"l\",\"ops_$1887\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"a_$1888\",\"b_$1889\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"((\"]],[\"l\",\"var\",\"a_$1888\"],[\"l\",\"lit\",[\"s\",\" - \"]],[\"l\",\"var\",\"a_$1888\"],[\"l\",\"lit\",[\"s\",\" % \"]],[\"l\",\"var\",\"b_$1889\"],[\"l\",\"lit\",[\"s\",\") / \"]],[\"l\",\"var\",\"b_$1889\"],[\"l\",\"lit\",[\"s\",\" + 0)\"]]]],[\"l\",\"a\",\"b\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1887\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1887\"]]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"remainder\"],[\"l\",\"lit\",2],[\"l\",\"var\",\"exact-division-test\"],[\"l\",\"lambda\",[\"l\",\"ops_$1890\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1890\"]]],[\"l\",\"lit\",[\"s\",\" % \"]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1890\"]]],[\"l\",\"lit\",[\"s\",\" + 0)\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"modulo\"],[\"l\",\"lit\",2],[\"l\",\"var\",\"exact-division-test\"],[\"l\",\"lambda\",[\"l\",\"ops_$1891\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"a_$1892\",\"b_$1893\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"((\"]],[\"l\",\"var\",\"a_$1892\"],[\"l\",\"lit\",[\"s\",\" % \"]],[\"l\",\"var\",\"b_$1893\"],[\"l\",\"lit\",[\"s\",\") * \"]],[\"l\",\"var\",\"b_$1893\"],[\"l\",\"lit\",[\"s\",\" < 0 ? \"]],[\"l\",\"var\",\"a_$1892\"],[\"l\",\"lit\",[\"s\",\" % \"]],[\"l\",\"var\",\"b_$1893\"],[\"l\",\"lit\",[\"s\",\" + \"]],[\"l\",\"var\",\"b_$1893\"],[\"l\",\"lit\",[\"s\",\" : \"]],[\"l\",\"var\",\"a_$1892\"],[\"l\",\"lit\",[\"s\",\" % \"]],[\"l\",\"var\",\"b_$1893\"],[\"l\",\"lit\",[\"s\",\" + 0)\"]]]],[\"l\",\"a\",\"b\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1891\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1891\"]]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"eqv?\"],[\"l\",\"lit\",2],[\"l\",\"lambda\",[\"l\",\"ops_$1894\"],false,[\"s\",\"anonymous\"],[\"l\",\"lit\",false],[\"l\",\"ops\"],false],[\"l\",\"lambda\",[\"l\",\"ops_$1895\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1895\"]]],[\"l\",\"lit\",[\"s\",\" === \"]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1895\"]]]]],[\"l\",\"ops\"],false],[\"l\",\"lambda\",[\"l\",\"args_$1896\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"any\"],[\"l\",[\"l\",\"var\",\"identity-constant?\"],[\"l\",\"var\",\"args_$1896\"]]],[\"l\",\"args\"],false]]]]]]"},
+      {core: "[\"l\",\"define\",\"against-inexact-constant\",[\"l\",\"lambda\",[\"l\",\"ops_$1880\",\"nodes_$1881\",\"op_$1882\",\"helper_$1883\",\"finish_$1884\"],false,[\"s\",\"against-inexact-constant\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"ka_$1885\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"kb_$1886\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"on_$1887\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",null,false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"if\",[\"l\",\"var\",\"ka_$1885\"],[\"l\",\"var\",\"kb_$1886\"],[\"l\",\"lit\",false]],[\"l\",\"app\",[\"l\",\"var\",\"on_$1887\"],[\"l\",[\"l\",\"var\",\"ka_$1885\"],[\"l\",\"var\",\"kb_$1886\"]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1892\",\"on-x_$1893\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(typeof \"]],[\"l\",\"var\",\"x_$1892\"],[\"l\",\"lit\",[\"s\",\" === 'number' ? \"]],[\"l\",\"app\",[\"l\",\"var\",\"on-x_$1893\"],[\"l\",[\"l\",\"var\",\"x_$1892\"]]],[\"l\",\"lit\",[\"s\",\" : \"]],[\"l\",\"var\",\"x_$1892\"],[\"l\",\"lit\",[\"s\",\" instanceof R.Flonum ? \"]],[\"l\",\"app\",[\"l\",\"var\",\"on-x_$1893\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"var\",\"x_$1892\"],[\"l\",\"lit\",[\"s\",\".value\"]]]]]],[\"l\",\"lit\",[\"s\",\" : \"]],[\"l\",\"var\",\"helper_$1883\"],[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1880\"]]],[\"l\",\"lit\",[\"s\",\", \"]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1880\"]]],[\"l\",\"lit\",[\"s\",\"))\"]]]],[\"l\",\"x\",\"on-x\"],false],[\"l\",[\"l\",\"if\",[\"l\",\"var\",\"ka_$1885\"],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1880\"]]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1880\"]]]],[\"l\",\"lambda\",[\"l\",\"v_$1894\"],false,[\"s\",\"anonymous\"],[\"l\",\"if\",[\"l\",\"var\",\"ka_$1885\"],[\"l\",\"app\",[\"l\",\"var\",\"on_$1887\"],[\"l\",[\"l\",\"var\",\"ka_$1885\"],[\"l\",\"var\",\"v_$1894\"]]],[\"l\",\"app\",[\"l\",\"var\",\"on_$1887\"],[\"l\",[\"l\",\"var\",\"v_$1894\"],[\"l\",\"var\",\"kb_$1886\"]]]],[\"l\",\"v\"],false]]]],null,false],null],[\"l\",\"on\"],false],[\"l\",[\"l\",\"lambda\",[\"l\",\"a_$1888\",\"b_$1889\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"finish_$1884\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1890\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$1890\"],[\"l\",\"var\",\"x_$1890\"],[\"l\",\"var\",\"a_$1888\"]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"var\",\"ka_$1885\"]]],[\"l\",\"lit\",[\"s\",\" \"]],[\"l\",\"var\",\"op_$1882\"],[\"l\",\"lit\",[\"s\",\" \"]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1891\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$1891\"],[\"l\",\"var\",\"x_$1891\"],[\"l\",\"var\",\"b_$1889\"]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"var\",\"kb_$1886\"]]]]]]],[\"l\",\"a\",\"b\"],false]]],[\"l\",\"kb\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"inexact-literal\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"nodes_$1881\"]]]]]]],[\"l\",\"ka\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"inexact-literal\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"nodes_$1881\"]]]]]]],[\"l\",\"ops\",\"nodes\",\"op\",\"helper\",\"finish\"],false]]"},
+      {core: "[\"l\",\"define\",\"inexact-constant-operand?\",[\"l\",\"lambda\",[\"l\",\"nodes_$1895\"],false,[\"s\",\"inexact-constant-operand?\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1896\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$1896\"],[\"l\",\"var\",\"x_$1896\"],[\"l\",\"app\",[\"l\",\"var\",\"inexact-literal\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"nodes_$1895\"]]]]]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"inexact-literal\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"nodes_$1895\"]]]]]]],[\"l\",\"nodes\"],false]]"},
+      {core: "[\"l\",\"define\",\"numeric-arithmetic\",[\"l\",\"lambda\",[\"l\",\"name_$1897\",\"op_$1898\",\"local_$1899\"],false,[\"s\",\"numeric-arithmetic\"],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"var\",\"name_$1897\"],[\"l\",\"lit\",2],[\"l\",\"lambda\",[\"l\",\"ops_$1900\"],false,[\"s\",\"anonymous\"],[\"l\",\"lit\",false],[\"l\",\"ops\"],false],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"var\",\"local_$1899\"],[\"l\",\"lambda\",[\"l\",\"ops_$1901\",\"helper_$1902\",\"nodes_$1903\"],false,[\"s\",\"anonymous\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"inexact-constant-operand?\"],[\"l\",[\"l\",\"var\",\"nodes_$1903\"]]],[\"l\",\"app\",[\"l\",\"var\",\"against-inexact-constant\"],[\"l\",[\"l\",\"var\",\"ops_$1901\"],[\"l\",\"var\",\"nodes_$1903\"],[\"l\",\"var\",\"op_$1898\"],[\"l\",\"var\",\"helper_$1902\"],[\"l\",\"lambda\",[\"l\",\"e_$1904\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"R.inexactReal(\"]],[\"l\",\"var\",\"e_$1904\"],[\"l\",\"lit\",[\"s\",\")\"]]]],[\"l\",\"e\"],false]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"a_$1905\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"b_$1906\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"r_$1907\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",null,false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(typeof \"]],[\"l\",\"var\",\"a_$1905\"],[\"l\",\"lit\",[\"s\",\" === 'number' && typeof \"]],[\"l\",\"var\",\"b_$1906\"],[\"l\",\"lit\",[\"s\",\" === 'number'\"]],[\"l\",\"lit\",[\"s\",\" && (!Number.isInteger(\"]],[\"l\",\"var\",\"r_$1907\"],[\"l\",\"lit\",[\"s\",\")\"]],[\"l\",\"lit\",[\"s\",\" || (Number.isSafeInteger(\"]],[\"l\",\"var\",\"r_$1907\"],[\"l\",\"lit\",[\"s\",\")\"]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"string=?\"],[\"l\",[\"l\",\"var\",\"op_$1898\"],[\"l\",\"lit\",[\"s\",\"*\"]]]],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\" && \"]],[\"l\",\"var\",\"r_$1907\"],[\"l\",\"lit\",[\"s\",\" !== 0\"]]]],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"\"]]]]],[\"l\",\"lit\",[\"s\",\" && Number.isInteger(\"]],[\"l\",\"var\",\"a_$1905\"],[\"l\",\"lit\",[\"s\",\") && Number.isInteger(\"]],[\"l\",\"var\",\"b_$1906\"],[\"l\",\"lit\",[\"s\",\"))\"]],[\"l\",\"lit\",[\"s\",\")) ? \"]],[\"l\",\"var\",\"r_$1907\"],[\"l\",\"lit\",[\"s\",\" : \"]],[\"l\",\"var\",\"helper_$1902\"],[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"var\",\"a_$1905\"],[\"l\",\"lit\",[\"s\",\", \"]],[\"l\",\"var\",\"b_$1906\"],[\"l\",\"lit\",[\"s\",\")\"]]]],null,false],null],[\"l\",\"r\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"var\",\"a_$1905\"],[\"l\",\"lit\",[\"s\",\" \"]],[\"l\",\"var\",\"op_$1898\"],[\"l\",\"lit\",[\"s\",\" \"]],[\"l\",\"var\",\"b_$1906\"],[\"l\",\"lit\",[\"s\",\")\"]]]]]],[\"l\",\"b\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1901\"]]]]],[\"l\",\"a\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1901\"]]]]]],[\"l\",\"ops\",\"helper\",\"nodes\"],false]]]]],[\"l\",\"name\",\"op\",\"local\"],false]]"},
+      {core: "[\"l\",\"define\",\"numeric-comparison\",[\"l\",\"lambda\",[\"l\",\"name_$1908\",\"op_$1909\",\"local_$1910\"],false,[\"s\",\"numeric-comparison\"],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"var\",\"name_$1908\"],[\"l\",\"lit\",2],[\"l\",\"lambda\",[\"l\",\"ops_$1911\"],false,[\"s\",\"anonymous\"],[\"l\",\"lit\",false],[\"l\",\"ops\"],false],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"var\",\"local_$1910\"],[\"l\",\"lambda\",[\"l\",\"ops_$1912\",\"helper_$1913\",\"nodes_$1914\"],false,[\"s\",\"anonymous\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"inexact-constant-operand?\"],[\"l\",[\"l\",\"var\",\"nodes_$1914\"]]],[\"l\",\"app\",[\"l\",\"var\",\"against-inexact-constant\"],[\"l\",[\"l\",\"var\",\"ops_$1912\"],[\"l\",\"var\",\"nodes_$1914\"],[\"l\",\"var\",\"op_$1909\"],[\"l\",\"var\",\"helper_$1913\"],[\"l\",\"lambda\",[\"l\",\"e_$1915\"],false,[\"s\",\"anonymous\"],[\"l\",\"var\",\"e_$1915\"],[\"l\",\"e\"],false]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"a_$1916\",\"b_$1917\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(typeof \"]],[\"l\",\"var\",\"a_$1916\"],[\"l\",\"lit\",[\"s\",\" === 'number' && typeof \"]],[\"l\",\"var\",\"b_$1917\"],[\"l\",\"lit\",[\"s\",\" === 'number') ? \"]],[\"l\",\"var\",\"a_$1916\"],[\"l\",\"lit\",[\"s\",\" \"]],[\"l\",\"var\",\"op_$1909\"],[\"l\",\"lit\",[\"s\",\" \"]],[\"l\",\"var\",\"b_$1917\"],[\"l\",\"lit\",[\"s\",\" : \"]],[\"l\",\"var\",\"helper_$1913\"],[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"var\",\"a_$1916\"],[\"l\",\"lit\",[\"s\",\", \"]],[\"l\",\"var\",\"b_$1917\"],[\"l\",\"lit\",[\"s\",\")\"]]]],[\"l\",\"a\",\"b\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1912\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1912\"]]]]]],[\"l\",\"ops\",\"helper\",\"nodes\"],false]]]]],[\"l\",\"name\",\"op\",\"local\"],false]]"},
+      {core: "[\"l\",\"define\",\"total\",[\"l\",\"lambda\",[\"l\",\"name_$1918\",\"arity_$1919\",\"value_$1920\"],false,[\"s\",\"total\"],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"var\",\"name_$1918\"],[\"l\",\"var\",\"arity_$1919\"],[\"l\",\"lambda\",[\"l\",\"ops_$1921\"],false,[\"s\",\"anonymous\"],[\"l\",\"lit\",false],[\"l\",\"ops\"],false],[\"l\",\"var\",\"value_$1920\"]]],[\"l\",\"name\",\"arity\",\"value\"],false]]"},
+      {core: "[\"l\",\"define\",\"helper\",[\"l\",\"lambda\",[\"l\",\"name_$1922\",\"arity_$1923\",\"local_$1924\"],false,[\"s\",\"helper\"],[\"l\",\"app\",[\"l\",\"var\",\"total\"],[\"l\",[\"l\",\"var\",\"name_$1922\"],[\"l\",\"var\",\"arity_$1923\"],[\"l\",\"var\",\"local_$1924\"]]],[\"l\",\"name\",\"arity\",\"local\"],false]]"},
+      {core: "[\"l\",\"define\",\"exact-division-test\",[\"l\",\"lambda\",[\"l\",\"ops_$1925\"],false,[\"s\",\"exact-division-test\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"a_$1926\",\"b_$1927\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"typeof \"]],[\"l\",\"var\",\"a_$1926\"],[\"l\",\"lit\",[\"s\",\" === 'number' && typeof \"]],[\"l\",\"var\",\"b_$1927\"],[\"l\",\"lit\",[\"s\",\" === 'number'\"]],[\"l\",\"lit\",[\"s\",\" && Number.isInteger(\"]],[\"l\",\"var\",\"a_$1926\"],[\"l\",\"lit\",[\"s\",\") && Number.isInteger(\"]],[\"l\",\"var\",\"b_$1927\"],[\"l\",\"lit\",[\"s\",\") && \"]],[\"l\",\"var\",\"b_$1927\"],[\"l\",\"lit\",[\"s\",\" !== 0\"]]]],[\"l\",\"a\",\"b\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1925\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1925\"]]]]],[\"l\",\"ops\"],false]]"},
+      {core: "[\"l\",\"define\",\"identity-constant?\",[\"l\",\"lambda\",[\"l\",\"node_$1928\"],false,[\"s\",\"identity-constant?\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"eq?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"node_$1928\"]]],[\"l\",\"lit\",\"const\"]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"value_$1929\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1930\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$1930\"],[\"l\",\"var\",\"x_$1930\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1931\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$1931\"],[\"l\",\"var\",\"x_$1931\"],[\"l\",\"app\",[\"l\",\"var\",\"null?\"],[\"l\",[\"l\",\"var\",\"value_$1929\"]]]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"boolean?\"],[\"l\",[\"l\",\"var\",\"value_$1929\"]]]]]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"symbol?\"],[\"l\",[\"l\",\"var\",\"value_$1929\"]]]]],[\"l\",\"value\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"node_$1928\"]]]]],[\"l\",\"lit\",false]],[\"l\",\"node\"],false]]"},
+      {core: "[\"l\",\"define\",\"property-object\",[\"l\",\"lambda\",[\"l\",\"op_$1932\"],false,[\"s\",\"property-object\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"first_$1933\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"string?\"],[\"l\",[\"l\",\"var\",\"first_$1933\"]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\">\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string-length\"],[\"l\",[\"l\",\"var\",\"first_$1933\"]]],[\"l\",\"lit\",0]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"c_$1934\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$1935\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$1935\"],[\"l\",\"var\",\"x_$1935\"],[\"l\",\"app\",[\"l\",\"var\",\"char=?\"],[\"l\",[\"l\",\"var\",\"c_$1934\"],[\"l\",\"lit\",[\"c\",45]]]]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"char-numeric?\"],[\"l\",[\"l\",\"var\",\"c_$1934\"]]]]],[\"l\",\"c\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string-ref\"],[\"l\",[\"l\",\"var\",\"first_$1933\"],[\"l\",\"lit\",0]]]]],[\"l\",\"lit\",false]],[\"l\",\"lit\",false]],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"var\",\"op_$1932\"],[\"l\",\"lit\",[\"s\",\")\"]]]],[\"l\",\"var\",\"op_$1932\"]],[\"l\",\"first\"],false],[\"l\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"pair?\"],[\"l\",[\"l\",\"var\",\"op_$1932\"]]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"op_$1932\"]]],[\"l\",\"lit\",false]]]],[\"l\",\"op\"],false]]"},
+      {core: "[\"l\",\"define\",\"inline-expansions\",[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"numeric-arithmetic\"],[\"l\",[\"l\",\"lit\",\"+\"],[\"l\",\"lit\",[\"s\",\"+\"]],[\"l\",\"lit\",\"$add\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-arithmetic\"],[\"l\",[\"l\",\"lit\",\"-\"],[\"l\",\"lit\",[\"s\",\"-\"]],[\"l\",\"lit\",\"$sub\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-arithmetic\"],[\"l\",[\"l\",\"lit\",\"*\"],[\"l\",\"lit\",[\"s\",\"*\"]],[\"l\",\"lit\",\"$mul\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-comparison\"],[\"l\",[\"l\",\"lit\",\"<\"],[\"l\",\"lit\",[\"s\",\"<\"]],[\"l\",\"lit\",\"$lt\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-comparison\"],[\"l\",[\"l\",\"lit\",\">\"],[\"l\",\"lit\",[\"s\",\">\"]],[\"l\",\"lit\",\"$gt\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-comparison\"],[\"l\",[\"l\",\"lit\",\"<=\"],[\"l\",\"lit\",[\"s\",\"<=\"]],[\"l\",\"lit\",\"$le\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-comparison\"],[\"l\",[\"l\",\"lit\",\">=\"],[\"l\",\"lit\",[\"s\",\">=\"]],[\"l\",\"lit\",\"$ge\"]]],[\"l\",\"app\",[\"l\",\"var\",\"numeric-comparison\"],[\"l\",[\"l\",\"lit\",\"=\"],[\"l\",\"lit\",[\"s\",\"===\"]],[\"l\",\"lit\",\"$numEq\"]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"car\"],[\"l\",\"lit\",1],[\"l\",\"lambda\",[\"l\",\"ops_$1936\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1936\"]]],[\"l\",\"lit\",[\"s\",\" instanceof R.Cons\"]]]],[\"l\",\"ops\"],false],[\"l\",\"lambda\",[\"l\",\"ops_$1937\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"property-object\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1937\"]]]]],[\"l\",\"lit\",[\"s\",\".car\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"cdr\"],[\"l\",\"lit\",1],[\"l\",\"lambda\",[\"l\",\"ops_$1938\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1938\"]]],[\"l\",\"lit\",[\"s\",\" instanceof R.Cons\"]]]],[\"l\",\"ops\"],false],[\"l\",\"lambda\",[\"l\",\"ops_$1939\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"property-object\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1939\"]]]]],[\"l\",\"lit\",[\"s\",\".cdr\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"total\"],[\"l\",[\"l\",\"lit\",\"cons\"],[\"l\",\"lit\",2],[\"l\",\"lambda\",[\"l\",\"ops_$1940\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"new R.Cons(\"]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1940\"]]],[\"l\",\"lit\",[\"s\",\", \"]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1940\"]]],[\"l\",\"lit\",[\"s\",\")\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"total\"],[\"l\",[\"l\",\"lit\",\"pair?\"],[\"l\",\"lit\",1],[\"l\",\"lambda\",[\"l\",\"ops_$1941\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1941\"]]],[\"l\",\"lit\",[\"s\",\" instanceof R.Cons\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"total\"],[\"l\",[\"l\",\"lit\",\"null?\"],[\"l\",\"lit\",1],[\"l\",\"lambda\",[\"l\",\"ops_$1942\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1942\"]]],[\"l\",\"lit\",[\"s\",\" === null\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"total\"],[\"l\",[\"l\",\"lit\",\"not\"],[\"l\",\"lit\",1],[\"l\",\"lambda\",[\"l\",\"ops_$1943\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1943\"]]],[\"l\",\"lit\",[\"s\",\" === false\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"total\"],[\"l\",[\"l\",\"lit\",\"eq?\"],[\"l\",\"lit\",2],[\"l\",\"lambda\",[\"l\",\"ops_$1944\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1944\"]]],[\"l\",\"lit\",[\"s\",\" === \"]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1944\"]]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"helper\"],[\"l\",[\"l\",\"lit\",\"vector-ref\"],[\"l\",\"lit\",2],[\"l\",\"lit\",\"$vectorRef\"]]],[\"l\",\"app\",[\"l\",\"var\",\"helper\"],[\"l\",[\"l\",\"lit\",\"vector-set!\"],[\"l\",\"lit\",3],[\"l\",\"lit\",\"$vectorSet\"]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"vector-length\"],[\"l\",\"lit\",1],[\"l\",\"lambda\",[\"l\",\"ops_$1945\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"Array.isArray(\"]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1945\"]]],[\"l\",\"lit\",[\"s\",\")\"]]]],[\"l\",\"ops\"],false],[\"l\",\"lambda\",[\"l\",\"ops_$1946\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"property-object\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1946\"]]]]],[\"l\",\"lit\",[\"s\",\".length\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"quotient\"],[\"l\",\"lit\",2],[\"l\",\"var\",\"exact-division-test\"],[\"l\",\"lambda\",[\"l\",\"ops_$1947\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"a_$1948\",\"b_$1949\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"((\"]],[\"l\",\"var\",\"a_$1948\"],[\"l\",\"lit\",[\"s\",\" - \"]],[\"l\",\"var\",\"a_$1948\"],[\"l\",\"lit\",[\"s\",\" % \"]],[\"l\",\"var\",\"b_$1949\"],[\"l\",\"lit\",[\"s\",\") / \"]],[\"l\",\"var\",\"b_$1949\"],[\"l\",\"lit\",[\"s\",\" + 0)\"]]]],[\"l\",\"a\",\"b\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1947\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1947\"]]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"remainder\"],[\"l\",\"lit\",2],[\"l\",\"var\",\"exact-division-test\"],[\"l\",\"lambda\",[\"l\",\"ops_$1950\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"(\"]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1950\"]]],[\"l\",\"lit\",[\"s\",\" % \"]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1950\"]]],[\"l\",\"lit\",[\"s\",\" + 0)\"]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"modulo\"],[\"l\",\"lit\",2],[\"l\",\"var\",\"exact-division-test\"],[\"l\",\"lambda\",[\"l\",\"ops_$1951\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"a_$1952\",\"b_$1953\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"lit\",[\"s\",\"((\"]],[\"l\",\"var\",\"a_$1952\"],[\"l\",\"lit\",[\"s\",\" % \"]],[\"l\",\"var\",\"b_$1953\"],[\"l\",\"lit\",[\"s\",\") * \"]],[\"l\",\"var\",\"b_$1953\"],[\"l\",\"lit\",[\"s\",\" < 0 ? \"]],[\"l\",\"var\",\"a_$1952\"],[\"l\",\"lit\",[\"s\",\" % \"]],[\"l\",\"var\",\"b_$1953\"],[\"l\",\"lit\",[\"s\",\" + \"]],[\"l\",\"var\",\"b_$1953\"],[\"l\",\"lit\",[\"s\",\" : \"]],[\"l\",\"var\",\"a_$1952\"],[\"l\",\"lit\",[\"s\",\" % \"]],[\"l\",\"var\",\"b_$1953\"],[\"l\",\"lit\",[\"s\",\" + 0)\"]]]],[\"l\",\"a\",\"b\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1951\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1951\"]]]]],[\"l\",\"ops\"],false]]],[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"lit\",\"eqv?\"],[\"l\",\"lit\",2],[\"l\",\"lambda\",[\"l\",\"ops_$1954\"],false,[\"s\",\"anonymous\"],[\"l\",\"lit\",false],[\"l\",\"ops\"],false],[\"l\",\"lambda\",[\"l\",\"ops_$1955\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"js\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"ops_$1955\"]]],[\"l\",\"lit\",[\"s\",\" === \"]],[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"ops_$1955\"]]]]],[\"l\",\"ops\"],false],[\"l\",\"lambda\",[\"l\",\"args_$1956\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"any\"],[\"l\",[\"l\",\"var\",\"identity-constant?\"],[\"l\",\"var\",\"args_$1956\"]]],[\"l\",\"args\"],false]]]]]]"},
       {procedure: "inline-expansion"},
       {procedure: "inline-expansion-names"},
       {core: "[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"numbering\",[\"l\",\"app\",[\"l\",\"library-var\",\"make-record-type\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"lit\",\"numbering\"],[\"l\",\"lit\",[\"l\",\"bits\",\"count\",\"locals\"]]]]],[\"l\",\"define\",\"make-numbering\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-constructor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"numbering\"],[\"l\",\"lit\",[\"l\",\"bits\",\"count\",\"locals\"]],[\"l\",\"lit\",\"make-numbering\"]]]],[\"l\",\"define\",\"numbering?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-predicate\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"numbering\"]]]],[\"l\",\"define\",\"numbering-bits\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"numbering\"],[\"l\",\"lit\",\"bits\"]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"numbering-count\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"numbering\"],[\"l\",\"lit\",\"count\"]]]],[\"l\",\"define\",\"set-numbering-count!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"numbering\"],[\"l\",\"lit\",\"count\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"numbering-locals\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"numbering\"],[\"l\",\"lit\",\"locals\"]]]],[\"l\",\"define\",\"set-numbering-locals!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"numbering\"],[\"l\",\"lit\",\"locals\"]]]]]]]]"},
@@ -68907,7 +69228,7 @@ export const LIBRARIES = {
       {procedure: "live-in"},
       {procedure: "block-entry"},
       {procedure: "live-among"},
-      {core: "[\"l\",\"define\",\"live-locals\",[\"l\",\"lambda\",[\"l\",\"liveness_$1944\",\"block_$1945\"],false,[\"s\",\"live-locals\"],[\"l\",\"app\",[\"l\",\"var\",\"live-among\"],[\"l\",[\"l\",\"var\",\"liveness_$1944\"],[\"l\",\"var\",\"block_$1945\"],[\"l\",\"app\",[\"l\",\"var\",\"reverse\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"numbering-locals\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"liveness-numbering\"],[\"l\",[\"l\",\"var\",\"liveness_$1944\"]]]]]]]]],[\"l\",\"liveness\",\"block\"],false]]"},
+      {core: "[\"l\",\"define\",\"live-locals\",[\"l\",\"lambda\",[\"l\",\"liveness_$2004\",\"block_$2005\"],false,[\"s\",\"live-locals\"],[\"l\",\"app\",[\"l\",\"var\",\"live-among\"],[\"l\",[\"l\",\"var\",\"liveness_$2004\"],[\"l\",\"var\",\"block_$2005\"],[\"l\",\"app\",[\"l\",\"var\",\"reverse\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"numbering-locals\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"liveness-numbering\"],[\"l\",[\"l\",\"var\",\"liveness_$2004\"]]]]]]]]],[\"l\",\"liveness\",\"block\"],false]]"},
       {procedure: "statement-def"},
       {procedure: "statement-reads"},
       {procedure: "statement-mentions"},
@@ -69080,9 +69401,9 @@ export const LIBRARIES = {
       {procedure: "guarded-globals"},
       {procedure: "emit-lowered"},
       {core: "[\"l\",\"define\",\"compiler-failures\",[\"l\",\"lit\",null]]"},
-      {core: "[\"l\",\"define\",\"failure-message\",[\"l\",\"lambda\",[\"l\",\"e_$2726\"],false,[\"s\",\"failure-message\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"error-object?\"],[\"l\",[\"l\",\"var\",\"e_$2726\"]]],[\"l\",\"app\",[\"l\",\"var\",\"error-object-message\"],[\"l\",[\"l\",\"var\",\"e_$2726\"]]],[\"l\",\"lit\",[\"s\",\"an object that is not an error was raised\"]]],[\"l\",\"e\"],false]]"},
-      {core: "[\"l\",\"define\",\"compiler-failed\",[\"l\",\"lambda\",[\"l\",\"name_$2727\",\"e_$2728\"],false,[\"s\",\"compiler-failed\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"message_$2729\",\"port_$2730\",\"named_$2731\"],false,[\"s\",\"let\"],[\"l\",\"seq\",[\"l\",[\"l\",\"set\",\"compiler-failures\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"var\",\"named_$2731\"],[\"l\",\"var\",\"message_$2729\"]]],[\"l\",\"var\",\"compiler-failures\"]]]],[\"l\",\"app\",[\"l\",\"var\",\"write-string\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string-append\"],[\"l\",[\"l\",\"lit\",[\"s\",\"scheme-js: the compiler failed on \"]],[\"l\",\"var\",\"named_$2731\"],[\"l\",\"lit\",[\"s\",\", which runs interpreted instead. This is a bug in the compiler: \"]],[\"l\",\"var\",\"message_$2729\"],[\"l\",\"lit\",[\"s\",\"\\n\"]]]],[\"l\",\"var\",\"port_$2730\"]]],[\"l\",\"app\",[\"l\",\"var\",\"flush-output-port\"],[\"l\",[\"l\",\"var\",\"port_$2730\"]]],[\"l\",\"app\",[\"l\",\"var\",\"make-declined\"],[\"l\",[\"l\",\"var\",\"name_$2727\"],[\"l\",\"app\",[\"l\",\"var\",\"string-append\"],[\"l\",[\"l\",\"lit\",[\"s\",\"the compiler failed: \"]],[\"l\",\"var\",\"message_$2729\"]]],[\"l\",\"lit\",false]]]]],[\"l\",\"message\",\"port\",\"named\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"failure-message\"],[\"l\",[\"l\",\"var\",\"e_$2728\"]]],[\"l\",\"app\",[\"l\",\"var\",\"current-error-port\"],null],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"string?\"],[\"l\",[\"l\",\"var\",\"name_$2727\"]]],[\"l\",\"var\",\"name_$2727\"],[\"l\",\"lit\",[\"s\",\"an expression\"]]]]],[\"l\",\"name\",\"e\"],false]]"},
-      {core: "[\"l\",\"define\",\"unless-failing\",[\"l\",\"lambda\",[\"l\",\"name_$2732\",\"thunk_$2733\"],false,[\"s\",\"unless-failing\"],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$2734\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$2735\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$2736\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"lit\",true],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2734\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"compiler-failed\"],[\"l\",[\"l\",\"var\",\"name_$2732\"],[\"l\",\"var\",\"e_$2736\"]]]]],[\"l\",\"app\",[\"l\",\"library-var\",\"raise\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"var\",\"e_$2736\"]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$2735\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"thunk_$2733\"],null],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"name\",\"thunk\"],false]]"},
+      {core: "[\"l\",\"define\",\"failure-message\",[\"l\",\"lambda\",[\"l\",\"e_$2794\"],false,[\"s\",\"failure-message\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"error-object?\"],[\"l\",[\"l\",\"var\",\"e_$2794\"]]],[\"l\",\"app\",[\"l\",\"var\",\"error-object-message\"],[\"l\",[\"l\",\"var\",\"e_$2794\"]]],[\"l\",\"lit\",[\"s\",\"an object that is not an error was raised\"]]],[\"l\",\"e\"],false]]"},
+      {core: "[\"l\",\"define\",\"compiler-failed\",[\"l\",\"lambda\",[\"l\",\"name_$2795\",\"e_$2796\"],false,[\"s\",\"compiler-failed\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"message_$2797\",\"port_$2798\",\"named_$2799\"],false,[\"s\",\"let\"],[\"l\",\"seq\",[\"l\",[\"l\",\"set\",\"compiler-failures\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"var\",\"named_$2799\"],[\"l\",\"var\",\"message_$2797\"]]],[\"l\",\"var\",\"compiler-failures\"]]]],[\"l\",\"app\",[\"l\",\"var\",\"write-string\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string-append\"],[\"l\",[\"l\",\"lit\",[\"s\",\"scheme-js: the compiler failed on \"]],[\"l\",\"var\",\"named_$2799\"],[\"l\",\"lit\",[\"s\",\", which runs interpreted instead. This is a bug in the compiler: \"]],[\"l\",\"var\",\"message_$2797\"],[\"l\",\"lit\",[\"s\",\"\\n\"]]]],[\"l\",\"var\",\"port_$2798\"]]],[\"l\",\"app\",[\"l\",\"var\",\"flush-output-port\"],[\"l\",[\"l\",\"var\",\"port_$2798\"]]],[\"l\",\"app\",[\"l\",\"var\",\"make-declined\"],[\"l\",[\"l\",\"var\",\"name_$2795\"],[\"l\",\"app\",[\"l\",\"var\",\"string-append\"],[\"l\",[\"l\",\"lit\",[\"s\",\"the compiler failed: \"]],[\"l\",\"var\",\"message_$2797\"]]],[\"l\",\"lit\",false]]]]],[\"l\",\"message\",\"port\",\"named\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"failure-message\"],[\"l\",[\"l\",\"var\",\"e_$2796\"]]],[\"l\",\"app\",[\"l\",\"var\",\"current-error-port\"],null],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"string?\"],[\"l\",[\"l\",\"var\",\"name_$2795\"]]],[\"l\",\"var\",\"name_$2795\"],[\"l\",\"lit\",[\"s\",\"an expression\"]]]]],[\"l\",\"name\",\"e\"],false]]"},
+      {core: "[\"l\",\"define\",\"unless-failing\",[\"l\",\"lambda\",[\"l\",\"name_$2800\",\"thunk_$2801\"],false,[\"s\",\"unless-failing\"],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$2802\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$2803\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$2804\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"lit\",true],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2802\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"compiler-failed\"],[\"l\",[\"l\",\"var\",\"name_$2800\"],[\"l\",\"var\",\"e_$2804\"]]]]],[\"l\",\"app\",[\"l\",\"library-var\",\"raise\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"var\",\"e_$2804\"]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$2803\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"thunk_$2801\"],null],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"name\",\"thunk\"],false]]"},
       {procedure: "take-compiler-failures!"},
       {procedure: "lower-and-emit"},
       {procedure: "generate-lambda"},
@@ -69142,3 +69463,4 @@ export const LIBRARIES = {
 };
 
 export default LIBRARIES;
+//# sourceMappingURL=compiled_compiler.js.map

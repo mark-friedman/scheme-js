@@ -112,6 +112,14 @@ async function frontEnd(op, args) {
       debuggerModel[args[0]]();
       return pauseAfter(seen, 10000);
     }
+    case 'stack': {
+      // Every frame of the pause, top first, as DevTools' call stack shows it.
+      const details = debuggerModel.debuggerPausedDetails();
+      if (!details) return null;
+      const places = [];
+      for (const frame of details.callFrames) places.push(await place({ callFrames: [frame] }));
+      return places;
+    }
     case 'customFormatters':
       // As its user turns them on in DevTools' settings.
       Common.Settings.Settings.instance().moduleSetting('custom-formatters').set(args[0]);
@@ -276,6 +284,15 @@ export class DevTools {
    */
   step(kind) {
     return this.call('step', kind);
+  }
+
+  /**
+   * Where each frame of the pause is, top first, as DevTools' call stack
+   * shows it.
+   * @returns {Promise<Array<{url: string, line: number, column: number, ignored: boolean}>|null>}
+   */
+  stack() {
+    return this.call('stack');
   }
 
   /**

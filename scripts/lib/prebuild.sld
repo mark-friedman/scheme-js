@@ -13,7 +13,7 @@
           (scheme file)
           (scheme write)
           (srfi 1)
-          (only (srfi 152) string-join)
+          (only (srfi 152) string-join string-split)
           (scheme-js interop)
           (only (scheme-js library-system) parse-define-library requirement-met?
                 library-definition-includes library-definition-includes-ci
@@ -22,7 +22,7 @@
           (scheme-js compiler)
           (scheme-js compiler build)
           (scheme-js table-writer))
-  (export file-text source-reader library-resolver library-files library-declaration library-definition
+  (export file-text source-reader source-locator relative-path library-file-names library-resolver library-files library-declaration library-definition
           library-key
           declared-library-name say
           note! take-noted!

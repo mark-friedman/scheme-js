@@ -324,10 +324,17 @@ built for the test.
   stepping into a macro's template: exact names, temporaries hidden, an expansion marked as an inlined
   range. `@chrome-devtools/source-map-scopes-codec` is to check the encoding in the tests, with the
   user's go-ahead to add it.
-- **(g) The prebuilt tables mapped and ignore-listed -- to do.** And a program built ahead of time
-  (`node repl.js --build`), whose code the same table writer writes, with no map yet either, its runtime
-  ignore-listed as the bundle's is (added with the user 2026-10-09: such a program needs no switch for
-  (d), every procedure in it compiled from its first call).
+- **(g) The prebuilt tables mapped and ignore-listed, and programs built ahead of time -- done
+  2026-10-09.** The table writer writes a module as pieces, each line of its generated code with the
+  span the compiler gave it (`render-tables-with-spans`), and `write-tables!` writes a map beside each
+  table naming each file by its path from the module, with its text, every one ignore-listed; the
+  bundle's map is chained to it (`tableMaps` in `rollup.config.js`), so a frame of `map` shows in
+  `list.scm`, ignore-listed, and the bundle's map halved, 18.5 MB to 9.2. A built program's module gets
+  `OUTPUT.map` the same way, each span placed beside its own library's file (`span-placer` in
+  `ahead.scm`), so a file of the program's named like the system's is the program's; the system's
+  sources and the runtime are ignore-listed (`ahead_bundle.js`). The maps escape nothing for a URL now:
+  only a `data:` URL needs it, and `source-map-url` does it (added with the user 2026-10-09: such a
+  program needs no switch for (d), every procedure in it compiled from its first call).
 
 ## Completed
 

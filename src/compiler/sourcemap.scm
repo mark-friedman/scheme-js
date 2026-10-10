@@ -14,12 +14,13 @@
 ;;; breakpoint set there stops at the line's first statement. A line with no
 ;;; span maps nothing.
 ;;;
-;;; The map is written into the script itself, as a `data:` URL: a script made
-;;; with `new Function` has no file a map could sit beside. Its JSON goes into
-;;; the URL as it is, not in base 64: a URL's parser percent-encodes what it
-;;; must and a `data:` URL's body is percent-decoded, so only what would end
-;;; the URL or change its meaning is escaped (`url-path-escape`) -- and only a
-;;; file's name can hold any of it.
+;;; The map of code the tier compiles is written into the script itself, as a
+;;; `data:` URL: a script made with `new Function` has no file a map could sit
+;;; beside. Its JSON goes into the URL as it is, not in base 64: a URL's parser
+;;; percent-encodes what it must and a `data:` URL's body is percent-decoded,
+;;; so only what would end the URL or change its meaning is escaped
+;;; (`url-path-escape`), which only the JSON's strings can hold. A prebuilt
+;;; table's map, and a built program's, is a file of its own.
 
 ;; ---------------------------------------------------------------------------
 ;; The encoding
@@ -116,35 +117,49 @@
 ;;  *
 ;;  * A file a debugger can fetch by its name it fetches. One it cannot, whose
 ;;  * text the caller knows -- a page's inline script -- has the text in the
-;;  * map's `sourcesContent`, and any other file a null beside it. The names and
-;;  * the text are escaped for the URL the map goes into (`source-map-url`),
-;;  * whose reader undoes it.
+;;  * map's `sourcesContent`, and any other file a null beside it.
+;;  *
+;;  * A map written to a file of its own -- a prebuilt table's, a built
+;;  * program's -- names each file as a path from the map (`name-of`), and may
+;;  * ignore-list some (`x_google_ignoreList`): the system's own.
 ;;  *
 ;;  * @param {list} spans - Each line's span, or #f, as the emitter renders
 ;;  *   them (`render-items` in `emit.scm`).
 ;;  * @param {integer} offset - How many lines the script has before the first.
 ;;  * @param {procedure} text-of - A file's text, where the map should hold it,
 ;;  *   or #f.
+;;  * @param {procedure} [name-of] - The name a file goes into `sources` by;
+;;  *   its own, by default.
+;;  * @param {procedure} [ignored?] - Whether a file is ignore-listed; none,
+;;  *   by default.
 ;;  * @returns {string|boolean}
 ;;  */
-(define (source-map spans offset text-of)
+(define (source-map spans offset text-of . options)
   ;; `sources` is newest first, so a file's index in the order first named is
   ;; the length of what follows it. The mappings are appended to as they go,
   ;; as `render-items` in `emit.scm` builds its text.
-  (let loop ((spans spans) (first? #t) (mappings (make-string offset #\;))
-             (sources '()) (source 0) (line 0) (column 0) (previous #f))
+  (let ((name-of (if (pair? options) (car options) (lambda (file) file)))
+        (ignored? (if (and (pair? options) (pair? (cdr options))) (cadr options) (lambda (file) #f))))
+   (let loop ((spans spans) (first? #t) (mappings (make-string offset #\;))
+              (sources '()) (source 0) (line 0) (column 0) (previous #f))
     (if (null? spans)
         (and (pair? sources)
              (let* ((files (reverse sources))
                     (texts (map text-of files))
+                    (ignore-list (filter-map (lambda (file index) (and (ignored? file) index))
+                                             files (iota (length files))))
                     (json-list (lambda (strings)
-                                 (string-join (map (lambda (s) (if s (url-path-escape (js-string s)) "null"))
+                                 (string-join (map (lambda (s) (if s (js-string s) "null"))
                                                    strings)
                                               ","))))
                ;; The mappings need no quoting: base-64 digits and `;`.
-               (string-append "{\"version\":3,\"sources\":[" (json-list files) "]"
+               (string-append "{\"version\":3,\"sources\":[" (json-list (map name-of files)) "]"
                               (if (any (lambda (text) text) texts)
                                   (string-append ",\"sourcesContent\":[" (json-list texts) "]")
+                                  "")
+                              (if (pair? ignore-list)
+                                  (string-append ",\"x_google_ignoreList\":["
+                                                 (string-join (map number->string ignore-list) ",") "]")
                                   "")
                               ",\"names\":[],\"mappings\":\"" mappings "\"}")))
         (let* ((span (car spans))
@@ -166,13 +181,13 @@
                (loop (cdr spans) #f
                      (string-append mappings "A" (vlq (- index source))
                                     (vlq (- span-line line)) (vlq (- span-column column)))
-                     sources index span-line span-column span))))))))
+                     sources index span-line span-column span)))))))))
 
 ;; /**
 ;;  * A source map as a URL a script can name its map by, in a
-;;  * `//# sourceMappingURL=` comment.
+;;  * `//# sourceMappingURL=` comment, escaped for it (`url-path-escape`).
 ;;  * @param {string} json - The map, from `source-map`.
 ;;  * @returns {string}
 ;;  */
 (define (source-map-url json)
-  (string-append "data:application/json;charset=utf-8," json))
+  (string-append "data:application/json;charset=utf-8," (url-path-escape json)))

@@ -3,7 +3,9 @@
 ;; procedures written as a module.
 
 (import (scheme base)
-        (only (srfi 152) string-contains)
+        (only (srfi 1) filter)
+        (only (srfi 152) string-contains string-split)
+        (only (scheme-js interop) js-obj)
         (scheme-js table-writer))
 
 (test-group "table writer - strings as JSON"
@@ -138,3 +140,27 @@
         (has? "    files: [\"lib.sld\"],\n    declaration: \"[\\\"l\\\",\\\"define-library\\\","))
   (test "a table that cannot restore has no restore" #t
         (has? "  \"test.other\": {\n    fingerprint: \"0ddba11\",\n    runtime: \"abcd1234\",\n    files: [\"other.sld\"],\n    procedures: {\n      \"g\": {\n        params: [],\n        rest: null,\n        constants: [],\n        make: (R, E, K) => {\n        body\n        }\n      }\n    }\n  }")))
+
+;; A module's source map is made of each of its lines' spans: an entry's code
+;; lines carry the spans the compiler gave them, as a seventh element; every
+;; other line none.
+(test-group "table writer - each line's span, for the module's source map"
+  (define first-span (js-obj "filename" "a.scm" "line" 1 "column" 1))
+  (define second-span (js-obj "filename" "a.scm" "line" 2 "column" 1))
+  (define libraries
+    (list (list "test.lib" "f00dfeed" '("lib.sld")
+                (list (list "f" '() #f '() "line one\nline two" #f (list first-span second-span))
+                      (list "g" '() #f '() "body" #f))
+                #f #f)))
+  (define written (render-tables-with-spans "scripts/test.js" "Some tables." "abcd1234" libraries))
+  (define lines (string-split (car written) "\n"))
+  (define (line-of span)
+    (let loop ((spans (cdr written)) (i 0))
+      (cond ((null? spans) #f) ((eq? (car spans) span) i) (else (loop (cdr spans) (+ i 1))))))
+  (test "the text is what render-tables writes" (render-tables "scripts/test.js" "Some tables." "abcd1234" libraries)
+        (car written))
+  (test "a span, or none, for every line" (length lines) (length (cdr written)))
+  (test "an entry's code lines carry its spans, and no other line any"
+        (list first-span second-span) (filter (lambda (span) span) (cdr written)))
+  (test "each at its line of code" '("        line one" "        line two")
+        (list (list-ref lines (line-of first-span)) (list-ref lines (line-of second-span)))))

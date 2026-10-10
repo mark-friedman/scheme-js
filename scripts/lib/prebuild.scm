@@ -29,22 +29,49 @@
               (loop (cons chunk chunks))))))))
 
 ;; /**
-;;  * What reads the files of some directories: a file's text, by its name,
-;;  * from the first of them that has it, or #f. Given the names a file it
+;;  * What finds the files of some directories: a file's path, by its name,
+;;  * in the first of them that has it, or #f. Given the names a file it
 ;;  * belongs beside may have, too, it looks first in the directory of the
 ;;  * first of those found, as a file a library includes is looked for
 ;;  * beside the library's own file.
 ;;  * @param {list} dirs - The directories, as paths.
 ;;  * @returns {procedure} From a file's name, and the names of the one it is
-;;  *   beside, if any, to its text or #f.
+;;  *   beside, if any, to its path or #f.
 ;;  */
-(define (source-reader dirs)
+(define (source-locator dirs)
   (define (in dir file) (string-append dir "/" file))
   (define (dir-of file) (find (lambda (dir) (file-exists? (in dir file))) dirs))
   (lambda (file . beside)
     (let* ((home (any dir-of beside))
            (dir (if (and home (file-exists? (in home file))) home (dir-of file))))
-      (and dir (file-text (in dir file))))))
+      (and dir (in dir file)))))
+
+;; /**
+;;  * What reads the files of some directories, where `source-locator` finds
+;;  * them: a file's text, or #f.
+;;  * @param {list} dirs - The directories, as paths.
+;;  * @returns {procedure} From a file's name, and the names of the one it is
+;;  *   beside, if any, to its text or #f.
+;;  */
+(define (source-reader dirs)
+  (let ((locate (source-locator dirs)))
+    (lambda (file . beside)
+      (let ((path (apply locate file beside)))
+        (and path (file-text path))))))
+
+;; /**
+;;  * A path from a directory to a file, both relative to the same directory:
+;;  * `../core/scheme/list.scm` from `src/packaging` to
+;;  * `src/core/scheme/list.scm`.
+;;  * @param {string} from - The directory.
+;;  * @param {string} to - The file.
+;;  * @returns {string}
+;;  */
+(define (relative-path from to)
+  (let loop ((from (string-split from "/")) (to (string-split to "/")))
+    (if (and (pair? from) (pair? to) (pair? (cdr to)) (string=? (car from) (car to)))
+        (loop (cdr from) (cdr to))
+        (string-join (append (map (lambda (part) "..") from) to) "/"))))
 
 ;; /**
 ;;  * The names a library's own file is looked for by, in order: by the last
@@ -257,8 +284,9 @@
 
 ;; /**
 ;;  * A procedure's entry in its table: its name, its parameters, its rest
-;;  * parameter or #f, its constants, its code, and -- where the table's code
-;;  * restores it -- the span of its source as JSON, or #f.
+;;  * parameter or #f, its constants, its code, where the table's code restores
+;;  * it the span of its source as JSON, or #f, and its code's lines' spans,
+;;  * for the table's source map.
 ;;  * @param {generated} g - What the compiler generated for it.
 ;;  * @param {list} restored - The names the table restores.
 ;;  * @returns {list}
@@ -272,7 +300,8 @@
           (generated-constants g)
           (generated-source g)
           (and (member (generated-name g) restored)
-               (js-invoke (js-eval "JSON") "stringify" (source-span closure))))))
+               (js-invoke (js-eval "JSON") "stringify" (source-span closure)))
+          (generated-spans g))))
 
 ;; /**
 ;;  * The table of a library just loaded, from code generated for the
@@ -327,15 +356,41 @@
         (library-table-entries table) (library-table-restore table) (library-table-declaration table)))
 
 ;; /**
-;;  * Writes tables down as a JavaScript module.
+;;  * Writes tables down as a JavaScript module, and its source map beside it,
+;;  * which places each line of the code in the Scheme it was compiled from:
+;;  * a frame of a library's procedure shows at its source, in DevTools, and
+;;  * through the map of a bundle the module goes into. The map names each file
+;;  * by its path from the module, holds its text, as a bundle served without
+;;  * the sources needs, and ignore-lists every one, being the system's. A
+;;  * span names its file only, which is found where `locate` finds it: the
+;;  * shipped libraries' files' names are each one file's. One whose code is in
+;;  * its `define-library` form names the library instead, `scheme/eval`,
+;;  * whose file is its `.sld`.
 ;;  * @param {string} path - The module's file.
 ;;  * @param {string} generator - The build step that wrote it.
 ;;  * @param {string} title - One line saying what the tables hold.
 ;;  * @param {list} tables - The tables, `library-table` records.
+;;  * @param {procedure} locate - A `source-locator` of the libraries' files.
 ;;  */
-(define (write-tables! path generator title tables)
-  (let ((text (render-tables generator title (runtime-interface) (map library-table-list tables))))
-    (call-with-output-file path (lambda (port) (write-string text port)))))
+(define (write-tables! path generator title tables locate)
+  (let* ((written (render-tables-with-spans generator title (runtime-interface) (map library-table-list tables)))
+         (map-file (string-append path ".map"))
+         (here (string-join (reverse (cdr (reverse (string-split path "/")))) "/"))
+         (find-file (lambda (file)
+                      (or (locate file) (locate (string-append (last (string-split file "/")) ".sld")))))
+         (map-json (source-map (cdr written) 0
+                               (lambda (file) (let ((found (find-file file))) (and found (file-text found))))
+                               (lambda (file) (let ((found (find-file file))) (if found (relative-path here found) file)))
+                               (lambda (file) #t))))
+    (call-with-output-file path
+      (lambda (port)
+        (write-string (car written) port)
+        (when map-json
+          (write-string "//# sourceMappingURL=" port)
+          (write-string (last (string-split map-file "/")) port)
+          (newline port))))
+    (when map-json
+      (call-with-output-file map-file (lambda (port) (write-string map-json port))))))
 
 ;; /**
 ;;  * Writes a line, its parts displayed one after another.

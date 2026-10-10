@@ -270,7 +270,7 @@ async function buildAhead(args, includeDirs) {
         for (const reason of toArray(outcome)) console.error(stringValue(reason));
         process.exit(1);
     }
-    await writeProgramBundle(stringValue(outcome), output);
+    await writeProgramBundle(stringValue(outcome.text), outcome.map === null ? null : stringValue(outcome.map), output);
     process.exit(0);
 }
 

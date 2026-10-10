@@ -18,6 +18,7 @@
 
 import fs from 'fs';
 import http from 'http';
+import { execFileSync } from 'child_process';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -29,18 +30,22 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 /** What each kind of file served is. */
 const TYPES = {
   '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json',
+  '.map': 'application/json',
   '.scm': 'text/plain', '.sld': 'text/plain'
 };
 
 /**
- * Serves the repository's files, and a bundle's under `/bundle/`.
+ * Serves the repository's files, a bundle's under `/bundle/`, and a built
+ * program's under `/built/`.
  * @param {string} bundle - The bundle's directory.
+ * @param {string} built - The built program's directory.
  * @returns {Promise<{server: http.Server, port: number}>}
  */
-function serve(bundle) {
+function serve(bundle, built) {
   const server = http.createServer((request, response) => {
     const pathname = decodeURIComponent(new URL(request.url, 'http://x').pathname);
-    const [root, relative] = pathname.startsWith('/bundle/') ? [bundle, pathname.slice('/bundle'.length)] : [ROOT, pathname];
+    const [root, relative] = pathname.startsWith('/bundle/') ? [bundle, pathname.slice('/bundle'.length)]
+      : pathname.startsWith('/built/') ? [built, pathname.slice('/built'.length)] : [ROOT, pathname];
     const file = path.join(root, relative);
     if (!file.startsWith(root) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
       response.writeHead(404);
@@ -73,13 +78,70 @@ async function buildBundle() {
 }
 
 /**
+ * Builds the fixture program ahead of time, as `node repl.js --build` does,
+ * into a directory of its own.
+ * @returns {string} The directory, holding `built.mjs` and its map.
+ */
+function buildProgram() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scheme-devtools-built-'));
+  execFileSync(process.execPath, [path.join(ROOT, 'repl.js'), '--build',
+    path.join(ROOT, 'tests/devtools/fixtures/built.scm'), '-o', path.join(dir, 'built.mjs')], { stdio: 'pipe' });
+  return dir;
+}
+
+/**
+ * Debugging a program built ahead of time: its module's source map, chained
+ * through the table the build wrote, places its code in its Scheme, and the
+ * system's -- the runtime, the libraries' procedures it carries -- in the
+ * system's, ignore-listed.
+ * @param {Object} logger - Test logger.
+ * @param {Object} browser - Puppeteer's browser, launched with `devtools`.
+ * @param {string} fixtures - The fixtures' URL.
+ * @param {string} built - The built program's directory.
+ * @param {number} port - The server's port.
+ * @returns {Promise<void>}
+ */
+async function builtTests(logger, browser, fixtures, built, port) {
+  logger.title('DevTools - a program built ahead of time');
+  const { page, devTools } = await open(browser, `${fixtures}built.html`);
+  // Its Scheme by the URL the map names it by, from the module's place.
+  const map = JSON.parse(fs.readFileSync(path.join(built, 'built.mjs.map'), 'utf8'));
+  const scm = new URL(map.sources.find((source) => source.endsWith('built.scm')),
+    `http://127.0.0.1:${port}/built/built.mjs.map`).href;
+  const at = (text) => `built.scm:${lineOf('built.scm', text)}`;
+  assert(logger, "DevTools lists the program's Scheme", await devTools.source(scm), true);
+  {
+    const { bound, at: paused, places } = await session(devTools, page, scm, lineOf('built.scm', '(let ((m'),
+      'window.builtStep(2)', ['stepOver']);
+    assert(logger, "a breakpoint in its Scheme is bound, the program pauses at it, and a step over goes to the next line",
+      [bound > 0, paused, places], [true, at('(let ((m'), [at('(+ m 1)')]]);
+  }
+  {
+    await devTools.breakpoint(scm, lineOf('built.scm', '(+ x x)'));
+    const seen = await devTools.pauses();
+    const running = page.evaluate('window.builtDouble(3)').catch(() => null);
+    const paused = await devTools.pauseAfter(seen);
+    const stack = paused === null ? null : await devTools.stack();
+    await devTools.resume();
+    assert(logger, "paused in a procedure the system's map calls, map's frame, which the program carries compiled, "
+      + 'is placed in the system\'s list.scm, ignore-listed',
+      [shown(stack?.[0]), pathOf(stack?.[1]?.url ?? '').endsWith('/src/core/scheme/list.scm'), stack?.[1]?.ignored,
+        await running],
+      [at('(+ x x)'), true, true, 6]);
+  }
+  assert(logger, "no pause was in the system's code", (await devTools.all()).filter((place) => place === null
+    || place.ignored || !pathOf(place.url).endsWith('built.scm')).map(shown), []);
+  await page.close();
+}
+
+/**
  * A pause's place as a test compares it: the file's name and the line, and
  * whether DevTools ignore-lists it.
  * @param {{url: string, line: number, ignored: boolean}|null} place - Where.
  * @returns {string|null}
  */
 function shown(place) {
-  if (place === null) return null;
+  if (place === null || place === undefined) return null;
   const file = pathOf(place.url);
   return `${file.slice(file.lastIndexOf('/') + 1)}:${place.line}${place.ignored ? ' (ignored)' : ''}`;
 }
@@ -255,7 +317,8 @@ async function steppingTests(logger, over, devTools, page, fixtures) {
     await page.evaluate('JSON.stringify(window.compiled)'),
     JSON.stringify({
       'scheme-calls-js': true, 'scheme-called-from-js': true, 'scheme-round-trip': true,
-      classify: true, assigning: true, counting: true, summing: true, 'call-handler': true, vectoring: true
+      classify: true, assigning: true, counting: true, summing: true, 'call-handler': true, vectoring: true,
+      doubling: true
     }));
   assert(logger, 'DevTools lists the Scheme file the compiled code is mapped to', await devTools.source(scm), true);
 
@@ -389,6 +452,23 @@ async function steppingTests(logger, over, devTools, page, fixtures) {
   assert(logger, "expanded, a list's body is its elements, each for DevTools to draw, then the list as JavaScript draws it",
     body, ['ol', 3, '0: ', 'object', 1, 'JavaScript: ', true, true]);
 
+  // The system's procedures, compiled in its prebuilt tables, are placed in
+  // its Scheme by the tables' source maps, ignore-listed.
+  logger.title(`DevTools, over ${over} - the system's frames, placed in its Scheme`);
+  {
+    await devTools.breakpoint(placing, lineOf('placing.scm', '(* x 2))'));
+    const seen = await devTools.pauses();
+    const running = page.evaluate("window.call('doubling', window.schemeValue(\"'(1 2)\"))").catch(() => null);
+    const paused = await devTools.pauseAfter(seen);
+    const stack = paused === null ? null : await devTools.stack();
+    await devTools.resume();
+    await running;
+    const beneath = stack?.[1];
+    assert(logger, "paused in a procedure the system's map calls, map's frame is placed in the system's list.scm, ignore-listed",
+      [shown(stack?.[0]), pathOf(beneath?.url ?? '').endsWith('/src/core/scheme/list.scm'), beneath?.ignored],
+      [`placing.scm:${lineOf('placing.scm', '(* x 2))')}`, true, true]);
+  }
+
   logger.title(`DevTools, over ${over} - never in the system`);
   assert(logger, "no pause was in the system's code, nor in code DevTools could not place in a source",
     (await devTools.all()).filter((place) => place === null || place.ignored || place.url.startsWith('scheme:')
@@ -410,7 +490,8 @@ export async function runDevToolsSteppingTests(logger) {
     return;
   }
   const bundle = await buildBundle();
-  const { server, port } = await serve(bundle);
+  const built = buildProgram();
+  const { server, port } = await serve(bundle, built);
   const browser = await puppeteer.launch({ headless: true, devtools: true });
   try {
     const fixtures = `http://127.0.0.1:${port}/tests/devtools/fixtures/`;
@@ -425,6 +506,7 @@ export async function runDevToolsSteppingTests(logger) {
     }
     await switchTests(logger, "the system's modules", browser, fixtures, '', `^http://127\\.0\\.0\\.1:${port}/src/`);
     await switchTests(logger, 'the bundle', browser, fixtures, 'entry=/bundle/scheme.js&', null);
+    await builtTests(logger, browser, fixtures, built, port);
     logger.title('DevTools - a page whose Scheme is in its own scripts');
     {
       // Whether the procedure the page's first script defines was compiled
@@ -445,5 +527,6 @@ export async function runDevToolsSteppingTests(logger) {
     await browser.close();
     server.close();
     fs.rmSync(bundle, { recursive: true, force: true });
+    fs.rmSync(built, { recursive: true, force: true });
   }
 }
