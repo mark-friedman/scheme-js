@@ -14921,3 +14921,74 @@ the next line, `map`'s frame in `list.scm`, never a pause in the system. The dri
 
 JavaScript added, each with what requires it: `rollup.config.js`'s `tableMaps` and `ahead_bundle.js`'s
 map and ignore list, the build's bundling, which is rollup's; `repl.js` passing the map on, the CLI.
+
+# Task 84 (f): source map scopes, and task 84 done (2026-10-09)
+
+The last stage of 84. Its readable names came earlier the same day; this is the other half decided with
+the user, source map scopes, for the exact names, `found?` rather than `found_p`, in the scopes the
+source nests them in, and none of the compiler's temporaries.
+
+**What a unit's map gives.** ECMA-426's scopes proposal gives a debugger two trees, written into a map's
+`scopes` field. `src/compiler/scopes.scm` makes them. The source's scopes come from the unit's IR before
+its code is generated (`original-scopes`): a function scope for each `lambda`, named for its definition
+or, as JavaScript names a function by the variable it initializes, for the variable a `let` or `letrec`
+binds it to; a block for each `let` -- one for the nested IR `let`s one `let` of several variables
+lowers to -- and for each `letrec` but a loop placed inline, whose procedure's scope is the loop's; and
+the file's, whose variables are the globals the unit reads. A variable is named as the source writes it,
+and one the system made, named with a `%`, is not shown. The emitter notes the scope each statement is
+emitted in, beside it as its span is (`form-scope`, `with-scope-of` and `statement-scopes` in
+`emit.scm`), and wraps each function, factory and the unit in the scopes they are (`ranged-items`); the
+renderer makes the generated code's ranges from them as it writes the lines
+(`render-items-with-ranges`), each with what reads each variable there (`local-binder`): its local,
+through its box where a closure captures and assigns it, through the factory's parameter in a procedure
+that captured it, a global through its cell, or nothing where the code cannot reach it.
+`sourcemap.scm` encodes them (`scopes-field`), flattening the trees into items and folding over them
+with a cursor of the last values written, every field a difference from it; a scope a macro put out of
+order is written where the last ended, so the field's positions never go back.
+
+**What DevTools makes of them.** Its encoder and decoder are in Chrome's DevTools
+(`third_party/source-map-scopes-codec`); the encoding's tests were written against strings it encodes,
+and it decodes a unit's map in its strict mode. But the DevTools of Chrome 146, with its
+`use-source-map-scopes` experiment on, names frames by them and translates stack traces with them, and
+its Scope pane never asks for them: no module of the front end calls a map's `resolveScopeChain` (R146).
+It names a frame by the scope at its function's start, which is why a function's range begins at its
+head's `function` and not the line after. The DevTools tests check what its own resolver
+(`SourceMapScopesInfo`) makes of a map -- what the pane would show -- paused in a procedure and in a
+procedure it makes: the frame's name; the `let`'s block, the procedure's scope and the file's; `found?`
+and an `items` the `let` binds again by their Scheme names; a variable kept in a box by its value; those
+a closure did not capture unavailable. And the stepping into a macro's template that (c) left to the
+scopes did not come with them: DevTools steps over source-mapped JavaScript by its mappings alone, so
+an expansion marked as a procedure inlined at its use would still be walked by a step over the use
+(R147); an expansion stays placed at its use.
+
+**Only for DevTools.** Measured over the self-host corpus's 1,981 units: generating them and writing
+their maps cost 2.49 s without scopes and 5.16 s with, finding each name and scope in a list the bulk
+of it; with each found in a weak table (a name by its symbol), the cursor a record, and a line in the
+scope of the line before taking no work, 3.23 s, about 0.37 ms a unit more, 30%. Since only a debugger
+reads them, they are made only while the tier compiles for DevTools (`for-devtools?` in `driver.scm`,
+which was `ways-back?`, and also gives each procedure its way back). Rendering a line as a record,
+where it had consed a pair, made generating every unit 4% dearer, so a unit without scopes is rendered
+as before (`render-items`), level with HEAD over the same corpus.
+
+**Fixed on the way.** A lambda rebuilt from a closure, as the tier compiles one, or made for a
+top-level expression, had no span of its own; it takes the procedure's (`emit-lowered`), which the
+scopes are placed by.
+
+Tested in `tests/compiler/sourcemap_tests.scm` (the encoding: an unsigned quantity, a scope with its
+variables and a range with its bindings, a source with none, the lines before the code, a scope out of
+order, the map's `names` and `scopes`), `tests/compiler/scopes_tests.scm` (new: the source's scopes --
+a procedure's, a `let`'s, an internal definition, a named `let`'s loop, a `letrec`'s, an anonymous
+procedure, the globals, a name the system made -- and the generated code's ranges -- both of a
+procedure's functions, the unit, a `let`'s block, a name told apart by a suffix, a box, a captured
+variable in a factory, where a function's range begins), `tests/compiler/driver_tests.scm` (scopes only
+for DevTools), and the DevTools tests, 83 now: a `scoping` procedure in `placing.scm`, the experiment
+turned on from another tab's window, since DevTools reads a map's scopes only with it on as the map is
+read. The driver gained `experiment` and `scopes`.
+
+With it, 84 is done: stepping between a page's Scheme and JavaScript past the system's code; every line
+a pause lands on placed in the Scheme; everything compiled before it runs while DevTools debugs, with
+a way back for the REPL's debugger; values drawn as Scheme; readable names, and scopes for when
+DevTools reads them; the prebuilt tables and built programs mapped.
+
+No JavaScript under `src/` (`npm run audit:languages -- HEAD`: 1,198 lines of Scheme added, 111
+removed).

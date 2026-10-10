@@ -155,6 +155,35 @@ async function frontEnd(op, args) {
       const { properties } = await local.object().getAllProperties(false, false);
       return (properties ?? []).map((property) => property.name);
     }
+    case 'experiment': {
+      // As its user turns one on or off in DevTools' settings, which every
+      // DevTools window of the browser shares.
+      const Root = await import('./core/root/root.js');
+      Root.Runtime.experiments.setEnabled(args[0], args[1]);
+      return Root.Runtime.experiments.isEnabled(args[0]);
+    }
+    case 'scopes': {
+      // The top frame's name, as DevTools' call stack shows it, and its
+      // scopes, innermost first, as DevTools resolves them from its script's
+      // source map (`SourceMapScopesInfo`): each scope's kind, its name, and
+      // each of its variables with its value's description, or null for one
+      // unavailable. The Scope pane of the DevTools Chrome 146 carries does
+      // not ask for them yet, and shows the JavaScript's scopes.
+      const SourceMapScopes = await import('./models/source_map_scopes/source_map_scopes.js');
+      const frame = debuggerModel.debuggerPausedDetails()?.callFrames[0];
+      if (!frame) return null;
+      const chain = frame.script.sourceMap()?.resolveScopeChain(frame) ?? [];
+      const scopes = [];
+      for (const scope of chain) {
+        const { properties } = await scope.object().getAllProperties(false, false);
+        scopes.push({
+          type: scope.type(),
+          name: scope.name() ?? '',
+          variables: (properties ?? []).map((property) => [property.name, property.value?.description ?? null])
+        });
+      }
+      return { name: await SourceMapScopes.NamesResolver.resolveDebuggerFrameFunctionName(frame), scopes };
+    }
     case 'resume':
       for (const location of breakpoints.allBreakpointLocations()) await location.breakpoint.remove(false);
       if (debuggerModel.isPaused()) debuggerModel.resume();
@@ -322,6 +351,26 @@ export class DevTools {
    */
   locals() {
     return this.call('locals');
+  }
+
+  /**
+   * Turns one of DevTools' experiments on or off.
+   * @param {string} name - The experiment.
+   * @param {boolean} on - Whether to.
+   * @returns {Promise<boolean>} Whether it is on.
+   */
+  experiment(name, on) {
+    return this.call('experiment', name, on);
+  }
+
+  /**
+   * The paused frame's name, as DevTools shows it, and its scopes, as DevTools
+   * resolves them from its source map.
+   * @returns {Promise<{name: (string|null), scopes: Array<{type: string, name: string,
+   *   variables: Array<[string, (string|null)]>}>}|null>} Null if it is not paused.
+   */
+  scopes() {
+    return this.call('scopes');
   }
 
   /**

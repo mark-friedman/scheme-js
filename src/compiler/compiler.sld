@@ -2,7 +2,8 @@
 ;;
 ;; The compiler's own Scheme: lowering the analyzed AST to IR (ir.scm), lifting
 ;; closures (lift.scm), expanding primitives inline (inline.scm), liveness over
-;; frame spills (liveness.scm), generating JavaScript (emit.scm), deciding what
+;; frame spills (liveness.scm), where each variable is in the generated code,
+;; for a debugger (scopes.scm), generating JavaScript (emit.scm), deciding what
 ;; to compile and why not (driver.scm, safety.scm), and when, for a program's
 ;; own code as it runs (tier.scm).
 ;;
@@ -54,5 +55,5 @@
     take-compiler-failures!
     ;; A program's tier
     make-tier tier-bound! tier-due! tier-top-level-procedure tier-compile-eagerly! note-resume first-resume-to-ask)
-  (include "ir.scm" "lift.scm" "inline.scm" "liveness.scm" "emit.scm"
+  (include "ir.scm" "lift.scm" "inline.scm" "liveness.scm" "scopes.scm" "emit.scm"
            "sourcemap.scm" "driver.scm" "safety.scm" "tier.scm"))

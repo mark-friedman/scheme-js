@@ -3898,3 +3898,37 @@ compiled with or without the switch under test.
 rule, not the one written down. Whether a `let`'s `lambda` should count is a question of the policy,
 to measure before changing; the tests of the tier that rely on a procedure staying interpreted bind
 with no `let`.
+
+**R146. DevTools' Scope pane does not read a source map's scopes, experiment or not.**
+
+Believed when stage (f) of task 84 was planned (`docs/compiler_plan.md`, 2026-10-09): that the DevTools of
+Chrome 146 reads a source map's `scopes`, for a paused frame's variables by their source names and the
+temporaries hidden, with its `use-source-map-scopes` experiment on. It reads them, and decodes ours
+without complaint in its codec's strict mode, but the Scope pane never asks for them: it takes a
+frame's scopes from a language plugin, for WebAssembly, or else the engine's, renaming identifiers by
+the mappings' names (`NamesResolver.resolveScopeChain`); `SourceMap.resolveScopeChain`, which would
+evaluate the bindings the map gives on the paused frame, is called by none of the 208 modules the
+front end loads. What it does with scopes is name a frame by the scope at its function's start --
+the function's location, not the pause's -- translate a stack trace, and hide an outlined frame.
+Found when the DevTools test of the scopes saw the JavaScript's locals, and its frame names off by a
+function: a range begun the line after a function's head left the head outside it.
+
+*Consequence:* the scopes are made, and checked against DevTools' own resolver (`SourceMapScopesInfo`,
+what the pane would show), for when the pane asks for them; meanwhile DevTools shows the readable
+generated names. A function's range begins at its head's `function`. Since only a debugger reads
+them, and they cost a unit 30% more to generate and map, they are made only while the tier compiles
+for DevTools.
+
+**R147. A macro's expansion cannot be stepped into as a procedure inlined at its use.**
+
+Believed in stages (c) and (f) of task 84: that a source map's scopes, marking an expansion's code as
+a template inlined at its use, would let DevTools step into a user's macro's template while a step
+over the use still went past it, so that placing the template's code in the macro's definition need
+not make a step over walk it. DevTools 146 computes the ranges a step over skips, for source-mapped
+JavaScript, from the mappings alone -- the ranges mapped to the same source position
+(`getLocationRangesForSameSourceLocation`) -- and adds inlined callees' ranges only for a language
+plugin's code. A step over the use would stop in the template's code, as it does without scopes.
+
+*Consequence:* an expansion stays placed at its use (`with-use-span` in `src/core/scheme/expander.scm`)
+and is no scope of its own; stepping into templates waits for DevTools to step by scopes, or for a
+viewer of its own, as Racket's macro stepper is.

@@ -78,3 +78,84 @@
         "{\"version\":3,\"sources\":[\"a.scm\",\"b.scm\"],\"x_google_ignoreList\":[1],\"names\":[],\"mappings\":\"AAAA;ACAA\"}"
         (source-map (list (span "a.scm" 1 1) (span "b.scm" 1 1)) 0 no-text (lambda (file) file)
                     (lambda (file) (string=? file "b.scm")))))
+
+;; ---------------------------------------------------------------------------
+;; Scopes
+;; ---------------------------------------------------------------------------
+;;
+;; A map's `scopes` (ECMA-426's scopes proposal) tell a debugger the scopes of
+;; the source, each with its variables, and for each range of the generated
+;; code the scope it is and the JavaScript that reads each variable there.
+;; The strings expected here were checked against the encoder and decoder
+;; DevTools carries (`third_party/source-map-scopes-codec`), which is what
+;; reads them.
+
+;; /**
+;;  * A source scope, its children's parent set.
+;;  * @param {string} kind - "function", "block" or "global".
+;;  * @param {string|boolean} name - Its name, or #f.
+;;  * @param {pair} start - (line . column), from zero.
+;;  * @param {pair} end - Likewise.
+;;  * @param {list} variables - Their names, as shown.
+;;  * @param {list} children - Its child scopes, made by `child-scope`.
+;;  * @returns {original-scope}
+;;  */
+(define (scope kind name start end variables . children)
+  (let ((s (make-original-scope kind name start end #f)))
+    (set-original-scope-variables! s variables)
+    (set-original-scope-locals! s variables)
+    (set-original-scope-children! s (map (lambda (make) (make s)) children))
+    s))
+
+;; /**
+;;  * A scope to be made inside another, by `scope`.
+;;  * @returns {procedure} From its parent to the scope.
+;;  */
+(define (child-scope kind name start end variables . children)
+  (lambda (parent)
+    (let ((s (make-original-scope kind name start end parent)))
+      (set-original-scope-variables! s variables)
+      (set-original-scope-locals! s variables)
+      (set-original-scope-children! s (map (lambda (make) (make s)) children))
+      s)))
+
+(test-group "source maps - scopes"
+  (test "an unsigned quantity, as scopes write most fields: no sign bit" '("A" "f" "gB" "of")
+        (map unsigned-vlq '(0 31 32 1000)))
+  (let* ((root (scope "global" #f '(0 . 0) '(10 . 0) '()
+                      (child-scope "function" "f" '(1 . 2) '(3 . 4) '("x" "y"))))
+         (f (car (original-scope-children root)))
+         (ranges (list (make-generated-range '(0 . 0) '(5 . 0) root '() #f
+                                             (list (make-generated-range '(1 . 0) '(3 . 0) f '("x" #f) #t '()))))))
+    (test "a scope and its variables, the range it is, and what reads each variable there"
+          '("BCAAA,BHBCCE,DGC,CCE,CHA,ECAA,EHBAC,GEA,FCA,FCA" "global" "f" "function" "x" "y")
+          (let ((field (scopes-field (list root) ranges 0)))
+            (cons (car field) (cdr field))))
+    (test "a source with no scopes, after one with them" "BCAAA,BHBCCE,DGC,CCE,CHA,A,ECAA,EHBAC,GEA,FCA,FCA"
+          (car (scopes-field (list root #f) ranges 0)))
+    (test "the generated code's lines counted from the script's first, after those before it"
+          "BCAAA,BHBCCE,DGC,CCE,CHA,EDDAA,EHBAC,GEA,FCA,FCA"
+          (car (scopes-field (list root) ranges 3))))
+  ;; A macro can put what it is given in another order, so that a scope
+  ;; inside it comes before one already written; it is written where the
+  ;; last ended, which keeps the field's positions in order, as it must be.
+  (test "a scope out of order is written where the one before ended"
+        '("BCAAA,BCCAC,CDA,BCAAA,CAA,CFA" "global" "block")
+        (let ((field (scopes-field (list (scope "global" #f '(0 . 0) '(10 . 0) '()
+                                                (child-scope "block" #f '(2 . 0) '(5 . 0) '())
+                                                (child-scope "block" #f '(1 . 0) '(3 . 0) '())))
+                                   '() 0)))
+          (cons (car field) (cdr field))))
+  (test "a map with scopes has them, and the names they use"
+        "{\"version\":3,\"sources\":[\"a.scm\"],\"names\":[\"global\",\"f\",\"function\",\"x\"],\"mappings\":\"AAAA\",\"scopes\":\"BCAAA,BHBCCE,DG,CCE,CHA,ECAA,EHBAC,GE,FCA,FCA\"}"
+        (let* ((root (scope "global" #f '(0 . 0) '(10 . 0) '()
+                            (child-scope "function" "f" '(1 . 2) '(3 . 4) '("x"))))
+               (f (car (original-scope-children root))))
+          (source-map (list (span "a.scm" 1 1)) 0 no-text (lambda (file) file) (lambda (file) #f)
+                      (make-unit-scopes "a.scm" root
+                                        (list (make-generated-range '(0 . 0) '(5 . 0) root '() #f
+                                                                    (list (make-generated-range '(1 . 0) '(3 . 0) f '("x") #t '()))))))))
+  (test "but none when its scopes are of a file no line maps"
+        "{\"version\":3,\"sources\":[\"a.scm\"],\"names\":[],\"mappings\":\"AAAA\"}"
+        (source-map (list (span "a.scm" 1 1)) 0 no-text (lambda (file) file) (lambda (file) #f)
+                    (make-unit-scopes "b.scm" (scope "global" #f '(0 . 0) '(1 . 0) '()) '()))))

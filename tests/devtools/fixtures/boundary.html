@@ -26,7 +26,7 @@
     await schemeEvalAsync(await (await fetch(url)).text(), { filename: url });
   }
   const procedures = ['scheme-calls-js', 'scheme-called-from-js', 'scheme-round-trip',
-    'classify', 'assigning', 'counting', 'summing', 'call-handler', 'vectoring', 'doubling'];
+    'classify', 'assigning', 'counting', 'summing', 'call-handler', 'vectoring', 'doubling', 'scoping'];
   window.call = (name, ...args) => schemeEval(name)(...args);
   window.schemeValue = (text) => schemeEval(text);
   for (let i = 0; i < 3; i++) {
@@ -40,6 +40,7 @@
     window.call('call-handler', i);
     window.call('vectoring', [i, i]);
     window.call('doubling', schemeEval("'(1 2)"));
+    window.call('scoping', true, schemeEval("'(a b)"));
   }
   window.compiled = Object.fromEntries(procedures.map((name) => [name, schemeEval(name).$compiled === true]));
   window.compiledNow = (name) => schemeEval(name).$compiled === true;

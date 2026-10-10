@@ -53,3 +53,16 @@
   (map (lambda (x)
          (* x 2))
        items))
+
+;; Variables of each kind a frame shows, which DevTools names as Scheme does
+;; where the source maps give their scopes: a parameter whose name JavaScript
+;; spells otherwise, a `let`'s, one of whose names the procedure binds again,
+;; and one a procedure assigns and captures, which compiled code keeps in a
+;; box.
+(define (scoping found? items)
+  (let ((total 0) (items (length items)))
+    (for-each (lambda (x)
+                (set! total (+ total x)))
+              (list 1 2 3))
+    (list found? items
+          total)))

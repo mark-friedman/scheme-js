@@ -95,13 +95,35 @@ Two locals of one function spelled alike -- `x` bound twice, or `a-b` beside `a_
 by a suffix on the later one bound, `x_2`, since a frame saved while both are live holds both by
 name; a function's locals are named in the order the source binds them before any code is generated,
 so a parameter, or a factory's free variable, keeps its name. Showing both as `x`, in nested scopes,
-as DevTools shows JavaScript's blocks, is what the source map scopes would do. And a name the
+as DevTools shows JavaScript's blocks, is what the source map scopes do, below. And a name the
 generated code or JavaScript already uses -- a reserved word, `arguments`, `undefined`, the runtime
 `R` or a global's cell `C0` -- takes a trailing `_`. The emitter's own names all begin with `$` or
-are a capital and digits, and no local's has a `$`, so the two never meet. The source maps give no
-names, and DevTools' Scope pane shows the generated ones (`tests/devtools/`). The source map scopes
-proposal would give it the exact names, `found?`, and hide the temporaries; Chrome 146 reads scopes
-only behind an experiment.
+are a capital and digits, and no local's has a `$`, so the two never meet. DevTools' Scope pane shows
+the generated names (`tests/devtools/`).
+
+While the tier compiles for DevTools (`tier-compile-eagerly!`), a unit's source map gives the scopes
+of its Scheme too, as ECMA-426's scopes proposal writes them (`scopes.scm` makes them,
+`sourcemap.scm` writes them). They are made from the unit's IR before its code is generated: a
+function scope for each `lambda`, named for its definition or for the variable a `let` or `letrec`
+binds it to, a block for each `let` -- the nested IR `let`s of one `let` of several variables are one
+block -- and each `letrec` but a loop placed inline, and the file's, whose variables are the globals
+the unit reads; each with its variables as the source writes them, `found?`, and none the system
+made, named with a `%`. The emitter notes the scope each statement is emitted in, beside it as its
+span is, and wraps each function, factory and the unit in the scopes they are; rendering then makes
+the ranges of the generated code, whole lines but a function's, which begins at its head's
+`function`: for each, the scope it is and, for each variable, the JavaScript that reads it there --
+its local, through its box where a closure captures and assigns it, through the factory's parameter
+in a procedure that captured it, a global through its cell -- or nothing where the code there cannot
+reach it. A debugger reading them shows a frame's variables by their names in the scopes the source
+nests them in, the compiler's temporaries left out. They cost a unit about 30% more to generate and
+map, 0.37 ms over the self-host corpus, so only a debugger is given them; a unit without them is
+rendered as before, a record a line where it conses a pair having cost every unit 4%. The DevTools
+of Chrome 146 reads them only with its `use-source-map-scopes` experiment on, and then names a frame
+by the scope at its function's start, but its Scope pane does not yet ask for them (R146); the tests
+check what DevTools' own resolver makes of them, which is what the pane would show. A macro's
+expansion is no scope of its own: DevTools steps over source-mapped JavaScript by its mappings alone,
+so marking one as a procedure inlined at its use would not let a step over the use go past the
+template (R147).
 
 Code generated as a program runs is given a `//# sourceURL=scheme:///<file>/<procedure>`, the file
 being the one the procedure was read from, or else its library, or else `program`
@@ -1101,7 +1123,8 @@ Constraint 4 has **two mechanisms, not one**, which is what every real toolchain
   and back, without stopping in the system between: the bundle's own source map lists every source
   in it as ignore-listed (`rollup.config.js`), which DevTools skips unless its user asks otherwise.
   The tier compiles only a page's own code; the system's Scheme comes compiled in the prebuilt
-  tables, inside the bundle. Those tables are not yet mapped to their Scheme.
+  tables, inside the bundle, each mapped to its Scheme and ignore-listed, the bundle's map chained
+  through theirs.
 
 The first is not a lesser substitute for the second. Lowering beta-reduces immediately applied
 lambdas into bindings, lifts nested procedures into factories, inlines primitives and boxes assigned

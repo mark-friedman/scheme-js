@@ -213,3 +213,12 @@
                                           (app (library-var call-with-values ,library) ((var p) (var list)))
                                           (p) #f))))
           (list (lowering-decline rewritten #f) (lowered-globals rewritten)))))
+
+(test-group "driver - a source map's scopes, only for DevTools"
+  ;; They cost as much again to make as the rest of the code and its map,
+  ;; and only a debugger reads them (scopes.scm).
+  (define (generated-for for-devtools?)
+    (lower-and-emit (analyze-lambda '(lambda (x) (let ((y x)) y))) "f" #f #f #f #f for-devtools?))
+  (test "compiled while DevTools debugs, a procedure's code has the scopes of its Scheme" #t
+        (unit-scopes? (generated-scopes (generated-for #t))))
+  (test "and otherwise none" #f (generated-scopes (generated-for #f))))

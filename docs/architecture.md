@@ -330,7 +330,8 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │      ├── emit.scm           # IR -> JavaScript, in Scheme: both forms of a procedure
 │      ├── lift.scm           # Which nested procedures are emitted once, at top level
 │      ├── liveness.scm       # Which locals a suspended frame saves
-│      ├── sourcemap.scm      # Source maps: each line of generated code to the Scheme it came from
+│      ├── sourcemap.scm      # Source maps: each line of generated code to the Scheme it came from, and the scopes' encoding
+│      ├── scopes.scm         # Source map scopes, for DevTools: the Scheme's scopes and variables, and what reads each in the generated code
 │      ├── inline.scm         # Inline expansions for primitives, tower-faithful
 │      ├── driver.scm         # What to compile, and each reason not: definitions, expressions, closures, environments, programs
 │      ├── safety.scm         # The opt-in rule declining what a capture could unwind through
@@ -458,7 +459,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │               └── sections/           # Individual section files
 │   │
 │   ├── devtools/                   # Debugging Scheme and JavaScript together in DevTools, by driving its own front end in a headless Chrome (Node only, through Puppeteer)
-│   │   ├── devtools_driver.js      # What the tests ask of DevTools' front end: breakpoints in a source, steps, where a pause is shown, the locals it lists, what is ignore-listed
+│   │   ├── devtools_driver.js      # What the tests ask of DevTools' front end: breakpoints in a source, steps, where a pause is shown, the locals it lists, the scopes it resolves from a map, what is ignore-listed
 │   │   ├── stepping_tests.js       # Stepping between Scheme and JavaScript, never pausing in the system's code, and through code that calls nothing; every procedure compiled before its first call, by the page's URL or the console: over the modules, and over a bundle built for it
 │   │   └── fixtures/               # A page whose Scheme and JavaScript call each other, Scheme whose lines call nothing, a page whose Scheme is in its own scripts, and a program built ahead of time
 │   │

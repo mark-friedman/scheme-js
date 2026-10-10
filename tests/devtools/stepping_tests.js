@@ -318,7 +318,7 @@ async function steppingTests(logger, over, devTools, page, fixtures) {
     JSON.stringify({
       'scheme-calls-js': true, 'scheme-called-from-js': true, 'scheme-round-trip': true,
       classify: true, assigning: true, counting: true, summing: true, 'call-handler': true, vectoring: true,
-      doubling: true
+      doubling: true, scoping: true
     }));
   assert(logger, 'DevTools lists the Scheme file the compiled code is mapped to', await devTools.source(scm), true);
 
@@ -477,6 +477,77 @@ async function steppingTests(logger, over, devTools, page, fixtures) {
 }
 
 /**
+ * The tests of the scopes the source maps of compiled code give, which
+ * DevTools reads with its `use-source-map-scopes` experiment on: a paused
+ * frame named as its procedure, and the scopes DevTools resolves for it --
+ * its variables as Scheme names them in the scopes the source nests them in,
+ * a variable compiled code keeps in a box by its value, one the code there
+ * cannot reach unavailable, none of the compiler's temporaries. The DevTools
+ * of Chrome 146 names frames by them, but its Scope pane does not yet ask for
+ * them, and shows the JavaScript's scopes; what it would show is what its
+ * own resolver, `SourceMapScopesInfo`, makes of them. The compiler makes them
+ * only while it compiles for DevTools. The experiment is a setting every
+ * DevTools window of the browser shares, so it is turned off after; and
+ * DevTools reads a map's scopes only with it on as the map is read.
+ * @param {Object} logger - Test logger.
+ * @param {Object} browser - Puppeteer's browser, launched with `devtools`.
+ * @param {string} fixtures - The fixtures' URL.
+ * @returns {Promise<void>}
+ */
+async function scopesTests(logger, browser, fixtures) {
+  const placing = `${fixtures}placing.scm`;
+  const call = "window.call('scoping', true, window.schemeValue(\"'(a b c)\"))";
+  logger.title('DevTools - Scheme names, from the scopes the source maps give');
+  // The experiment is a setting every DevTools window shares, read as one
+  // opens: turned on in one tab's window, it is on in the next tab's before
+  // that page's source maps are read, which they are as its code is made.
+  const settingsPage = await browser.newPage();
+  await settingsPage.goto(placing);
+  const settings = await DevTools.open(browser, settingsPage);
+  assert(logger, 'the experiment that reads them is on', await settings.experiment('use-source-map-scopes', true), true);
+  // Scopes are made only while the tier compiles for DevTools, which the
+  // page's URL turns on.
+  const { page, devTools } = await open(browser, `${fixtures}boundary.html?scopes&scheme-devtools`);
+  try {
+    const scopesAt = async (text) => {
+      await devTools.breakpoint(placing, lineOf('placing.scm', text));
+      const seen = await devTools.pauses();
+      const running = page.evaluate(call).catch(() => null);
+      const paused = await devTools.pauseAfter(seen);
+      const scopes = paused === null ? null : await devTools.scopes();
+      await devTools.resume();
+      await running;
+      return scopes;
+    };
+    const kinds = (frame) => frame?.scopes.map((scope) => scope.type);
+    const named = (frame, i) => frame?.scopes[i]?.variables.map(([name]) => name);
+    const valued = (frame, i) => frame?.scopes[i]?.variables;
+
+    const body = await scopesAt('(list found? items');
+    assert(logger, "paused in a procedure, its frame is named as the procedure, and its scopes are its let's "
+      + "block, its own and the file's", [body?.name, kinds(body)], ['scoping', ['block', 'local', 'global']]);
+    assert(logger, "the let's variables by their Scheme names, one it binds again among them, and one kept in a "
+      + 'box by its value', valued(body, 0), [['total', '6'], ['items', '3']]);
+    assert(logger, "the procedure's by their Scheme names, a parameter JavaScript spells otherwise among them, and "
+      + "none of the compiler's temporaries", [named(body, 1), valued(body, 1)?.[0]], [['found?', 'items'], ['found?', 'true']]);
+    assert(logger, "the file's are the globals the procedure reads", ['for-each', 'length', 'list']
+      .every((name) => named(body, 2)?.includes(name)), true);
+
+    const inside = await scopesAt('(set! total (+ total x))');
+    assert(logger, 'paused in a procedure the first makes, its scopes are its own, the block it is in, and the '
+      + "first's, a closure, and the file's", [inside?.name, kinds(inside), inside?.scopes[2]?.name],
+    ['', ['local', 'block', 'closure', 'global'], 'scoping']);
+    assert(logger, 'its own variable, the one it captured by its value, and those it did not capture unavailable',
+      [valued(inside, 0), valued(inside, 1), valued(inside, 2)],
+      [[['x', '1']], [['total', '0'], ['items', null]], [['found?', null], ['items', null]]]);
+  } finally {
+    await settings.experiment('use-source-map-scopes', false);
+    await page.close();
+    await settingsPage.close();
+  }
+}
+
+/**
  * Runs the stepping tests.
  * @param {Object} logger - Test logger.
  * @returns {Promise<void>}
@@ -507,6 +578,7 @@ export async function runDevToolsSteppingTests(logger) {
     await switchTests(logger, "the system's modules", browser, fixtures, '', `^http://127\\.0\\.0\\.1:${port}/src/`);
     await switchTests(logger, 'the bundle', browser, fixtures, 'entry=/bundle/scheme.js&', null);
     await builtTests(logger, browser, fixtures, built, port);
+    await scopesTests(logger, browser, fixtures);
     logger.title('DevTools - a page whose Scheme is in its own scripts');
     {
       // Whether the procedure the page's first script defines was compiled

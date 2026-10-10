@@ -41,9 +41,11 @@
 ;;  *   library's own bindings, as (key name . env) (`library-global-key` in
 ;;  *   `ir.scm`): what a build that follows the code's references reads them
 ;;  *   by.
+;;  * @property {unit-scopes|boolean} scopes - The scopes its source map gives,
+;;  *   or #f (`scopes.scm`).
 ;;  */
 (define-record-type generated
-  (make-generated name closure env span source constants globals spans library-globals)
+  (make-generated name closure env span source constants globals spans library-globals scopes)
   generated?
   (name generated-name)
   (closure generated-closure)
@@ -53,7 +55,8 @@
   (constants generated-constants)
   (globals generated-globals)
   (spans generated-spans)
-  (library-globals generated-library-globals))
+  (library-globals generated-library-globals)
+  (scopes generated-scopes))
 
 ;; /**
 ;;  * A procedure compiled.
@@ -289,20 +292,29 @@
 ;;  * @param {procedure|boolean} closure - The closure it comes from, or #f.
 ;;  * @param {object} env - The environment it will run in.
 ;;  * @param {object|boolean} span - Its source span, or #f.
-;;  * @param {boolean} ways-back? - Whether each procedure its code makes can
-;;  *   be made an interpreted closure again, for the REPL's debugger
-;;  *   (`way-back` in `emit.scm`).
+;;  * @param {boolean} for-devtools? - Whether it is compiled while DevTools
+;;  *   debugs the program (`tier-compile-eagerly!` in tier.scm): then each
+;;  *   procedure its code makes can be made an interpreted closure again, for
+;;  *   the REPL's debugger (`way-back` in `emit.scm`), and its source map
+;;  *   gives the scopes of its Scheme (`scopes.scm`), which cost as much
+;;  *   again to make as the rest of the code and its map.
 ;;  * @returns {generated|declined} The code, or why it is too large to keep.
 ;;  */
-(define (emit-lowered lowered name closure env span ways-back?)
+(define (emit-lowered lowered name closure env span for-devtools?)
+  ;; A lambda rebuilt from a closure (`closure-lambda`), or made for a
+  ;; top-level expression (`expression-thunk`), has no span of its own: the
+  ;; procedure's is its, which the scopes of its source map are placed by
+  ;; (`original-scopes` in scopes.scm).
+  (if (and span (not (node-span (lowered-ir lowered))))
+      (weak-table-set! node-spans (lowered-ir lowered) span))
   (let* ((globals (lowered-globals lowered))
          (library-globals (lowered-library-globals lowered))
          (unit (generate-unit (lowered-ir lowered) globals library-globals name
-                              (guarded-globals globals library-globals env) ways-back?))
+                              (guarded-globals globals library-globals env) for-devtools? for-devtools?))
          (source (car unit)))
     (cond ((source-too-large source) => (lambda (reason) (make-declined name reason #f)))
           (else (make-generated name closure env span source (cadr unit) globals (caddr unit)
-                                library-globals)))))
+                                library-globals (cadddr unit))))))
 
 ;; ---------------------------------------------------------------------------
 ;; When the compiler fails
@@ -377,17 +389,17 @@
 ;;  * @param {object} env - The environment its globals resolve in.
 ;;  * @param {object|boolean} span - Its source span, or #f.
 ;;  * @param {boolean} decline-captures? - Whether to decline a capture.
-;;  * @param {boolean} ways-back? - As for `emit-lowered`.
+;;  * @param {boolean} for-devtools? - As for `emit-lowered`.
 ;;  * @param {list} [ordinary] - The control globals that are ordinary
 ;;  *   procedures where the code runs (`lowering-decline`).
 ;;  * @returns {generated|declined}
 ;;  */
-(define (lower-and-emit node name closure env span decline-captures? ways-back? . ordinary)
+(define (lower-and-emit node name closure env span decline-captures? for-devtools? . ordinary)
   (let* ((lowered (lower-lambda node))
          (reason (apply lowering-decline lowered decline-captures? ordinary)))
     (if reason
         (make-declined name reason #f)
-        (emit-lowered lowered name closure env span ways-back?))))
+        (emit-lowered lowered name closure env span for-devtools?))))
 
 ;; /**
 ;;  * `lower-and-emit`, declining the procedure if the compiler fails.
@@ -445,7 +457,8 @@
 ;;  * @returns {string}
 ;;  */
 (define (script-of code)
-  (let ((map (source-map (generated-spans code) lines-before-generated-code source-text)))
+  (let ((map (source-map (generated-spans code) lines-before-generated-code source-text
+                         (lambda (file) file) (lambda (file) #f) (generated-scopes code))))
     (string-append (generated-source code)
                    "\n//# sourceURL=" (source-url code)
                    (if map (string-append "\n//# sourceMappingURL=" (source-map-url map)) ""))))
@@ -468,10 +481,10 @@
 ;;  * declining the procedure if the compiler fails in either.
 ;;  * @returns {compiled|declined}
 ;;  */
-(define (compile-lambda node name closure env span decline-captures? ways-back?)
+(define (compile-lambda node name closure env span decline-captures? for-devtools?)
   (unless-failing name
     (lambda ()
-      (let ((result (lower-and-emit node name closure env span decline-captures? ways-back?)))
+      (let ((result (lower-and-emit node name closure env span decline-captures? for-devtools?)))
         (if (generated? result) (instantiate-generated result) result)))))
 
 ;; ---------------------------------------------------------------------------
@@ -550,11 +563,11 @@
 ;;  * @param {object} env - The environment its globals resolve in.
 ;;  * @param {object|boolean} span - Its source span, or #f.
 ;;  * @param {boolean} decline-captures? - Whether to decline a capture.
-;;  * @param {boolean} ways-back? - As for `emit-lowered`.
+;;  * @param {boolean} for-devtools? - As for `emit-lowered`.
 ;;  * @returns {compiled|declined}
 ;;  */
-(define (compile-thunk form env span decline-captures? ways-back?)
-  (compile-lambda (expression-thunk form) "top-level" #f env span decline-captures? ways-back?))
+(define (compile-thunk form env span decline-captures? for-devtools?)
+  (compile-lambda (expression-thunk form) "top-level" #f env span decline-captures? for-devtools?))
 
 ;; /**
 ;;  * Compiles an interpreted closure, in its own environment, so its free
@@ -563,13 +576,13 @@
 ;;  * @param {procedure} closure - The closure.
 ;;  * @param {string} name - The name to compile it under.
 ;;  * @param {boolean} decline-captures? - Whether to decline a capture.
-;;  * @param {boolean} ways-back? - As for `emit-lowered`.
+;;  * @param {boolean} for-devtools? - As for `emit-lowered`.
 ;;  * @returns {compiled|declined}
 ;;  */
-(define (compile-closure closure name decline-captures? ways-back?)
+(define (compile-closure closure name decline-captures? for-devtools?)
   (if (interpreted-closure? closure)
       (compile-lambda (closure-lambda closure name) name closure (closure-environment closure)
-                      (closure-span closure) decline-captures? ways-back?)
+                      (closure-span closure) decline-captures? for-devtools?)
       (make-declined name "not an interpreted closure" #f)))
 
 ;; ---------------------------------------------------------------------------

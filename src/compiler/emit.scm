@@ -585,33 +585,39 @@
 ;; Lines
 ;; ---------------------------------------------------------------------------
 ;;
-;; A procedure is rendered as a list of items, each a line or an indented
-;; group of them:
+;; A procedure is rendered as a list of items, each a line or a group of them:
 ;;
 ;;   string            a line
 ;;   (text . span)     a line the source map maps to `span`
 ;;   #(prefix items)   items, each line of them indented by `prefix`
+;;   scoped-items      items in a block of the function they are in
+;;   ranged-items      items that are a function, a factory or the unit
 ;;
 ;; The function, the factory and the unit around a procedure each wrap the
 ;; items inside rather than indenting every line again, and the unit's text is
 ;; written once, at the end (`render-items`), which also lists the span of
-;; each line it writes, for the source map (`sourcemap.scm`).
+;; each line it writes, for the source map (`sourcemap.scm`), and the ranges
+;; the scoped and ranged items make, for its scopes (`scopes.scm`).
 
 ;; /**
 ;;  * A statement's items: one line, but for the fast form's `if`, whose
-;;  * branches are lines of their own, indented.
+;;  * branches are lines of their own, indented; in the block the statement is
+;;  * in, if it is in one.
 ;;  * @param {form} form - The emission.
 ;;  * @param {list} st - The statement.
 ;;  * @returns {list}
 ;;  */
 (define (statement-lines form st)
-  (if (eq? (car st) 'if)
-      (list (spanned (string-append "if (" (expr->string (cadr st)) " !== false) {") (statement-span st))
-            (vector "  " (append-map (lambda (s) (statement-lines form s)) (caddr st)))
-            "} else {"
-            (vector "  " (append-map (lambda (s) (statement-lines form s)) (cadddr st)))
-            "}")
-      (list (spanned (render-statement form st) (statement-span st)))))
+  (let ((lines (if (eq? (car st) 'if)
+                   (list (spanned (string-append "if (" (expr->string (cadr st)) " !== false) {")
+                                  (statement-span st))
+                         (vector "  " (append-map (lambda (s) (statement-lines form s)) (caddr st)))
+                         "} else {"
+                         (vector "  " (append-map (lambda (s) (statement-lines form s)) (cadddr st)))
+                         "}")
+                   (list (spanned (render-statement form st) (statement-span st)))))
+        (scope (statement-scope st)))
+    (if scope (list (make-scoped-items scope lines)) lines)))
 
 ;; /**
 ;;  * A line, with its span if it has one.
@@ -622,12 +628,40 @@
 (define (spanned text span) (if span (cons text span) text))
 
 ;; /**
+;;  * What rendering items has written so far.
+;;  * @property {string|boolean} text - The text, #f until the first line.
+;;  * @property {list} spans - Each line's span, most recent first.
+;;  * @property {integer} line - How many lines have been written.
+;;  * @property {list} open - The ranges open, innermost first (`open-range`
+;;  *   in scopes.scm).
+;;  * @property {list} ranges - The outermost ranges finished, most recent
+;;  *   first.
+;;  * @property {original-scope|boolean|symbol} scope - The scope of the last
+;;  *   line written, as `enter-scope` takes it, or `unknown` once a range has
+;;  *   opened or closed since: most lines are in the scope of the line before,
+;;  *   and need nothing opened or closed.
+;;  */
+(define-record-type rendering
+  (make-rendering text spans line open ranges scope)
+  rendering?
+  (text rendering-text)
+  (spans rendering-spans)
+  (line rendering-line)
+  (open rendering-open)
+  (ranges rendering-ranges)
+  (scope rendering-scope))
+
+;; /**
 ;;  * Items as text, and the span of each line, in order: #f for a line with
 ;;  * none. The text is appended to line by line, which a JavaScript engine
 ;;  * does as a rope, joined once when the code is read; a string port, which
 ;;  * checks its port at each write, made rendering a unit a third dearer.
+;;  * A scoped or ranged group's lines are rendered as any group's, and make no
+;;  * range: a unit with scopes is rendered by `render-items-with-ranges`,
+;;  * whose rendering of a line, a record where this conses a pair, made
+;;  * generating every unit 4% dearer.
 ;;  * @param {list} items - The items.
-;;  * @returns {pair} (text . spans).
+;;  * @returns {list} (text spans ranges), the ranges none.
 ;;  */
 (define (render-items items)
   ;; The accumulator is (text . spans), the text #f until the first line and
@@ -639,11 +673,121 @@
     (fold (lambda (item acc)
             (cond ((string? item) (add acc indent item #f))
                   ((pair? item) (add acc indent (car item) (cdr item)))
-                  (else (walk (vector-ref item 1) (string-append indent (vector-ref item 0)) acc))))
+                  ((vector? item) (walk (vector-ref item 1) (string-append indent (vector-ref item 0)) acc))
+                  (else (walk (group-items item) indent acc))))
           acc
           items))
   (let ((acc (walk items "" (cons #f '()))))
-    (cons (or (car acc) "") (reverse (cdr acc)))))
+    (list (or (car acc) "") (reverse (cdr acc)) '())))
+
+;; /**
+;;  * `render-items`, with the ranges its scoped and ranged items make.
+;;  * @param {list} items - The items.
+;;  * @returns {list} (text spans ranges).
+;;  */
+(define (render-items-with-ranges items)
+  (define (line r indent text span scope)
+    (let ((r (if (eq? scope (rendering-scope r)) r (enter-scope r scope))))
+      (make-rendering (if (rendering-text r)
+                          (string-append (rendering-text r) "\n" indent text)
+                          (string-append indent text))
+                      (cons span (rendering-spans r)) (+ (rendering-line r) 1)
+                      (rendering-open r) (rendering-ranges r) scope)))
+  ;; `scope` is the innermost scope the lines are in, or #f for the scope of
+  ;; the function they are in.
+  (define (walk items indent scope r)
+    (fold (lambda (item r)
+            (cond ((string? item) (line r indent item #f scope))
+                  ((pair? item) (line r indent (car item) (cdr item) scope))
+                  ((vector? item) (walk (vector-ref item 1) (string-append indent (vector-ref item 0)) scope r))
+                  ((scoped-items? item) (walk (scoped-items-items item) indent (scoped-items-scope item) r))
+                  (else
+                   (let* ((start (cons (rendering-line r) (+ (string-length indent) (ranged-items-column item))))
+                          (inside (walk (ranged-items-items item) indent #f (open-ranged (enter-scope r #f) item start))))
+                     (close-ranges inside (+ (open-blocks inside) (length (ranged-items-scopes item))))))))
+          r
+          items))
+  (let ((r (walk items "" #f (make-rendering #f '() 0 '() '() 'unknown))))
+    (list (or (rendering-text r) "") (reverse (rendering-spans r)) (reverse (rendering-ranges r)))))
+
+;; /**
+;;  * How many of the ranges open are blocks of the function they are in.
+;;  * @param {rendering} r - The rendering.
+;;  * @returns {integer}
+;;  */
+(define (open-blocks r)
+  (length (take-while open-range-block? (rendering-open r))))
+
+;; /**
+;;  * The rendering with the ranges of a function, a factory or the unit
+;;  * opened.
+;;  * @param {rendering} r - The rendering.
+;;  * @param {ranged-items} item - The items.
+;;  * @param {pair} start - Where in the next line they begin, (line . column).
+;;  * @returns {rendering}
+;;  */
+(define (open-ranged r item start)
+  (let open ((scopes (ranged-items-scopes item)) (r r))
+    (if (null? scopes)
+        r
+        (open (cdr scopes)
+              (opening r (car scopes) (ranged-items-binder item)
+                       (and (null? (cdr scopes)) (ranged-items-frame? item)) #f start)))))
+
+;; /**
+;;  * The rendering with a range opened.
+;;  * @param {rendering} r - The rendering.
+;;  * @param {original-scope} scope - The scope it is.
+;;  * @param {procedure} binder - The JavaScript reading a local there.
+;;  * @param {boolean} frame? - Whether it is a frame.
+;;  * @param {boolean} block? - Whether it is a block of a function.
+;;  * @param {pair} start - Where it begins, (line . column).
+;;  * @returns {rendering}
+;;  */
+(define (opening r scope binder frame? block? start)
+  (make-rendering (rendering-text r) (rendering-spans r) (rendering-line r)
+                  (cons (make-open-range scope binder frame? block? start '()) (rendering-open r))
+                  (rendering-ranges r) 'unknown))
+
+;; /**
+;;  * The rendering with the innermost ranges open closed, at the next line.
+;;  * @param {rendering} r - The rendering.
+;;  * @param {integer} n - How many.
+;;  * @returns {rendering}
+;;  */
+(define (close-ranges r n)
+  (if (zero? n)
+      r
+      (let* ((range (finished-range (car (rendering-open r)) (rendering-line r)))
+             (outer (cdr (rendering-open r))))
+        (close-ranges
+          (make-rendering (rendering-text r) (rendering-spans r) (rendering-line r)
+                          (if (null? outer) '() (cons (open-range-adding (car outer) range) (cdr outer)))
+                          (if (null? outer) (cons range (rendering-ranges r)) (rendering-ranges r))
+                          'unknown)
+          (- n 1)))))
+
+;; /**
+;;  * The rendering with the blocks open those a line in a scope is in: those
+;;  * of the blocks open it is still in kept, the others closed, and those it
+;;  * enters opened, each with the function's binder.
+;;  * @param {rendering} r - The rendering.
+;;  * @param {original-scope|boolean} scope - The line's innermost scope, or
+;;  *   #f for the function's.
+;;  * @returns {rendering}
+;;  */
+(define (enter-scope r scope)
+  (let* ((open (rendering-open r))
+         (blocks (reverse (take-while open-range-block? open)))
+         (function (find (lambda (o) (not (open-range-block? o))) open))
+         (wanted (if function (blocks-between scope (open-range-scope function)) '()))
+         (kept (let count ((blocks blocks) (wanted wanted) (n 0))
+                 (if (and (pair? blocks) (pair? wanted) (eq? (open-range-scope (car blocks)) (car wanted)))
+                     (count (cdr blocks) (cdr wanted) (+ n 1))
+                     n))))
+    (fold (lambda (block r) (opening r block (open-range-binder function) #f #t (cons (rendering-line r) 0)))
+          (close-ranges r (- (length blocks) kept))
+          (drop wanted kept))))
 
 ;; ---------------------------------------------------------------------------
 ;; The unit
@@ -656,8 +800,9 @@
 ;;  * in ir.scm) -- the constant pool, the factories emitted so
 ;;  * far, where each call site resumes, the runtime values its code names
 ;;  * (see `runtime`), each of its functions' locals' names (see
-;;  * `function-names`), and whether each procedure its code makes can be made
-;;  * an interpreted closure again (see `way-back`).
+;;  * `function-names`), whether each procedure its code makes can be made
+;;  * an interpreted closure again (see `way-back`), and the scopes of its
+;;  * Scheme, or #f if its source map is to have none (see scopes.scm).
 ;;  *
 ;;  * A call site's resume block and saved locals are decided by the twin,
 ;;  * which is generated first, and read by the fast form, which has to spill
@@ -665,7 +810,7 @@
 ;;  */
 (define-record-type unit
   (make-unit plan globals library-globals global-indices guarded constants factories emitted resume-points
-             runtime names ways-back?)
+             runtime names ways-back? source-scopes)
   unit?
   (plan unit-plan)
   (globals unit-globals)
@@ -678,7 +823,8 @@
   (resume-points unit-resume-points set-unit-resume-points!)
   (runtime unit-runtime set-unit-runtime!)
   (names unit-names)
-  (ways-back? unit-ways-back?))
+  (ways-back? unit-ways-back?)
+  (source-scopes unit-source-scopes))
 
 ;; /**
 ;;  * The local name generated code knows a runtime value by, noted as one its
@@ -792,13 +938,15 @@
 ;;  * span of the call being emitted, which each statement emitted meanwhile is
 ;;  * noted as coming from (`emit!`), or #f; `placing` is the span the next
 ;;  * statement is to be placed at instead, the first of a node's code, or #f
-;;  * (`with-node-placed`). `doubles` is the locals that hold
+;;  * (`with-node-placed`). `scope` is the innermost scope of the Scheme the
+;;  * code being emitted is in, below the procedure's own, or #f
+;;  * (`with-scope-of`). `doubles` is the locals that hold
 ;;  * raw doubles where the emission is, inside a loop run on them (see "Loops
 ;;  * on raw doubles").
 ;;  */
 (define-record-type form
   (make-form name ir unit mode path counter labels loops loop-targets declared
-             out blocks block-count current sites frames depth span placing doubles)
+             out blocks block-count current sites frames depth span placing scope doubles)
   form?
   (name form-name)
   (ir form-ir)
@@ -819,6 +967,7 @@
   (depth form-depth set-form-depth!)
   (span form-span set-form-span!)
   (placing form-placing set-form-placing!)
+  (scope form-scope set-form-scope!)
   (doubles form-doubles set-form-doubles!))
 
 ;; /**
@@ -831,7 +980,7 @@
 ;;  * @returns {form} The emission.
 ;;  */
 (define (new-form name ir u mode path)
-  (make-form name ir u mode path 0 0 #f '() '() '() '() 1 0 '() '() #f #f #f '()))
+  (make-form name ir u mode path 0 0 #f '() '() '() '() 1 0 '() '() #f #f #f #f '()))
 
 (define (twin? form) (eq? (form-mode form) 'twin))
 (define (plan-of form) (unit-plan (form-unit form)))
@@ -854,9 +1003,24 @@
 (define (statement-span st) (weak-table-ref statement-spans st))
 
 ;; /**
+;;  * The innermost scope of the Scheme each statement was emitted in, below
+;;  * its procedure's (`form-scope`), which the lines it renders to are in. Kept
+;;  * beside the statements, as their spans are.
+;;  */
+(define statement-scopes (make-weak-table))
+
+;; /**
+;;  * The scope a statement was emitted in, below its procedure's, or #f.
+;;  * @param {list} st - The statement.
+;;  * @returns {original-scope|boolean}
+;;  */
+(define (statement-scope st) (weak-table-ref statement-scopes st))
+
+;; /**
 ;;  * Appends a statement to the emission, noting the span it comes from: the
 ;;  * node's whose code it is the first of, or else the call's it is emitted
-;;  * while. A fixed line, a closing brace or a label, is no node's code.
+;;  * while. A fixed line, a closing brace or a label, is no node's code. It
+;;  * notes the scope it is emitted in, too.
 ;;  * @param {form} form - The emission.
 ;;  * @param {list} st - The statement.
 ;;  * @returns {unspecified}
@@ -866,6 +1030,7 @@
     (if placing (set-form-placing! form #f))
     (let ((span (or placing (form-span form))))
       (if span (weak-table-set! statement-spans st span) #f)))
+  (if (form-scope form) (weak-table-set! statement-scopes st (form-scope form)))
   (set-form-out! form (cons st (form-out form))))
 
 ;; /**
@@ -911,6 +1076,24 @@
           (set-form-placing! form #f)
           (let ((result (emit)))
             (set-form-span! form outer)
+            result)))))
+
+;; /**
+;;  * Emits code with the scope a node makes, if it makes one, as the scope it
+;;  * is in (`form-scope`): a `let`'s or `letrec`'s body, an inline loop's.
+;;  * @param {form} form - The emission.
+;;  * @param {list} node - The node.
+;;  * @param {procedure} emit - Emits the code, and returns what it returns.
+;;  * @returns {*} What `emit` returns.
+;;  */
+(define (with-scope-of form node emit)
+  (let ((scope (scope-of-node (unit-source-scopes (form-unit form)) node)))
+    (if (not scope)
+        (emit)
+        (let ((outer (form-scope form)))
+          (set-form-scope! form scope)
+          (let ((result (emit)))
+            (set-form-scope! form outer)
             result)))))
 
 ;; /**
@@ -1076,16 +1259,20 @@
     ((define) (emit-definition! form node))
     ((seq) (fold (lambda (expr last) (emit-value! form expr)) (js "undefined") (cadr node)))
     ((if) (if (twin? form) (emit-twin-value-if! form node) (emit-value-if! form node)))
+    ;; A `let`'s body, and a `letrec`'s bindings and body, are in its block.
     ((let)
      (declare! form (js-local form (cadr node)))
      (if (double-let? form node)
-         (with-double form (cadr node) (caddr node) (lambda () (emit-value! form (cadddr node))))
+         (with-double form (cadr node) (caddr node)
+           (lambda () (with-scope-of form node (lambda () (emit-value! form (cadddr node))))))
          (let ((init (emit-value! form (caddr node))))
            (emit! form (bind-local form (cadr node) init))
-           (emit-value! form (cadddr node)))))
+           (with-scope-of form node (lambda () (emit-value! form (cadddr node)))))))
     ((letrec)
-     (emit-letrec-bindings! form node)
-     (emit-value! form (cadddr node)))
+     (with-scope-of form node
+       (lambda ()
+         (emit-letrec-bindings! form node)
+         (emit-value! form (cadddr node)))))
     ((capture) (emit-capture! form node))
     ((call) (with-call-span form node (lambda () (or (emit-inline! form node) (emit-call! form node)))))
     (else (error "emit: cannot emit IR node" (car node)))))
@@ -1443,15 +1630,18 @@
         ((let)
          (if (double-let? form node)
              (begin (declare! form (js-local form (cadr node)))
-                    (with-double form (cadr node) (caddr node) (lambda () (emit-statement! form (cadddr node)))))
+                    (with-double form (cadr node) (caddr node)
+                      (lambda () (with-scope-of form node (lambda () (emit-statement! form (cadddr node)))))))
              (let ((init (emit-value! form (caddr node))))
                (emit! form (bind-local form (cadr node) init))
-               (emit-statement! form (cadddr node)))))
+               (with-scope-of form node (lambda () (emit-statement! form (cadddr node)))))))
         ((letrec)
          (if (letrec-inline? node)
              (emit-inline-loop! form node)
-             (begin (emit-letrec-bindings! form node)
-                    (emit-statement! form (cadddr node)))))
+             (with-scope-of form node
+               (lambda ()
+                 (emit-letrec-bindings! form node)
+                 (emit-statement! form (cadddr node))))))
         ((call) (with-call-span form node (lambda () (emit-tail-call! form node))))
         (else (emit! form (list 'return (emit-value! form node)))))))
 
@@ -1709,23 +1899,26 @@
                 (declare! form (js-local form param))
                 (emit! form (list 'assign (js (js-local form param)) value)))
               params entry)
-    (if (and (not (twin? form)) (null? (form-doubles form)) (pure-loop-body? form (lambda-body lam))
-             (any inexact-constant? (cons (lambda-body lam) entries)))
-        (let ((doubles (double-loop-variables form params entries (lambda-body lam))))
-          (if (pair? doubles) (emit-double-loop! form params doubles (lambda-body lam)))))
-    (let ((target (enter-inline-loop! form params)))
-      (for-each (lambda (param)
-                  (if (boxed-local? form param)
-                      (emit! form (list 'assign (js (js-local form param)) (js "[" (js-local form param) "]")))))
-                params)
-      (emit-define-boxes! form (lambda-body lam))
-      (set-form-loop-targets! form (cons target (form-loop-targets form)))
-      (emit-statement! form (lambda-body lam))
-      (set-form-loop-targets! form (cdr (form-loop-targets form)))
-      ;; The fast form's loop is a labelled `for`, closed here; every path
-      ;; through its body has returned or jumped back by then. The twin's head
-      ;; is a block, and its blocks already end in jumps.
-      (if (not (twin? form)) (emit! form (list 'text "}"))))))
+    ;; The loop, from its head, is in the scope of its procedure.
+    (with-scope-of form lam
+      (lambda ()
+        (if (and (not (twin? form)) (null? (form-doubles form)) (pure-loop-body? form (lambda-body lam))
+                 (any inexact-constant? (cons (lambda-body lam) entries)))
+            (let ((doubles (double-loop-variables form params entries (lambda-body lam))))
+              (if (pair? doubles) (emit-double-loop! form params doubles (lambda-body lam)))))
+        (let ((target (enter-inline-loop! form params)))
+          (for-each (lambda (param)
+                      (if (boxed-local? form param)
+                          (emit! form (list 'assign (js (js-local form param)) (js "[" (js-local form param) "]")))))
+                    params)
+          (emit-define-boxes! form (lambda-body lam))
+          (set-form-loop-targets! form (cons target (form-loop-targets form)))
+          (emit-statement! form (lambda-body lam))
+          (set-form-loop-targets! form (cdr (form-loop-targets form)))
+          ;; The fast form's loop is a labelled `for`, closed here; every path
+          ;; through its body has returned or jumped back by then. The twin's
+          ;; head is a block, and its blocks already end in jumps.
+          (if (not (twin? form)) (emit! form (list 'text "}"))))))))
 
 ;; /**
 ;;  * Opens an inline loop and returns its target. In the fast form it is a
@@ -2236,14 +2429,16 @@
                       (loop (+ k 1) (cdr returns)))))))
 
 ;; /**
-;;  * A statement made from another, given the other's span.
+;;  * A statement made from another, given the other's span and scope.
 ;;  * @param {list} old - The statement it is made from.
 ;;  * @param {list} new - The statement.
 ;;  * @returns {list} `new`.
 ;;  */
 (define (with-span-of old new)
-  (let ((span (statement-span old)))
+  (let ((span (statement-span old))
+        (scope (statement-scope old)))
     (if span (weak-table-set! statement-spans new span) #f)
+    (if scope (weak-table-set! statement-scopes new scope) #f)
     new))
 
 ;; ---------------------------------------------------------------------------
@@ -2384,6 +2579,12 @@
 ;;  * every property of it slow to read -- and compiled code reads a callee's
 ;;  * properties on every call.
 ;;  *
+;;  * From its head's `function`, it is a range of the procedure's scope, a
+;;  * frame, if the unit has scopes: DevTools names a frame by the scope at its
+;;  * function's start, and in a factory the declaration is a statement of the
+;;  * factory's, which a pause there is in.
+;;  *
+;;  * @param {form} form - The emission it is made from.
 ;;  * @param {string} binding - The JavaScript name it is bound to.
 ;;  * @param {string} key - The name it shows as, as a JavaScript string
 ;;  *   literal (`js-string`), made once for both of a procedure's forms.
@@ -2391,10 +2592,58 @@
 ;;  * @param {list} body - Its body's items.
 ;;  * @returns {list} The items of a `const` declaration.
 ;;  */
-(define (named-function binding key header body)
-  (list (string-append "const " binding " = { " key ": " header " {")
-        (vector "  " (with-entry-placed body))
-        (string-append "} }[" key "];")))
+(define (named-function form binding key header body)
+  (let ((declaration (string-append "const " binding " = { " key ": ")))
+    (in-procedure-scope form (string-length declaration)
+      (list (string-append declaration header " {")
+            (vector "  " (with-entry-placed body))
+            (string-append "} }[" key "];")))))
+
+;; /**
+;;  * The items of a procedure's function as a range of its scope, a frame,
+;;  * if the unit has scopes.
+;;  * @param {form} form - The emission.
+;;  * @param {integer} column - Where in the first line the function begins.
+;;  * @param {list} items - The items.
+;;  * @returns {list}
+;;  */
+(define (in-procedure-scope form column items)
+  (let ((scope (scope-of-node (unit-source-scopes (form-unit form)) (form-ir form))))
+    (if scope
+        (list (make-ranged-items (list scope) #t (local-binder (form-unit form) (form-ir form)) column items))
+        items)))
+
+;; /**
+;;  * The items of a procedure's factory as a range of each scope the
+;;  * procedure is in, but the file's, if the unit has scopes: its own
+;;  * functions are inside, and what reads a variable of those scopes there
+;;  * is the factory's parameter, if the procedure captured it.
+;;  * @param {unit} u - The unit.
+;;  * @param {list} lam - The procedure's lambda IR node.
+;;  * @param {list} items - The items.
+;;  * @returns {list}
+;;  */
+(define (in-enclosing-scopes u lam items)
+  (let* ((scope (scope-of-node (unit-source-scopes u) lam))
+         (enclosing (if scope (enclosing-scopes scope) '())))
+    (if (pair? enclosing)
+        (list (make-ranged-items enclosing #f (local-binder u lam) 0 items))
+        items)))
+
+;; /**
+;;  * The JavaScript that reads a Scheme local in a procedure's function and
+;;  * its factory: its name there, a boxed one through its box; or #f, where
+;;  * the function neither binds nor captures it.
+;;  * @param {unit} u - The unit.
+;;  * @param {list} lam - The procedure's lambda IR node.
+;;  * @returns {procedure} From a renamed local to the JavaScript, or #f.
+;;  */
+(define (local-binder u lam)
+  (let ((names (function-names u lam))
+        (plan (unit-plan u)))
+    (lambda (local)
+      (let ((name (weak-table-ref (local-names-by-local names) local)))
+        (and name (if (boxed? plan local) (string-append name "[0]") name))))))
 
 ;; /**
 ;;  * A function's body, with the lines before its first placed line -- its
@@ -2418,8 +2667,8 @@
 (define (first-span items)
   (any (lambda (item)
          (cond ((pair? item) (cdr item))
-               ((vector? item) (first-span (vector-ref item 1)))
-               (else #f)))
+               ((string? item) #f)
+               (else (first-span (group-items item)))))
        items))
 
 ;; /**
@@ -2434,15 +2683,37 @@
       (cons '() #f)
       (let ((item (car items)))
         (cond ((pair? item) (cons items #t))
-              ((vector? item)
-               (let ((inner (place-until-span (vector-ref item 1) span)))
-                 (if (cdr inner)
-                     (cons (cons (vector (vector-ref item 0) (car inner)) (cdr items)) #t)
-                     (let ((rest (place-until-span (cdr items) span)))
-                       (cons (cons (vector (vector-ref item 0) (car inner)) (car rest)) (cdr rest))))))
-              (else
+              ((string? item)
                (let ((rest (place-until-span (cdr items) span)))
-                 (cons (cons (cons item span) (car rest)) (cdr rest))))))))
+                 (cons (cons (cons item span) (car rest)) (cdr rest))))
+              (else
+               (let ((inner (place-until-span (group-items item) span)))
+                 (if (cdr inner)
+                     (cons (cons (group-with-items item (car inner)) (cdr items)) #t)
+                     (let ((rest (place-until-span (cdr items) span)))
+                       (cons (cons (group-with-items item (car inner)) (car rest)) (cdr rest))))))))))
+
+;; /**
+;;  * The items of a group of them: an indented group, a scoped or a ranged.
+;;  * @param {vector|scoped-items|ranged-items} item - The group.
+;;  * @returns {list}
+;;  */
+(define (group-items item)
+  (cond ((vector? item) (vector-ref item 1))
+        ((scoped-items? item) (scoped-items-items item))
+        (else (ranged-items-items item))))
+
+;; /**
+;;  * A group like another, of other items.
+;;  * @param {vector|scoped-items|ranged-items} item - The group.
+;;  * @param {list} items - The items.
+;;  * @returns {vector|scoped-items|ranged-items}
+;;  */
+(define (group-with-items item items)
+  (cond ((vector? item) (vector (vector-ref item 0) items))
+        ((scoped-items? item) (make-scoped-items (scoped-items-scope item) items))
+        (else (make-ranged-items (ranged-items-scopes item) (ranged-items-frame? item)
+                                 (ranged-items-binder item) (ranged-items-column item) items))))
 
 ;; /**
 ;;  * The fast form of a procedure, as a JavaScript function bound to a name.
@@ -2497,7 +2768,7 @@
                       (append declaration entry
                               (list "$loop: for (;;) {" (vector "  " (append prologue body)) "}"))
                       (append declaration entry prologue body))))
-      (named-function name shown (string-append "function (" signature ")") items))))
+      (named-function form name shown (string-append "function (" signature ")") items))))
 
 ;; ---------------------------------------------------------------------------
 ;; A way back to the interpreter
@@ -2648,7 +2919,7 @@
                                (cons (vector "      " (append-map (lambda (st) (statement-lines form st))
                                                                   (car blocks)))
                                      (number (cdr blocks) (+ i 1))))))))
-        (named-function name shown "function ($pc, $f)"
+        (named-function form name shown "function ($pc, $f)"
           (append (list (string-append "let " names ";")
                         (string-append "({ " names " } = $f);"))
                   (depth-entry form '())
@@ -2735,9 +3006,8 @@
                         (string-append value ".$resume = " proc "$r;"))
                   (map (lambda (self) (string-append self " = " value ";")) own)
                   (list (string-append "return " value ";")))))
-    (list (string-append "function " factory "(" (string-join params ", ") ") {")
-          (vector "  " items)
-          "}")))
+    (cons (string-append "function " factory "(" (string-join params ", ") ") {")
+          (in-enclosing-scopes u lam (list (vector "  " items) "}")))))
 
 ;; /**
 ;;  * The runtime values call sites and inline expansions use, each with the
@@ -2799,13 +3069,20 @@
 ;;  * @param {string} name - Its display name.
 ;;  * @param {list} guarded - The globals with an expansion that are bound to
 ;;  *   their primitive here, which the caller finds out from the environment.
-;;  * @returns {list} (source constants spans): the source, its constants, and
-;;  *   the span of each of its lines, or #f, which its source map is written
-;;  *   from.
+;;  * @param {boolean} [ways-back?] - Whether each procedure its code makes can
+;;  *   be made an interpreted closure again (`way-back`); not, by default.
+;;  * @param {boolean} [scopes?] - Whether its source map is to have the scopes
+;;  *   of its Scheme (scopes.scm); not, by default.
+;;  * @returns {list} (source constants spans scopes): the source, its
+;;  *   constants, the span of each of its lines, or #f, which its source map
+;;  *   is written from, and the scopes it gives, or #f (`unit-scopes`).
 ;;  */
-(define (generate-unit ir globals library-globals name guarded . ways-back)
-  (let* ((u (make-unit (plan-lifting ir) globals library-globals (global-indices globals) guarded
-                       '() '() '() '() '() (make-weak-table) (and (pair? ways-back) (car ways-back))))
+(define (generate-unit ir globals library-globals name guarded . options)
+  (let* ((ways-back? (and (pair? options) (car options)))
+         (scopes? (and (pair? options) (pair? (cdr options)) (cadr options)))
+         (u (make-unit (plan-lifting ir) globals library-globals (global-indices globals) guarded
+                       '() '() '() '() '() (make-weak-table) ways-back?
+                       (and scopes? (original-scopes ir globals library-globals))))
          ;; The twin first: generating it decides where each call site resumes
          ;; and what a frame saves there, which the fast form needs in order to
          ;; suspend itself.
@@ -2828,14 +3105,31 @@
              globals))
          (prelude (runtime-prelude (unit-runtime u)))
          (rendered
-           (render-items
-             (append (if (string=? prelude "") '() (list prelude))
-                     accessors
-                     (map (lambda (factory) (vector "" factory)) (reverse (unit-factories u)))
-                     (list (vector "" fast)
-                           (vector "" twin)
-                           (string-append "const $proc$js = R.markProcedure($proc, " key ", E"
-                                          (if (lambda-rest ir) ", true" "") ");")
-                           "$proc$js.$resume = $proc$r;"
-                           "return $proc$js;")))))
-    (list (car rendered) (reverse (unit-constants u)) (cdr rendered))))
+           ((if (unit-source-scopes u) render-items-with-ranges render-items)
+             (in-file-scope u
+               (append (if (string=? prelude "") '() (list prelude))
+                       accessors
+                       (map (lambda (factory) (vector "" factory)) (reverse (unit-factories u)))
+                       (list (vector "" fast)
+                             (vector "" twin)
+                             (string-append "const $proc$js = R.markProcedure($proc, " key ", E"
+                                            (if (lambda-rest ir) ", true" "") ");")
+                             "$proc$js.$resume = $proc$r;"
+                             "return $proc$js;")))))
+         (scopes (unit-source-scopes u)))
+    (list (car rendered) (reverse (unit-constants u)) (cadr rendered)
+          (and scopes
+               (make-unit-scopes (original-scopes-file scopes) (original-scopes-root scopes) (caddr rendered))))))
+
+;; /**
+;;  * The items of a unit as a range of the file's scope, if it has scopes,
+;;  * each global it reads read through its cell.
+;;  * @param {unit} u - The unit.
+;;  * @param {list} items - The items.
+;;  * @returns {list}
+;;  */
+(define (in-file-scope u items)
+  (let ((scopes (unit-source-scopes u)))
+    (if scopes
+        (list (make-ranged-items (list (original-scopes-root scopes)) #f (lambda (g) (global-read u g)) 0 items))
+        items)))
