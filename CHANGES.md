@@ -15131,3 +15131,29 @@ was passed to and read after, taken apart past its end, kept across a continuati
 made, and taken apart through a `cdr` before a call whose frame is resumed).
 
 No JavaScript under `src/` (`npm run audit:languages -- HEAD`: Scheme 277 added and 68 removed).
+
+# Task 54 (d): a known callee entered past the arity test, measured and not done; 54 done (2026-10-10)
+
+The last of 54's items. Every fast form tests `arguments.length` on entry, so a call with the wrong count
+signals in both tiers, which the plan had measured at 2-5% of call-heavy compiled code; a call whose
+callee and count the compiler knows, a procedure's call of itself above all, could enter past it.
+
+**Measured first**, in plain JavaScript shaped as compiled code calls (`fib` of 25, twenty times, about
+4.9 million calls, through a global's cell and the callee's raw entry): 15.2 ms with the arity tested,
+14.5 without it, 13.8 with the self-call made straight to a body that does not test it -- 5 to 9% at best,
+for a self-call only, and less in compiled code, which does more around each call. Entering past the test
+needs a second entry: the body as a function of its own, with the entry that tests arity wrapped around
+it for every other caller, or a third copy of each procedure. The wrapper cost calls between two
+procedures that call each other a quarter to a third more (58.5-63.7 ms against 79.0 for the same pair
+split across two procedures), and a third copy would make the generated code half as large again, against
+task 41. The plan's gate allows no class regressed; not done.
+
+One cheaper idea came out of it, recorded in the plan and untried: a self-call made straight to the fast
+form when the global still holds the procedure, past the test of the callee and the read of its raw
+entry, but not its arity test -- about 4.6% of the same measurement -- which needs no second entry, but
+which the debugger's running of compiled code as its closures may rest against.
+
+With it, 54 is done: (a) characters and the type predicates, (b) record accessors and modifiers, (c)
+optional arguments without a rest list, all compiled inline; over the three, the canonical `read1` 15.3 to
+6.2 ms, `parsing` 25.4 to 17.0, `dynamic` 88.3 to about 47.5, and `run_tier.js`'s corpus 3,133 to about
+2,840 ms.
