@@ -262,12 +262,22 @@
 ;;                        constant where it is declared (`constant-binding`)
 ;;  14  receiver          the local holding `this` for the innermost lambda
 ;;                        being lowered that reads it, or #f (`receiver-local`)
+;;  15  enclosing         the loops around the innermost lambda that a tail
+;;                        call in it could jump to, were it and every loop
+;;                        between placed inline (`enclosing-loop`)
+;;  16  tentative         the calls tagged as such jumps in the group of
+;;                        lambdas being lowered, each (call . loop), settled
+;;                        once the group's placement is decided
+;;                        (`settle-enclosing-jumps!`)
+;;  17  deferred          a named `let`'s group, lowered as an operator, with
+;;                        its tentative calls, until its call is lowered
+;;                        (`lower-named-let-call`)
 
 ;; /**
 ;;  * Creates an empty lowering state.
 ;;  * @returns {vector} The state.
 ;;  */
-(define (make-state) (vector '() #f '() '() #f 0 #f #f #f #f '() '() '() '() #f))
+(define (make-state) (vector '() #f '() '() #f 0 #f #f #f #f '() '() '() '() #f '() '() '()))
 
 (define (state-globals st) (vector-ref st 0))
 (define (state-calls-unknown? st) (vector-ref st 1))
@@ -401,6 +411,18 @@
 ;; name is an ordinary call; `self` is reset on entering every lambda for that
 ;; reason. The argument count must match and there must be no rest parameter,
 ;; so that reassigning the parameters is the whole of the call.
+;;
+;; But a loop placed inline (`inline-loop?`) is the enclosing procedure's code,
+;; so a tail call from its body to a loop around it -- the one it was entered
+;; from, or the procedure itself -- is a jump to that loop's head, as long as
+;; every loop between is placed inline too: the evaluator's loop, whose inner
+;; loop over an application's operands ends by going round the outer one
+;; again, made a trip through the trampoline at every step without it. Whether
+;; a group is placed inline is known only once it is lowered, so such a call
+;; is tagged `outer` as it is seen (`enclosing-loop`), and settled as each
+;; group around it is decided (`settle-enclosing-jumps!`): dropped if the group
+;; is not placed inline, tagged as a jump once the group directly inside its
+;; loop is, and otherwise left to the group outside.
 
 ;; /**
 ;;  * Names the binding the next lambda lowered is bound to.
@@ -436,13 +458,61 @@
 ;;  */
 (define (loop-kind fn args tail st)
   (let ((self (vector-ref st 8)))
-    (if (and tail
-             self
-             (eq? (car fn) (car self))
-             (eq? (ast-1 fn) (cadr self))
-             (= (length args) (caddr self)))
+    (if (and tail self (calls-loop? fn args self))
         (car self)
         #f)))
+
+;; /**
+;;  * Whether a lowered callee and arguments are a call of a loop: its binding,
+;;  * with as many arguments as it has parameters.
+;;  * @param {list} fn - The lowered callee.
+;;  * @param {list} args - The lowered arguments.
+;;  * @param {list} self - The loop, as `take-self!` answers.
+;;  * @returns {boolean}
+;;  */
+(define (calls-loop? fn args self)
+  (and (eq? (car fn) (car self))
+       (eq? (ast-1 fn) (cadr self))
+       (= (length args) (caddr self))))
+
+;; /**
+;;  * The loop around the innermost lambda that a tail call is to, if it is to
+;;  * one: a jump to its head, should the lambda and every loop between be
+;;  * placed inline.
+;;  * @param {list} fn - The lowered callee.
+;;  * @param {list} args - The lowered arguments.
+;;  * @param {boolean} tail - Whether the call is in tail position.
+;;  * @param {vector} st - The lowering state.
+;;  * @returns {list|boolean} The loop, as `take-self!` answers, or #f.
+;;  */
+(define (enclosing-loop fn args tail st)
+  (and tail (find (lambda (loop) (calls-loop? fn args loop)) (vector-ref st 15))))
+
+;; /**
+;;  * Settles the calls tagged as jumps to loops around a group of lambdas, now
+;;  * that whether it is placed inline is decided: each is dropped if it is not;
+;;  * tagged as a jump if it is and the call's loop is the lambda the group is
+;;  * in, all the groups between having been placed inline already; and left to
+;;  * the group outside otherwise.
+;;  * @param {vector} st - The lowering state, its `tentative` the calls made
+;;  *   outside the group so far.
+;;  * @param {list} calls - The group's calls, each (call . loop).
+;;  * @param {boolean} inline - Whether the group is placed inline.
+;;  * @returns {unspecified}
+;;  */
+(define (settle-enclosing-jumps! st calls inline)
+  (let ((self (vector-ref st 8)))
+    (vector-set! st 16
+      (fold (lambda (entry outside)
+              (let ((call (car entry)) (loop (cdr entry)))
+                (cond ((not inline) (set-car! (cddddr call) #f) outside)
+                      ((eq? loop self)
+                       (set-car! (cddddr call) (car loop))
+                       (if (eq? (car loop) 'local) (vector-set! st 10 (cons call (vector-ref st 10))))
+                       outside)
+                      (else (cons entry outside)))))
+            (vector-ref st 16)
+            calls))))
 
 ;; /**
 ;;  * Whether a `letrec` group can be emitted as a loop in the procedure that
@@ -532,8 +602,9 @@
 
 ;; /**
 ;;  * How many calls to a name inside a lambda are tagged as that lambda's own
-;;  * looping calls. Those are only ever in the lambda's own body, since a
-;;  * nested lambda is a different procedure, so only that body is searched.
+;;  * looping calls. Those are only ever in the lambda's own body, or the body
+;;  * of a loop placed inline in it, since any other nested lambda is a
+;;  * different procedure, so only those bodies are searched.
 ;;  * @param {symbol} name - The lambda's name.
 ;;  * @param {list} lam - The lambda's IR node.
 ;;  * @returns {integer}
@@ -550,7 +621,11 @@
             ((eq? tag 'if) (+ (count (caddr node)) (count (cadddr node))))
             ((eq? tag 'seq) (if (null? (cadr node)) 0 (count (last-of (cadr node)))))
             ((eq? tag 'let) (count (cadddr node)))
-            ((eq? tag 'letrec) (count (cadddr node)))
+            ;; A loop placed inline is this lambda's code, its body's jumps
+            ;; included.
+            ((eq? tag 'letrec)
+             (+ (count (cadddr node))
+                (if (eq? (list-ref node 6) #t) (count (car (cddddr (car (caddr node))))) 0)))
             (else 0)))))
 
 ;; /**
@@ -565,11 +640,16 @@
 
 ;; /**
 ;;  * Untags every local loop whose name turned out to be assigned or defined
-;;  * more than once, now that the whole procedure has been seen.
+;;  * more than once, now that the whole procedure has been seen, and every
+;;  * call to a loop around it that was never settled as a jump.
 ;;  * @param {vector} st - The lowering state.
 ;;  * @returns {unspecified}
 ;;  */
 (define (confirm-local-loops! st)
+  ;; A call still tagged as a jump to a loop around it was never settled: its
+  ;; group was a named `let`'s operator never called.
+  (for-each (lambda (entry) (set-car! (cddddr (car entry)) #f))
+            (append (vector-ref st 16) (append-map cdr (vector-ref st 17))))
   (let ((assigned (vector-ref st 3))
         (defined (vector-ref st 11)))
     (for-each
@@ -742,6 +822,7 @@
       ((eq? tag 'lambda)
        (let ((inner (make-scope scope))
              (outer-self (vector-ref st 8))
+             (outer-enclosing (vector-ref st 15))
              (outer-receiver (vector-ref st 14))
              (receiver (and (mentions-this? (ast-4 node)) (receiver-name! st))))
          (declare-all! inner (ast-1 node))
@@ -751,9 +832,15 @@
          ;; stops being it once its body is lowered; and, if it reads `this`,
          ;; the one whose receiver the reads find.
          (vector-set! st 8 (take-self! st node))
+         ;; A loop's body could jump to the loops around it, were it placed
+         ;; inline; any other lambda's is a procedure of its own.
+         (vector-set! st 15 (cond ((not (vector-ref st 8)) '())
+                                  (outer-self (cons outer-self outer-enclosing))
+                                  (else outer-enclosing)))
          (if receiver (vector-set! st 14 receiver) #f)
          (let ((body (lower-body (ast-4 node) inner st)))
            (vector-set! st 8 outer-self)
+           (vector-set! st 15 outer-enclosing)
            (vector-set! st 14 outer-receiver)
            (list 'lambda (ast-1 node) (ast-2 node) (ast-3 node)
                  (if receiver (receiver-binding receiver outer-receiver body) body)
@@ -773,13 +860,21 @@
        ;; expander only builds this shape. Declaring them all callable before
        ;; lowering any of them is what lets a recursive or mutually recursive
        ;; call be recognised as a callee this pass can name.
-       (let ((inner (make-scope scope)))
+       (let ((inner (make-scope scope))
+             (outside (vector-ref st 16)))
          (declare-all-callable! inner (ast-1 node))
+         (vector-set! st 16 '())
          (let* ((inits (lower-letrec-inits (ast-1 node) (ast-2 node) inner st))
-                (body (lower-node (ast-3 node) inner tail st)))
-           (list 'letrec (ast-1 node) inits body tail
-                 (if (ir-callable? body) #t #f)
-                 (inline-loop? (ast-1 node) inits body tail st)))))
+                (calls (vector-ref st 16)))
+           (vector-set! st 16 outside)
+           (let* ((body (lower-node (ast-3 node) inner tail st))
+                  (inline (inline-loop? (ast-1 node) inits body tail st))
+                  (group (list 'letrec (ast-1 node) inits body tail (if (ir-callable? body) #t #f) inline)))
+             ;; A named `let`'s group is placed when its call is lowered.
+             (if (named-let-operator? group)
+                 (vector-set! st 17 (cons (cons group calls) (vector-ref st 17)))
+                 (settle-enclosing-jumps! st calls inline))
+             group))))
 
       ((eq? tag 'library-var)
        (let ((key (library-global-key st (ast-1 node) (ast-2 node))))
@@ -1095,7 +1190,9 @@
               (state-calls-unknown! st))
           (if tail #f (state-suspends! st))
           (let* ((loop (loop-kind fn args tail st))
-                 (call (list 'call fn args tail loop (core-span node))))
+                 (outer (and (not loop) (enclosing-loop fn args tail st)))
+                 (call (list 'call fn args tail (if outer 'outer loop) (core-span node))))
+            (if outer (vector-set! st 16 (cons (cons call outer) (vector-ref st 16))))
             (if (eq? loop 'local)
                 (vector-set! st 10 (cons call (vector-ref st 10)))
                 #f)
@@ -1134,11 +1231,16 @@
 (define (lower-named-let-call fn args tail span st)
   (let* ((names (cadr fn))
          (inits (caddr fn))
-         (call (list 'call (cadddr fn) args tail #f span)))
+         (call (list 'call (cadddr fn) args tail #f span))
+         (deferred (assq fn (vector-ref st 17))))
     (state-called-local! st (car names))
     (if tail #f (state-suspends! st))
-    (list 'letrec names inits call tail #f
-          (inline-loop? names inits call tail st))))
+    (let ((inline (inline-loop? names inits call tail st)))
+      (if deferred
+          (begin
+            (vector-set! st 17 (remove (lambda (entry) (eq? entry deferred)) (vector-ref st 17)))
+            (settle-enclosing-jumps! st (cdr deferred) inline)))
+      (list 'letrec names inits call tail #f inline))))
 
 ;; /**
 ;;  * Declares each of a lambda's parameters as a plain binding.

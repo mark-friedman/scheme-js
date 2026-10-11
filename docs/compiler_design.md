@@ -431,6 +431,16 @@ Scheme, and handed to the emitter as flags on the IR:
   allocates nothing. Without this, each call of `assq` still made a closure and a `TailCall` to enter
   a loop that usually runs twice.
 
+A loop placed inside its procedure is that procedure's code, so a tail call from its body to a loop
+around it -- the one it was entered from, or the procedure itself -- is a jump too: to that loop's head,
+by the label of the loop it names, as long as every loop between is placed inside as well. Whether one
+is is known only once its group is lowered, so such a call is tagged as it is seen and settled as each
+group around it is decided (`settle-enclosing-jumps!` in `ir.scm`): dropped if the group is a procedure
+of its own, a jump once the group directly inside its loop is placed inside. Without it, a loop over a
+list inside a loop over another, the inner one ending by going round the outer, made the outer loop a
+procedure of its own and every turn of the inner a trip through the trampoline back to it: the
+evaluator in Scheme ran two and a half times slower than it does with it.
+
 Reassigning parameters in place is sound only because every nested procedure is lifted and receives
 its free variables by value, or by box: a closure made in one iteration holds that iteration's values.
 Each iteration re-runs what a fresh call would — boxing the boxed parameters and making the boxes for

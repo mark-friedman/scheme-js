@@ -55,6 +55,68 @@
                       (define (loop i acc) (if (= i 0) acc (loop (- i 1) (+ acc i))))
                       (loop n 0)))))
 
+;; A loop placed inside the procedure that enters it is that procedure's code,
+;; so a tail call from its body to a loop around it -- the loop it was entered
+;; from, or the procedure itself -- is a jump to that loop's head as much as
+;; its own iterations are, as long as every loop between is placed inside too.
+(test-group "loops - a tail call to a loop around the one it is in"
+  (test "from an inlined loop to the loop it was entered from" '(local local)
+        (loop-tags '(define (f n)
+                      (let outer ((i 0))
+                        (if (< i n)
+                            (let inner ((j 0)) (if (< j i) (inner (+ j 1)) (outer (+ i 1))))
+                            i)))))
+  (test "and both loops are placed inside the procedure" 2
+        (inlined-loops '(define (f n)
+                          (let outer ((i 0))
+                            (if (< i n)
+                                (let inner ((j 0)) (if (< j i) (inner (+ j 1)) (outer (+ i 1))))
+                                i)))))
+  (test "to the top-level procedure around it" '(local global)
+        (loop-tags '(define (f n)
+                      (let loop ((i 0)) (if (< i n) (loop (+ i 1)) (if (> n 0) (f (- n 1)) 'done))))))
+  (test "two loops out" '(local local local)
+        (loop-tags '(define (f n)
+                      (let a ((i 0))
+                        (if (< i n)
+                            (let b ((j 0))
+                              (if (< j i)
+                                  (let c ((k 0)) (if (< k j) (c (+ k 1)) (a (+ i 1))))
+                                  (b (+ j 1))))
+                            i)))))
+  (test "and all three placed inside" 3
+        (inlined-loops '(define (f n)
+                          (let a ((i 0))
+                            (if (< i n)
+                                (let b ((j 0))
+                                  (if (< j i)
+                                      (let c ((k 0)) (if (< k j) (c (+ k 1)) (a (+ i 1))))
+                                      (b (+ j 1))))
+                                i))))))
+
+(test-group "loops - calls to a loop around that are not jumps"
+  ;; The inner loop's value is wanted, so it is a procedure of its own, and its
+  ;; call to the outer loop is an ordinary call; so the outer loop is not
+  ;; called only by jumps, and is not placed inside either.
+  (test "from a loop that is not placed inside" '(local)
+        (loop-tags '(define (f n)
+                      (let outer ((i 0))
+                        (if (< i n)
+                            (+ 1 (let inner ((j 0)) (if (< j i) (inner (+ j 1)) (outer (+ i 1)))))
+                            i)))))
+  (test "neither loop placed inside" 0
+        (inlined-loops '(define (f n)
+                          (let outer ((i 0))
+                            (if (< i n)
+                                (+ 1 (let inner ((j 0)) (if (< j i) (inner (+ j 1)) (outer (+ i 1)))))
+                                i)))))
+  (test "from a procedure made inside the inner loop" '(local)
+        (loop-tags '(define (f g n)
+                      (let outer ((i 0))
+                        (if (< i n)
+                            (let inner ((j 0)) (if (< j i) (inner (+ j 1)) (g (lambda () (outer (+ i 1))))))
+                            i))))))
+
 (test-group "loops - calls that look like loops and are not"
   (test "a call that is not in tail position" '()
         (loop-tags '(define (f n) (if (= n 0) 0 (+ 1 (f (- n 1)))))))
