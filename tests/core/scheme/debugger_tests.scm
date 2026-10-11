@@ -20,7 +20,7 @@
   (let ((told '()))
     (define (tell! . what) (set! told (cons what told)))
     (cons (make-debugger-host
-           (lambda (enabled? debugging? paused? aborted? interpretation)
+           (lambda (enabled? debugging? paused? aborted? pausing? interpretation)
              (tell! 'changed enabled? debugging? paused? aborted?))
            (lambda () (tell! 'released))
            (lambda (how) (tell! 'resumed how))
@@ -194,6 +194,45 @@
         (list (debugger-aborted? dbg) (list-ref (last-change) 4)))
   (resume! dbg)
   (test "so a resume lets that run go on" #f (debugger-aborted? dbg)))
+
+(test-group "debugger - a pause the program asks for"
+  (define recording (recording-host '() '() '()))
+  (define dbg (make-debugger (car recording)))
+  (define (told kinds) (filter-told (lambda (what) (memq (car what) kinds)) ((cdr recording))))
+  ;; A run that is not being debugged cannot wait, so a pause there would
+  ;; leave the debugger paused with nothing to resume.
+  (request-pause! dbg "manual pause")
+  (test "with debugging off, nothing" '(running #f) (list (debugger-mode dbg) (debugger-debugging? dbg)))
+  (set-debugger-enabled! dbg #t)
+  (request-pause! dbg "manual pause")
+  (test "on, it is not paused yet" #f (debugger-paused? dbg))
+  (test "but is being debugged, every closure running as itself" '(#t #t)
+        (list (debugger-debugging? dbg) (debugger-interpretation dbg)))
+  (test "and stops at the next step, wherever it is" #t (should-pause? dbg "test.scm" 4 1))
+  (pause-at! dbg (span "test.scm" 4 1) 'env #f)
+  (test "saying why, as it was asked" '((paused "manual pause" ())) (told '(paused)))
+  (resume! dbg)
+  (step-into! dbg)
+  (pause-at! dbg (span "test.scm" 5 1) 'env #f)
+  (test "a step after it is a step" '(paused "step" ()) (car (reverse (told '(paused))))))
+
+(test-group "debugger - the end of a run"
+  (define dbg (fresh-debugger))
+  (set-debugger-enabled! dbg #t)
+  (add-breakpoint! dbg "test.scm" 9 #f)
+  (enter-activation! dbg "f" (span "test.scm" 1 1) 'env-f)
+  (enter-activation! dbg "g" (span "test.scm" 5 1) 'env-g)
+  (pause! dbg "breakpoint" #f)
+  (step-over! dbg)
+  ;; Ended before the step stopped, by an error, say, which left its calls.
+  (run-ended! dbg)
+  (test "leaves none of its calls" '(() 0) (list (debugger-activations dbg) (debugger-depth dbg)))
+  (test "nor the step, which the next run would stop at" '(running #f)
+        (list (debugger-mode dbg) (should-pause? dbg "test.scm" 3 1)))
+  (test "but the breakpoints" #t (should-pause? dbg "test.scm" 9 1))
+  (request-pause! dbg "manual pause")
+  (run-ended! dbg)
+  (test "nor a pause asked for and not reached" 'running (debugger-mode dbg)))
 
 (test-group "debugger - whether the program is being debugged"
   (define dbg (fresh-debugger))

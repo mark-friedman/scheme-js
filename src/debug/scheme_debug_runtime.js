@@ -14,7 +14,7 @@
  * resumptions, having compiled code run as its closures while the program is
  * debugged, and listing an environment's bindings, the compiled procedures and
  * the macro transformers there are. And so are properties the evaluator reads
- * at every step -- `enabled`, `debugging`, `paused`, `aborted` -- which the
+ * at every step -- `enabled`, `debugging`, `paused`, `aborted`, `pausing` -- which the
  * Scheme sets after each change, since a call into Scheme there would cost
  * every step of every program being debugged.
  */
@@ -117,8 +117,10 @@ export class SchemeDebugRuntime {
         this.debugging = false;
         /** @type {boolean} Whether it is paused. */
         this.paused = false;
-        /** @type {boolean} Whether its run was aborted. */
+        /** @type {boolean} Whether its last pause ended in an abort. */
         this.aborted = false;
+        /** @type {boolean} Whether it is to pause at its next step, whatever it is. */
+        this.pausing = false;
 
         /** @type {Function|null} Lets the asynchronous run waiting on a pause go on. */
         this.waiting = null;
@@ -145,17 +147,21 @@ export class SchemeDebugRuntime {
      */
     host() {
         return debuggerCall('make-debugger-host',
-            procedure((enabled, debugging, paused, aborted, interpretation) => {
+            procedure((enabled, debugging, paused, aborted, pausing, interpretation) => {
                 this.enabled = enabled;
                 this.debugging = debugging;
                 this.paused = paused;
                 this.aborted = aborted;
+                this.pausing = pausing;
                 this.interpreter?.interpretForDebugger?.(interpretation);
             }),
+            // The released run goes on a turn of the event loop later, once
+            // what released it -- a REPL's command -- has answered: going on
+            // at once, it would reach its next pause, and show it, first.
             procedure(() => {
                 const waiting = this.waiting;
                 this.waiting = null;
-                waiting?.();
+                if (waiting) setTimeout(waiting, 0);
             }),
             procedure((how) => this.onResume?.(String(how))),
             procedure((info) => this.onPause?.(info)),
@@ -424,6 +430,22 @@ export class SchemeDebugRuntime {
      */
     pause(source, env, reason = null) {
         debuggerCall('pause-at!', this.scheme, source ?? false, env ?? false, reason ?? false);
+    }
+
+    /**
+     * Asks for a pause before the next step, as a program's own `pause` does.
+     * @param {string} reason - Why, which the pause says.
+     */
+    requestPause(reason) {
+        debuggerCall('request-pause!', this.scheme, reason);
+    }
+
+    /**
+     * The program's run ended, at the top level: its calls, and a step still
+     * in progress, end with it. Nothing to do if the debugger was never used.
+     */
+    runEnded() {
+        if (this.record !== null) hookCall('run-ended!', this.record);
     }
 
     /**

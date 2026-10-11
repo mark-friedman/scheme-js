@@ -33,7 +33,7 @@
     debugger-mode debugger-paused? debugger-aborted? debugger-target-depth
     debugger-pause-reason debugger-pause-data
     step-into! step-over! step-out! resume! abort! pause! step-stops?
-    should-pause? pause-at! pause-on-exception!
+    should-pause? pause-at! pause-on-exception! request-pause! run-ended!
     ;; Exceptions
     breaks-on-exception? debugger-breaks-on-caught? set-debugger-breaks-on-caught!
     debugger-breaks-on-uncaught? set-debugger-breaks-on-uncaught!

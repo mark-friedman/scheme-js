@@ -501,6 +501,9 @@ export class Interpreter {
       this.unwindsOut = unwindsOut;
       leaveRun(driver);
       methodReceiver.v = receiver;
+      // A run at the top level ended: the debugger lets go of its calls, and
+      // of a step still in progress, which the next run would otherwise stop at
+      if (this.depth === 0) this.debugRuntime?.runEnded?.();
     }
   }
 
@@ -620,15 +623,18 @@ export class Interpreter {
 
     // Debug hook: check if we should pause before this step. Only while the
     // program is being debugged -- a breakpoint set, a step in progress --
-    // does the debugger have anything to check.
-    if (this.debugRuntime?.debugging && ctl.source) {
-      if (this.debugRuntime.shouldPause(ctl.source, registers[ENV])) {
+    // does the debugger have anything to check: at a step with a place, the
+    // debugger's question; at one without, whether the program asked to
+    // pause at its next step, whatever it is.
+    const debugRuntime = this.debugRuntime;
+    if (debugRuntime?.debugging) {
+      if (ctl.source ? debugRuntime.shouldPause(ctl.source, registers[ENV]) : debugRuntime.pausing) {
         // A run compiled code called is beneath the compiled frames, on the
         // JavaScript stack, and cannot wait there; so it moves them to the
         // heap and the step is taken again, and paused at, by the run that
         // finishes the move.
         if (beginStepAgain(registers[FSTACK], ctl, registers[ENV])) throw new CaptureUnwind();
-        this.debugRuntime.pause(ctl.source, registers[ENV]);
+        debugRuntime.pause(ctl.source ?? null, registers[ENV]);
       }
     }
 
@@ -823,6 +829,9 @@ export class Interpreter {
       this.unwindsOut = unwindsOut;
       leaveRun(driver);
       methodReceiver.v = receiver;
+      // A run at the top level ended: the debugger lets go of its calls, and
+      // of a step still in progress, which the next run would otherwise stop at
+      if (this.depth === 0) this.debugRuntime?.runEnded?.();
     }
   }
 

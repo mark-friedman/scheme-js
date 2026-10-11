@@ -324,10 +324,12 @@ async function startRepl() {
 
     let isEvaluating = false;
 
-    // Add 'pause' primitive for manual debugging
-    // Register primitives
-    env.define('pause', (source = null, env = null, reason = 'manual pause') => {
-        interpreter.debugRuntime?.pause(source, env, reason);
+    // `pause`, a program's own breakpoint: with debugging on, the program
+    // stops before its next step, where its run can wait (`request-pause!` in
+    // src/core/scheme/debugger.scm). Its first two arguments, a place and an
+    // environment, are not used: it stops at a step, which has both.
+    env.define('pause', (source = null, at = null, reason = 'manual pause') => {
+        interpreter.debugRuntime?.requestPause(reason);
     });
 
     // While a program is paused, the interactive REPL's prompt is `debug>`

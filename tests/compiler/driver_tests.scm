@@ -54,6 +54,11 @@
   (test "one naming a control global is, saying which"
         "references control global 'dynamic-wind'"
         (lowering-decline (lower-lambda (analyze-lambda '(define (f g) (dynamic-wind g g g)))) #f))
+  ;; `pause`, which the CLI and the REPL page bind, stops the program for the
+  ;; debugger, which only an interpreted procedure can be stopped inside.
+  (test "one calling pause is, so that the pause stops it inside"
+        "references control global 'pause'"
+        (lowering-decline (lower-lambda (analyze-lambda '(define (f x) (pause) (* x 10)))) #f))
   ;; `make-parameter` is a procedure of (scheme core)'s that makes a closure
   ;; over a cell (parameter.scm); it transfers no control.
   (test "one making a parameter is not" #f

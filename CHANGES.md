@@ -15444,7 +15444,8 @@ through a pseudo-terminal, which the suite has no way to drive: no doubled keys,
 and `:abort` each followed by a prompt that answers. Node 9,686 passed, 0 failed, under `npm test`; the browser
 9,351 passed, 0 failed, headless, the new test among its skips.
 
-**Left as found.** Seen while checking, and older than this:
+**Left as found.** *(All three fixed the same day, in "A program's own pause, a run's end, and a
+command's answer first".)* Seen while checking, and older than this:
 - A `(pause)` in a procedure the tier has compiled -- here at its second call -- does not hold its run,
   which runs on to its result, and the debugger stays paused with nothing running, so the prompt says
   `debug>`. With `--no-compile` every pause holds.
@@ -15452,3 +15453,53 @@ and `:abort` each followed by a prompt that answers. Node 9,686 passed, 0 failed
   "step complete", before reaching its own pause: seen after `:n` ran to the end of a run.
 - After a step command the run's next pause is shown before the command's own answer, `;; Stepping
   into...`, as it was with the second interface.
+
+# A program's own pause, a run's end, and a command's answer first (2026-10-11)
+
+The three things the CLI fix left as found, and two more of the same kind found on the way.
+
+**`pause` where no run could wait.** The `pause` the CLI and the REPL page bind paused the debugger on
+the spot. Only the asynchronous run, in its own interpreted steps, waits on a pause, so anywhere else
+the program ran on and left the debugger paused with nothing running: the prompt stayed `debug>` and
+every line went to the debugger (`;; Invalid frame selected`). That happened in a procedure the tier had
+compiled, here at its second call; in an interpreted procedure that compiled code called, such as a
+callback of the compiled `map`; and with debugging off, the CLI's default, where every run is
+synchronous. Now `pause` asks the debugger to stop before the program's next step, whatever it is
+(`request-pause!` in `debugger.scm`, a new mode, `pausing`, which the evaluator reads as
+`runtime.pausing`): in an interpreted procedure that is the step after the call, in the procedure, with
+its variables; beneath compiled code the step is taken again by the run that can wait, as a
+breakpoint's is. With debugging off it does nothing. The compiler leaves a procedure that names `pause`
+to the interpreter, as it does one naming `dynamic-wind` (`control-globals` in `ir.scm`), since a
+compiled one runs on to its end and the program would stop, if anywhere, in its caller; a program's own
+global named `pause` leaves its callers interpreted too. The step hook used to look only at steps with a
+place, and a requested pause stops at one without (`(pause)` followed by a variable has nothing else to
+stop at), so its message says "at unknown location", as `pause`'s always did.
+
+**A run's end.** A step still in progress when its run ended went on into the next run, which stopped at
+its first step, "step complete": seen after `:n` ran to the end of a run. And the calls of a run that
+ended by an error or an abort stayed on the debugger's list, so the next pause's backtrace showed them
+beneath its own. When a run at the top level ends, the evaluator now tells the debugger (`run-ended!`):
+its calls and frame selection go, and a step or a requested pause still in progress ends.
+
+**A command's answer first.** Releasing a paused run let it go on at once, in a microtask, so a step
+reached its next pause, and the REPL showed it, before the command's own answer (`;; Stepping into...`).
+The runtime now lets the run go on a turn of the event loop later, once what released it has answered.
+
+**Tests.** `tests/debug/pause_tests.js` (both environments): with debugging off a pause does nothing and
+leaves nothing paused; on, it stops in the procedure, where its variables are; a run stepped out of to
+its end is not followed by a stop at the next run's first step; an aborted run's calls are not in the
+next pause's backtrace; a step command answers before the run takes its step; and beneath the compiled
+`map`, each call of an interpreted callback that pauses stops in the callback. With the end-of-run hook
+taken out, the second and third fail; with the release made immediate again, the fifth. In
+`debugger_tests.scm`, a requested pause and the end of a run; in `tests/compiler/driver_tests.scm`, a
+procedure naming `pause` declined. The CLI test now calls a pausing procedure with debugging off and
+again at its third call, and steps with `:s`, checking the answer comes before the pause. In a terminal,
+driven by hand, the same, and `(pause)` followed only by a variable stops. Node 9,714 passed, 0 failed, under `npm test`;
+the browser 9,376 passed, 0 failed, headless.
+
+JavaScript under `src/`: in `interpreter.js`, the step hook stopping at a step with no place while
+`pausing`, and the end of a top-level run told to the debugger, which are the evaluator's; in
+`scheme_debug_runtime.js`, `requestPause` and `runEnded`, doors each calling the Scheme, the `pausing`
+property the evaluator reads at every step, and the release put off a turn, the paused run's promise,
+which only JavaScript has. 39 lines of JavaScript added and 8 removed, about half of them comments; 57 of
+Scheme and 10.

@@ -211,8 +211,9 @@
 ;;  * What only the host can do, as procedures.
 ;;  * @property {procedure} changed - Called after every change, with whether
 ;;  *   debugging is enabled, whether the program is being debugged, whether
-;;  *   it is paused and whether its last pause ended in an abort, which the
-;;  *   evaluator reads, and
+;;  *   it is paused, whether its last pause ended in an abort, and whether it
+;;  *   is to pause at its next step, whatever it is, which the evaluator
+;;  *   reads, and
 ;;  *   which closures run compiled are to run as themselves
 ;;  *   (`debugger-interpretation`).
 ;;  * @property {procedure} release - Lets the asynchronous run waiting on a
@@ -273,11 +274,13 @@
 ;;  * @property {list} activations - The calls the program is in, newest
 ;;  *   first.
 ;;  * @property {integer} depth - How many.
-;;  * @property {symbol} mode - running, paused, or stepping into, over or
-;;  *   out: `into`, `over` or `out`.
+;;  * @property {symbol} mode - running, paused, stepping into, over or out
+;;  *   (`into`, `over` or `out`), or `pausing`: to pause at the next step,
+;;  *   whatever it is, as the program asked.
 ;;  * @property {integer|boolean} target-depth - For a step over or out, the
 ;;  *   depth it began at.
-;;  * @property {string|boolean} reason - Why it is paused.
+;;  * @property {string|boolean} reason - Why it is paused, or, pausing, why
+;;  *   it will be.
 ;;  * @property {*} data - The id of the breakpoint it paused at, or #f.
 ;;  * @property {boolean} aborted? - Whether the last pause ended in an abort,
 ;;  *   which the run it released reads, to stop.
@@ -369,7 +372,7 @@
 (define (debugger-changed! dbg)
   ((host-changed (debugger-host dbg))
    (debugger-enabled? dbg) (debugger-debugging? dbg) (debugger-paused? dbg) (debugger-aborted? dbg)
-   (debugger-interpretation dbg)))
+   (eq? (debugger-mode dbg) 'pausing) (debugger-interpretation dbg)))
 
 ;; /**
 ;;  * Turns debugging on or off.
@@ -605,7 +608,7 @@
 ;;  */
 (define (step-stops? dbg)
   (case (debugger-mode dbg)
-    ((into) #t)
+    ((into pausing) #t)
     ((over) (<= (debugger-depth dbg) (debugger-target-depth dbg)))
     ((out) (< (debugger-depth dbg) (debugger-target-depth dbg)))
     (else #f)))
@@ -643,7 +646,7 @@
 ;; /**
 ;;  * Pauses before the evaluator's next step, and tells the host. With no
 ;;  * reason given, the reason is the breakpoint the location hits, or else
-;;  * the step in progress.
+;;  * the pause the program asked for, or else the step in progress.
 ;;  * @param {debugger} dbg - The debugger.
 ;;  * @param {*} location - Where, or no location.
 ;;  * @param {*} env - The environment there, or #f.
@@ -653,12 +656,49 @@
   (let* ((hit (and (not reason) (breakpoint-at dbg location)))
          (reason (cond (reason reason)
                        (hit "breakpoint")
+                       ((and (eq? (debugger-mode dbg) 'pausing) (debugger-pause-reason dbg)))
                        ((memq (debugger-mode dbg) '(into over out)) "step")
                        (else "breakpoint")))
          (id (and hit (breakpoint-id hit))))
     (pause! dbg reason id)
     (debugger-changed! dbg)
     ((host-paused (debugger-host dbg)) (pause-info dbg reason id location env js-undefined #f))))
+
+;; /**
+;;  * Asks for a pause before the evaluator's next step, whatever it is, for a
+;;  * reason: what a program's own `pause` does. The run goes on to that step
+;;  * and waits there -- in an interpreted procedure, the step after the call,
+;;  * in the procedure, where its variables are, though the step may have no
+;;  * place of its own; beneath compiled code, the step is taken again by the
+;;  * run that can wait, as a breakpoint's is. Paused already, or with
+;;  * debugging off, it does nothing: no run then checks whether to pause, nor
+;;  * could wait, and a pause with nothing to resume would leave the REPL
+;;  * taking every line as the debugger's.
+;;  * @param {debugger} dbg - The debugger.
+;;  * @param {string} reason - Why, which the pause says.
+;;  */
+(define (request-pause! dbg reason)
+  (when (and (debugger-enabled? dbg) (not (debugger-paused? dbg)))
+    (enter-mode! dbg 'pausing)
+    (set-debugger-pause-reason! dbg reason)
+    (debugger-changed! dbg)))
+
+;; /**
+;;  * The program's run ended, at the top level. None of its calls is left --
+;;  * an error or an abort leaves those it unwound, which the next pause would
+;;  * show -- and a step still in progress, or a pause asked for and not
+;;  * reached, ends with it, so that the next run does not stop at its first
+;;  * step. A run paused keeps its calls: one that ends then is another.
+;;  * @param {debugger} dbg - The debugger.
+;;  */
+(define (run-ended! dbg)
+  (unless (debugger-paused? dbg)
+    (set-debugger-activations! dbg '())
+    (set-debugger-depth! dbg 0)
+    (set-debugger-selected-frame! dbg #f)
+    (when (memq (debugger-mode dbg) '(into over out pausing))
+      (run! dbg)
+      (debugger-changed! dbg))))
 
 ;; /**
 ;;  * Pauses at an exception raised, and tells the host.

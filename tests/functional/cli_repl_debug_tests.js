@@ -30,20 +30,27 @@ export async function runCliReplDebugTests(logger) {
   // `pause` is the CLI's own primitive; given a reason, the pause message
   // names it, so that each pause can be waited for apart. With debugging off,
   // as it starts, a line is evaluated before the next is read, so the first
-  // three go together.
+  // lines go together.
   const run = await runCli([], {
     onOutput: inSteps([
       {
         after: '',
-        write: '(define (g x) (pause #f #f "pause in g") (* x 10))\n'
+        write: '(define (g x why) (pause #f #f why) (* x 10))\n'
           + '(define (h x) (pause #f #f "pause in h") (* x 100))\n'
+          + '(g 1 "not debugging")\n'
           + ':debug on\n'
       },
-      { after: 'Debugging enabled', write: '(g 5)\n' },
+      { after: 'Debugging enabled', write: '(g 5 "pause in g")\n' },
       { after: 'Paused: pause in g', write: 'x\n' },
       { after: ';; result: 5', write: ':c\n' },
       { after: '50\n', write: '(+ 1000 1)\n' },
-      { after: '1001\n', write: '(h 7)\n' },
+      // The third call of `g`: the tier compiles a procedure at its second,
+      // but leaves one that pauses interpreted.
+      { after: '1001\n', write: '(g 6 "third call")\n' },
+      { after: 'Paused: third call', write: 'x\n' },
+      { after: ';; result: 6', write: ':s\n' },
+      { after: 'Paused: step complete', write: ':c\n' },
+      { after: '60\n', write: '(h 7)\n' },
       { after: 'Paused: pause in h', write: ':abort\n' },
       { after: 'SchemeError: Evaluation aborted', write: '(+ 2000 2)\n' },
       { after: '2002\n', write: ':abort\n' },
@@ -53,6 +60,8 @@ export async function runCliReplDebugTests(logger) {
 
   const { stdout } = run;
   const answered = (text) => stdout.includes(text) ? true : outputOf(run);
+  assert(logger, 'with debugging off, a pause does nothing: the call returns, the prompt the usual one',
+    !stdout.includes('not debugging') && /> 10\n> /.test(stdout) ? true : outputOf(run), true);
   assert(logger, 'paused, the prompt says so', answered('debug> '), true);
   assert(logger, 'and a line is evaluated in the paused frame', answered(';; result: 5'), true);
   // The command that lets the run go on says so, and the run's result or
@@ -60,6 +69,9 @@ export async function runCliReplDebugTests(logger) {
   assert(logger, 'continued, the run goes on to its end, its result after the command\'s answer',
     answered(';; Continuing...\n50\n> '), true);
   assert(logger, 'after which a line is evaluated as before', answered('1001\n'), true);
+  assert(logger, 'a procedure that pauses still pauses inside at its third call', answered(';; result: 6'), true);
+  assert(logger, 'a step command answers before the pause it leads to',
+    answered(';; Stepping into...\n\n;; Paused: step complete'), true);
   assert(logger, 'aborted, the run stops, its error after the command\'s answer',
     answered(';; Evaluation aborted\nUncaught SchemeError: Evaluation aborted\n> '), true);
   assert(logger, 'after which a line is evaluated as before', answered('2002\n'), true);
