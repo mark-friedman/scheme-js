@@ -201,6 +201,26 @@ const GROUPS = [
     ]
   },
   {
+    name: 'nested loops',
+    about: 'a loop inside a loop, the inner one going round the outer one again, beside one loop (task 110)',
+    definitions: `
+      (define (one x) 1)
+      (define (pairs n)
+        (let outer ((i 0) (count 0))
+          (if (< i n)
+              (let inner ((j 0) (count count))
+                (if (< j i) (inner (+ j 1) (+ count 1)) (outer (+ i 1) count)))
+              count)))
+      (define (flat n) (let loop ((i 0) (count 0)) (if (< i n) (loop (+ i 1) (+ count 1)) count)))
+      (define key-a 'a)
+      (define ten 10)
+      (define fifty-five 55)`,
+    workloads: [
+      ['ten turns of the outer loop, 45 of the inner', '(pairs ten)'],
+      ['55 turns of one loop, for comparison', '(flat fifty-five)']
+    ]
+  },
+  {
     name: 'optional',
     about: 'an optional argument taken as a rest list, given and not, beside fixed arity and case-lambda (task 54)',
     definitions: `

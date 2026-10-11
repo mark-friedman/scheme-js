@@ -15258,6 +15258,75 @@ reading them, which are the value representation's; the class constructor, the c
 noting of inexacts fixed in place; re-exports in `runtime.js`. 62 lines of JavaScript added and 18
 removed, 122 of Scheme and 35.
 
+# Task 110: a tail call from an inline loop to a loop around it is a jump (2026-10-10)
+
+Found building task 68's evaluator in Scheme, whose loop over an application's operands sits inside its
+main loop and ends, once the operands are evaluated, by going round the main loop with the application
+taken. A loop placed inline -- emitted in the procedure that enters it, its looping calls jumps back to its
+head -- is that procedure's code, so a tail call from its body to a loop around it is a jump too. But the
+lowering tagged a call as a jump only to the lambda directly containing it, so the call from the inner loop
+to the outer one was an ordinary tail call: the outer loop, no longer called only by jumps, became a
+procedure of its own, and every turn of the inner one returned a `TailCall` to the trampoline to get back
+to it. The evaluator ran two and a half times slower for it.
+
+Now such a call is tagged `outer` as it is lowered, with the loop it names, which is in the lowering's new
+list of loops around the innermost lambda a tail call could jump to, kept while lambdas bound by `letrec`
+nest and emptied by any other (`enclosing-loop` in `ir.scm`). Whether a group is placed inline is known only
+once it is lowered, and for a named `let` once its call is, so each group settles the tags of the calls in
+its lambdas when it is decided (`settle-enclosing-jumps!`): a group not placed inline drops them; one placed
+inline makes a jump of each whose loop is the lambda the group is in, and leaves the rest to the group
+outside it; a named `let`'s group waits, with its calls, for its call (`lower-named-let-call`), and any call
+never settled is dropped at the end. A jump to a loop around counts as one of that loop's own looping calls,
+so the loop around can itself be placed inline (`looping-calls`). The emitter finds the loop a jump goes to
+by the name it calls, among the inline loops it is inside, innermost first, or else the procedure, and
+jumps by that loop's label, `continue $loopN` in the fast form and that loop's head block in the resumable
+form (`loop-target` in `emit.scm`); a loop on raw doubles takes a jump only to itself as its own iteration
+(`pure-loop-body?`).
+
+Measured: `run_codegen.js`'s new `nested loops` group, an outer loop of ten turns round an inner one of 45,
+202 to 89 ns a call, against 132 for one loop of 55 turns. The canonical suite, from two copies of equal
+standing: `earley`, whose loops nest, 15.9 and 17.6 ms to 8.2 and 8.8; `matrix` 3.7 to 3.3 and 3.4; the
+rest level, `compiler`'s first run's 1.5 times noise over six alternating runs (medians 5.8 and 6.1 ms).
+`run_tier.js`'s corpus and test sets level within their noise, which was about a tenth this time, and
+`benchmark:self-host` level.
+
+Tests: what the lowering tags, from an inlined loop to the loop it was entered from, to the top-level
+procedure, two loops out, and not from a loop that is not placed inline or a procedure made inside one
+(`tests/compiler/loop_tests.scm`); and that the code jumps by the right labels and gives the interpreter's
+answers (`tests/functional/loop_compilation_tests.js`). Node 9,652 passed.
+
+JavaScript under `src/`: none.
+
+# Task 68 closed: the evaluator stays JavaScript (2026-10-11)
+
+Task 68, the evaluator written in Scheme, was built on the branch `evaluator-in-scheme-investigation`
+(started as `task-68-evaluator`) and closed with the user before its bootstrap. The branch is kept unmerged,
+for reference; its `CHANGES.md` has each step.
+
+**What was built.** `(scheme-js evaluator)`: nodes as records a Scheme assembler made from core forms, frames
+as records on a stack that was a list, and one loop, written once as a macro making two procedures -- a plain
+one, and a stepped one that counted steps for asynchronous runs and called the debugger's hooks. It ran
+control (continuations, `dynamic-wind`, handlers, `eval`), compiled code's protocol across nested runs, the
+compiler tier's hooks, the debugger and the asynchronous run, and was a program's default interpreter, with
+every suite passing on it, Node and browser. Closures and environments stayed the JavaScript objects they are.
+
+**What it measured**, against the JavaScript evaluator, at its best: the ceiling's kernels 1.06 times the
+time; the canonical suite interpreted 1.23, `parsing` 1.87 and `compiler` 1.80; with the tier attached,
+the corpus 1.06 and the page set 1.02; `benchmark:self-host` interpreted 1.17.
+
+**Why it stopped.** It bought users nothing measurable and cost them some time -- all of a page's own code is
+interpreted under a strict Content-Security-Policy -- and space: its table was about 860 KB of generated code
+in the page bundle, against the JavaScript evaluator's 130 KB of source. Its loop lived near V8's optimization
+cliffs: the stepped loop at about 58 KB of bytecode of the 61.4 KB V8 optimizes, past which it ran two to four
+times slower, and a run's single call of the loop ran on the code V8 compiles for entering a function
+mid-loop, a fifth slower, until the loop was made to return and be called again every 64 closures. And
+finishing it needed a bootstrap of its own: tables compiling every library's top-level forms, the library
+system on it, and a pinned compiled image of about 2.1 MB, so that the JavaScript evaluator could go.
+
+**What it found that holds without it**: task 110, a tail call from an inline loop to a loop around it a jump
+(`earley` twice as fast), now on this branch; task 111, temporaries saved where they are dead, in the plan;
+and R148 to R151 in the findings log.
+
 # The browser REPL evaluates a line typed while paused (2026-10-10)
 
 Typing an expression at the browser REPL's `debug>` prompt showed `Error: debugCommands.handleEval is

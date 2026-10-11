@@ -86,6 +86,45 @@ export async function runLoopCompilationTests(logger) {
     assert(logger, 'and of its own resumable form', /\$pc = 0; continue;/.test(source), true);
   }
 
+  // A tail call from an inlined loop to the loop it was entered from is a
+  // jump to that loop's head, through the label of the loop it names.
+  {
+    const { interpreter, env } = createInterpreter();
+    const { source } = compile(`(define (pairs n)
+      (let outer ((i 0) (count 0))
+        (if (< i n)
+            (let inner ((j 0) (count count))
+              (if (< j i) (inner (+ j 1) (+ count 1)) (outer (+ i 1) count)))
+            count)))`, env);
+    const fast = source.split('const $proc$r')[0];
+    assert(logger, 'nested loops allocate no TailCall', /new \$TailCall|\$tailCall\(/.test(fast), false);
+    assert(logger, 'and make no closure', source.includes('$mk'), false);
+    assert(logger, 'the inner loop jumps to the outer loop\'s head by its label',
+      /\$loop2: for \(;;\) \{[^]*continue \$loop1;/.test(fast), true);
+    assert(logger, 'and gives the interpreter\'s answer', run(interpreter, env, '(pairs 30)'), 435);
+  }
+  {
+    // Two loops out, and to the top-level procedure itself, whose jump is
+    // guarded on its global as any is.
+    const { interpreter, env } = createInterpreter();
+    const { source } = compile(`(define (triples n)
+      (let a ((i 0) (count 0))
+        (if (< i n)
+            (let b ((j 0) (count count))
+              (if (< j i)
+                  (let c ((k 0) (count count))
+                    (if (< k j) (c (+ k 1) (+ count 1)) (b (+ j 1) count)))
+                  (a (+ i 1) count)))
+            (if (> count 1000) (triples (- n 1)) count))))`, env);
+    const fast = source.split('const $proc$r')[0];
+    assert(logger, 'the innermost of three loops jumps to the middle one\'s head',
+      /\$loop3: for \(;;\) \{[^]*continue \$loop2;/.test(fast), true);
+    assert(logger, 'and the middle one to the outer one\'s', /\$loop2: for \(;;\) \{[^]*continue \$loop1;/.test(fast), true);
+    assert(logger, 'and the outer one to the procedure\'s, guarded on its global', /=== \$proc\$js\)/.test(fast), true);
+    assert(logger, 'and give the interpreter\'s answer', run(interpreter, env, '(triples 12)'), 220);
+    assert(logger, 'looping to the procedure too', run(interpreter, env, '(triples 30)'), 969);
+  }
+
   // A global can be redefined after this code was compiled, and then the call
   // is no longer to itself. The loop is guarded on the binding for that reason,
   // and falls back to an ordinary tail call.

@@ -2032,7 +2032,7 @@
     (if inlined
         (emit! form (list 'return inlined))
         (let* ((kind (call-loop node))
-               (target (loop-target form))
+               (target (loop-target form node))
                (operands (if (and kind (pair? (form-doubles form)))
                              (cons (emit-value! form (cadr node))
                                    (map (lambda (arg param)
@@ -2127,13 +2127,15 @@
 ;; ---------------------------------------------------------------------------
 ;;
 ;; A loop target is what a looping tail call jumps to: this procedure itself,
-;; or a loop emitted inline inside it. Reassigning parameters in place is sound
-;; because every nested procedure receives its free variables by value or by
-;; box, so a closure made in one iteration keeps that iteration's bindings.
+;; or a loop emitted inline inside it, which has the name the loop is bound
+;; to. Reassigning parameters in place is sound because every nested procedure
+;; receives its free variables by value or by box, so a closure made in one
+;; iteration keeps that iteration's bindings.
 
 (define-record-type loop-target
-  (make-loop-target params fixed-arity procedure assign jump)
+  (make-loop-target name params fixed-arity procedure assign jump)
   loop-target?
+  (name loop-name)
   (params loop-params)
   (fixed-arity loop-fixed-arity?)
   (procedure loop-procedure?)
@@ -2141,17 +2143,23 @@
   (jump loop-jump))
 
 ;; /**
-;;  * The loop a looping call made here jumps to: the innermost inline loop, or
-;;  * else this procedure. The lowering tags a call as looping only from inside
-;;  * the lambda it loops to, and an inline loop's body is that lambda's body.
+;;  * The loop a looping call made here jumps to: the inline loop it calls by
+;;  * name, innermost first, or else this procedure. The lowering tags a call as
+;;  * looping from inside the lambda it loops to, or from inside a loop placed
+;;  * inline in it, any number deep (`settle-enclosing-jumps!` in ir.scm); an
+;;  * inline loop's body is its lambda's body, and a call to this procedure, by
+;;  * its local name or its global, names no inline loop.
 ;;  * @param {form} form - The emission.
+;;  * @param {list} node - The `call` IR node.
 ;;  * @returns {loop-target} The target.
 ;;  */
-(define (loop-target form)
-  (if (pair? (form-loop-targets form))
-      (car (form-loop-targets form))
+(define (loop-target form node)
+  (or (and (eq? (call-loop node) 'local)
+           (let ((name (cadr (cadr node))))
+             (find (lambda (target) (eq? (loop-name target) name)) (form-loop-targets form))))
       (let ((ir (form-ir form)))
         (make-loop-target
+          #f
           (lambda-params ir)
           (not (lambda-rest ir))
           #t
@@ -2227,6 +2235,7 @@
 ;;  */
 (define (emit-inline-loop! form node)
   (let* ((lam (car (caddr node)))
+         (name (car (cadr node)))
          (params (lambda-params lam))
          (entries (caddr (cadddr node)))
          (entry (emit-operands! form entries)))
@@ -2237,16 +2246,16 @@
     ;; The loop, from its head, is in the scope of its procedure.
     (with-scope-of form lam
       (lambda ()
-        (if (and (not (twin? form)) (null? (form-doubles form)) (pure-loop-body? form (lambda-body lam))
+        (if (and (not (twin? form)) (null? (form-doubles form)) (pure-loop-body? form (lambda-body lam) name)
                  (any inexact-constant? (cons (lambda-body lam) entries)))
             (let ((doubles (double-loop-variables form params entries (lambda-body lam)))
                   (before (form-counter form)))
-              (if (pair? doubles) (emit-double-loop! form params doubles (lambda-body lam)))
+              (if (pair? doubles) (emit-double-loop! form name params doubles (lambda-body lam)))
               ;; Only the fast form runs a loop on raw doubles, which saves
               ;; no frame, nor does what follows it, a loop being placed
               ;; inline only in tail position, its body calling nothing.
               (set-form-unshared! form (+ (form-unshared form) (- (form-counter form) before)))))
-        (let ((target (enter-inline-loop! form params)))
+        (let ((target (enter-inline-loop! form name params)))
           (for-each (lambda (param)
                       (if (boxed-local? form param)
                           (emit! form (list 'assign (js (js-local form param)) (js "[" (js-local form param) "]")))))
@@ -2268,17 +2277,17 @@
 ;;  * @param {list} params - The loop's parameters.
 ;;  * @returns {loop-target} The target.
 ;;  */
-(define (enter-inline-loop! form params)
+(define (enter-inline-loop! form name params)
   (let ((plain (lambda (param value) (list 'assign (js (js-local form param)) value))))
     (if (twin? form)
         (let ((head (new-block! form)))
           (emit! form (list 'goto head))
           (switch-to! form head)
-          (make-loop-target params #t #f plain (list 'goto head)))
+          (make-loop-target name params #t #f plain (list 'goto head)))
         (let ((label (begin (set-form-labels! form (+ (form-labels form) 1))
                             (string-append "$loop" (number->string (form-labels form))))))
           (emit! form (list 'text (string-append label ": for (;;) {")))
-          (make-loop-target params #t #f plain (list 'text (string-append "continue " label ";")))))))
+          (make-loop-target name params #t #f plain (list 'text (string-append "continue " label ";")))))))
 
 ;; ---------------------------------------------------------------------------
 ;; Loops on raw doubles
@@ -2466,17 +2475,21 @@
 ;;  * itself, and makes no procedure: one that can run on raw doubles.
 ;;  * @param {form} form - The emission.
 ;;  * @param {list} node - An IR node of the body.
+;;  * @param {symbol} name - The loop's name.
 ;;  * @returns {boolean}
 ;;  */
-(define (pure-loop-body? form node)
+(define (pure-loop-body? form node name)
+  (define (pure? n) (pure-loop-body? form n name))
   (case (car node)
     ((const local global) #t)
-    ((if) (every (lambda (n) (pure-loop-body? form n)) (list (cadr node) (caddr node) (cadddr node))))
-    ((seq) (every (lambda (n) (pure-loop-body? form n)) (cadr node)))
-    ((let) (and (pure-loop-body? form (caddr node)) (pure-loop-body? form (cadddr node))))
-    ((call) (and (every (lambda (n) (pure-loop-body? form n)) (caddr node))
+    ((if) (every pure? (list (cadr node) (caddr node) (cadddr node))))
+    ((seq) (every pure? (cadr node)))
+    ((let) (and (pure? (caddr node)) (pure? (cadddr node))))
+    ;; A looping call is its own iteration only if it calls this loop, not one
+    ;; around it.
+    ((call) (and (every pure? (caddr node))
                  (if (call-loop node)
-                     (eq? (call-loop node) 'local)
+                     (and (eq? (call-loop node) 'local) (eq? (cadr (cadr node)) name))
                      (and (inlined-operator form node) #t))))
     (else #f)))
 
@@ -2628,12 +2641,13 @@
 ;;  * boxes before -- and made `sumfp` in benchmarks/r7rs/src seven times
 ;;  * slower.
 ;;  * @param {form} form - The emission.
+;;  * @param {symbol} name - The loop's name, which its looping calls call.
 ;;  * @param {list} params - The loop's variables.
 ;;  * @param {list} doubles - Those held as raw doubles.
 ;;  * @param {list} body - The loop's body.
 ;;  * @returns {unspecified}
 ;;  */
-(define (emit-double-loop! form params doubles body)
+(define (emit-double-loop! form name params doubles body)
   (let* ((intact (map (lambda (index) (js "W" index ".intact"))
                       (delete-duplicates (operator-indices form body))))
          (inexact-test (lambda (param)
@@ -2650,7 +2664,7 @@
               (set-form-doubles! form doubles)
               (set-form-loop-targets!
                 form
-                (cons (make-loop-target params #t #f
+                (cons (make-loop-target name params #t #f
                                         (lambda (param value) (list 'assign (js (js-local form param)) value))
                                         (list 'text (string-append "continue " label ";")))
                       (form-loop-targets form)))
