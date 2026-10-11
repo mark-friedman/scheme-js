@@ -281,6 +281,8 @@
 ;;  *   depth it began at.
 ;;  * @property {string|boolean} reason - Why it is paused, or, pausing, why
 ;;  *   it will be.
+;;  * @property {*} asked-at - Pausing, where the program asked to pause, or
+;;  *   #f: the place a pause it asked for says it is at.
 ;;  * @property {*} data - The id of the breakpoint it paused at, or #f.
 ;;  * @property {boolean} aborted? - Whether the last pause ended in an abort,
 ;;  *   which the run it released reads, to stop.
@@ -292,7 +294,7 @@
 ;;  */
 (define-record-type debugger
   (%make-debugger host enabled? breakpoints next-breakpoint activations depth mode target-depth
-                  reason data aborted? breaks-on-caught? breaks-on-uncaught? selected-frame)
+                  reason data asked-at aborted? breaks-on-caught? breaks-on-uncaught? selected-frame)
   debugger?
   (host debugger-host)
   (enabled? debugger-enabled? %set-debugger-enabled!)
@@ -304,6 +306,7 @@
   (target-depth debugger-target-depth set-debugger-target-depth!)
   (reason debugger-pause-reason set-debugger-pause-reason!)
   (data debugger-pause-data set-debugger-pause-data!)
+  (asked-at debugger-asked-at set-debugger-asked-at!)
   (aborted? debugger-aborted? set-debugger-aborted!)
   (breaks-on-caught? debugger-breaks-on-caught? %set-debugger-breaks-on-caught!)
   (breaks-on-uncaught? debugger-breaks-on-uncaught? %set-debugger-breaks-on-uncaught!)
@@ -316,7 +319,7 @@
 ;;  * @returns {debugger}
 ;;  */
 (define (make-debugger host)
-  (%make-debugger host #f '() 1 '() 0 'running #f #f #f #f #f #t #f))
+  (%make-debugger host #f '() 1 '() 0 'running #f #f #f #f #f #f #t #f))
 
 ;; /**
 ;;  * Whether the program is being debugged: debugging is on, and there is a
@@ -537,7 +540,8 @@
   (set-debugger-mode! dbg mode)
   (set-debugger-target-depth! dbg #f)
   (set-debugger-pause-reason! dbg #f)
-  (set-debugger-pause-data! dbg #f))
+  (set-debugger-pause-data! dbg #f)
+  (set-debugger-asked-at! dbg #f))
 
 ;; /**
 ;;  * Runs, stepping no more.
@@ -646,7 +650,8 @@
 ;; /**
 ;;  * Pauses before the evaluator's next step, and tells the host. With no
 ;;  * reason given, the reason is the breakpoint the location hits, or else
-;;  * the pause the program asked for, or else the step in progress.
+;;  * the pause the program asked for, or else the step in progress. A pause
+;;  * the program asked for is where it asked, whatever step it stops at.
 ;;  * @param {debugger} dbg - The debugger.
 ;;  * @param {*} location - Where, or no location.
 ;;  * @param {*} env - The environment there, or #f.
@@ -654,15 +659,17 @@
 ;;  */
 (define (pause-at! dbg location env reason)
   (let* ((hit (and (not reason) (breakpoint-at dbg location)))
+         (asked? (eq? (debugger-mode dbg) 'pausing))
          (reason (cond (reason reason)
                        (hit "breakpoint")
-                       ((and (eq? (debugger-mode dbg) 'pausing) (debugger-pause-reason dbg)))
+                       ((and asked? (debugger-pause-reason dbg)))
                        ((memq (debugger-mode dbg) '(into over out)) "step")
                        (else "breakpoint")))
+         (place (if (and asked? (location? (debugger-asked-at dbg))) (debugger-asked-at dbg) location))
          (id (and hit (breakpoint-id hit))))
     (pause! dbg reason id)
     (debugger-changed! dbg)
-    ((host-paused (debugger-host dbg)) (pause-info dbg reason id location env js-undefined #f))))
+    ((host-paused (debugger-host dbg)) (pause-info dbg reason id place env js-undefined #f))))
 
 ;; /**
 ;;  * Asks for a pause before the evaluator's next step, whatever it is, for a
@@ -676,11 +683,14 @@
 ;;  * taking every line as the debugger's.
 ;;  * @param {debugger} dbg - The debugger.
 ;;  * @param {string} reason - Why, which the pause says.
+;;  * @param {*} place - Where the program asked -- the place of the last
+;;  *   call the evaluator made, the call of `pause` -- or no location.
 ;;  */
-(define (request-pause! dbg reason)
+(define (request-pause! dbg reason place)
   (when (and (debugger-enabled? dbg) (not (debugger-paused? dbg)))
     (enter-mode! dbg 'pausing)
     (set-debugger-pause-reason! dbg reason)
+    (set-debugger-asked-at! dbg place)
     (debugger-changed! dbg)))
 
 ;; /**
@@ -875,6 +885,21 @@
   (set-debugger-selected-frame! dbg #f))
 
 ;; /**
+;;  * What the REPL shows as a pause ends, before the run goes on: how it
+;;  * ended.
+;;  * @param {string} how - "resume", "stepInto", "stepOver", "stepOut" or
+;;  *   "abort", as the host is told.
+;;  * @returns {string}
+;;  */
+(define (resume-message how)
+  (cond ((string=? how "resume") ";; Continuing...")
+        ((string=? how "stepInto") ";; Stepping into...")
+        ((string=? how "stepOver") ";; Stepping over...")
+        ((string=? how "stepOut") ";; Stepping out...")
+        ((string=? how "abort") ";; Evaluation aborted")
+        (else ";; Resumed")))
+
+;; /**
 ;;  * The text of a run's evaluation in a frame, or of its failure.
 ;;  * @param {string} text - The value, as the REPL writes it, or the message.
 ;;  * @returns {string}
@@ -934,9 +959,14 @@
              ";; Debugging disabled"))
         (else ";; Usage: :debug on|off")))
 
+;; /**
+;;  * The commands that end a pause say nothing themselves: how it ended is
+;;  * said as it ends, before the run goes on (`resume-message`), where the
+;;  * answer would be shown after the run's next pause, or its result.
+;;  */
 (define (abort-command dbg args rest)
   (abort! dbg)
-  ";; Evaluation aborted")
+  "")
 
 ;; /**
 ;;  * A breakpoint's place, as `file:line` or `file:line:column`.
@@ -993,10 +1023,10 @@
         "\n"))))
 
 ;; /**
-;;  * A command that steps, saying so.
+;;  * A command that steps, or resumes.
 ;;  */
-(define (step-command step message)
-  (when-paused (lambda (dbg args rest) (step dbg) message)))
+(define (step-command step)
+  (when-paused (lambda (dbg args rest) (step dbg) "")))
 
 (define (backtrace-command dbg args rest)
   (let ((depth (debugger-depth dbg))
@@ -1094,14 +1124,14 @@
         (cons "break" break-command)
         (cons "unbreak" unbreak-command)
         (cons "breakpoints" breakpoints-command)
-        (cons "step" (step-command step-into! ";; Stepping into..."))
-        (cons "s" (step-command step-into! ";; Stepping into..."))
-        (cons "next" (step-command step-over! ";; Stepping over..."))
-        (cons "n" (step-command step-over! ";; Stepping over..."))
-        (cons "finish" (step-command step-out! ";; Stepping out..."))
-        (cons "fin" (step-command step-out! ";; Stepping out..."))
-        (cons "continue" (step-command resume! ";; Continuing..."))
-        (cons "c" (step-command resume! ";; Continuing..."))
+        (cons "step" (step-command step-into!))
+        (cons "s" (step-command step-into!))
+        (cons "next" (step-command step-over!))
+        (cons "n" (step-command step-over!))
+        (cons "finish" (step-command step-out!))
+        (cons "fin" (step-command step-out!))
+        (cons "continue" (step-command resume!))
+        (cons "c" (step-command resume!))
         (cons "bt" backtrace-command) (cons "backtrace" backtrace-command)
         (cons "locals" (when-paused locals-command))
         (cons "eval" (when-paused eval-command))

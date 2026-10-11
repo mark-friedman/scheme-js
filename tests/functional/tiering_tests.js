@@ -24,7 +24,7 @@ import { installLibraryTable } from '../../src/compiler/prebuilt.js';
 import prebuiltLibraries from '../../src/packaging/compiled_libraries.js';
 import { createInterpreter } from '../../src/core/interpreter/index.js';
 import { loadLibrarySync, applyImports, programEnvironment, runProgramForm } from '../../src/core/interpreter/library_loader.js';
-import { SchemeDebugRuntime } from '../../src/debug/scheme_debug_runtime.js';
+import { SchemeDebugRuntime, pauseProcedure } from '../../src/debug/scheme_debug_runtime.js';
 import { interpretedLibrary, installStandardLibrary } from '../harness/standard_library.js';
 
 /**
@@ -80,6 +80,28 @@ export async function runTieringTests(logger) {
     assert(logger, 'and compiles it', t.compiled('square'), true);
     assert(logger, 'the outcome is recorded', t.tier.outcomes.get('square'), 'compiled');
     assert(logger, 'and it answers compiled', t.run('(square 5)'), '25');
+  }
+
+  logger.title('Tiering - A Procedure That Stops the Program for the Debugger');
+  {
+    // The `pause` the CLI and the REPL page bind stops the program at its
+    // next step, which only an interpreted procedure has of its own.
+    const t = tiered();
+    t.env.define('pause', pauseProcedure(t.interpreter));
+    t.run('(define (stops x) (pause) (* x 10))');
+    t.run('(stops 1)');
+    t.run('(stops 2)');
+    assert(logger, 'one calling the debugger\'s pause is left interpreted, saying why',
+      [t.compiled('stops'), t.tier.outcomes.get('stops')],
+      [false, "calls 'pause', which stops the program for the debugger"]);
+    // Asked of the binding, not the name.
+    const own = tiered();
+    own.run("(define (pause) 'mine)");
+    own.run('(define (waits x) (pause) (* x 10))');
+    own.run('(waits 1)');
+    own.run('(waits 2)');
+    assert(logger, 'one calling a program\'s own pause is compiled as any procedure is',
+      [own.compiled('waits'), own.run('(waits 3)')], [true, '30']);
   }
 
   logger.title('Tiering - A Recursion Continues Compiled From Its Next Call');

@@ -2,15 +2,15 @@
  * @fileoverview A program's own pause, and what a run leaves the debugger
  * when it ends.
  *
- * The CLI and the REPL page bind `pause`, which asks the debugger to stop the
- * program before its next step: there, in an interpreted procedure, at a
- * place with a source, the asynchronous run can wait; beneath compiled code
- * the step is taken again by the run that can, as at a breakpoint; and with
- * debugging off, when no run can wait, it does nothing. A run that ends takes
- * its calls and any step still in progress with it, so the next run neither
- * shows the first's frames nor stops where the step would have. And a run
- * released from a pause goes on only after whatever released it has
- * answered, so that a REPL shows a command's answer before the next pause.
+ * The CLI and the REPL page bind `pause` (`pauseProcedure`), which asks the
+ * debugger to stop the program before its next step, and says it stopped
+ * where the call is: there, in an interpreted procedure, the asynchronous
+ * run can wait; beneath compiled code the step is taken again by the run
+ * that can, as at a breakpoint; and with debugging off, when no run can
+ * wait, it does nothing. A run that ends takes its calls and any step still
+ * in progress with it, so the next run neither shows the first's frames nor
+ * stops where the step would have. And how a pause ended is said as it ends,
+ * before the run goes on, so that a REPL shows it before the next pause.
  * Each is a real run, which only JavaScript can observe; what the debugger
  * records is tested in tests/core/scheme/debugger_tests.scm, and the
  * compiler's leaving a procedure that pauses interpreted in
@@ -24,6 +24,7 @@ import { analyze } from '../../src/core/interpreter/expand.js';
 import { SchemeDebugRuntime } from '../../src/debug/scheme_debug_runtime.js';
 import { ReplDebugBackend } from '../../src/debug/repl_debug_backend.js';
 import { ReplDebugCommands } from '../../src/debug/repl_debug_commands.js';
+import { pauseProcedure } from '../../src/debug/scheme_debug_runtime.js';
 import { writeString } from '../../src/core/primitives/io/printer.js';
 import { interpretedLibrary, installStandardLibrary } from '../harness/standard_library.js';
 
@@ -60,9 +61,7 @@ function debugged(pair = createInterpreter()) {
   runtime.setBackend(backend);
   interpreter.setDebugRuntime(runtime);
   const commands = new ReplDebugCommands(interpreter, runtime, backend);
-  env.define('pause', (source = null, at = null, reason = 'manual pause') => {
-    interpreter.debugRuntime?.requestPause(reason);
-  });
+  env.define('pause', pauseProcedure(interpreter));
   const run = (code) => interpreter.runAsync(analyze(parse(code, { filename: 'pause.scm' })[0], env), env,
     { jsAutoConvert: 'raw' }).then((value) => writeString(value), (error) => `raised: ${error.message}`);
   return { interpreter, env, runtime, backend, commands, shown, run };
@@ -98,8 +97,8 @@ export async function runPauseTests(logger) {
       await run('(define (g x)\n  (pause)\n  (* x 10))');
       let pending = run('(g 5)');
       if (!await until(() => runtime.isPaused())) return logger.fail('(g 5) did not pause');
-      assert(logger, 'it stops at the step after it, saying why',
-        shown[0].startsWith('\n;; Paused: manual pause at ') ? true : shown[0], true);
+      assert(logger, 'it stops at the step after it, saying why, and where the call is',
+        shown[0], '\n;; Paused: manual pause at pause.scm:2');
       assert(logger, 'in the procedure', runtime.getStack().map((frame) => String(frame.name)), ['g']);
       assert(logger, 'where the procedure\'s variables are', await commands.execute('x'), ';; result: 5');
       runtime.resume();
@@ -130,17 +129,16 @@ export async function runPauseTests(logger) {
       runtime.resume();
       await pending;
 
-      // Released, the run goes on only after the command has answered.
+      // How a pause ended is said as it ends, before the run goes on.
       pending = run('(g 8)');
       if (!await until(() => runtime.isPaused())) return logger.fail('(g 8) did not pause');
       const before = shown.length;
       const answer = await commands.execute(':s');
-      const shownWhenAnswered = shown.slice(before);
-      assert(logger, 'a step command answers before the run takes its step',
-        [answer, shownWhenAnswered], [';; Stepping into...', [';; Resumed']]);
       await until(() => runtime.isPaused());
-      assert(logger, 'and the pause after it is shown after the answer',
-        shown.slice(before + 1).some((line) => line.startsWith('\n;; Paused: step complete')), true);
+      const after = shown.slice(before);
+      assert(logger, 'a step command says nothing itself', answer, '');
+      assert(logger, 'the backend says how the pause ended, before the pause the step leads to',
+        [after[0], after[1]?.startsWith('\n;; Paused: step complete')], [';; Stepping into...', true]);
       runtime.resume();
       assert(logger, 'which then goes on to its end', await pending, '80');
     } finally {
@@ -159,14 +157,14 @@ export async function runPauseTests(logger) {
     runtime.enable();
     const pauses = [];
     runtime.onPause = (info) => {
-      pauses.push(runtime.getStack().map((frame) => String(frame.name)).join(' '));
+      pauses.push(`${runtime.getStack().map((frame) => String(frame.name)).join(' ')} at ${info.source?.line}`);
       setTimeout(() => runtime.resume(), 2);
     };
     try {
       assert(logger, 'setup: map is compiled', pair.env.lookup('map').$compiled, true);
       await run('(define (tick x)\n  (pause)\n  (* x 10))');
       assert(logger, 'beneath compiled code, a pause stops each call, in it',
-        [await run('(map tick (list 1 2 3))'), pauses.length, pauses.every((stack) => stack.endsWith('tick'))],
+        [await run('(map tick (list 1 2 3))'), pauses.length, pauses.every((stack) => stack.endsWith('tick at 2'))],
         ['(10 20 30)', 3, true]);
     } finally {
       interpreter.setDebugRuntime(null);

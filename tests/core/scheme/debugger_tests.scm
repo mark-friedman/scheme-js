@@ -201,10 +201,10 @@
   (define (told kinds) (filter-told (lambda (what) (memq (car what) kinds)) ((cdr recording))))
   ;; A run that is not being debugged cannot wait, so a pause there would
   ;; leave the debugger paused with nothing to resume.
-  (request-pause! dbg "manual pause")
+  (request-pause! dbg "manual pause" (span "test.scm" 2 3))
   (test "with debugging off, nothing" '(running #f) (list (debugger-mode dbg) (debugger-debugging? dbg)))
   (set-debugger-enabled! dbg #t)
-  (request-pause! dbg "manual pause")
+  (request-pause! dbg "manual pause" (span "test.scm" 2 3))
   (test "on, it is not paused yet" #f (debugger-paused? dbg))
   (test "but is being debugged, every closure running as itself" '(#t #t)
         (list (debugger-debugging? dbg) (debugger-interpretation dbg)))
@@ -215,6 +215,28 @@
   (step-into! dbg)
   (pause-at! dbg (span "test.scm" 5 1) 'env #f)
   (test "a step after it is a step" '(paused "step" ()) (car (reverse (told '(paused))))))
+
+(test-group "debugger - where a pause the program asks for is"
+  (define seen #f)
+  (define dbg (make-debugger (make-debugger-host (lambda changed #f) (lambda () #f) (lambda (how) #f)
+                                                 (lambda (info) (set! seen info))
+                                                 (lambda (env) '()) (lambda () '()) (lambda () '()))))
+  (define (seen-line) (js-ref (js-ref seen "source") "line"))
+  (set-debugger-enabled! dbg #t)
+  ;; The step after the call may have no place of its own -- a variable, a
+  ;; frame -- and has another if it has one; the call is where the program
+  ;; asked.
+  (request-pause! dbg "manual pause" (span "test.scm" 2 3))
+  (pause-at! dbg #f 'env #f)
+  (test "at a step with no place, the call's" 2 (seen-line))
+  (resume! dbg)
+  (request-pause! dbg "manual pause" (span "test.scm" 6 3))
+  (pause-at! dbg (span "test.scm" 7 3) 'env #f)
+  (test "and at one with a place, still the call's" 6 (seen-line))
+  (resume! dbg)
+  (step-into! dbg)
+  (pause-at! dbg (span "test.scm" 8 1) 'env #f)
+  (test "while a step after it is where it stops" 8 (seen-line)))
 
 (test-group "debugger - the end of a run"
   (define dbg (fresh-debugger))
@@ -230,7 +252,7 @@
   (test "nor the step, which the next run would stop at" '(running #f)
         (list (debugger-mode dbg) (should-pause? dbg "test.scm" 3 1)))
   (test "but the breakpoints" #t (should-pause? dbg "test.scm" 9 1))
-  (request-pause! dbg "manual pause")
+  (request-pause! dbg "manual pause" (span "test.scm" 2 3))
   (run-ended! dbg)
   (test "nor a pause asked for and not reached" 'running (debugger-mode dbg)))
 
@@ -334,7 +356,9 @@
           (list (js-ref request "expression") (js-ref request "env"))))
   (test "a symbol alone is one" "debug-var" (js-ref (debugger-input dbg "debug-var") "expression"))
   (test "a command is run as one" ";; Already at newest frame" (debugger-input dbg ":down"))
-  (test "stepping" ";; Stepping over..." (debugger-command dbg ":next"))
+  ;; A command that ends the pause says nothing itself: the host is told how
+  ;; the pause ended as it ends, before the run goes on (`resume-message`).
+  (test "stepping, which says nothing" "" (debugger-command dbg ":next"))
   (test "the step is told" '(resumed "stepOver") (car (reverse ((cdr recording)))))
   (test "a line that is not a command, while running, is not evaluated" ";; Not paused"
         (debugger-input dbg "debug-var"))
@@ -348,10 +372,14 @@
             ";; Debugging disabled")
         (debugger-command dbg ":debug off"))
   (pause! dbg "breakpoint" #f)
-  (test "an abort, paused" ";; Evaluation aborted" (debugger-command dbg ":abort"))
+  (test "an abort, paused, which says nothing" "" (debugger-command dbg ":abort"))
   (test "ends the pause, telling the host" '(#f (resumed "abort"))
         (list (debugger-paused? dbg) (car (reverse ((cdr recording))))))
   (reset-frame-selection! dbg)
+  (test "how a pause ended, said as it ends"
+        '(";; Continuing..." ";; Stepping into..." ";; Stepping over..." ";; Stepping out..."
+          ";; Evaluation aborted")
+        (map resume-message '("resume" "stepInto" "stepOver" "stepOut" "abort")))
   (test "an evaluation's answer" ";; result: 50" (eval-answer "50"))
   (test "and its failure" ";; Error during eval: boom" (eval-failure "boom")))
 

@@ -97,14 +97,7 @@
     call-with-values eval
     with-exception-handler raise raise-continuable guard
     call-with-escape-continuation exit emergency-exit
-    parameterize pause))
-
-;; `pause` is what the CLI and the REPL page bind to stop the program for the
-;; debugger, at its next step. Only an interpreted procedure has a next step
-;; of its own: a compiled one runs on to its end, so the program would stop,
-;; if anywhere, in its caller. Matched by name, as the others are, so a
-;; program's own global `pause` leaves the procedures that call it
-;; interpreted too.
+    parameterize))
 
 ;; `values` is not here. It builds a multiple-values object and returns it,
 ;; which is an ordinary value; it never transfers control. `apply` is not here

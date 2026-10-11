@@ -12,7 +12,8 @@ import { isCompleteExpression, findMatchingDelimiter, delimiterParens } from '..
 import {
     SchemeDebugRuntime,
     ReplDebugBackend,
-    ReplDebugCommands
+    ReplDebugCommands,
+    pauseProcedure
 } from '../src/debug/index.js';
 
 // --- Main Entry Point ---
@@ -26,13 +27,8 @@ import {
     const debugRuntime = new SchemeDebugRuntime();
     interpreter.setDebugRuntime(debugRuntime);
 
-    // `pause`, a program's own breakpoint: with debugging on, the program
-    // stops before its next step, where its run can wait (`request-pause!` in
-    // src/core/scheme/debugger.scm). Its first two arguments, a place and an
-    // environment, are not used: it stops at a step, which has both.
-    env.define('pause', (source = null, at = null, reason = 'manual pause') => {
-        interpreter.debugRuntime?.requestPause(reason);
-    });
+    // `pause`, a program's own breakpoint (`pauseProcedure`).
+    env.define('pause', pauseProcedure(interpreter));
 
     // Each shipped library is restored from its prebuilt table, and the rest
     // of its prebuilt code installed as it loads, as the bundle does, checked

@@ -628,13 +628,14 @@ export class Interpreter {
     // pause at its next step, whatever it is.
     const debugRuntime = this.debugRuntime;
     if (debugRuntime?.debugging) {
-      if (ctl.source ? debugRuntime.shouldPause(ctl.source, registers[ENV]) : debugRuntime.pausing) {
+      const source = ctl.source;
+      if (source ? debugRuntime.shouldPause(source, registers[ENV]) : debugRuntime.pausing) {
         // A run compiled code called is beneath the compiled frames, on the
         // JavaScript stack, and cannot wait there; so it moves them to the
         // heap and the step is taken again, and paused at, by the run that
         // finishes the move.
         if (beginStepAgain(registers[FSTACK], ctl, registers[ENV])) throw new CaptureUnwind();
-        debugRuntime.pause(ctl.source ?? null, registers[ENV]);
+        debugRuntime.pause(source ?? null, registers[ENV]);
       }
     }
 

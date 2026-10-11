@@ -4,7 +4,7 @@
  * is Scheme, `(scheme-js debugger)`; these are its doors and its backends.
  */
 
-export { SchemeDebugRuntime } from './scheme_debug_runtime.js';
+export { SchemeDebugRuntime, pauseProcedure } from './scheme_debug_runtime.js';
 export { DebugBackend, NoOpDebugBackend, TestDebugBackend } from './debug_backend.js';
 export { ReplDebugBackend } from './repl_debug_backend.js';
 export { ReplDebugCommands } from './repl_debug_commands.js';

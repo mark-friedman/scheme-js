@@ -285,6 +285,55 @@
           globals))
 
 ;; /**
+;;  * What a global of a procedure holds where it will run -- for a library's
+;;  * binding, in the library's environment -- or #f if nothing there binds
+;;  * it, or there is no environment to look in.
+;;  * @param {symbol} g - The global.
+;;  * @param {list} library-globals - (key name . env) for each that is a
+;;  *   library's binding.
+;;  * @param {object|boolean} env - The environment it will run in, or #f.
+;;  * @returns {*}
+;;  */
+(define (global-value g library-globals env)
+  (let* ((library (assq g library-globals))
+         (holder (if library (cddr library) env)))
+    (and holder (environment-value holder (symbol->string (if library (cadr library) g))))))
+
+;; /**
+;;  * The first of a procedure's globals that holds, where it will run, a
+;;  * procedure that stops the program for the debugger -- the `pause` the CLI
+;;  * and the REPL page bind, marked `stopsForDebugger` (`pauseProcedure` in
+;;  * src/debug/scheme_debug_runtime.js) -- or #f.
+;;  * @param {list} globals - The procedure's globals, as symbols.
+;;  * @param {procedure} value-of - What a global holds where it will run, or
+;;  *   #f.
+;;  * @returns {symbol|boolean}
+;;  */
+(define (debugger-stop-among globals value-of)
+  (find (lambda (g)
+          (let ((value (value-of g)))
+            (and (procedure? value) (eq? (js-ref value "stopsForDebugger") #t))))
+        globals))
+
+;; /**
+;;  * Why a procedure is left to the interpreter for calling one that stops the
+;;  * program for the debugger, or #f. The program stops at its next step, and
+;;  * only an interpreted procedure has a next step of its own: a compiled one
+;;  * runs on to its end, and the program would stop, if anywhere, in its
+;;  * caller. Asked of what the global holds, not its name, so that a
+;;  * program's own `pause` is compiled as any procedure is; a global bound to
+;;  * the debugger's after its callers were compiled stops them in their
+;;  * callers.
+;;  * @param {list} globals - The procedure's globals, as symbols.
+;;  * @param {procedure} value-of - What a global holds where it will run, or
+;;  *   #f.
+;;  * @returns {string|boolean}
+;;  */
+(define (debugger-stop-decline globals value-of)
+  (let ((g (debugger-stop-among globals value-of)))
+    (and g (string-append "calls '" (symbol->string g) "', which stops the program for the debugger"))))
+
+;; /**
 ;;  * The globals among a procedure's that hold a record's constructor,
 ;;  * predicate, accessor or modifier where it will run -- for a library's
 ;;  * binding, in the library's environment -- each as (global kind . what)
@@ -299,10 +348,7 @@
 ;;  */
 (define (record-globals globals library-globals env)
   (filter-map (lambda (g)
-                (let* ((library (assq g library-globals))
-                       (holder (if library (cddr library) env))
-                       (value (and holder
-                                   (environment-value holder (symbol->string (if library (cadr library) g)))))
+                (let* ((value (global-value g library-globals env))
                        (kind (and value (%record-procedure-kind value))))
                   (and kind (cons g kind))))
               globals))
@@ -420,7 +466,10 @@
 ;;  */
 (define (lower-and-emit node name closure env span decline-captures? for-devtools? . ordinary)
   (let* ((lowered (lower-lambda node))
-         (reason (apply lowering-decline lowered decline-captures? ordinary)))
+         (reason (or (apply lowering-decline lowered decline-captures? ordinary)
+                     (debugger-stop-decline
+                      (lowered-globals lowered)
+                      (lambda (g) (global-value g (lowered-library-globals lowered) env))))))
     (if reason
         (make-declined name reason #f)
         (emit-lowered lowered name closure env span for-devtools?))))

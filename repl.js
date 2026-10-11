@@ -30,7 +30,7 @@ import { Closure, Continuation, callSchemeProcedure, NO_VALUES } from './src/cor
 import { LiteralNode } from './src/core/interpreter/ast.js';
 
 import { prettyPrint } from './src/core/interpreter/printer.js';
-import { SchemeDebugRuntime } from './src/debug/scheme_debug_runtime.js';
+import { SchemeDebugRuntime, pauseProcedure } from './src/debug/scheme_debug_runtime.js';
 import { ReplDebugBackend } from './src/debug/repl_debug_backend.js';
 import { ReplDebugCommands } from './src/debug/repl_debug_commands.js';
 
@@ -324,13 +324,8 @@ async function startRepl() {
 
     let isEvaluating = false;
 
-    // `pause`, a program's own breakpoint: with debugging on, the program
-    // stops before its next step, where its run can wait (`request-pause!` in
-    // src/core/scheme/debugger.scm). Its first two arguments, a place and an
-    // environment, are not used: it stops at a step, which has both.
-    env.define('pause', (source = null, at = null, reason = 'manual pause') => {
-        interpreter.debugRuntime?.requestPause(reason);
-    });
+    // `pause`, a program's own breakpoint (`pauseProcedure`).
+    env.define('pause', pauseProcedure(interpreter));
 
     // While a program is paused, the interactive REPL's prompt is `debug>`
     // and the lines typed at it are the debugger's (its `eval`, below). It is
@@ -451,15 +446,12 @@ async function startRepl() {
             // frame, as `:eval` evaluates it.
             if (commands.isDebugCommand(cmd) || backend.isPaused()) {
                 const output = await commands.execute(cmd);
-                // A command that let a paused run go on leaves the prompt to
-                // the run, which shows its result and then `>`, or pauses
-                // again and shows `debug>`; answering would show a prompt
-                // the result then followed on the same line.
-                if (isEvaluating && !backend.isPaused()) {
-                    console.log(output);
-                    return;
-                }
-                return callback(null, output);
+                // A command that ended the pause answers nothing -- the
+                // backend said how it ended as it ended -- and leaves the
+                // prompt to the run, which shows its result and then `>`, or
+                // pauses again and shows `debug>`.
+                if (output === '' && isEvaluating) return;
+                return callback(null, output === '' ? undefined : output);
             }
 
             try {

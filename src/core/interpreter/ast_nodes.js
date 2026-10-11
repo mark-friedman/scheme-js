@@ -483,7 +483,8 @@ export class TailAppNode extends Executable {
         //
         // Skipped while debugging, so that every subexpression still passes
         // through the dispatcher where breakpoints are checked.
-        if (!(interpreter.debugRuntime && interpreter.debugRuntime.enabled)) {
+        const debugRuntime = interpreter.debugRuntime;
+        if (!(debugRuntime && debugRuntime.enabled)) {
             if (operator.constructor === LiteralNode) {
                 return FrameRegistry.continueApplication(
                     exprs, 1, [operator.value], env, registers, interpreter);
@@ -496,6 +497,10 @@ export class TailAppNode extends Executable {
                 return FrameRegistry.continueApplication(
                     exprs, 1, [operator.env.lookup(operator.name)], env, registers, interpreter);
             }
+        } else if (this.source) {
+            // While debugging, the place of the call being made, which a call
+            // of `pause` is: the pause it asks for says it is there.
+            debugRuntime.place = this.source;
         }
 
         registers[FSTACK].push(FrameRegistry.createAppFrame(exprs, 0, [], env));

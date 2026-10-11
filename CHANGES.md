@@ -15468,7 +15468,9 @@ synchronous. Now `pause` asks the debugger to stop before the program's next ste
 (`request-pause!` in `debugger.scm`, a new mode, `pausing`, which the evaluator reads as
 `runtime.pausing`): in an interpreted procedure that is the step after the call, in the procedure, with
 its variables; beneath compiled code the step is taken again by the run that can wait, as a
-breakpoint's is. With debugging off it does nothing. The compiler leaves a procedure that names `pause`
+breakpoint's is. With debugging off it does nothing. *(The decline by name, and the message's unknown
+location, replaced the same day, in "Where a pause is, a program's own pause, and how a pause ended".)*
+The compiler leaves a procedure that names `pause`
 to the interpreter, as it does one naming `dynamic-wind` (`control-globals` in `ir.scm`), since a
 compiled one runs on to its end and the program would stop, if anywhere, in its caller; a program's own
 global named `pause` leaves its callers interpreted too. The step hook used to look only at steps with a
@@ -15481,7 +15483,9 @@ ended by an error or an abort stayed on the debugger's list, so the next pause's
 beneath its own. When a run at the top level ends, the evaluator now tells the debugger (`run-ended!`):
 its calls and frame selection go, and a step or a requested pause still in progress ends.
 
-**A command's answer first.** Releasing a paused run let it go on at once, in a microtask, so a step
+**A command's answer first.** *(Done another way the same day, in "Where a pause is, a program's own
+pause, and how a pause ended": the release is immediate again.)* Releasing a paused run let it go on at
+once, in a microtask, so a step
 reached its next pause, and the REPL showed it, before the command's own answer (`;; Stepping into...`).
 The runtime now lets the run go on a turn of the event loop later, once what released it has answered.
 
@@ -15503,3 +15507,47 @@ JavaScript under `src/`: in `interpreter.js`, the step hook stopping at a step w
 property the evaluator reads at every step, and the release put off a turn, the paused run's promise,
 which only JavaScript has. 39 lines of JavaScript added and 8 removed, about half of them comments; 57 of
 Scheme and 10.
+
+# Where a pause is, a program's own pause, and how a pause ended (2026-10-11)
+
+Three of the behaviour changes the entry before listed were problems of their own, and are fixed here.
+
+**Where a pause is.** A pause the program asked for said "at unknown location": it stops at the step
+after the call, which often has no place -- a variable, a frame. It now says where the call of `pause`
+is. With debugging on, `TailAppNode.step` notes the place of the call it is making on the runtime
+(`place`), in the branch that already skips its fast path then; the `pause` procedure passes that to
+`request-pause!`, and `pause-at!` gives a pause the program asked for that place (`asked-at`), whatever
+step it stops at. Measured with `benchmarks/run_debugger.js` against the commit before, alternately, best
+of two runs of five: debugging on with nothing to stop at, 0.99 to 1.02 of before over the six kernels,
+the same spread as with no debugger. Noting the place at every step with one, in the step hook, as first
+written, cost 2 to 8%.
+
+**A program's own `pause`.** The compiler declined a procedure that named `pause`, so a program with a
+global `pause` of its own had every procedure calling it left interpreted. It now declines one whose
+global holds, where it will run, a procedure marked `stopsForDebugger` (`debugger-stop-decline` in
+`driver.scm`, looking globals up with `global-value`, which `record-globals` now shares) -- the
+debugger's, which the CLI and the REPL page now both get from `pauseProcedure` in
+`scheme_debug_runtime.js` instead of each defining their own. `pause` is off `control-globals`.
+
+**How a pause ended.** The entry before put the paused run's release off a turn of the event loop, so
+that a command's answer came before the run's next pause; but a `setTimeout` waits a second or more in a
+background tab, and the order held only for callers that awaited the answer at once. Now the host is told
+how a pause ended as it ends, before the run goes on: `ReplDebugBackend.onResume` writes
+`resume-message` (`;; Continuing...`, `;; Stepping into...`, `;; Evaluation aborted`, ...), the commands
+that end a pause answer nothing, and the release is immediate again. The CLI leaves the prompt to the run
+after such a command, and the page already showed nothing for an empty answer. `;; Resumed`, which every
+resume wrote beside the command's own answer, is gone.
+
+**Tests.** `debugger_tests.scm`: a requested pause's place at a step with none, at a step with its own,
+and a step after it at its own; `resume-message`; `:next` and `:abort` answering nothing.
+`driver_tests.scm`: a global holding a marked procedure declines its caller, saying which, and a
+program's own `pause` does not. `tiering_tests.js`: a procedure calling the debugger's `pause` is left
+interpreted, with that reason, and one calling a program's own is compiled and answers. `pause_tests.js`:
+the pause says the call's line, beneath compiled code too, and a step's announcement comes before the
+pause it leads to; `abort_tests.js`: an abort says so as it ends; the CLI test: the pause's place. Node
+9,724 passed, 0 failed, under `npm test`; the browser 9,385 passed, 0 failed, headless.
+
+JavaScript under `src/`: `pauseProcedure`, the program's door into `request-pause!`, which the hosts
+bind; the runtime's `place` and passing it; the place noted in `TailAppNode.step`, the evaluator's;
+`onResume` writing the Scheme's text, fixed in place; the release immediate again. 42 lines of
+JavaScript added and 11 removed, half of them comments; 105 of Scheme and 33.

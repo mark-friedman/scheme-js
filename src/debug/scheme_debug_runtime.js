@@ -94,6 +94,26 @@ function alist(pairs) {
 }
 
 /**
+ * The `pause` the CLI and the REPL page bind for a program: with debugging
+ * on, the program stops before its next step, where its run can wait, and
+ * says it is where the call is (`request-pause!` in
+ * src/core/scheme/debugger.scm). Its first two arguments, a place and an
+ * environment, are not used; the third is the reason the pause gives. It is
+ * marked `stopsForDebugger`, which the compiler reads: a procedure calling it
+ * is left interpreted, so that it has a next step of its own to stop at
+ * (`debugger-stop-decline` in src/compiler/driver.scm).
+ * @param {Object} interpreter - The interpreter whose debugger it asks.
+ * @returns {Function} The procedure.
+ */
+export function pauseProcedure(interpreter) {
+    const pause = procedure((source = null, at = null, reason = 'manual pause') => {
+        interpreter.debugRuntime?.requestPause(reason);
+    });
+    pause.stopsForDebugger = true;
+    return pause;
+}
+
+/**
  * The debugger a program is debugged with.
  */
 export class SchemeDebugRuntime {
@@ -121,6 +141,12 @@ export class SchemeDebugRuntime {
         this.aborted = false;
         /** @type {boolean} Whether it is to pause at its next step, whatever it is. */
         this.pausing = false;
+        /**
+         * The place of the last call the program made while debugging is on
+         * (`TailAppNode`): in `pause`, the call of it.
+         * @type {Object|null}
+         */
+        this.place = null;
 
         /** @type {Function|null} Lets the asynchronous run waiting on a pause go on. */
         this.waiting = null;
@@ -155,13 +181,10 @@ export class SchemeDebugRuntime {
                 this.pausing = pausing;
                 this.interpreter?.interpretForDebugger?.(interpretation);
             }),
-            // The released run goes on a turn of the event loop later, once
-            // what released it -- a REPL's command -- has answered: going on
-            // at once, it would reach its next pause, and show it, first.
             procedure(() => {
                 const waiting = this.waiting;
                 this.waiting = null;
-                if (waiting) setTimeout(waiting, 0);
+                waiting?.();
             }),
             procedure((how) => this.onResume?.(String(how))),
             procedure((info) => this.onPause?.(info)),
@@ -437,7 +460,7 @@ export class SchemeDebugRuntime {
      * @param {string} reason - Why, which the pause says.
      */
     requestPause(reason) {
-        debuggerCall('request-pause!', this.scheme, reason);
+        debuggerCall('request-pause!', this.scheme, reason, this.place ?? false);
     }
 
     /**

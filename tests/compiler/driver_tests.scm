@@ -54,11 +54,6 @@
   (test "one naming a control global is, saying which"
         "references control global 'dynamic-wind'"
         (lowering-decline (lower-lambda (analyze-lambda '(define (f g) (dynamic-wind g g g)))) #f))
-  ;; `pause`, which the CLI and the REPL page bind, stops the program for the
-  ;; debugger, which only an interpreted procedure can be stopped inside.
-  (test "one calling pause is, so that the pause stops it inside"
-        "references control global 'pause'"
-        (lowering-decline (lower-lambda (analyze-lambda '(define (f x) (pause) (* x 10)))) #f))
   ;; `make-parameter` is a procedure of (scheme core)'s that makes a closure
   ;; over a cell (parameter.scm); it transfers no control.
   (test "one making a parameter is not" #f
@@ -178,6 +173,22 @@
   (test "and otherwise at the next resume" 2001 (next-resume-to-ask 1 2000))
   (test "counted by JavaScript, the answer is a number JavaScript can compare"
         #t (real? (next-resume-to-ask 1. 5.))))
+
+(test-group "driver - a procedure that stops the program for the debugger"
+  ;; The `pause` the CLI and the REPL page bind is marked so; only an
+  ;; interpreted procedure has a next step of its own to stop at.
+  (define (marked) #f)
+  (js-set! marked "stopsForDebugger" #t)
+  (define (own) #f)
+  (define (holding pause) (lambda (g) (if (eq? g 'pause) pause car)))
+  (test "a global holding the debugger's pause is found" 'pause
+        (debugger-stop-among '(car pause) (holding marked)))
+  (test "and the procedure calling it declined, saying which"
+        "calls 'pause', which stops the program for the debugger"
+        (debugger-stop-decline '(car pause) (holding marked)))
+  (test "a program's own pause is not, whatever its name" '(#f #f)
+        (list (debugger-stop-among '(car pause) (holding own)) (debugger-stop-decline '(car pause) (holding own))))
+  (test "nor a global with no value" #f (debugger-stop-among '(pause) (lambda (g) #f))))
 
 (test-group "driver - a library's own binding"
   ;; What a library's macro makes, used outside the library, of a binding of

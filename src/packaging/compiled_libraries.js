@@ -26,10 +26,10 @@ import { Flonum } from '../core/interpreter/number_representation.js';
 /** @type {Object<string, {fingerprint: string, runtime: string, files: string[], procedures: Object<string, {params: string[], rest: (string|null), constants: Array<*>, span?: Object, make: Function}>, declaration?: string, restore?: Array<{procedure: string}|{core: string}|{form: string}>}>} */
 export const LIBRARIES = {
   "scheme-js.debugger": {
-    fingerprint: "c20a3502",
+    fingerprint: "9cb0c58a",
     runtime: "44e2108e",
     files: ["debugger.sld","debugger.scm"],
-    declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"debugger\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"make-debugger-host\",\"make-debugger\",\"debugger?\",\"debugger-enabled?\",\"set-debugger-enabled!\",\"debugger-debugging?\",\"debugger-interpretation\",\"debugger-changed!\",\"reset-debugger!\",\"add-breakpoint!\",\"remove-breakpoint!\",\"clear-breakpoints!\",\"debugger-breakpoints\",\"breakpoint-at\",\"breakpoint-id\",\"breakpoint-filename\",\"breakpoint-line\",\"breakpoint-column\",\"enter-activation!\",\"replace-activation!\",\"exit-activation!\",\"debugger-activations\",\"debugger-depth\",\"activation-name\",\"activation-source\",\"activation-env\",\"activation-tail-calls\",\"debugger-mode\",\"debugger-paused?\",\"debugger-aborted?\",\"debugger-target-depth\",\"debugger-pause-reason\",\"debugger-pause-data\",\"step-into!\",\"step-over!\",\"step-out!\",\"resume!\",\"abort!\",\"pause!\",\"step-stops?\",\"should-pause?\",\"pause-at!\",\"pause-on-exception!\",\"request-pause!\",\"run-ended!\",\"breaks-on-exception?\",\"debugger-breaks-on-caught?\",\"set-debugger-breaks-on-caught!\",\"debugger-breaks-on-uncaught?\",\"set-debugger-breaks-on-uncaught!\",\"span-contains?\",\"innermost-holding\",\"compiled-procedure-at\",\"transformer-at\",\"breakpoints->js\",\"activations->js\",\"pause-state->js\",\"debugger-command?\",\"debugger-command\",\"debugger-input\",\"reset-frame-selection!\",\"eval-answer\",\"eval-failure\",\"pause-message\"],[\"l\",\"include\",[\"s\",\"debugger.scm\"]]]",
+    declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"debugger\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"make-debugger-host\",\"make-debugger\",\"debugger?\",\"debugger-enabled?\",\"set-debugger-enabled!\",\"debugger-debugging?\",\"debugger-interpretation\",\"debugger-changed!\",\"reset-debugger!\",\"add-breakpoint!\",\"remove-breakpoint!\",\"clear-breakpoints!\",\"debugger-breakpoints\",\"breakpoint-at\",\"breakpoint-id\",\"breakpoint-filename\",\"breakpoint-line\",\"breakpoint-column\",\"enter-activation!\",\"replace-activation!\",\"exit-activation!\",\"debugger-activations\",\"debugger-depth\",\"activation-name\",\"activation-source\",\"activation-env\",\"activation-tail-calls\",\"debugger-mode\",\"debugger-paused?\",\"debugger-aborted?\",\"debugger-target-depth\",\"debugger-pause-reason\",\"debugger-pause-data\",\"step-into!\",\"step-over!\",\"step-out!\",\"resume!\",\"abort!\",\"pause!\",\"step-stops?\",\"should-pause?\",\"pause-at!\",\"pause-on-exception!\",\"request-pause!\",\"run-ended!\",\"breaks-on-exception?\",\"debugger-breaks-on-caught?\",\"set-debugger-breaks-on-caught!\",\"debugger-breaks-on-uncaught?\",\"set-debugger-breaks-on-uncaught!\",\"span-contains?\",\"innermost-holding\",\"compiled-procedure-at\",\"transformer-at\",\"breakpoints->js\",\"activations->js\",\"pause-state->js\",\"debugger-command?\",\"debugger-command\",\"debugger-input\",\"reset-frame-selection!\",\"resume-message\",\"eval-answer\",\"eval-failure\",\"pause-message\"],[\"l\",\"include\",[\"s\",\"debugger.scm\"]]]",
     procedures: {
       "first-that": {
         params: ["found?_$1956","items_$1957"],
@@ -2215,7 +2215,7 @@ export const LIBRARIES = {
         params: ["host_$2015"],
         rest: null,
         constants: [intern("running"), intern("running")],
-        span: {"filename":"debugger.scm","line":318,"column":1,"endLine":319,"endColumn":70},
+        span: {"filename":"debugger.scm","line":321,"column":1,"endLine":322,"endColumn":73},
         make: (R, E, K) => {
         const $MAKES = R.RECORD_MAKES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%make-debugger")).v;
@@ -2223,7 +2223,7 @@ export const LIBRARIES = {
           let $t0, $t1, $t2;
           if (arguments.length !== 1) R.wrongArity("make-debugger", 1, false, arguments.length);
           $t0 = (C0.v ?? G0());
-          $t1 = $t0?.[$MAKES] === "[[\"host\",\"enabled?\",\"breakpoints\",\"next-breakpoint\",\"activations\",\"depth\",\"mode\",\"target-depth\",\"reason\",\"data\",\"aborted?\",\"breaks-on-caught?\",\"breaks-on-uncaught?\",\"selected-frame\"],[\"host\",\"enabled?\",\"breakpoints\",\"next-breakpoint\",\"activations\",\"depth\",\"mode\",\"target-depth\",\"reason\",\"data\",\"aborted?\",\"breaks-on-caught?\",\"breaks-on-uncaught?\",\"selected-frame\"]]" ? ($t2 = new ($t0[$RTYPE])(), $t2["host"] = host, $t2["enabled?"] = false, $t2["breakpoints"] = null, $t2["next-breakpoint"] = 1, $t2["activations"] = null, $t2["depth"] = 0, $t2["mode"] = K[1], $t2["target-depth"] = false, $t2["reason"] = false, $t2["data"] = false, $t2["aborted?"] = false, $t2["breaks-on-caught?"] = false, $t2["breaks-on-uncaught?"] = true, $t2["selected-frame"] = false, host instanceof R.Flonum && R.noteSchemeStore($t2, "host", host), false instanceof R.Flonum && R.noteSchemeStore($t2, "enabled?", false), null instanceof R.Flonum && R.noteSchemeStore($t2, "breakpoints", null), 1 instanceof R.Flonum && R.noteSchemeStore($t2, "next-breakpoint", 1), null instanceof R.Flonum && R.noteSchemeStore($t2, "activations", null), 0 instanceof R.Flonum && R.noteSchemeStore($t2, "depth", 0), K[1] instanceof R.Flonum && R.noteSchemeStore($t2, "mode", K[1]), false instanceof R.Flonum && R.noteSchemeStore($t2, "target-depth", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "reason", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "data", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "aborted?", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "breaks-on-caught?", false), true instanceof R.Flonum && R.noteSchemeStore($t2, "breaks-on-uncaught?", true), false instanceof R.Flonum && R.noteSchemeStore($t2, "selected-frame", false), $t2) : R.callBinding($t0, [host, false, null, 1, null, 0, K[1], false, false, false, false, false, true, false]);
+          $t1 = $t0?.[$MAKES] === "[[\"host\",\"enabled?\",\"breakpoints\",\"next-breakpoint\",\"activations\",\"depth\",\"mode\",\"target-depth\",\"reason\",\"data\",\"asked-at\",\"aborted?\",\"breaks-on-caught?\",\"breaks-on-uncaught?\",\"selected-frame\"],[\"host\",\"enabled?\",\"breakpoints\",\"next-breakpoint\",\"activations\",\"depth\",\"mode\",\"target-depth\",\"reason\",\"data\",\"asked-at\",\"aborted?\",\"breaks-on-caught?\",\"breaks-on-uncaught?\",\"selected-frame\"]]" ? ($t2 = new ($t0[$RTYPE])(), $t2["host"] = host, $t2["enabled?"] = false, $t2["breakpoints"] = null, $t2["next-breakpoint"] = 1, $t2["activations"] = null, $t2["depth"] = 0, $t2["mode"] = K[1], $t2["target-depth"] = false, $t2["reason"] = false, $t2["data"] = false, $t2["asked-at"] = false, $t2["aborted?"] = false, $t2["breaks-on-caught?"] = false, $t2["breaks-on-uncaught?"] = true, $t2["selected-frame"] = false, host instanceof R.Flonum && R.noteSchemeStore($t2, "host", host), false instanceof R.Flonum && R.noteSchemeStore($t2, "enabled?", false), null instanceof R.Flonum && R.noteSchemeStore($t2, "breakpoints", null), 1 instanceof R.Flonum && R.noteSchemeStore($t2, "next-breakpoint", 1), null instanceof R.Flonum && R.noteSchemeStore($t2, "activations", null), 0 instanceof R.Flonum && R.noteSchemeStore($t2, "depth", 0), K[1] instanceof R.Flonum && R.noteSchemeStore($t2, "mode", K[1]), false instanceof R.Flonum && R.noteSchemeStore($t2, "target-depth", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "reason", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "data", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "asked-at", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "aborted?", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "breaks-on-caught?", false), true instanceof R.Flonum && R.noteSchemeStore($t2, "breaks-on-uncaught?", true), false instanceof R.Flonum && R.noteSchemeStore($t2, "selected-frame", false), $t2) : R.callBinding($t0, [host, false, null, 1, null, 0, K[1], false, false, false, false, false, false, true, false]);
           return $t1;
         } }["make-debugger"];
         const $proc$r = { "make-debugger": function ($pc, $f) {
@@ -2232,7 +2232,7 @@ export const LIBRARIES = {
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
-                $t1 = $t0?.[$MAKES] === "[[\"host\",\"enabled?\",\"breakpoints\",\"next-breakpoint\",\"activations\",\"depth\",\"mode\",\"target-depth\",\"reason\",\"data\",\"aborted?\",\"breaks-on-caught?\",\"breaks-on-uncaught?\",\"selected-frame\"],[\"host\",\"enabled?\",\"breakpoints\",\"next-breakpoint\",\"activations\",\"depth\",\"mode\",\"target-depth\",\"reason\",\"data\",\"aborted?\",\"breaks-on-caught?\",\"breaks-on-uncaught?\",\"selected-frame\"]]" ? ($t2 = new ($t0[$RTYPE])(), $t2["host"] = host, $t2["enabled?"] = false, $t2["breakpoints"] = null, $t2["next-breakpoint"] = 1, $t2["activations"] = null, $t2["depth"] = 0, $t2["mode"] = K[0], $t2["target-depth"] = false, $t2["reason"] = false, $t2["data"] = false, $t2["aborted?"] = false, $t2["breaks-on-caught?"] = false, $t2["breaks-on-uncaught?"] = true, $t2["selected-frame"] = false, host instanceof R.Flonum && R.noteSchemeStore($t2, "host", host), false instanceof R.Flonum && R.noteSchemeStore($t2, "enabled?", false), null instanceof R.Flonum && R.noteSchemeStore($t2, "breakpoints", null), 1 instanceof R.Flonum && R.noteSchemeStore($t2, "next-breakpoint", 1), null instanceof R.Flonum && R.noteSchemeStore($t2, "activations", null), 0 instanceof R.Flonum && R.noteSchemeStore($t2, "depth", 0), K[0] instanceof R.Flonum && R.noteSchemeStore($t2, "mode", K[0]), false instanceof R.Flonum && R.noteSchemeStore($t2, "target-depth", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "reason", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "data", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "aborted?", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "breaks-on-caught?", false), true instanceof R.Flonum && R.noteSchemeStore($t2, "breaks-on-uncaught?", true), false instanceof R.Flonum && R.noteSchemeStore($t2, "selected-frame", false), $t2) : R.callBinding($t0, [host, false, null, 1, null, 0, K[0], false, false, false, false, false, true, false]);
+                $t1 = $t0?.[$MAKES] === "[[\"host\",\"enabled?\",\"breakpoints\",\"next-breakpoint\",\"activations\",\"depth\",\"mode\",\"target-depth\",\"reason\",\"data\",\"asked-at\",\"aborted?\",\"breaks-on-caught?\",\"breaks-on-uncaught?\",\"selected-frame\"],[\"host\",\"enabled?\",\"breakpoints\",\"next-breakpoint\",\"activations\",\"depth\",\"mode\",\"target-depth\",\"reason\",\"data\",\"asked-at\",\"aborted?\",\"breaks-on-caught?\",\"breaks-on-uncaught?\",\"selected-frame\"]]" ? ($t2 = new ($t0[$RTYPE])(), $t2["host"] = host, $t2["enabled?"] = false, $t2["breakpoints"] = null, $t2["next-breakpoint"] = 1, $t2["activations"] = null, $t2["depth"] = 0, $t2["mode"] = K[0], $t2["target-depth"] = false, $t2["reason"] = false, $t2["data"] = false, $t2["asked-at"] = false, $t2["aborted?"] = false, $t2["breaks-on-caught?"] = false, $t2["breaks-on-uncaught?"] = true, $t2["selected-frame"] = false, host instanceof R.Flonum && R.noteSchemeStore($t2, "host", host), false instanceof R.Flonum && R.noteSchemeStore($t2, "enabled?", false), null instanceof R.Flonum && R.noteSchemeStore($t2, "breakpoints", null), 1 instanceof R.Flonum && R.noteSchemeStore($t2, "next-breakpoint", 1), null instanceof R.Flonum && R.noteSchemeStore($t2, "activations", null), 0 instanceof R.Flonum && R.noteSchemeStore($t2, "depth", 0), K[0] instanceof R.Flonum && R.noteSchemeStore($t2, "mode", K[0]), false instanceof R.Flonum && R.noteSchemeStore($t2, "target-depth", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "reason", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "data", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "asked-at", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "aborted?", false), false instanceof R.Flonum && R.noteSchemeStore($t2, "breaks-on-caught?", false), true instanceof R.Flonum && R.noteSchemeStore($t2, "breaks-on-uncaught?", true), false instanceof R.Flonum && R.noteSchemeStore($t2, "selected-frame", false), $t2) : R.callBinding($t0, [host, false, null, 1, null, 0, K[0], false, false, false, false, false, false, true, false]);
                 return $t1;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
@@ -2246,7 +2246,7 @@ export const LIBRARIES = {
         params: ["dbg_$2016"],
         rest: null,
         constants: [intern("running"), intern("running")],
-        span: {"filename":"debugger.scm","line":329,"column":1,"endLine":332,"endColumn":55},
+        span: {"filename":"debugger.scm","line":332,"column":1,"endLine":335,"endColumn":55},
         make: (R, E, K) => {
         const $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-enabled?")).v;
@@ -2317,7 +2317,7 @@ export const LIBRARIES = {
         params: ["dbg_$2018"],
         rest: null,
         constants: [intern("running"), intern("running")],
-        span: {"filename":"debugger.scm","line":348,"column":1,"endLine":353,"endColumn":20},
+        span: {"filename":"debugger.scm","line":351,"column":1,"endLine":356,"endColumn":20},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
@@ -2444,7 +2444,7 @@ export const LIBRARIES = {
         params: ["dbg_$2020","span_$2021"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":361,"column":1,"endLine":366,"endColumn":12},
+        span: {"filename":"debugger.scm","line":364,"column":1,"endLine":369,"endColumn":12},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "location?")).v;
@@ -2576,7 +2576,7 @@ export const LIBRARIES = {
         params: ["dbg_$2023"],
         rest: null,
         constants: [intern("pausing"), intern("pausing")],
-        span: {"filename":"debugger.scm","line":372,"column":1,"endLine":375,"endColumn":70},
+        span: {"filename":"debugger.scm","line":375,"column":1,"endLine":378,"endColumn":70},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "host-changed")).v;
@@ -2693,7 +2693,7 @@ export const LIBRARIES = {
         params: ["dbg_$2024","enabled?_$2025"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":380,"column":1,"endLine":382,"endColumn":27},
+        span: {"filename":"debugger.scm","line":383,"column":1,"endLine":385,"endColumn":27},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%set-debugger-enabled!")).v;
@@ -2730,7 +2730,7 @@ export const LIBRARIES = {
         params: ["dbg_$2026"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":388,"column":1,"endLine":398,"endColumn":27},
+        span: {"filename":"debugger.scm","line":391,"column":1,"endLine":401,"endColumn":27},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-debugger-breakpoints!")).v;
@@ -2862,7 +2862,7 @@ export const LIBRARIES = {
         params: ["dbg_$2027","filename_$2028","line_$2029","column_$2030"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":412,"column":1,"endLine":420,"endColumn":9},
+        span: {"filename":"debugger.scm","line":415,"column":1,"endLine":423,"endColumn":9},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $MAKES = R.RECORD_MAKES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-next-breakpoint")).v;
@@ -3070,7 +3070,7 @@ export const LIBRARIES = {
         params: ["dbg_$2033","id_$2034"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":425,"column":1,"endLine":427,"endColumn":96},
+        span: {"filename":"debugger.scm","line":428,"column":1,"endLine":430,"endColumn":96},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string?")).v;
@@ -3151,7 +3151,7 @@ export const LIBRARIES = {
         params: ["dbg_$2036","id_$2037"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":435,"column":1,"endLine":442,"endColumn":18},
+        span: {"filename":"debugger.scm","line":438,"column":1,"endLine":445,"endColumn":18},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "breakpoint-with-id")).v;
@@ -3288,7 +3288,7 @@ export const LIBRARIES = {
         params: ["dbg_$2040"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":447,"column":1,"endLine":449,"endColumn":27},
+        span: {"filename":"debugger.scm","line":450,"column":1,"endLine":452,"endColumn":27},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-debugger-breakpoints!")).v;
@@ -3325,7 +3325,7 @@ export const LIBRARIES = {
         params: ["dbg_$2041","filename_$2042","line_$2043","column_$2044"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":461,"column":1,"endLine":467,"endColumn":43},
+        span: {"filename":"debugger.scm","line":464,"column":1,"endLine":470,"endColumn":43},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "first-that")).v;
@@ -3489,7 +3489,7 @@ export const LIBRARIES = {
         params: ["dbg_$2047","location_$2048"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":475,"column":1,"endLine":480,"endColumn":53},
+        span: {"filename":"debugger.scm","line":478,"column":1,"endLine":483,"endColumn":53},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "location?")).v;
@@ -3659,7 +3659,7 @@ export const LIBRARIES = {
         params: ["dbg_$2049","name_$2050","source_$2051","env_$2052"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":498,"column":1,"endLine":500,"endColumn":56},
+        span: {"filename":"debugger.scm","line":501,"column":1,"endLine":503,"endColumn":56},
         make: (R, E, K) => {
         const $add = R.add, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $MAKES = R.RECORD_MAKES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-debugger-activations!")).v;
@@ -3720,7 +3720,7 @@ export const LIBRARIES = {
         params: ["dbg_$2053","name_$2054","source_$2055","env_$2056"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":505,"column":1,"endLine":511,"endColumn":42},
+        span: {"filename":"debugger.scm","line":508,"column":1,"endLine":514,"endColumn":42},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $add = R.add, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $MAKES = R.RECORD_MAKES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-activations")).v;
@@ -3800,7 +3800,7 @@ export const LIBRARIES = {
         params: ["dbg_$2058"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":516,"column":1,"endLine":521,"endColumn":67},
+        span: {"filename":"debugger.scm","line":519,"column":1,"endLine":524,"endColumn":67},
         make: (R, E, K) => {
         const $sub = R.sub, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-activations")).v;
@@ -3870,7 +3870,7 @@ export const LIBRARIES = {
         params: ["dbg_$2060"],
         rest: null,
         constants: [intern("paused"), intern("paused")],
-        span: {"filename":"debugger.scm","line":530,"column":1,"endLine":531,"endColumn":37},
+        span: {"filename":"debugger.scm","line":533,"column":1,"endLine":534,"endColumn":37},
         make: (R, E, K) => {
         const $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "eq?")).v;
@@ -3905,15 +3905,16 @@ export const LIBRARIES = {
         params: ["dbg_$2061","mode_$2062"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":536,"column":1,"endLine":540,"endColumn":37},
+        span: {"filename":"debugger.scm","line":539,"column":1,"endLine":544,"endColumn":35},
         make: (R, E, K) => {
         const $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-debugger-mode!")).v;
         let C1 = R.UNRESOLVED; const G1 = () => (C1 = R.globalCell(E, "set-debugger-target-depth!")).v;
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "set-debugger-pause-reason!")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "set-debugger-pause-data!")).v;
+        let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "set-debugger-asked-at!")).v;
         const $proc = { "enter-mode!": function (dbg, mode) {
-          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7;
+          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9;
           if (arguments.length !== 2) R.wrongArity("enter-mode!", 2, false, arguments.length);
           $t0 = (C0.v ?? G0());
           $t1 = $t0?.[$WRITES] === "mode" && dbg instanceof $t0[$RTYPE] ? (dbg["mode"] = mode, (typeof mode === 'number' || mode instanceof R.Flonum) && R.noteSchemeStore(dbg, "mode", mode), undefined) : R.callBinding($t0, [dbg, mode]);
@@ -3926,11 +3927,14 @@ export const LIBRARIES = {
           $t5;
           $t6 = (C3.v ?? G3());
           $t7 = $t6?.[$WRITES] === "data" && dbg instanceof $t6[$RTYPE] ? (dbg["data"] = false, (typeof false === 'number' || false instanceof R.Flonum) && R.noteSchemeStore(dbg, "data", false), undefined) : R.callBinding($t6, [dbg, false]);
-          return $t7;
+          $t7;
+          $t8 = (C4.v ?? G4());
+          $t9 = $t8?.[$WRITES] === "asked-at" && dbg instanceof $t8[$RTYPE] ? (dbg["asked-at"] = false, (typeof false === 'number' || false instanceof R.Flonum) && R.noteSchemeStore(dbg, "asked-at", false), undefined) : R.callBinding($t8, [dbg, false]);
+          return $t9;
         } }["enter-mode!"];
         const $proc$r = { "enter-mode!": function ($pc, $f) {
-          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, dbg, mode, $r;
-          ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, dbg, mode, $r } = $f);
+          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, dbg, mode, $r;
+          ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, dbg, mode, $r } = $f);
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
@@ -3944,7 +3948,10 @@ export const LIBRARIES = {
                 $t5;
                 $t6 = (C3.v ?? G3());
                 $t7 = $t6?.[$WRITES] === "data" && dbg instanceof $t6[$RTYPE] ? (dbg["data"] = false, (typeof false === 'number' || false instanceof R.Flonum) && R.noteSchemeStore(dbg, "data", false), undefined) : R.callBinding($t6, [dbg, false]);
-                return $t7;
+                $t7;
+                $t8 = (C4.v ?? G4());
+                $t9 = $t8?.[$WRITES] === "asked-at" && dbg instanceof $t8[$RTYPE] ? (dbg["asked-at"] = false, (typeof false === 'number' || false instanceof R.Flonum) && R.noteSchemeStore(dbg, "asked-at", false), undefined) : R.callBinding($t8, [dbg, false]);
+                return $t9;
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
         } }["enter-mode!"];
@@ -3957,7 +3964,7 @@ export const LIBRARIES = {
         params: ["dbg_$2063"],
         rest: null,
         constants: [intern("running"), intern("running")],
-        span: {"filename":"debugger.scm","line":545,"column":1,"endLine":546,"endColumn":30},
+        span: {"filename":"debugger.scm","line":549,"column":1,"endLine":550,"endColumn":30},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "enter-mode!")).v;
@@ -3987,7 +3994,7 @@ export const LIBRARIES = {
         params: ["dbg_$2064","how_$2065"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":554,"column":1,"endLine":557,"endColumn":44},
+        span: {"filename":"debugger.scm","line":558,"column":1,"endLine":561,"endColumn":44},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-changed!")).v;
@@ -4078,7 +4085,7 @@ export const LIBRARIES = {
         params: ["dbg_$2066","mode_$2067","how_$2068"],
         rest: null,
         constants: [intern("into"), intern("into")],
-        span: {"filename":"debugger.scm","line":563,"column":1,"endLine":566,"endColumn":22},
+        span: {"filename":"debugger.scm","line":567,"column":1,"endLine":570,"endColumn":22},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "enter-mode!")).v;
@@ -4164,7 +4171,7 @@ export const LIBRARIES = {
         params: ["dbg_$2069"],
         rest: null,
         constants: [intern("into"), intern("into")],
-        span: {"filename":"debugger.scm","line":568,"column":1,"endLine":568,"endColumn":55},
+        span: {"filename":"debugger.scm","line":572,"column":1,"endLine":572,"endColumn":55},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "step!")).v;
@@ -4194,7 +4201,7 @@ export const LIBRARIES = {
         params: ["dbg_$2070"],
         rest: null,
         constants: [intern("over"), intern("over")],
-        span: {"filename":"debugger.scm","line":569,"column":1,"endLine":569,"endColumn":55},
+        span: {"filename":"debugger.scm","line":573,"column":1,"endLine":573,"endColumn":55},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "step!")).v;
@@ -4224,7 +4231,7 @@ export const LIBRARIES = {
         params: ["dbg_$2071"],
         rest: null,
         constants: [intern("out"), intern("out")],
-        span: {"filename":"debugger.scm","line":570,"column":1,"endLine":570,"endColumn":52},
+        span: {"filename":"debugger.scm","line":574,"column":1,"endLine":574,"endColumn":52},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "step!")).v;
@@ -4254,7 +4261,7 @@ export const LIBRARIES = {
         params: ["dbg_$2072"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":575,"column":1,"endLine":577,"endColumn":27},
+        span: {"filename":"debugger.scm","line":579,"column":1,"endLine":581,"endColumn":27},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "run!")).v;
@@ -4307,7 +4314,7 @@ export const LIBRARIES = {
         params: ["dbg_$2073"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":584,"column":1,"endLine":587,"endColumn":26},
+        span: {"filename":"debugger.scm","line":588,"column":1,"endLine":591,"endColumn":26},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-debugger-aborted!")).v;
@@ -4367,7 +4374,7 @@ export const LIBRARIES = {
         params: ["dbg_$2074","reason_$2075","data_$2076"],
         rest: null,
         constants: [intern("paused"), intern("paused")],
-        span: {"filename":"debugger.scm","line":597,"column":1,"endLine":601,"endColumn":39},
+        span: {"filename":"debugger.scm","line":601,"column":1,"endLine":605,"endColumn":39},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "enter-mode!")).v;
@@ -4436,7 +4443,7 @@ export const LIBRARIES = {
         params: ["dbg_$2077"],
         rest: null,
         constants: [intern("into"), intern("pausing"), intern("over"), intern("out"), intern("into"), intern("pausing"), intern("over"), intern("out"), {library: ["scheme","control"]}],
-        span: {"filename":"debugger.scm","line":609,"column":1,"endLine":614,"endColumn":16},
+        span: {"filename":"debugger.scm","line":613,"column":1,"endLine":618,"endColumn":16},
         make: (R, E, K) => {
         const $lt = R.lt, $le = R.le, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-mode")).v;
@@ -4542,7 +4549,7 @@ export const LIBRARIES = {
         params: ["dbg_$2079","filename_$2080","line_$2081","column_$2082"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":626,"column":1,"endLine":631,"endColumn":32},
+        span: {"filename":"debugger.scm","line":630,"column":1,"endLine":635,"endColumn":32},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-enabled?")).v;
@@ -4668,7 +4675,7 @@ export const LIBRARIES = {
         params: ["dbg_$2084","reason_$2085","breakpoint_$2086","location_$2087","env_$2088","exception_$2089","continuable?_$2090"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":637,"column":1,"endLine":644,"endColumn":39},
+        span: {"filename":"debugger.scm","line":641,"column":1,"endLine":648,"endColumn":39},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "js-obj")).v;
@@ -4793,7 +4800,7 @@ export const LIBRARIES = {
         params: ["dbg_$2093","location_$2094","env_$2095","reason_$2096"],
         rest: null,
         constants: [intern("pausing"), new Cons(intern("into"), new Cons(intern("over"), new Cons(intern("out"), null))), intern("pausing"), new Cons(intern("into"), new Cons(intern("over"), new Cons(intern("out"), null)))],
-        span: {"filename":"debugger.scm","line":655,"column":1,"endLine":665,"endColumn":98},
+        span: {"filename":"debugger.scm","line":660,"column":1,"endLine":672,"endColumn":95},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "not")).v;
@@ -4804,17 +4811,19 @@ export const LIBRARIES = {
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "debugger-mode")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "debugger-pause-reason")).v;
         let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "memq")).v;
-        let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "breakpoint-id")).v;
-        let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "pause!")).v;
-        let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "debugger-changed!")).v;
-        let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "host-paused")).v;
-        let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "debugger-host")).v;
-        let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "pause-info")).v;
-        let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "js-undefined")).v;
+        let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "location?")).v;
+        let C7 = R.UNRESOLVED; const G7 = () => (C7 = R.globalCell(E, "debugger-asked-at")).v;
+        let C8 = R.UNRESOLVED; const G8 = () => (C8 = R.globalCell(E, "breakpoint-id")).v;
+        let C9 = R.UNRESOLVED; const G9 = () => (C9 = R.globalCell(E, "pause!")).v;
+        let C10 = R.UNRESOLVED; const G10 = () => (C10 = R.globalCell(E, "debugger-changed!")).v;
+        let C11 = R.UNRESOLVED; const G11 = () => (C11 = R.globalCell(E, "host-paused")).v;
+        let C12 = R.UNRESOLVED; const G12 = () => (C12 = R.globalCell(E, "debugger-host")).v;
+        let C13 = R.UNRESOLVED; const G13 = () => (C13 = R.globalCell(E, "pause-info")).v;
+        let C14 = R.UNRESOLVED; const G14 = () => (C14 = R.globalCell(E, "js-undefined")).v;
         const $proc = { "pause-at!": function (dbg, location, env, reason) {
-          let $t0, $t1, $t2, $t3, $t4, hit, $t5, $t6, temp, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, reason_2, $t24, $t25, $t26, $t27, id, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44;
+          let $t0, $t1, $t2, $t3, $t4, hit, $t5, $t6, $t7, $t8, asked_p, $t9, $t10, temp, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, reason_2, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, place, $t36, $t37, $t38, $t39, id, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56;
           if (arguments.length !== 4) R.wrongArity("pause-at!", 4, false, arguments.length);
-          const $d = $stack.room - 61;
+          const $d = $stack.room - 75;
           if ($d < 0 && $stack.flushable) return $flush($proc$js, [dbg, location, env, reason]);
           $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? (reason === false) : R.callBinding((C0.v ?? G0()), [reason]);
           if ($t0 !== false) {
@@ -4824,22 +4833,23 @@ export const LIBRARIES = {
             $stack.room = $d;
             $t4 = $t3 === undefined ? ($t2[$PRIM] === true ? $t2(dbg, location) : $foreign($t2, [dbg, location])) : $t3(dbg, location);
             while ($t4 instanceof $TailCall) { $stack.room = $d; $t4 = $step($t4); }
-            if ($t4 === $UNWIND) { R.reify($proc$r, 4, { $t9, $t14, $t19, $t27, $t37, $t39, dbg, location, env, reason }); return $UNWIND; }
+            if ($t4 === $UNWIND) { R.reify($proc$r, 4, { $t7, $t14, $t19, $t28, $t35, $t39, $t49, $t51, dbg, location, env, reason }); return $UNWIND; }
             $t1 = $t4;
           } else {
             $t1 = false;
           }
           hit = $t1;
+          $t5 = (C3.v ?? G3());
+          $t6 = $t5?.[$READS] === "mode" && dbg instanceof $t5[$RTYPE] ? (($t7 = dbg["mode"]), typeof $t7 === 'number' ? R.storedToScheme(dbg, "mode", $t7) : $t7) : R.callBinding($t5, [dbg]);
+          $t8 = (W2.intact || (C2.v ?? G2()) === P2) ? ($t6 === K[2]) : R.callBinding((C2.v ?? G2()), [$t6, K[2]]);
+          asked_p = $t8;
           if (reason !== false) {
-            $t5 = reason;
+            $t9 = reason;
           } else {
             if (hit !== false) {
-              $t6 = "breakpoint";
+              $t10 = "breakpoint";
             } else {
-              $t7 = (C3.v ?? G3());
-              $t8 = $t7?.[$READS] === "mode" && dbg instanceof $t7[$RTYPE] ? (($t9 = dbg["mode"]), typeof $t9 === 'number' ? R.storedToScheme(dbg, "mode", $t9) : $t9) : R.callBinding($t7, [dbg]);
-              $t10 = (W2.intact || (C2.v ?? G2()) === P2) ? ($t8 === K[2]) : R.callBinding((C2.v ?? G2()), [$t8, K[2]]);
-              if ($t10 !== false) {
+              if (asked_p !== false) {
                 $t12 = (C4.v ?? G4());
                 $t13 = $t12?.[$READS] === "reason" && dbg instanceof $t12[$RTYPE] ? (($t14 = dbg["reason"]), typeof $t14 === 'number' ? R.storedToScheme(dbg, "reason", $t14) : $t14) : R.callBinding($t12, [dbg]);
                 $t11 = $t13;
@@ -4859,7 +4869,7 @@ export const LIBRARIES = {
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? ($t20[$PRIM] === true ? $t20($t18, K[3]) : $foreign($t20, [$t18, K[3]])) : $t21($t18, K[3]);
                 while ($t22 instanceof $TailCall) { $stack.room = $d; $t22 = $step($t22); }
-                if ($t22 === $UNWIND) { R.reify($proc$r, 17, { hit, $t27, $t37, $t39, dbg, location, env }); return $UNWIND; }
+                if ($t22 === $UNWIND) { R.reify($proc$r, 17, { hit, asked_p, $t28, $t35, $t39, $t49, $t51, dbg, location, env }); return $UNWIND; }
                 if ($t22 !== false) {
                   $t23 = "step";
                 } else {
@@ -4867,53 +4877,76 @@ export const LIBRARIES = {
                 }
                 $t15 = $t23;
               }
-              $t6 = $t15;
+              $t10 = $t15;
             }
-            $t5 = $t6;
+            $t9 = $t10;
           }
-          reason_2 = $t5;
-          if (hit !== false) {
+          reason_2 = $t9;
+          if (asked_p !== false) {
             $t25 = (C6.v ?? G6());
-            $t26 = $t25?.[$READS] === "id" && hit instanceof $t25[$RTYPE] ? (($t27 = hit["id"]), typeof $t27 === 'number' ? R.storedToScheme(hit, "id", $t27) : $t27) : R.callBinding($t25, [hit]);
-            $t24 = $t26;
+            $t26 = (C7.v ?? G7());
+            $t27 = $t26?.[$READS] === "asked-at" && dbg instanceof $t26[$RTYPE] ? (($t28 = dbg["asked-at"]), typeof $t28 === 'number' ? R.storedToScheme(dbg, "asked-at", $t28) : $t28) : R.callBinding($t26, [dbg]);
+            $t29 = $t25;
+            if (typeof $t29 !== 'function') $notProc($t29);
+            $t30 = $t29[$RAW];
+            $stack.room = $d;
+            $t31 = $t30 === undefined ? ($t29[$PRIM] === true ? $t29($t27) : $foreign($t29, [$t27])) : $t30($t27);
+            while ($t31 instanceof $TailCall) { $stack.room = $d; $t31 = $step($t31); }
+            if ($t31 === $UNWIND) { R.reify($proc$r, 24, { hit, reason_2, $t35, $t39, $t49, $t51, dbg, location, env }); return $UNWIND; }
+            $t24 = $t31;
           } else {
             $t24 = false;
           }
-          id = $t24;
-          $t28 = (C7.v ?? G7());
-          if (typeof $t28 !== 'function') $notProc($t28);
-          $t29 = $t28[$RAW];
-          $stack.room = $d;
-          $t30 = $t29 === undefined ? ($t28[$PRIM] === true ? $t28(dbg, reason_2, id) : $foreign($t28, [dbg, reason_2, id])) : $t29(dbg, reason_2, id);
-          while ($t30 instanceof $TailCall) { $stack.room = $d; $t30 = $step($t30); }
-          if ($t30 === $UNWIND) { R.reify($proc$r, 24, { reason_2, id, $t37, $t39, dbg, location, env }); return $UNWIND; }
-          $t30;
-          $t31 = (C8.v ?? G8());
-          if (typeof $t31 !== 'function') $notProc($t31);
-          $t32 = $t31[$RAW];
-          $stack.room = $d;
-          $t33 = $t32 === undefined ? ($t31[$PRIM] === true ? $t31(dbg) : $foreign($t31, [dbg])) : $t32(dbg);
-          while ($t33 instanceof $TailCall) { $stack.room = $d; $t33 = $step($t33); }
-          if ($t33 === $UNWIND) { R.reify($proc$r, 25, { reason_2, id, $t37, $t39, dbg, location, env }); return $UNWIND; }
-          $t33;
-          $t34 = (C9.v ?? G9());
-          $t35 = (C10.v ?? G10());
-          $t36 = $t35?.[$READS] === "host" && dbg instanceof $t35[$RTYPE] ? (($t37 = dbg["host"]), typeof $t37 === 'number' ? R.storedToScheme(dbg, "host", $t37) : $t37) : R.callBinding($t35, [dbg]);
-          $t38 = $t34?.[$READS] === "paused" && $t36 instanceof $t34[$RTYPE] ? (($t39 = $t36["paused"]), typeof $t39 === 'number' ? R.storedToScheme($t36, "paused", $t39) : $t39) : R.callBinding($t34, [$t36]);
-          $t40 = (C11.v ?? G11());
+          if ($t24 !== false) {
+            $t33 = (C7.v ?? G7());
+            $t34 = $t33?.[$READS] === "asked-at" && dbg instanceof $t33[$RTYPE] ? (($t35 = dbg["asked-at"]), typeof $t35 === 'number' ? R.storedToScheme(dbg, "asked-at", $t35) : $t35) : R.callBinding($t33, [dbg]);
+            $t32 = $t34;
+          } else {
+            $t32 = location;
+          }
+          place = $t32;
+          if (hit !== false) {
+            $t37 = (C8.v ?? G8());
+            $t38 = $t37?.[$READS] === "id" && hit instanceof $t37[$RTYPE] ? (($t39 = hit["id"]), typeof $t39 === 'number' ? R.storedToScheme(hit, "id", $t39) : $t39) : R.callBinding($t37, [hit]);
+            $t36 = $t38;
+          } else {
+            $t36 = false;
+          }
+          id = $t36;
+          $t40 = (C9.v ?? G9());
           if (typeof $t40 !== 'function') $notProc($t40);
           $t41 = $t40[$RAW];
           $stack.room = $d;
-          $t42 = $t41 === undefined ? ($t40[$PRIM] === true ? $t40(dbg, reason_2, id, location, env, (C12.v ?? G12()), false) : $foreign($t40, [dbg, reason_2, id, location, env, (C12.v ?? G12()), false])) : $t41(dbg, reason_2, id, location, env, (C12.v ?? G12()), false);
+          $t42 = $t41 === undefined ? ($t40[$PRIM] === true ? $t40(dbg, reason_2, id) : $foreign($t40, [dbg, reason_2, id])) : $t41(dbg, reason_2, id);
           while ($t42 instanceof $TailCall) { $stack.room = $d; $t42 = $step($t42); }
-          if ($t42 === $UNWIND) { R.reify($proc$r, 26, { $t38 }); return $UNWIND; }
-          $t43 = $t38;
-          if ($d > 0 && ($t44 = $t43?.[$RAW] ?? $t43)?.[$PRIM] === true) { $stack.room = $d; return $t44($t42); } return $tailCall($t43, [$t42]);
+          if ($t42 === $UNWIND) { R.reify($proc$r, 31, { reason_2, place, id, $t49, $t51, dbg, env }); return $UNWIND; }
+          $t42;
+          $t43 = (C10.v ?? G10());
+          if (typeof $t43 !== 'function') $notProc($t43);
+          $t44 = $t43[$RAW];
+          $stack.room = $d;
+          $t45 = $t44 === undefined ? ($t43[$PRIM] === true ? $t43(dbg) : $foreign($t43, [dbg])) : $t44(dbg);
+          while ($t45 instanceof $TailCall) { $stack.room = $d; $t45 = $step($t45); }
+          if ($t45 === $UNWIND) { R.reify($proc$r, 32, { reason_2, place, id, $t49, $t51, dbg, env }); return $UNWIND; }
+          $t45;
+          $t46 = (C11.v ?? G11());
+          $t47 = (C12.v ?? G12());
+          $t48 = $t47?.[$READS] === "host" && dbg instanceof $t47[$RTYPE] ? (($t49 = dbg["host"]), typeof $t49 === 'number' ? R.storedToScheme(dbg, "host", $t49) : $t49) : R.callBinding($t47, [dbg]);
+          $t50 = $t46?.[$READS] === "paused" && $t48 instanceof $t46[$RTYPE] ? (($t51 = $t48["paused"]), typeof $t51 === 'number' ? R.storedToScheme($t48, "paused", $t51) : $t51) : R.callBinding($t46, [$t48]);
+          $t52 = (C13.v ?? G13());
+          if (typeof $t52 !== 'function') $notProc($t52);
+          $t53 = $t52[$RAW];
+          $stack.room = $d;
+          $t54 = $t53 === undefined ? ($t52[$PRIM] === true ? $t52(dbg, reason_2, id, place, env, (C14.v ?? G14()), false) : $foreign($t52, [dbg, reason_2, id, place, env, (C14.v ?? G14()), false])) : $t53(dbg, reason_2, id, place, env, (C14.v ?? G14()), false);
+          while ($t54 instanceof $TailCall) { $stack.room = $d; $t54 = $step($t54); }
+          if ($t54 === $UNWIND) { R.reify($proc$r, 33, { $t50 }); return $UNWIND; }
+          $t55 = $t50;
+          if ($d > 0 && ($t56 = $t55?.[$RAW] ?? $t55)?.[$PRIM] === true) { $stack.room = $d; return $t56($t54); } return $tailCall($t55, [$t54]);
         } }["pause-at!"];
         const $proc$r = { "pause-at!": function ($pc, $f) {
-          let $t0, $t1, $t2, $t3, $t4, hit, $t5, $t6, temp, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, reason_2, $t24, $t25, $t26, $t27, id, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, dbg, location, env, reason, $r;
-          ({ $t0, $t1, $t2, $t3, $t4, hit, $t5, $t6, temp, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, reason_2, $t24, $t25, $t26, $t27, id, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, $t36, $t37, $t38, $t39, $t40, $t41, $t42, $t43, $t44, dbg, location, env, reason, $r } = $f);
-          const $d = $stack.room - 61;
+          let $t0, $t1, $t2, $t3, $t4, hit, $t5, $t6, $t7, $t8, asked_p, $t9, $t10, temp, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, reason_2, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, place, $t36, $t37, $t38, $t39, id, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, dbg, location, env, reason, $r;
+          ({ $t0, $t1, $t2, $t3, $t4, hit, $t5, $t6, $t7, $t8, asked_p, $t9, $t10, temp, $t11, $t12, $t13, $t14, $t15, $t16, $t17, $t18, $t19, $t20, $t21, $t22, $t23, reason_2, $t24, $t25, $t26, $t27, $t28, $t29, $t30, $t31, $t32, $t33, $t34, $t35, place, $t36, $t37, $t38, $t39, id, $t40, $t41, $t42, $t43, $t44, $t45, $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, dbg, location, env, reason, $r } = $f);
+          const $d = $stack.room - 75;
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (W0.intact || (C0.v ?? G0()) === P0) ? (reason === false) : R.callBinding((C0.v ?? G0()), [reason]);
@@ -4925,7 +4958,7 @@ export const LIBRARIES = {
                 $stack.room = $d;
                 $t4 = $t3 === undefined ? ($t2[$PRIM] === true ? $t2(dbg, location) : $foreign($t2, [dbg, location])) : $t3(dbg, location);
                 while ($t4 instanceof $TailCall) { $stack.room = $d; $t4 = $step($t4); }
-                if ($t4 === $UNWIND) { R.reify($proc$r, 4, { $t9, $t14, $t19, $t27, $t37, $t39, dbg, location, env, reason }); return $UNWIND; }
+                if ($t4 === $UNWIND) { R.reify($proc$r, 4, { $t7, $t14, $t19, $t28, $t35, $t39, $t49, $t51, dbg, location, env, reason }); return $UNWIND; }
                 $r = $t4;
                 $pc = 4; continue;
               case 2:
@@ -4933,29 +4966,30 @@ export const LIBRARIES = {
                 $pc = 3; continue;
               case 3:
                 hit = $t1;
+                $t5 = (C3.v ?? G3());
+                $t6 = $t5?.[$READS] === "mode" && dbg instanceof $t5[$RTYPE] ? (($t7 = dbg["mode"]), typeof $t7 === 'number' ? R.storedToScheme(dbg, "mode", $t7) : $t7) : R.callBinding($t5, [dbg]);
+                $t8 = (W2.intact || (C2.v ?? G2()) === P2) ? ($t6 === K[0]) : R.callBinding((C2.v ?? G2()), [$t6, K[0]]);
+                asked_p = $t8;
                 if (reason !== false) { $pc = 5; continue; } $pc = 6; continue;
               case 4:
                 $t4 = $r;
                 $t1 = $t4;
                 $pc = 3; continue;
               case 5:
-                $t5 = reason;
+                $t9 = reason;
                 $pc = 7; continue;
               case 6:
                 if (hit !== false) { $pc = 8; continue; } $pc = 9; continue;
               case 7:
-                reason_2 = $t5;
-                if (hit !== false) { $pc = 21; continue; } $pc = 22; continue;
+                reason_2 = $t9;
+                if (asked_p !== false) { $pc = 21; continue; } $pc = 22; continue;
               case 8:
-                $t6 = "breakpoint";
+                $t10 = "breakpoint";
                 $pc = 10; continue;
               case 9:
-                $t7 = (C3.v ?? G3());
-                $t8 = $t7?.[$READS] === "mode" && dbg instanceof $t7[$RTYPE] ? (($t9 = dbg["mode"]), typeof $t9 === 'number' ? R.storedToScheme(dbg, "mode", $t9) : $t9) : R.callBinding($t7, [dbg]);
-                $t10 = (W2.intact || (C2.v ?? G2()) === P2) ? ($t8 === K[0]) : R.callBinding((C2.v ?? G2()), [$t8, K[0]]);
-                if ($t10 !== false) { $pc = 11; continue; } $pc = 12; continue;
+                if (asked_p !== false) { $pc = 11; continue; } $pc = 12; continue;
               case 10:
-                $t5 = $t6;
+                $t9 = $t10;
                 $pc = 7; continue;
               case 11:
                 $t12 = (C4.v ?? G4());
@@ -4981,11 +5015,11 @@ export const LIBRARIES = {
                 $stack.room = $d;
                 $t22 = $t21 === undefined ? ($t20[$PRIM] === true ? $t20($t18, K[1]) : $foreign($t20, [$t18, K[1]])) : $t21($t18, K[1]);
                 while ($t22 instanceof $TailCall) { $stack.room = $d; $t22 = $step($t22); }
-                if ($t22 === $UNWIND) { R.reify($proc$r, 17, { hit, $t27, $t37, $t39, dbg, location, env }); return $UNWIND; }
+                if ($t22 === $UNWIND) { R.reify($proc$r, 17, { hit, asked_p, $t28, $t35, $t39, $t49, $t51, dbg, location, env }); return $UNWIND; }
                 $r = $t22;
                 $pc = 17; continue;
               case 16:
-                $t6 = $t15;
+                $t10 = $t15;
                 $pc = 10; continue;
               case 17:
                 $t22 = $r;
@@ -5001,55 +5035,88 @@ export const LIBRARIES = {
                 $pc = 16; continue;
               case 21:
                 $t25 = (C6.v ?? G6());
-                $t26 = $t25?.[$READS] === "id" && hit instanceof $t25[$RTYPE] ? (($t27 = hit["id"]), typeof $t27 === 'number' ? R.storedToScheme(hit, "id", $t27) : $t27) : R.callBinding($t25, [hit]);
-                $t24 = $t26;
-                $pc = 23; continue;
+                $t26 = (C7.v ?? G7());
+                $t27 = $t26?.[$READS] === "asked-at" && dbg instanceof $t26[$RTYPE] ? (($t28 = dbg["asked-at"]), typeof $t28 === 'number' ? R.storedToScheme(dbg, "asked-at", $t28) : $t28) : R.callBinding($t26, [dbg]);
+                $t29 = $t25;
+                if (typeof $t29 !== 'function') $notProc($t29);
+                $t30 = $t29[$RAW];
+                $stack.room = $d;
+                $t31 = $t30 === undefined ? ($t29[$PRIM] === true ? $t29($t27) : $foreign($t29, [$t27])) : $t30($t27);
+                while ($t31 instanceof $TailCall) { $stack.room = $d; $t31 = $step($t31); }
+                if ($t31 === $UNWIND) { R.reify($proc$r, 24, { hit, reason_2, $t35, $t39, $t49, $t51, dbg, location, env }); return $UNWIND; }
+                $r = $t31;
+                $pc = 24; continue;
               case 22:
                 $t24 = false;
                 $pc = 23; continue;
               case 23:
-                id = $t24;
-                $t28 = (C7.v ?? G7());
-                if (typeof $t28 !== 'function') $notProc($t28);
-                $t29 = $t28[$RAW];
-                $stack.room = $d;
-                $t30 = $t29 === undefined ? ($t28[$PRIM] === true ? $t28(dbg, reason_2, id) : $foreign($t28, [dbg, reason_2, id])) : $t29(dbg, reason_2, id);
-                while ($t30 instanceof $TailCall) { $stack.room = $d; $t30 = $step($t30); }
-                if ($t30 === $UNWIND) { R.reify($proc$r, 24, { reason_2, id, $t37, $t39, dbg, location, env }); return $UNWIND; }
-                $r = $t30;
-                $pc = 24; continue;
+                if ($t24 !== false) { $pc = 25; continue; } $pc = 26; continue;
               case 24:
-                $t30 = $r;
-                $t30;
-                $t31 = (C8.v ?? G8());
-                if (typeof $t31 !== 'function') $notProc($t31);
-                $t32 = $t31[$RAW];
-                $stack.room = $d;
-                $t33 = $t32 === undefined ? ($t31[$PRIM] === true ? $t31(dbg) : $foreign($t31, [dbg])) : $t32(dbg);
-                while ($t33 instanceof $TailCall) { $stack.room = $d; $t33 = $step($t33); }
-                if ($t33 === $UNWIND) { R.reify($proc$r, 25, { reason_2, id, $t37, $t39, dbg, location, env }); return $UNWIND; }
-                $r = $t33;
-                $pc = 25; continue;
+                $t31 = $r;
+                $t24 = $t31;
+                $pc = 23; continue;
               case 25:
-                $t33 = $r;
-                $t33;
-                $t34 = (C9.v ?? G9());
-                $t35 = (C10.v ?? G10());
-                $t36 = $t35?.[$READS] === "host" && dbg instanceof $t35[$RTYPE] ? (($t37 = dbg["host"]), typeof $t37 === 'number' ? R.storedToScheme(dbg, "host", $t37) : $t37) : R.callBinding($t35, [dbg]);
-                $t38 = $t34?.[$READS] === "paused" && $t36 instanceof $t34[$RTYPE] ? (($t39 = $t36["paused"]), typeof $t39 === 'number' ? R.storedToScheme($t36, "paused", $t39) : $t39) : R.callBinding($t34, [$t36]);
-                $t40 = (C11.v ?? G11());
+                $t33 = (C7.v ?? G7());
+                $t34 = $t33?.[$READS] === "asked-at" && dbg instanceof $t33[$RTYPE] ? (($t35 = dbg["asked-at"]), typeof $t35 === 'number' ? R.storedToScheme(dbg, "asked-at", $t35) : $t35) : R.callBinding($t33, [dbg]);
+                $t32 = $t34;
+                $pc = 27; continue;
+              case 26:
+                $t32 = location;
+                $pc = 27; continue;
+              case 27:
+                place = $t32;
+                if (hit !== false) { $pc = 28; continue; } $pc = 29; continue;
+              case 28:
+                $t37 = (C8.v ?? G8());
+                $t38 = $t37?.[$READS] === "id" && hit instanceof $t37[$RTYPE] ? (($t39 = hit["id"]), typeof $t39 === 'number' ? R.storedToScheme(hit, "id", $t39) : $t39) : R.callBinding($t37, [hit]);
+                $t36 = $t38;
+                $pc = 30; continue;
+              case 29:
+                $t36 = false;
+                $pc = 30; continue;
+              case 30:
+                id = $t36;
+                $t40 = (C9.v ?? G9());
                 if (typeof $t40 !== 'function') $notProc($t40);
                 $t41 = $t40[$RAW];
                 $stack.room = $d;
-                $t42 = $t41 === undefined ? ($t40[$PRIM] === true ? $t40(dbg, reason_2, id, location, env, (C12.v ?? G12()), false) : $foreign($t40, [dbg, reason_2, id, location, env, (C12.v ?? G12()), false])) : $t41(dbg, reason_2, id, location, env, (C12.v ?? G12()), false);
+                $t42 = $t41 === undefined ? ($t40[$PRIM] === true ? $t40(dbg, reason_2, id) : $foreign($t40, [dbg, reason_2, id])) : $t41(dbg, reason_2, id);
                 while ($t42 instanceof $TailCall) { $stack.room = $d; $t42 = $step($t42); }
-                if ($t42 === $UNWIND) { R.reify($proc$r, 26, { $t38 }); return $UNWIND; }
+                if ($t42 === $UNWIND) { R.reify($proc$r, 31, { reason_2, place, id, $t49, $t51, dbg, env }); return $UNWIND; }
                 $r = $t42;
-                $pc = 26; continue;
-              case 26:
+                $pc = 31; continue;
+              case 31:
                 $t42 = $r;
-                $t43 = $t38;
-                return $tailCall($t43, [$t42]);
+                $t42;
+                $t43 = (C10.v ?? G10());
+                if (typeof $t43 !== 'function') $notProc($t43);
+                $t44 = $t43[$RAW];
+                $stack.room = $d;
+                $t45 = $t44 === undefined ? ($t43[$PRIM] === true ? $t43(dbg) : $foreign($t43, [dbg])) : $t44(dbg);
+                while ($t45 instanceof $TailCall) { $stack.room = $d; $t45 = $step($t45); }
+                if ($t45 === $UNWIND) { R.reify($proc$r, 32, { reason_2, place, id, $t49, $t51, dbg, env }); return $UNWIND; }
+                $r = $t45;
+                $pc = 32; continue;
+              case 32:
+                $t45 = $r;
+                $t45;
+                $t46 = (C11.v ?? G11());
+                $t47 = (C12.v ?? G12());
+                $t48 = $t47?.[$READS] === "host" && dbg instanceof $t47[$RTYPE] ? (($t49 = dbg["host"]), typeof $t49 === 'number' ? R.storedToScheme(dbg, "host", $t49) : $t49) : R.callBinding($t47, [dbg]);
+                $t50 = $t46?.[$READS] === "paused" && $t48 instanceof $t46[$RTYPE] ? (($t51 = $t48["paused"]), typeof $t51 === 'number' ? R.storedToScheme($t48, "paused", $t51) : $t51) : R.callBinding($t46, [$t48]);
+                $t52 = (C13.v ?? G13());
+                if (typeof $t52 !== 'function') $notProc($t52);
+                $t53 = $t52[$RAW];
+                $stack.room = $d;
+                $t54 = $t53 === undefined ? ($t52[$PRIM] === true ? $t52(dbg, reason_2, id, place, env, (C14.v ?? G14()), false) : $foreign($t52, [dbg, reason_2, id, place, env, (C14.v ?? G14()), false])) : $t53(dbg, reason_2, id, place, env, (C14.v ?? G14()), false);
+                while ($t54 instanceof $TailCall) { $stack.room = $d; $t54 = $step($t54); }
+                if ($t54 === $UNWIND) { R.reify($proc$r, 33, { $t50 }); return $UNWIND; }
+                $r = $t54;
+                $pc = 33; continue;
+              case 33:
+                $t54 = $r;
+                $t55 = $t50;
+                return $tailCall($t55, [$t54]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
         } }["pause-at!"];
@@ -5059,10 +5126,10 @@ export const LIBRARIES = {
         }
       },
       "request-pause!": {
-        params: ["dbg_$2101","reason_$2102"],
+        params: ["dbg_$2103","reason_$2104","place_$2105"],
         rest: null,
         constants: [intern("pausing"), intern("pausing")],
-        span: {"filename":"debugger.scm","line":680,"column":1,"endLine":684,"endColumn":30},
+        span: {"filename":"debugger.scm","line":689,"column":1,"endLine":694,"endColumn":30},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-enabled?")).v;
@@ -5071,12 +5138,13 @@ export const LIBRARIES = {
         let C2 = R.UNRESOLVED; const G2 = () => (C2 = R.globalCell(E, "debugger-paused?")).v;
         let C3 = R.UNRESOLVED; const G3 = () => (C3 = R.globalCell(E, "enter-mode!")).v;
         let C4 = R.UNRESOLVED; const G4 = () => (C4 = R.globalCell(E, "set-debugger-pause-reason!")).v;
-        let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "debugger-changed!")).v;
-        const $proc = { "request-pause!": function (dbg, reason) {
-          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
-          if (arguments.length !== 2) R.wrongArity("request-pause!", 2, false, arguments.length);
-          const $d = $stack.room - 25;
-          if ($d < 0 && $stack.flushable) return $flush($proc$js, [dbg, reason]);
+        let C5 = R.UNRESOLVED; const G5 = () => (C5 = R.globalCell(E, "set-debugger-asked-at!")).v;
+        let C6 = R.UNRESOLVED; const G6 = () => (C6 = R.globalCell(E, "debugger-changed!")).v;
+        const $proc = { "request-pause!": function (dbg, reason, place) {
+          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16;
+          if (arguments.length !== 3) R.wrongArity("request-pause!", 3, false, arguments.length);
+          const $d = $stack.room - 28;
+          if ($d < 0 && $stack.flushable) return $flush($proc$js, [dbg, reason, place]);
           $t0 = (C0.v ?? G0());
           $t1 = $t0?.[$READS] === "enabled?" && dbg instanceof $t0[$RTYPE] ? (($t2 = dbg["enabled?"]), typeof $t2 === 'number' ? R.storedToScheme(dbg, "enabled?", $t2) : $t2) : R.callBinding($t0, [dbg]);
           if ($t1 !== false) {
@@ -5086,7 +5154,7 @@ export const LIBRARIES = {
             $stack.room = $d;
             $t6 = $t5 === undefined ? ($t4[$PRIM] === true ? $t4(dbg) : $foreign($t4, [dbg])) : $t5(dbg);
             while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
-            if ($t6 === $UNWIND) { R.reify($proc$r, 4, { dbg, reason }); return $UNWIND; }
+            if ($t6 === $UNWIND) { R.reify($proc$r, 4, { dbg, reason, place }); return $UNWIND; }
             $t7 = (W1.intact || (C1.v ?? G1()) === P1) ? ($t6 === false) : R.callBinding((C1.v ?? G1()), [$t6]);
             $t3 = $t7;
           } else {
@@ -5099,21 +5167,24 @@ export const LIBRARIES = {
             $stack.room = $d;
             $t10 = $t9 === undefined ? ($t8[$PRIM] === true ? $t8(dbg, K[1]) : $foreign($t8, [dbg, K[1]])) : $t9(dbg, K[1]);
             while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
-            if ($t10 === $UNWIND) { R.reify($proc$r, 7, { dbg, reason }); return $UNWIND; }
+            if ($t10 === $UNWIND) { R.reify($proc$r, 7, { dbg, reason, place }); return $UNWIND; }
             $t10;
             $t11 = (C4.v ?? G4());
             $t12 = $t11?.[$WRITES] === "reason" && dbg instanceof $t11[$RTYPE] ? (dbg["reason"] = reason, (typeof reason === 'number' || reason instanceof R.Flonum) && R.noteSchemeStore(dbg, "reason", reason), undefined) : R.callBinding($t11, [dbg, reason]);
             $t12;
             $t13 = (C5.v ?? G5());
-            if ($d > 0 && ($t14 = $t13?.[$RAW] ?? $t13)?.[$PRIM] === true) { $stack.room = $d; return $t14(dbg); } return $tailCall($t13, [dbg]);
+            $t14 = $t13?.[$WRITES] === "asked-at" && dbg instanceof $t13[$RTYPE] ? (dbg["asked-at"] = place, (typeof place === 'number' || place instanceof R.Flonum) && R.noteSchemeStore(dbg, "asked-at", place), undefined) : R.callBinding($t13, [dbg, place]);
+            $t14;
+            $t15 = (C6.v ?? G6());
+            if ($d > 0 && ($t16 = $t15?.[$RAW] ?? $t15)?.[$PRIM] === true) { $stack.room = $d; return $t16(dbg); } return $tailCall($t15, [dbg]);
           } else {
             return undefined;
           }
         } }["request-pause!"];
         const $proc$r = { "request-pause!": function ($pc, $f) {
-          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, dbg, reason, $r;
-          ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, dbg, reason, $r } = $f);
-          const $d = $stack.room - 25;
+          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, dbg, reason, place, $r;
+          ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, $t15, $t16, dbg, reason, place, $r } = $f);
+          const $d = $stack.room - 28;
           for (;;) switch ($pc) {
               case 0:
                 $t0 = (C0.v ?? G0());
@@ -5126,7 +5197,7 @@ export const LIBRARIES = {
                 $stack.room = $d;
                 $t6 = $t5 === undefined ? ($t4[$PRIM] === true ? $t4(dbg) : $foreign($t4, [dbg])) : $t5(dbg);
                 while ($t6 instanceof $TailCall) { $stack.room = $d; $t6 = $step($t6); }
-                if ($t6 === $UNWIND) { R.reify($proc$r, 4, { dbg, reason }); return $UNWIND; }
+                if ($t6 === $UNWIND) { R.reify($proc$r, 4, { dbg, reason, place }); return $UNWIND; }
                 $r = $t6;
                 $pc = 4; continue;
               case 2:
@@ -5146,7 +5217,7 @@ export const LIBRARIES = {
                 $stack.room = $d;
                 $t10 = $t9 === undefined ? ($t8[$PRIM] === true ? $t8(dbg, K[0]) : $foreign($t8, [dbg, K[0]])) : $t9(dbg, K[0]);
                 while ($t10 instanceof $TailCall) { $stack.room = $d; $t10 = $step($t10); }
-                if ($t10 === $UNWIND) { R.reify($proc$r, 7, { dbg, reason }); return $UNWIND; }
+                if ($t10 === $UNWIND) { R.reify($proc$r, 7, { dbg, reason, place }); return $UNWIND; }
                 $r = $t10;
                 $pc = 7; continue;
               case 6:
@@ -5158,7 +5229,10 @@ export const LIBRARIES = {
                 $t12 = $t11?.[$WRITES] === "reason" && dbg instanceof $t11[$RTYPE] ? (dbg["reason"] = reason, (typeof reason === 'number' || reason instanceof R.Flonum) && R.noteSchemeStore(dbg, "reason", reason), undefined) : R.callBinding($t11, [dbg, reason]);
                 $t12;
                 $t13 = (C5.v ?? G5());
-                return $tailCall($t13, [dbg]);
+                $t14 = $t13?.[$WRITES] === "asked-at" && dbg instanceof $t13[$RTYPE] ? (dbg["asked-at"] = place, (typeof place === 'number' || place instanceof R.Flonum) && R.noteSchemeStore(dbg, "asked-at", place), undefined) : R.callBinding($t13, [dbg, place]);
+                $t14;
+                $t15 = (C6.v ?? G6());
+                return $tailCall($t15, [dbg]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
         } }["request-pause!"];
@@ -5168,10 +5242,10 @@ export const LIBRARIES = {
         }
       },
       "run-ended!": {
-        params: ["dbg_$2103"],
+        params: ["dbg_$2106"],
         rest: null,
         constants: [new Cons(intern("into"), new Cons(intern("over"), new Cons(intern("out"), new Cons(intern("pausing"), null)))), new Cons(intern("into"), new Cons(intern("over"), new Cons(intern("out"), new Cons(intern("pausing"), null))))],
-        span: {"filename":"debugger.scm","line":694,"column":1,"endLine":701,"endColumn":33},
+        span: {"filename":"debugger.scm","line":704,"column":1,"endLine":711,"endColumn":33},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-paused?")).v;
@@ -5303,10 +5377,10 @@ export const LIBRARIES = {
         }
       },
       "pause-on-exception!": {
-        params: ["dbg_$2104","location_$2105","env_$2106","exception_$2107","continuable?_$2108"],
+        params: ["dbg_$2107","location_$2108","env_$2109","exception_$2110","continuable?_$2111"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":712,"column":1,"endLine":716,"endColumn":6},
+        span: {"filename":"debugger.scm","line":722,"column":1,"endLine":726,"endColumn":6},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "pause!")).v;
@@ -5423,10 +5497,10 @@ export const LIBRARIES = {
         }
       },
       "breaks-on-exception?": {
-        params: ["dbg_$2109","caught?_$2110"],
+        params: ["dbg_$2112","caught?_$2113"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":730,"column":1,"endLine":732,"endColumn":90},
+        span: {"filename":"debugger.scm","line":740,"column":1,"endLine":742,"endColumn":90},
         make: (R, E, K) => {
         const $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-enabled?")).v;
@@ -5480,10 +5554,10 @@ export const LIBRARIES = {
         }
       },
       "set-debugger-breaks-on-caught!": {
-        params: ["dbg_$2111","breaks?_$2112"],
+        params: ["dbg_$2114","breaks?_$2115"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":734,"column":1,"endLine":735,"endColumn":49},
+        span: {"filename":"debugger.scm","line":744,"column":1,"endLine":745,"endColumn":49},
         make: (R, E, K) => {
         const $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%set-debugger-breaks-on-caught!")).v;
@@ -5511,10 +5585,10 @@ export const LIBRARIES = {
         }
       },
       "set-debugger-breaks-on-uncaught!": {
-        params: ["dbg_$2113","breaks?_$2114"],
+        params: ["dbg_$2116","breaks?_$2117"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":737,"column":1,"endLine":738,"endColumn":51},
+        span: {"filename":"debugger.scm","line":747,"column":1,"endLine":748,"endColumn":51},
         make: (R, E, K) => {
         const $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "%set-debugger-breaks-on-uncaught!")).v;
@@ -5542,10 +5616,10 @@ export const LIBRARIES = {
         }
       },
       "compiled-procedure-at": {
-        params: ["dbg_$2115","filename_$2116","line_$2117","column_$2118"],
+        params: ["dbg_$2118","filename_$2119","line_$2120","column_$2121"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":760,"column":1,"endLine":762,"endColumn":83},
+        span: {"filename":"debugger.scm","line":770,"column":1,"endLine":772,"endColumn":83},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "named-span->js")).v;
@@ -5662,10 +5736,10 @@ export const LIBRARIES = {
         }
       },
       "transformer-at": {
-        params: ["dbg_$2119","filename_$2120","line_$2121","column_$2122"],
+        params: ["dbg_$2122","filename_$2123","line_$2124","column_$2125"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":768,"column":1,"endLine":770,"endColumn":83},
+        span: {"filename":"debugger.scm","line":778,"column":1,"endLine":780,"endColumn":83},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "named-span->js")).v;
@@ -5782,10 +5856,10 @@ export const LIBRARIES = {
         }
       },
       "named-span->js": {
-        params: ["named_$2123"],
+        params: ["named_$2126"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":775,"column":1,"endLine":776,"endColumn":67},
+        span: {"filename":"debugger.scm","line":785,"column":1,"endLine":786,"endColumn":67},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "js-obj")).v;
@@ -5834,10 +5908,10 @@ export const LIBRARIES = {
         }
       },
       "unfireable": {
-        params: ["dbg_$2124","filename_$2125","line_$2126","column_$2127"],
+        params: ["dbg_$2127","filename_$2128","line_$2129","column_$2130"],
         rest: null,
         constants: [intern("procedure"), intern("transformer"), intern("procedure"), intern("transformer")],
-        span: {"filename":"debugger.scm","line":787,"column":1,"endLine":793,"endColumn":70},
+        span: {"filename":"debugger.scm","line":797,"column":1,"endLine":803,"endColumn":70},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "innermost-holding")).v;
@@ -5991,10 +6065,10 @@ export const LIBRARIES = {
         }
       },
       "breakpoints->js": {
-        params: ["dbg_$2130"],
+        params: ["dbg_$2133"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":803,"column":1,"endLine":810,"endColumn":38},
+        span: {"filename":"debugger.scm","line":813,"column":1,"endLine":820,"endColumn":38},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list->vector")).v;
@@ -6166,10 +6240,10 @@ export const LIBRARIES = {
         }
       },
       "activations->js": {
-        params: ["dbg_$2132"],
+        params: ["dbg_$2135"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":816,"column":1,"endLine":823,"endColumn":48},
+        span: {"filename":"debugger.scm","line":826,"column":1,"endLine":833,"endColumn":48},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list->vector")).v;
@@ -6363,10 +6437,10 @@ export const LIBRARIES = {
         }
       },
       "pause-state->js": {
-        params: ["dbg_$2134"],
+        params: ["dbg_$2137"],
         rest: null,
         constants: [intern("running"), intern("paused"), intern("running"), intern("paused"), {library: ["scheme","control"]}],
-        span: {"filename":"debugger.scm","line":829,"column":1,"endLine":835,"endColumn":54},
+        span: {"filename":"debugger.scm","line":839,"column":1,"endLine":845,"endColumn":54},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "js-obj")).v;
@@ -6480,10 +6554,10 @@ export const LIBRARIES = {
         }
       },
       "debugger-command?": {
-        params: ["line_$2138"],
+        params: ["line_$2141"],
         rest: null,
         constants: [new Char(58), new Char(58)],
-        span: {"filename":"debugger.scm","line":852,"column":1,"endLine":854,"endColumn":72},
+        span: {"filename":"debugger.scm","line":862,"column":1,"endLine":864,"endColumn":72},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $gt = R.gt, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "trimmed")).v;
@@ -6584,10 +6658,10 @@ export const LIBRARIES = {
         }
       },
       "selected-frame": {
-        params: ["dbg_$2140"],
+        params: ["dbg_$2143"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":859,"column":1,"endLine":863,"endColumn":65},
+        span: {"filename":"debugger.scm","line":869,"column":1,"endLine":873,"endColumn":65},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $gt = R.gt, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-depth")).v;
@@ -6656,10 +6730,10 @@ export const LIBRARIES = {
         }
       },
       "activation-numbered": {
-        params: ["dbg_$2143","n_$2144"],
+        params: ["dbg_$2146","n_$2147"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":868,"column":1,"endLine":869,"endColumn":70},
+        span: {"filename":"debugger.scm","line":878,"column":1,"endLine":879,"endColumn":70},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "list-ref")).v;
@@ -6722,10 +6796,10 @@ export const LIBRARIES = {
         }
       },
       "reset-frame-selection!": {
-        params: ["dbg_$2145"],
+        params: ["dbg_$2148"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":874,"column":1,"endLine":875,"endColumn":41},
+        span: {"filename":"debugger.scm","line":884,"column":1,"endLine":885,"endColumn":41},
         make: (R, E, K) => {
         const $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "set-debugger-selected-frame!")).v;
@@ -6752,11 +6826,171 @@ export const LIBRARIES = {
         return $proc$js;
         }
       },
-      "eval-answer": {
-        params: ["text_$2146"],
+      "resume-message": {
+        params: ["how_$2149"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":882,"column":1,"endLine":882,"endColumn":63},
+        span: {"filename":"debugger.scm","line":894,"column":1,"endLine":900,"endColumn":30},
+        make: (R, E, K) => {
+        const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
+        let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string=?")).v;
+        const $proc = { "resume-message": function (how) {
+          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
+          if (arguments.length !== 1) R.wrongArity("resume-message", 1, false, arguments.length);
+          const $d = $stack.room - 24;
+          if ($d < 0 && $stack.flushable) return $flush($proc$js, [how]);
+          $t0 = (C0.v ?? G0());
+          if (typeof $t0 !== 'function') $notProc($t0);
+          $t1 = $t0[$RAW];
+          $stack.room = $d;
+          $t2 = $t1 === undefined ? ($t0[$PRIM] === true ? $t0(how, "resume") : $foreign($t0, [how, "resume"])) : $t1(how, "resume");
+          while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
+          if ($t2 === $UNWIND) { R.reify($proc$r, 1, { how }); return $UNWIND; }
+          if ($t2 !== false) {
+            return ";; Continuing...";
+          } else {
+            $t3 = (C0.v ?? G0());
+            if (typeof $t3 !== 'function') $notProc($t3);
+            $t4 = $t3[$RAW];
+            $stack.room = $d;
+            $t5 = $t4 === undefined ? ($t3[$PRIM] === true ? $t3(how, "stepInto") : $foreign($t3, [how, "stepInto"])) : $t4(how, "stepInto");
+            while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
+            if ($t5 === $UNWIND) { R.reify($proc$r, 4, { how }); return $UNWIND; }
+            if ($t5 !== false) {
+              return ";; Stepping into...";
+            } else {
+              $t6 = (C0.v ?? G0());
+              if (typeof $t6 !== 'function') $notProc($t6);
+              $t7 = $t6[$RAW];
+              $stack.room = $d;
+              $t8 = $t7 === undefined ? ($t6[$PRIM] === true ? $t6(how, "stepOver") : $foreign($t6, [how, "stepOver"])) : $t7(how, "stepOver");
+              while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
+              if ($t8 === $UNWIND) { R.reify($proc$r, 7, { how }); return $UNWIND; }
+              if ($t8 !== false) {
+                return ";; Stepping over...";
+              } else {
+                $t9 = (C0.v ?? G0());
+                if (typeof $t9 !== 'function') $notProc($t9);
+                $t10 = $t9[$RAW];
+                $stack.room = $d;
+                $t11 = $t10 === undefined ? ($t9[$PRIM] === true ? $t9(how, "stepOut") : $foreign($t9, [how, "stepOut"])) : $t10(how, "stepOut");
+                while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
+                if ($t11 === $UNWIND) { R.reify($proc$r, 10, { how }); return $UNWIND; }
+                if ($t11 !== false) {
+                  return ";; Stepping out...";
+                } else {
+                  $t12 = (C0.v ?? G0());
+                  if (typeof $t12 !== 'function') $notProc($t12);
+                  $t13 = $t12[$RAW];
+                  $stack.room = $d;
+                  $t14 = $t13 === undefined ? ($t12[$PRIM] === true ? $t12(how, "abort") : $foreign($t12, [how, "abort"])) : $t13(how, "abort");
+                  while ($t14 instanceof $TailCall) { $stack.room = $d; $t14 = $step($t14); }
+                  if ($t14 === $UNWIND) { R.reify($proc$r, 13, {  }); return $UNWIND; }
+                  if ($t14 !== false) {
+                    return ";; Evaluation aborted";
+                  } else {
+                    return ";; Resumed";
+                  }
+                }
+              }
+            }
+          }
+        } }["resume-message"];
+        const $proc$r = { "resume-message": function ($pc, $f) {
+          let $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, how, $r;
+          ({ $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14, how, $r } = $f);
+          const $d = $stack.room - 24;
+          for (;;) switch ($pc) {
+              case 0:
+                $t0 = (C0.v ?? G0());
+                if (typeof $t0 !== 'function') $notProc($t0);
+                $t1 = $t0[$RAW];
+                $stack.room = $d;
+                $t2 = $t1 === undefined ? ($t0[$PRIM] === true ? $t0(how, "resume") : $foreign($t0, [how, "resume"])) : $t1(how, "resume");
+                while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
+                if ($t2 === $UNWIND) { R.reify($proc$r, 1, { how }); return $UNWIND; }
+                $r = $t2;
+                $pc = 1; continue;
+              case 1:
+                $t2 = $r;
+                if ($t2 !== false) { $pc = 2; continue; } $pc = 3; continue;
+              case 2:
+                return ";; Continuing...";
+              case 3:
+                $t3 = (C0.v ?? G0());
+                if (typeof $t3 !== 'function') $notProc($t3);
+                $t4 = $t3[$RAW];
+                $stack.room = $d;
+                $t5 = $t4 === undefined ? ($t3[$PRIM] === true ? $t3(how, "stepInto") : $foreign($t3, [how, "stepInto"])) : $t4(how, "stepInto");
+                while ($t5 instanceof $TailCall) { $stack.room = $d; $t5 = $step($t5); }
+                if ($t5 === $UNWIND) { R.reify($proc$r, 4, { how }); return $UNWIND; }
+                $r = $t5;
+                $pc = 4; continue;
+              case 4:
+                $t5 = $r;
+                if ($t5 !== false) { $pc = 5; continue; } $pc = 6; continue;
+              case 5:
+                return ";; Stepping into...";
+              case 6:
+                $t6 = (C0.v ?? G0());
+                if (typeof $t6 !== 'function') $notProc($t6);
+                $t7 = $t6[$RAW];
+                $stack.room = $d;
+                $t8 = $t7 === undefined ? ($t6[$PRIM] === true ? $t6(how, "stepOver") : $foreign($t6, [how, "stepOver"])) : $t7(how, "stepOver");
+                while ($t8 instanceof $TailCall) { $stack.room = $d; $t8 = $step($t8); }
+                if ($t8 === $UNWIND) { R.reify($proc$r, 7, { how }); return $UNWIND; }
+                $r = $t8;
+                $pc = 7; continue;
+              case 7:
+                $t8 = $r;
+                if ($t8 !== false) { $pc = 8; continue; } $pc = 9; continue;
+              case 8:
+                return ";; Stepping over...";
+              case 9:
+                $t9 = (C0.v ?? G0());
+                if (typeof $t9 !== 'function') $notProc($t9);
+                $t10 = $t9[$RAW];
+                $stack.room = $d;
+                $t11 = $t10 === undefined ? ($t9[$PRIM] === true ? $t9(how, "stepOut") : $foreign($t9, [how, "stepOut"])) : $t10(how, "stepOut");
+                while ($t11 instanceof $TailCall) { $stack.room = $d; $t11 = $step($t11); }
+                if ($t11 === $UNWIND) { R.reify($proc$r, 10, { how }); return $UNWIND; }
+                $r = $t11;
+                $pc = 10; continue;
+              case 10:
+                $t11 = $r;
+                if ($t11 !== false) { $pc = 11; continue; } $pc = 12; continue;
+              case 11:
+                return ";; Stepping out...";
+              case 12:
+                $t12 = (C0.v ?? G0());
+                if (typeof $t12 !== 'function') $notProc($t12);
+                $t13 = $t12[$RAW];
+                $stack.room = $d;
+                $t14 = $t13 === undefined ? ($t12[$PRIM] === true ? $t12(how, "abort") : $foreign($t12, [how, "abort"])) : $t13(how, "abort");
+                while ($t14 instanceof $TailCall) { $stack.room = $d; $t14 = $step($t14); }
+                if ($t14 === $UNWIND) { R.reify($proc$r, 13, {  }); return $UNWIND; }
+                $r = $t14;
+                $pc = 13; continue;
+              case 13:
+                $t14 = $r;
+                if ($t14 !== false) { $pc = 14; continue; } $pc = 15; continue;
+              case 14:
+                return ";; Evaluation aborted";
+              case 15:
+                return ";; Resumed";
+              default: throw new Error('$proc$r: bad resume point ' + $pc);
+          }
+        } }["resume-message"];
+        const $proc$js = R.markProcedure($proc, "resume-message", E);
+        $proc$js.$resume = $proc$r;
+        return $proc$js;
+        }
+      },
+      "eval-answer": {
+        params: ["text_$2150"],
+        rest: null,
+        constants: [],
+        span: {"filename":"debugger.scm","line":907,"column":1,"endLine":907,"endColumn":63},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-append")).v;
@@ -6783,10 +7017,10 @@ export const LIBRARIES = {
         }
       },
       "eval-failure": {
-        params: ["message_$2147"],
+        params: ["message_$2151"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":883,"column":1,"endLine":883,"endColumn":81},
+        span: {"filename":"debugger.scm","line":908,"column":1,"endLine":908,"endColumn":81},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-append")).v;
@@ -6813,10 +7047,10 @@ export const LIBRARIES = {
         }
       },
       "debugger-command": {
-        params: ["dbg_$2148","line_$2149"],
+        params: ["dbg_$2152","line_$2153"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":892,"column":1,"endLine":900,"endColumn":99},
+        span: {"filename":"debugger.scm","line":917,"column":1,"endLine":925,"endColumn":99},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "trimmed")).v;
@@ -7069,10 +7303,10 @@ export const LIBRARIES = {
         }
       },
       "debugger-input": {
-        params: ["dbg_$2157","line_$2158"],
+        params: ["dbg_$2161","line_$2162"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":910,"column":1,"endLine":911,"endColumn":91},
+        span: {"filename":"debugger.scm","line":935,"column":1,"endLine":936,"endColumn":91},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-command")).v;
@@ -7154,10 +7388,10 @@ export const LIBRARIES = {
         }
       },
       "when-paused": {
-        params: ["run_$2159"],
+        params: ["run_$2163"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":918,"column":1,"endLine":920,"endColumn":70},
+        span: {"filename":"debugger.scm","line":943,"column":1,"endLine":945,"endColumn":70},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-paused?")).v;
@@ -7233,10 +7467,10 @@ export const LIBRARIES = {
         }
       },
       "debug-command": {
-        params: ["dbg_$2163","args_$2164","rest_$2165"],
+        params: ["dbg_$2167","args_$2168","rest_$2169"],
         rest: null,
         constants: [intern("browser"), intern("browser")],
-        span: {"filename":"debugger.scm","line":922,"column":1,"endLine":935,"endColumn":43},
+        span: {"filename":"debugger.scm","line":947,"column":1,"endLine":960,"endColumn":43},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -7492,10 +7726,10 @@ export const LIBRARIES = {
         }
       },
       "abort-command": {
-        params: ["dbg_$2166","args_$2167","rest_$2168"],
+        params: ["dbg_$2170","args_$2171","rest_$2172"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":937,"column":1,"endLine":939,"endColumn":27},
+        span: {"filename":"debugger.scm","line":967,"column":1,"endLine":969,"endColumn":6},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "abort!")).v;
@@ -7512,7 +7746,7 @@ export const LIBRARIES = {
           while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
           if ($t2 === $UNWIND) { R.reify($proc$r, 1, {  }); return $UNWIND; }
           $t2;
-          return ";; Evaluation aborted";
+          return "";
         } }["abort-command"];
         const $proc$r = { "abort-command": function ($pc, $f) {
           let $t0, $t1, $t2, dbg, args, rest, $r;
@@ -7532,7 +7766,7 @@ export const LIBRARIES = {
               case 1:
                 $t2 = $r;
                 $t2;
-                return ";; Evaluation aborted";
+                return "";
               default: throw new Error('$proc$r: bad resume point ' + $pc);
           }
         } }["abort-command"];
@@ -7542,10 +7776,10 @@ export const LIBRARIES = {
         }
       },
       "place-text": {
-        params: ["filename_$2169","line_$2170","column_$2171"],
+        params: ["filename_$2173","line_$2174","column_$2175"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":944,"column":1,"endLine":946,"endColumn":78},
+        span: {"filename":"debugger.scm","line":974,"column":1,"endLine":976,"endColumn":78},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "string-append")).v;
@@ -7650,10 +7884,10 @@ export const LIBRARIES = {
         }
       },
       "break-command": {
-        params: ["dbg_$2172","args_$2173","rest_$2174"],
+        params: ["dbg_$2176","args_$2177","rest_$2178"],
         rest: null,
         constants: [intern("procedure"), intern("procedure")],
-        span: {"filename":"debugger.scm","line":948,"column":1,"endLine":966,"endColumn":129},
+        span: {"filename":"debugger.scm","line":978,"column":1,"endLine":996,"endColumn":129},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "<")).v;
@@ -8029,10 +8263,10 @@ export const LIBRARIES = {
         }
       },
       "unbreak-command": {
-        params: ["dbg_$2182","args_$2183","rest_$2184"],
+        params: ["dbg_$2186","args_$2187","rest_$2188"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":968,"column":1,"endLine":971,"endColumn":74},
+        span: {"filename":"debugger.scm","line":998,"column":1,"endLine":1001,"endColumn":74},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -8120,10 +8354,10 @@ export const LIBRARIES = {
         }
       },
       "breakpoints-command": {
-        params: ["dbg_$2185","args_$2186","rest_$2187"],
+        params: ["dbg_$2189","args_$2190","rest_$2191"],
         rest: null,
         constants: [intern("procedure"), intern("procedure")],
-        span: {"filename":"debugger.scm","line":973,"column":1,"endLine":993,"endColumn":17},
+        span: {"filename":"debugger.scm","line":1003,"column":1,"endLine":1023,"endColumn":17},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -8407,14 +8641,14 @@ export const LIBRARIES = {
         }
       },
       "step-command": {
-        params: ["step_$2193","message_$2194"],
+        params: ["step_$2197"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":998,"column":1,"endLine":999,"endColumn":61},
+        span: {"filename":"debugger.scm","line":1028,"column":1,"endLine":1029,"endColumn":56},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "when-paused")).v;
-        function $mk$fn0(step, message) {
+        function $mk$fn0(step) {
           const $fn0 = { "anonymous": function (dbg, args, rest) {
             let $t0, $t1, $t2;
             if (arguments.length !== 3) R.wrongArity("anonymous", 3, false, arguments.length);
@@ -8428,7 +8662,7 @@ export const LIBRARIES = {
             while ($t2 instanceof $TailCall) { $stack.room = $d; $t2 = $step($t2); }
             if ($t2 === $UNWIND) { R.reify($fn0$r, 1, {  }); return $UNWIND; }
             $t2;
-            return message;
+            return "";
           } }["anonymous"];
           const $fn0$js = R.markProcedure($fn0, "anonymous", E);
           const $fn0$r = { "anonymous": function ($pc, $f) {
@@ -8449,27 +8683,27 @@ export const LIBRARIES = {
                 case 1:
                   $t2 = $r;
                   $t2;
-                  return message;
+                  return "";
                 default: throw new Error('$fn0$r: bad resume point ' + $pc);
             }
           } }["anonymous"];
           $fn0$js.$resume = $fn0$r;
           return $fn0$js;
         }
-        const $proc = { "step-command": function (step, message) {
+        const $proc = { "step-command": function (step) {
           let $t1, $t2, $t3;
-          if (arguments.length !== 2) R.wrongArity("step-command", 2, false, arguments.length);
-          const $d = $stack.room - 13;
-          $t1 = $mk$fn0(step, message);
+          if (arguments.length !== 1) R.wrongArity("step-command", 1, false, arguments.length);
+          const $d = $stack.room - 12;
+          $t1 = $mk$fn0(step);
           $t2 = (C0.v ?? G0());
           if ($d > 0 && ($t3 = $t2?.[$RAW] ?? $t2)?.[$PRIM] === true) { $stack.room = $d; return $t3($t1); } return $tailCall($t2, [$t1]);
         } }["step-command"];
         const $proc$r = { "step-command": function ($pc, $f) {
-          let $t1, $t2, $t3, step, message, $r;
-          ({ $t1, $t2, $t3, step, message, $r } = $f);
+          let $t1, $t2, $t3, step, $r;
+          ({ $t1, $t2, $t3, step, $r } = $f);
           for (;;) switch ($pc) {
               case 0:
-                $t1 = $mk$fn0(step, message);
+                $t1 = $mk$fn0(step);
                 $t2 = (C0.v ?? G0());
                 return $tailCall($t2, [$t1]);
               default: throw new Error('$proc$r: bad resume point ' + $pc);
@@ -8481,10 +8715,10 @@ export const LIBRARIES = {
         }
       },
       "backtrace-command": {
-        params: ["dbg_$2198","args_$2199","rest_$2200"],
+        params: ["dbg_$2201","args_$2202","rest_$2203"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":1001,"column":1,"endLine":1017,"endColumn":20},
+        span: {"filename":"debugger.scm","line":1031,"column":1,"endLine":1047,"endColumn":20},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $numEq = R.numEq, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "debugger-depth")).v;
@@ -8790,10 +9024,10 @@ export const LIBRARIES = {
         }
       },
       "named-bindings": {
-        params: ["bindings_$2207"],
+        params: ["bindings_$2210"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":1025,"column":1,"endLine":1028,"endColumn":49},
+        span: {"filename":"debugger.scm","line":1055,"column":1,"endLine":1058,"endColumn":49},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "null?")).v;
@@ -8905,10 +9139,10 @@ export const LIBRARIES = {
         }
       },
       "locals-command": {
-        params: ["dbg_$2208","args_$2209","rest_$2210"],
+        params: ["dbg_$2211","args_$2212","rest_$2213"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":1030,"column":1,"endLine":1043,"endColumn":35},
+        span: {"filename":"debugger.scm","line":1060,"column":1,"endLine":1073,"endColumn":35},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "selected-frame")).v;
@@ -9207,10 +9441,10 @@ export const LIBRARIES = {
         }
       },
       "eval-command": {
-        params: ["dbg_$2214","args_$2215","rest_$2216"],
+        params: ["dbg_$2217","args_$2218","rest_$2219"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":1045,"column":1,"endLine":1049,"endColumn":98},
+        span: {"filename":"debugger.scm","line":1075,"column":1,"endLine":1079,"endColumn":98},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "selected-frame")).v;
@@ -9329,10 +9563,10 @@ export const LIBRARIES = {
         }
       },
       "up-command": {
-        params: ["dbg_$2218","args_$2219","rest_$2220"],
+        params: ["dbg_$2221","args_$2222","rest_$2223"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":1051,"column":1,"endLine":1057,"endColumn":40},
+        span: {"filename":"debugger.scm","line":1081,"column":1,"endLine":1087,"endColumn":40},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $sub = R.sub, $gt = R.gt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "selected-frame")).v;
@@ -9445,10 +9679,10 @@ export const LIBRARIES = {
         }
       },
       "down-command": {
-        params: ["dbg_$2222","args_$2223","rest_$2224"],
+        params: ["dbg_$2225","args_$2226","rest_$2227"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":1059,"column":1,"endLine":1065,"endColumn":40},
+        span: {"filename":"debugger.scm","line":1089,"column":1,"endLine":1095,"endColumn":40},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $add = R.add, $sub = R.sub, $lt = R.lt, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign, $READS = R.RECORD_READS, $WRITES = R.RECORD_WRITES, $RTYPE = R.RECORD_TYPE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "selected-frame")).v;
@@ -9570,10 +9804,10 @@ export const LIBRARIES = {
         }
       },
       "help-command": {
-        params: ["dbg_$2226","args_$2227","rest_$2228"],
+        params: ["dbg_$2229","args_$2230","rest_$2231"],
         rest: null,
         constants: [new Cons(";; Debug Commands:", new Cons(";;   :debug on|off     - Enable/disable debugging", new Cons(";;   :break <file> <l> [c] - Set breakpoint", new Cons(";;   :unbreak <id>     - Remove breakpoint", new Cons(";;   :breakpoints      - List all breakpoints", new Cons(";;   :step / :s        - Step into", new Cons(";;   :next / :n        - Step over", new Cons(";;   :finish / :fin    - Step out", new Cons(";;   :continue / :c    - Resume execution", new Cons(";;   :bt / :backtrace  - Show backtrace", new Cons(";;   :locals           - Show local variables", new Cons(";;   :eval <expr>      - Evaluate in selected frame's scope", new Cons(";;   :abort / :a       - Abort current evaluation and return to prompt", new Cons(";;   :up / :u          - Move up the stack", new Cons(";;   :down / :d        - Move down the stack", new Cons(";;   :help / :h / :?   - Show this help", null)))))))))))))))), new Cons(";; Debug Commands:", new Cons(";;   :debug on|off     - Enable/disable debugging", new Cons(";;   :break <file> <l> [c] - Set breakpoint", new Cons(";;   :unbreak <id>     - Remove breakpoint", new Cons(";;   :breakpoints      - List all breakpoints", new Cons(";;   :step / :s        - Step into", new Cons(";;   :next / :n        - Step over", new Cons(";;   :finish / :fin    - Step out", new Cons(";;   :continue / :c    - Resume execution", new Cons(";;   :bt / :backtrace  - Show backtrace", new Cons(";;   :locals           - Show local variables", new Cons(";;   :eval <expr>      - Evaluate in selected frame's scope", new Cons(";;   :abort / :a       - Abort current evaluation and return to prompt", new Cons(";;   :up / :u          - Move up the stack", new Cons(";;   :down / :d        - Move down the stack", new Cons(";;   :help / :h / :?   - Show this help", null))))))))))))))))],
-        span: {"filename":"debugger.scm","line":1067,"column":1,"endLine":1085,"endColumn":10},
+        span: {"filename":"debugger.scm","line":1097,"column":1,"endLine":1115,"endColumn":10},
         make: (R, E, K) => {
         const $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "joined")).v;
@@ -9600,10 +9834,10 @@ export const LIBRARIES = {
         }
       },
       "pause-message": {
-        params: ["info_$2229"],
+        params: ["info_$2232"],
         rest: null,
         constants: [],
-        span: {"filename":"debugger.scm","line":1118,"column":1,"endLine":1126,"endColumn":86},
+        span: {"filename":"debugger.scm","line":1148,"column":1,"endLine":1156,"endColumn":86},
         make: (R, E, K) => {
         const $TailCall = R.TailCall, $step = R.step, $UNWIND = R.UNWIND, $RAW = R.SCHEME_RAW_CALL, $stack = R.stack, $flush = R.flush, $tailCall = R.tailCall, $PRIM = R.SCHEME_PRIMITIVE, $notProc = R.notAProcedure, $foreign = R.callForeign;
         let C0 = R.UNRESOLVED; const G0 = () => (C0 = R.globalCell(E, "js-ref")).v;
@@ -9845,7 +10079,7 @@ export const LIBRARIES = {
       {core: "[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-host\",[\"l\",\"app\",[\"l\",\"library-var\",\"make-record-type\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"lit\",\"debugger-host\"],[\"l\",\"lit\",[\"l\",\"changed\",\"release\",\"resumed\",\"paused\",\"bindings\",\"compiled-procedures\",\"transformers\"]]]]],[\"l\",\"define\",\"make-debugger-host\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-constructor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger-host\"],[\"l\",\"lit\",[\"l\",\"changed\",\"release\",\"resumed\",\"paused\",\"bindings\",\"compiled-procedures\",\"transformers\"]],[\"l\",\"lit\",\"make-debugger-host\"]]]],[\"l\",\"define\",\"debugger-host?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-predicate\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger-host\"]]]],[\"l\",\"define\",\"host-changed\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger-host\"],[\"l\",\"lit\",\"changed\"]]]],[\"l\",\"define\",\"host-release\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger-host\"],[\"l\",\"lit\",\"release\"]]]],[\"l\",\"define\",\"host-resumed\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger-host\"],[\"l\",\"lit\",\"resumed\"]]]],[\"l\",\"define\",\"host-paused\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger-host\"],[\"l\",\"lit\",\"paused\"]]]],[\"l\",\"define\",\"host-bindings\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger-host\"],[\"l\",\"lit\",\"bindings\"]]]],[\"l\",\"define\",\"host-compiled-procedures\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger-host\"],[\"l\",\"lit\",\"compiled-procedures\"]]]],[\"l\",\"define\",\"host-transformers\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger-host\"],[\"l\",\"lit\",\"transformers\"]]]]]]"},
       {core: "[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"breakpoint\",[\"l\",\"app\",[\"l\",\"library-var\",\"make-record-type\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"lit\",\"breakpoint\"],[\"l\",\"lit\",[\"l\",\"id\",\"filename\",\"line\",\"column\"]]]]],[\"l\",\"define\",\"make-breakpoint\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-constructor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"breakpoint\"],[\"l\",\"lit\",[\"l\",\"id\",\"filename\",\"line\",\"column\"]],[\"l\",\"lit\",\"make-breakpoint\"]]]],[\"l\",\"define\",\"breakpoint?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-predicate\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"breakpoint\"]]]],[\"l\",\"define\",\"breakpoint-id\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"breakpoint\"],[\"l\",\"lit\",\"id\"]]]],[\"l\",\"define\",\"breakpoint-filename\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"breakpoint\"],[\"l\",\"lit\",\"filename\"]]]],[\"l\",\"define\",\"breakpoint-line\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"breakpoint\"],[\"l\",\"lit\",\"line\"]]]],[\"l\",\"define\",\"breakpoint-column\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"breakpoint\"],[\"l\",\"lit\",\"column\"]]]]]]"},
       {core: "[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"activation\",[\"l\",\"app\",[\"l\",\"library-var\",\"make-record-type\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"lit\",\"activation\"],[\"l\",\"lit\",[\"l\",\"name\",\"source\",\"env\",\"tail-calls\"]]]]],[\"l\",\"define\",\"make-activation\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-constructor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"activation\"],[\"l\",\"lit\",[\"l\",\"name\",\"source\",\"env\",\"tail-calls\"]],[\"l\",\"lit\",\"make-activation\"]]]],[\"l\",\"define\",\"activation?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-predicate\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"activation\"]]]],[\"l\",\"define\",\"activation-name\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"activation\"],[\"l\",\"lit\",\"name\"]]]],[\"l\",\"define\",\"activation-source\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"activation\"],[\"l\",\"lit\",\"source\"]]]],[\"l\",\"define\",\"activation-env\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"activation\"],[\"l\",\"lit\",\"env\"]]]],[\"l\",\"define\",\"activation-tail-calls\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"activation\"],[\"l\",\"lit\",\"tail-calls\"]]]]]]"},
-      {core: "[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger\",[\"l\",\"app\",[\"l\",\"library-var\",\"make-record-type\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"lit\",\"debugger\"],[\"l\",\"lit\",[\"l\",\"host\",\"enabled?\",\"breakpoints\",\"next-breakpoint\",\"activations\",\"depth\",\"mode\",\"target-depth\",\"reason\",\"data\",\"aborted?\",\"breaks-on-caught?\",\"breaks-on-uncaught?\",\"selected-frame\"]]]]],[\"l\",\"define\",\"%make-debugger\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-constructor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",[\"l\",\"host\",\"enabled?\",\"breakpoints\",\"next-breakpoint\",\"activations\",\"depth\",\"mode\",\"target-depth\",\"reason\",\"data\",\"aborted?\",\"breaks-on-caught?\",\"breaks-on-uncaught?\",\"selected-frame\"]],[\"l\",\"lit\",\"%make-debugger\"]]]],[\"l\",\"define\",\"debugger?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-predicate\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"]]]],[\"l\",\"define\",\"debugger-host\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"host\"]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-enabled?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"enabled?\"]]]],[\"l\",\"define\",\"%set-debugger-enabled!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"enabled?\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-breakpoints\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"breakpoints\"]]]],[\"l\",\"define\",\"set-debugger-breakpoints!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"breakpoints\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-next-breakpoint\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"next-breakpoint\"]]]],[\"l\",\"define\",\"set-debugger-next-breakpoint!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"next-breakpoint\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-activations\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"activations\"]]]],[\"l\",\"define\",\"set-debugger-activations!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"activations\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-depth\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"depth\"]]]],[\"l\",\"define\",\"set-debugger-depth!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"depth\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-mode\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"mode\"]]]],[\"l\",\"define\",\"set-debugger-mode!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"mode\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-target-depth\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"target-depth\"]]]],[\"l\",\"define\",\"set-debugger-target-depth!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"target-depth\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-pause-reason\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"reason\"]]]],[\"l\",\"define\",\"set-debugger-pause-reason!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"reason\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-pause-data\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"data\"]]]],[\"l\",\"define\",\"set-debugger-pause-data!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"data\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-aborted?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"aborted?\"]]]],[\"l\",\"define\",\"set-debugger-aborted!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"aborted?\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-breaks-on-caught?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"breaks-on-caught?\"]]]],[\"l\",\"define\",\"%set-debugger-breaks-on-caught!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"breaks-on-caught?\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-breaks-on-uncaught?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"breaks-on-uncaught?\"]]]],[\"l\",\"define\",\"%set-debugger-breaks-on-uncaught!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"breaks-on-uncaught?\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-selected-frame\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"selected-frame\"]]]],[\"l\",\"define\",\"set-debugger-selected-frame!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"selected-frame\"]]]]]]]]"},
+      {core: "[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger\",[\"l\",\"app\",[\"l\",\"library-var\",\"make-record-type\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"lit\",\"debugger\"],[\"l\",\"lit\",[\"l\",\"host\",\"enabled?\",\"breakpoints\",\"next-breakpoint\",\"activations\",\"depth\",\"mode\",\"target-depth\",\"reason\",\"data\",\"asked-at\",\"aborted?\",\"breaks-on-caught?\",\"breaks-on-uncaught?\",\"selected-frame\"]]]]],[\"l\",\"define\",\"%make-debugger\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-constructor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",[\"l\",\"host\",\"enabled?\",\"breakpoints\",\"next-breakpoint\",\"activations\",\"depth\",\"mode\",\"target-depth\",\"reason\",\"data\",\"asked-at\",\"aborted?\",\"breaks-on-caught?\",\"breaks-on-uncaught?\",\"selected-frame\"]],[\"l\",\"lit\",\"%make-debugger\"]]]],[\"l\",\"define\",\"debugger?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-predicate\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"]]]],[\"l\",\"define\",\"debugger-host\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"host\"]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-enabled?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"enabled?\"]]]],[\"l\",\"define\",\"%set-debugger-enabled!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"enabled?\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-breakpoints\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"breakpoints\"]]]],[\"l\",\"define\",\"set-debugger-breakpoints!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"breakpoints\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-next-breakpoint\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"next-breakpoint\"]]]],[\"l\",\"define\",\"set-debugger-next-breakpoint!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"next-breakpoint\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-activations\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"activations\"]]]],[\"l\",\"define\",\"set-debugger-activations!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"activations\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-depth\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"depth\"]]]],[\"l\",\"define\",\"set-debugger-depth!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"depth\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-mode\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"mode\"]]]],[\"l\",\"define\",\"set-debugger-mode!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"mode\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-target-depth\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"target-depth\"]]]],[\"l\",\"define\",\"set-debugger-target-depth!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"target-depth\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-pause-reason\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"reason\"]]]],[\"l\",\"define\",\"set-debugger-pause-reason!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"reason\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-pause-data\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"data\"]]]],[\"l\",\"define\",\"set-debugger-pause-data!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"data\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-asked-at\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"asked-at\"]]]],[\"l\",\"define\",\"set-debugger-asked-at!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"asked-at\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-aborted?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"aborted?\"]]]],[\"l\",\"define\",\"set-debugger-aborted!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"aborted?\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-breaks-on-caught?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"breaks-on-caught?\"]]]],[\"l\",\"define\",\"%set-debugger-breaks-on-caught!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"breaks-on-caught?\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-breaks-on-uncaught?\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"breaks-on-uncaught?\"]]]],[\"l\",\"define\",\"%set-debugger-breaks-on-uncaught!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"breaks-on-uncaught?\"]]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"debugger-selected-frame\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-accessor\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"selected-frame\"]]]],[\"l\",\"define\",\"set-debugger-selected-frame!\",[\"l\",\"app\",[\"l\",\"library-var\",\"record-modifier\",[\"e\",\"scheme\",\"core\"]],[\"l\",[\"l\",\"var\",\"debugger\"],[\"l\",\"lit\",\"selected-frame\"]]]]]]]]"},
       {procedure: "make-debugger"},
       {procedure: "debugger-debugging?"},
       {procedure: "debugger-interpretation"},
@@ -9894,6 +10128,7 @@ export const LIBRARIES = {
       {procedure: "selected-frame"},
       {procedure: "activation-numbered"},
       {procedure: "reset-frame-selection!"},
+      {procedure: "resume-message"},
       {procedure: "eval-answer"},
       {procedure: "eval-failure"},
       {procedure: "debugger-command"},
@@ -9913,7 +10148,7 @@ export const LIBRARIES = {
       {procedure: "up-command"},
       {procedure: "down-command"},
       {procedure: "help-command"},
-      {core: "[\"l\",\"define\",\"command-table\",[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"debug\"]],[\"l\",\"var\",\"debug-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"abort\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"abort-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"a\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"abort-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"break\"]],[\"l\",\"var\",\"break-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"unbreak\"]],[\"l\",\"var\",\"unbreak-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"breakpoints\"]],[\"l\",\"var\",\"breakpoints-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"step\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-into!\"],[\"l\",\"lit\",[\"s\",\";; Stepping into...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"s\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-into!\"],[\"l\",\"lit\",[\"s\",\";; Stepping into...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"next\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-over!\"],[\"l\",\"lit\",[\"s\",\";; Stepping over...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"n\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-over!\"],[\"l\",\"lit\",[\"s\",\";; Stepping over...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"finish\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-out!\"],[\"l\",\"lit\",[\"s\",\";; Stepping out...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"fin\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-out!\"],[\"l\",\"lit\",[\"s\",\";; Stepping out...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"continue\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"resume!\"],[\"l\",\"lit\",[\"s\",\";; Continuing...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"c\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"resume!\"],[\"l\",\"lit\",[\"s\",\";; Continuing...\"]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"bt\"]],[\"l\",\"var\",\"backtrace-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"backtrace\"]],[\"l\",\"var\",\"backtrace-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"locals\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"locals-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"eval\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"eval-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"up\"]],[\"l\",\"var\",\"up-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"u\"]],[\"l\",\"var\",\"up-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"down\"]],[\"l\",\"var\",\"down-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"d\"]],[\"l\",\"var\",\"down-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"help\"]],[\"l\",\"var\",\"help-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"h\"]],[\"l\",\"var\",\"help-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"?\"]],[\"l\",\"var\",\"help-command\"]]]]]]"},
+      {core: "[\"l\",\"define\",\"command-table\",[\"l\",\"app\",[\"l\",\"var\",\"list\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"debug\"]],[\"l\",\"var\",\"debug-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"abort\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"abort-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"a\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"abort-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"break\"]],[\"l\",\"var\",\"break-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"unbreak\"]],[\"l\",\"var\",\"unbreak-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"breakpoints\"]],[\"l\",\"var\",\"breakpoints-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"step\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-into!\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"s\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-into!\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"next\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-over!\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"n\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-over!\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"finish\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-out!\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"fin\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"step-out!\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"continue\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"resume!\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"c\"]],[\"l\",\"app\",[\"l\",\"var\",\"step-command\"],[\"l\",[\"l\",\"var\",\"resume!\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"bt\"]],[\"l\",\"var\",\"backtrace-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"backtrace\"]],[\"l\",\"var\",\"backtrace-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"locals\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"locals-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"eval\"]],[\"l\",\"app\",[\"l\",\"var\",\"when-paused\"],[\"l\",[\"l\",\"var\",\"eval-command\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"up\"]],[\"l\",\"var\",\"up-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"u\"]],[\"l\",\"var\",\"up-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"down\"]],[\"l\",\"var\",\"down-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"d\"]],[\"l\",\"var\",\"down-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"help\"]],[\"l\",\"var\",\"help-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"h\"]],[\"l\",\"var\",\"help-command\"]]],[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"lit\",[\"s\",\"?\"]],[\"l\",\"var\",\"help-command\"]]]]]]"},
       {procedure: "pause-message"}
     ]
   },
@@ -9961,7 +10196,7 @@ export const LIBRARIES = {
         }
       },
       "set-devtools-display!": {
-        params: ["mode_$2233"],
+        params: ["mode_$2236"],
         rest: null,
         constants: [new Cons(intern("auto"), new Cons(intern("scheme"), new Cons(intern("javascript"), null))), new Cons(intern("auto"), new Cons(intern("scheme"), new Cons(intern("javascript"), null)))],
         span: {"filename":"devtools.scm","line":42,"column":1,"endLine":46,"endColumn":8},
@@ -10048,7 +10283,7 @@ export const LIBRARIES = {
         }
       },
       "paused-in-scheme?": {
-        params: ["paused-in_$2234"],
+        params: ["paused-in_$2237"],
         rest: null,
         constants: [],
         span: {"filename":"devtools.scm","line":54,"column":1,"endLine":55,"endColumn":89},
@@ -10132,7 +10367,7 @@ export const LIBRARIES = {
         }
       },
       "schemes-own?": {
-        params: ["value_$2235"],
+        params: ["value_$2238"],
         rest: null,
         constants: [],
         span: {"filename":"devtools.scm","line":62,"column":1,"endLine":64,"endColumn":92},
@@ -10331,7 +10566,7 @@ export const LIBRARIES = {
         }
       },
       "shared?": {
-        params: ["value_$2243"],
+        params: ["value_$2246"],
         rest: null,
         constants: [],
         span: {"filename":"devtools.scm","line":71,"column":1,"endLine":71,"endColumn":66},
@@ -10375,7 +10610,7 @@ export const LIBRARIES = {
         }
       },
       "drawn-as-scheme?": {
-        params: ["value_$2245","paused-in_$2246"],
+        params: ["value_$2248","paused-in_$2249"],
         rest: null,
         constants: [intern("javascript"), intern("scheme"), intern("javascript"), intern("scheme"), {library: ["scheme","control"]}],
         span: {"filename":"devtools.scm","line":79,"column":1,"endLine":83,"endColumn":91},
@@ -10518,7 +10753,7 @@ export const LIBRARIES = {
         }
       },
       "devtools-header": {
-        params: ["value_$2250","paused-in_$2251"],
+        params: ["value_$2253","paused-in_$2254"],
         rest: null,
         constants: [intern("span"), intern("span")],
         span: {"filename":"devtools.scm","line":107,"column":1,"endLine":109,"endColumn":71},
@@ -10620,7 +10855,7 @@ export const LIBRARIES = {
         }
       },
       "cut-short": {
-        params: ["text_$2252","length_$2253"],
+        params: ["text_$2255","length_$2256"],
         rest: null,
         constants: [],
         span: {"filename":"devtools.scm","line":117,"column":1,"endLine":120,"endColumn":62},
@@ -10710,7 +10945,7 @@ export const LIBRARIES = {
         }
       },
       "header-text": {
-        params: ["value_$2254"],
+        params: ["value_$2257"],
         rest: null,
         constants: [],
         span: {"filename":"devtools.scm","line":127,"column":1,"endLine":130,"endColumn":30},
@@ -10784,7 +11019,7 @@ export const LIBRARIES = {
         }
       },
       "write-shortened": {
-        params: ["value_$2256","depth_$2257","out_$2258"],
+        params: ["value_$2259","depth_$2260","out_$2261"],
         rest: null,
         constants: [new Char(40), new Char(41), new Char(41), new Char(41), new Char(32), new Char(32), new Char(62), new Char(40), new Char(41), new Char(41), new Char(41), new Char(62)],
         span: {"filename":"devtools.scm","line":141,"column":1,"endLine":172,"endColumn":35},
@@ -11414,7 +11649,7 @@ export const LIBRARIES = {
         }
       },
       "write-elements": {
-        params: ["elements_$2262","depth_$2263","out_$2264"],
+        params: ["elements_$2265","depth_$2266","out_$2267"],
         rest: null,
         constants: [new Char(32), new Char(32)],
         span: {"filename":"devtools.scm","line":181,"column":1,"endLine":191,"endColumn":54},
@@ -11600,7 +11835,7 @@ export const LIBRARIES = {
         }
       },
       "bytevector-prefix": {
-        params: ["bytes_$2269","count_$2270"],
+        params: ["bytes_$2272","count_$2273"],
         rest: null,
         constants: [],
         span: {"filename":"devtools.scm","line":199,"column":1,"endLine":201,"endColumn":83},
@@ -11722,7 +11957,7 @@ export const LIBRARIES = {
         }
       },
       "devtools-has-body?": {
-        params: ["value_$2274","paused-in_$2275"],
+        params: ["value_$2277","paused-in_$2278"],
         rest: null,
         constants: [],
         span: {"filename":"devtools.scm","line":219,"column":1,"endLine":220,"endColumn":38},
@@ -11752,7 +11987,7 @@ export const LIBRARIES = {
         }
       },
       "devtools-body": {
-        params: ["value_$2276","paused-in_$2277"],
+        params: ["value_$2279","paused-in_$2280"],
         rest: null,
         constants: [intern("ol"), intern("li"), intern("object"), intern("ol"), intern("li"), intern("object")],
         span: {"filename":"devtools.scm","line":230,"column":1,"endLine":234,"endColumn":86},
@@ -11916,7 +12151,7 @@ export const LIBRARIES = {
         }
       },
       "part-rows": {
-        params: ["value_$2278"],
+        params: ["value_$2281"],
         rest: null,
         constants: [intern("li"), intern("object"), intern("li"), intern("object"), intern("li"), intern("li")],
         span: {"filename":"devtools.scm","line":241,"column":1,"endLine":256,"endColumn":21},
@@ -12449,8 +12684,8 @@ export const LIBRARIES = {
         }
       },
       "cons*": {
-        params: ["first_$2289"],
-        rest: "rest_$2290",
+        params: ["first_$2292"],
+        rest: "rest_$2293",
         constants: [],
         span: {"filename":"devtools.scm","line":263,"column":1,"endLine":264,"endColumn":59},
         make: (R, E, K) => {
@@ -12581,7 +12816,7 @@ export const LIBRARIES = {
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"expander\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"expand\",\"expand-in-environment\"],[\"l\",\"include\",[\"s\",\"expander.scm\"],[\"s\",\"syntax_rules.scm\"],[\"s\",\"explicit_renaming.scm\"]]]",
     procedures: {
       "identifier?": {
-        params: ["x_$2292"],
+        params: ["x_$2295"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":30,"column":1,"endLine":31,"endColumn":39},
@@ -12625,7 +12860,7 @@ export const LIBRARIES = {
         }
       },
       "identifier-name": {
-        params: ["id_$2294"],
+        params: ["id_$2297"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":38,"column":1,"endLine":39,"endColumn":46},
@@ -12667,7 +12902,7 @@ export const LIBRARIES = {
         }
       },
       "named?": {
-        params: ["x_$2295","name_$2296"],
+        params: ["x_$2298","name_$2299"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":47,"column":1,"endLine":48,"endColumn":56},
@@ -12746,7 +12981,7 @@ export const LIBRARIES = {
         }
       },
       "bound-identifier=?": {
-        params: ["a_$2297","b_$2298"],
+        params: ["a_$2300","b_$2301"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":58,"column":1,"endLine":61,"endColumn":40},
@@ -12821,7 +13056,7 @@ export const LIBRARIES = {
         }
       },
       "library-scope-of": {
-        params: ["id_$2300"],
+        params: ["id_$2303"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":68,"column":1,"endLine":69,"endColumn":60},
@@ -12880,7 +13115,7 @@ export const LIBRARIES = {
         }
       },
       "rename": {
-        params: ["name_$2301"],
+        params: ["name_$2304"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":77,"column":1,"endLine":78,"endColumn":99},
@@ -12996,7 +13231,7 @@ export const LIBRARIES = {
         }
       },
       "top-level-env": {
-        params: ["runtime_$2302"],
+        params: ["runtime_$2305"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":126,"column":1,"endLine":127,"endColumn":45},
@@ -13027,7 +13262,7 @@ export const LIBRARIES = {
         }
       },
       "runtime-environment": {
-        params: ["env_$2303"],
+        params: ["env_$2306"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":135,"column":1,"endLine":138,"endColumn":35},
@@ -13097,7 +13332,7 @@ export const LIBRARIES = {
         }
       },
       "env-child": {
-        params: ["env_$2304"],
+        params: ["env_$2307"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":146,"column":1,"endLine":147,"endColumn":55},
@@ -13133,7 +13368,7 @@ export const LIBRARIES = {
         }
       },
       "env-extend": {
-        params: ["env_$2305","id_$2306","name_$2307"],
+        params: ["env_$2308","id_$2309","name_$2310"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":156,"column":1,"endLine":157,"endColumn":73},
@@ -13197,7 +13432,7 @@ export const LIBRARIES = {
         }
       },
       "env-extend-all": {
-        params: ["env_$2308","ids_$2309","names_$2310"],
+        params: ["env_$2311","ids_$2312","names_$2313"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":166,"column":1,"endLine":169,"endColumn":86},
@@ -13280,7 +13515,7 @@ export const LIBRARIES = {
         }
       },
       "env-with-macros": {
-        params: ["env_$2311"],
+        params: ["env_$2314"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":177,"column":1,"endLine":178,"endColumn":96},
@@ -13326,7 +13561,7 @@ export const LIBRARIES = {
         }
       },
       "env-lookup": {
-        params: ["env_$2312","id_$2313"],
+        params: ["env_$2315","id_$2316"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":189,"column":1,"endLine":203,"endColumn":58},
@@ -13513,7 +13748,7 @@ export const LIBRARIES = {
         }
       },
       "local-macro": {
-        params: ["env_$2322","name_$2323"],
+        params: ["env_$2325","name_$2326"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":211,"column":1,"endLine":215,"endColumn":72},
@@ -13621,7 +13856,7 @@ export const LIBRARIES = {
         }
       },
       "innermost-macros": {
-        params: ["env_$2327"],
+        params: ["env_$2330"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":223,"column":1,"endLine":224,"endColumn":30},
@@ -13660,7 +13895,7 @@ export const LIBRARIES = {
         }
       },
       "table-define!": {
-        params: ["table_$2328","name_$2329","transformer_$2330"],
+        params: ["table_$2331","name_$2332","transformer_$2333"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":232,"column":1,"endLine":233,"endColumn":95},
@@ -13763,7 +13998,7 @@ export const LIBRARIES = {
         }
       },
       "defining-environment": {
-        params: ["env_$2332"],
+        params: ["env_$2335"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":264,"column":1,"endLine":266,"endColumn":34},
@@ -13858,7 +14093,7 @@ export const LIBRARIES = {
         }
       },
       "scope-of-use": {
-        params: ["id_$2335","scope_$2336"],
+        params: ["id_$2338","scope_$2339"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":277,"column":1,"endLine":278,"endColumn":54},
@@ -13955,7 +14190,7 @@ export const LIBRARIES = {
         }
       },
       "strict-scope?": {
-        params: ["scope_$2340"],
+        params: ["scope_$2343"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":286,"column":1,"endLine":288,"endColumn":43},
@@ -14016,7 +14251,7 @@ export const LIBRARIES = {
         }
       },
       "keyword-name": {
-        params: ["id_$2342","scope_$2343"],
+        params: ["id_$2345","scope_$2346"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":301,"column":1,"endLine":303,"endColumn":56},
@@ -14135,7 +14370,7 @@ export const LIBRARIES = {
         }
       },
       "operator-keyword": {
-        params: ["id_$2346","env_$2347"],
+        params: ["id_$2349","env_$2350"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":319,"column":1,"endLine":328,"endColumn":58},
@@ -14318,7 +14553,7 @@ export const LIBRARIES = {
         }
       },
       "form-keyword": {
-        params: ["form_$2352","env_$2353"],
+        params: ["form_$2355","env_$2356"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":338,"column":1,"endLine":342,"endColumn":49},
@@ -14452,7 +14687,7 @@ export const LIBRARIES = {
         }
       },
       "define-macro!": {
-        params: ["env_$2354","name_$2355","transformer_$2356"],
+        params: ["env_$2357","name_$2358","transformer_$2359"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":354,"column":1,"endLine":362,"endColumn":45},
@@ -14569,7 +14804,7 @@ export const LIBRARIES = {
         }
       },
       "bind-defined-variable!": {
-        params: ["name_$2359"],
+        params: ["name_$2362"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":371,"column":1,"endLine":375,"endColumn":45},
@@ -14702,7 +14937,7 @@ export const LIBRARIES = {
         }
       },
       "library-binding-env": {
-        params: ["id_$2363","scope_$2364"],
+        params: ["id_$2366","scope_$2367"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":393,"column":1,"endLine":397,"endColumn":24},
@@ -14853,7 +15088,7 @@ export const LIBRARIES = {
         }
       },
       "with-source": {
-        params: ["core_$2369","form_$2370"],
+        params: ["core_$2372","form_$2373"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":418,"column":1,"endLine":422,"endColumn":11},
@@ -14994,7 +15229,7 @@ export const LIBRARIES = {
         }
       },
       "with-use-span": {
-        params: ["expansion_$2373","use_$2374"],
+        params: ["expansion_$2376","use_$2377"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":436,"column":1,"endLine":441,"endColumn":18},
@@ -15125,8 +15360,8 @@ export const LIBRARIES = {
         }
       },
       "expand": {
-        params: ["form_$2377"],
-        rest: "runtime-env_$2378",
+        params: ["form_$2380"],
+        rest: "runtime-env_$2381",
         constants: [],
         span: {"filename":"expander.scm","line":456,"column":1,"endLine":457,"endColumn":82},
         make: (R, E, K) => {
@@ -15202,7 +15437,7 @@ export const LIBRARIES = {
         }
       },
       "expand-in-environment": {
-        params: ["form_$2379","runtime-env_$2380"],
+        params: ["form_$2382","runtime-env_$2383"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":467,"column":1,"endLine":471,"endColumn":104},
@@ -15307,7 +15542,7 @@ export const LIBRARIES = {
         }
       },
       "expand-form": {
-        params: ["form_$2384","env_$2385"],
+        params: ["form_$2387","env_$2388"],
         rest: null,
         constants: [intern("analyze"), intern("node"), intern("lit"), intern("lit"), intern("analyze"), intern("analyze"), intern("node"), intern("lit"), intern("lit"), intern("analyze")],
         span: {"filename":"expander.scm","line":479,"column":1,"endLine":487,"endColumn":78},
@@ -15524,7 +15759,7 @@ export const LIBRARIES = {
         }
       },
       "expand-each": {
-        params: ["forms_$2386","env_$2387"],
+        params: ["forms_$2389","env_$2390"],
         rest: null,
         constants: [intern("analyze"), intern("analyze")],
         span: {"filename":"expander.scm","line":496,"column":1,"endLine":501,"endColumn":83},
@@ -15636,7 +15871,7 @@ export const LIBRARIES = {
         }
       },
       "holds-syntax?": {
-        params: ["datum_$2389"],
+        params: ["datum_$2392"],
         rest: null,
         constants: [intern("eq"), intern("eq")],
         span: {"filename":"expander.scm","line":509,"column":1,"endLine":521,"endColumn":80},
@@ -15936,7 +16171,7 @@ export const LIBRARIES = {
         }
       },
       "expand-variable": {
-        params: ["id_$2398","env_$2399"],
+        params: ["id_$2401","env_$2402"],
         rest: null,
         constants: [intern("var"), intern("var"), intern("library-var"), intern("var"), intern("scoped-var"), intern("var"), intern("var"), intern("var"), intern("library-var"), intern("var"), intern("scoped-var"), intern("var")],
         span: {"filename":"expander.scm","line":531,"column":1,"endLine":545,"endColumn":49},
@@ -16166,7 +16401,7 @@ export const LIBRARIES = {
         }
       },
       "expand-pair": {
-        params: ["form_$2404","env_$2405"],
+        params: ["form_$2407","env_$2408"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":555,"column":1,"endLine":567,"endColumn":60},
@@ -16504,7 +16739,7 @@ export const LIBRARIES = {
         }
       },
       "call-transformer": {
-        params: ["transformer_$2417","form_$2418","env_$2419"],
+        params: ["transformer_$2420","form_$2421","env_$2422"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":595,"column":1,"endLine":598,"endColumn":39},
@@ -16596,7 +16831,7 @@ export const LIBRARIES = {
         }
       },
       "realize!": {
-        params: ["pending_$2421"],
+        params: ["pending_$2424"],
         rest: null,
         constants: [intern("analyze"), intern("analyze"), {library: ["scheme","core"]}, {library: ["scheme","core"]}],
         span: {"filename":"expander.scm","line":613,"column":1,"endLine":622,"endColumn":19},
@@ -16907,7 +17142,7 @@ export const LIBRARIES = {
         }
       },
       "expand-application": {
-        params: ["form_$2426","env_$2427"],
+        params: ["form_$2429","env_$2430"],
         rest: null,
         constants: [intern("js-ref"), intern("super"), intern("app"), intern("var"), intern("class-super-call"), intern("var"), intern("this"), intern("lit"), intern("app"), intern("var"), intern("js-invoke"), intern("lit"), intern("app"), intern("js-ref"), intern("super"), intern("app"), intern("var"), intern("class-super-call"), intern("var"), intern("this"), intern("lit"), intern("app"), intern("var"), intern("js-invoke"), intern("lit"), intern("app")],
         span: {"filename":"expander.scm","line":632,"column":1,"endLine":647,"endColumn":46},
@@ -17298,7 +17533,7 @@ export const LIBRARIES = {
         }
       },
       "special-form": {
-        params: ["keyword_$2437"],
+        params: ["keyword_$2440"],
         rest: null,
         constants: [intern("quote"), intern("if"), intern("lambda"), intern("let"), intern("letrec"), intern("set!"), intern("define"), intern("begin"), intern("quasiquote"), intern("define-syntax"), intern("define-macro"), intern("let-syntax"), intern("letrec-syntax"), intern("import"), intern("define-library"), intern("cond-expand"), intern("quote"), intern("if"), intern("lambda"), intern("let"), intern("letrec"), intern("set!"), intern("define"), intern("begin"), intern("quasiquote"), intern("define-syntax"), intern("define-macro"), intern("let-syntax"), intern("letrec-syntax"), intern("import"), intern("define-library"), intern("cond-expand"), {library: ["scheme","control"]}],
         span: {"filename":"expander.scm","line":658,"column":1,"endLine":676,"endColumn":16},
@@ -17503,7 +17738,7 @@ export const LIBRARIES = {
         }
       },
       "operand-bounds": {
-        params: ["keyword_$2439","form_$2440"],
+        params: ["keyword_$2442","form_$2443"],
         rest: null,
         constants: [intern("quote"), intern("quasiquote"), new Cons(1, 1), intern("if"), new Cons(2, 3), intern("set!"), intern("define-syntax"), new Cons(2, 2), intern("define"), new Cons(2, false), new Cons(1, 2), intern("lambda"), intern("let"), intern("letrec"), intern("let-syntax"), intern("letrec-syntax"), intern("define-macro"), new Cons(2, false), intern("quote"), intern("quasiquote"), new Cons(1, 1), intern("if"), new Cons(2, 3), intern("set!"), intern("define-syntax"), new Cons(2, 2), intern("define"), new Cons(2, false), new Cons(1, 2), intern("lambda"), intern("let"), intern("letrec"), intern("let-syntax"), intern("letrec-syntax"), intern("define-macro"), new Cons(2, false), {library: ["scheme","control"]}],
         span: {"filename":"expander.scm","line":687,"column":1,"endLine":694,"endColumn":16},
@@ -17741,7 +17976,7 @@ export const LIBRARIES = {
         }
       },
       "check-operands": {
-        params: ["keyword_$2442","form_$2443"],
+        params: ["keyword_$2445","form_$2446"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":702,"column":1,"endLine":710,"endColumn":90},
@@ -17927,7 +18162,7 @@ export const LIBRARIES = {
         }
       },
       "operand-count-message": {
-        params: ["bounds_$2449","n_$2450"],
+        params: ["bounds_$2452","n_$2453"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":718,"column":1,"endLine":726,"endColumn":50},
@@ -18193,7 +18428,7 @@ export const LIBRARIES = {
         }
       },
       "expand-quote": {
-        params: ["form_$2453","env_$2454"],
+        params: ["form_$2456","env_$2457"],
         rest: null,
         constants: [intern("lit"), intern("lit")],
         span: {"filename":"expander.scm","line":731,"column":1,"endLine":732,"endColumn":43},
@@ -18267,7 +18502,7 @@ export const LIBRARIES = {
         }
       },
       "expand-if": {
-        params: ["form_$2455","env_$2456"],
+        params: ["form_$2458","env_$2459"],
         rest: null,
         constants: [intern("lit"), intern("if"), intern("lit"), intern("if")],
         span: {"filename":"expander.scm","line":738,"column":1,"endLine":744,"endColumn":45},
@@ -18478,7 +18713,7 @@ export const LIBRARIES = {
         }
       },
       "make-lambda": {
-        params: ["params_$2460","rest_$2461","name_$2462","body_$2463","originals_$2464","original-rest_$2465"],
+        params: ["params_$2463","rest_$2464","name_$2465","body_$2466","originals_$2467","original-rest_$2468"],
         rest: null,
         constants: [intern("lambda"), intern("lambda")],
         span: {"filename":"expander.scm","line":756,"column":1,"endLine":757,"endColumn":64},
@@ -18508,7 +18743,7 @@ export const LIBRARIES = {
         }
       },
       "lambda-form?": {
-        params: ["core_$2466"],
+        params: ["core_$2469"],
         rest: null,
         constants: [intern("lambda"), intern("lambda")],
         span: {"filename":"expander.scm","line":762,"column":1,"endLine":763,"endColumn":28},
@@ -18541,7 +18776,7 @@ export const LIBRARIES = {
         }
       },
       "name-lambda!": {
-        params: ["core_$2467","name_$2468"],
+        params: ["core_$2470","name_$2471"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":771,"column":1,"endLine":773,"endColumn":8},
@@ -18631,7 +18866,7 @@ export const LIBRARIES = {
         }
       },
       "expand-lambda": {
-        params: ["form_$2469","env_$2470"],
+        params: ["form_$2472","env_$2473"],
         rest: null,
         constants: [intern("lambda"), intern("lambda"), intern("lambda"), intern("lambda")],
         span: {"filename":"expander.scm","line":780,"column":1,"endLine":805,"endColumn":60},
@@ -19318,7 +19553,7 @@ export const LIBRARIES = {
         }
       },
       "expand-body": {
-        params: ["body_$2482","env_$2483"],
+        params: ["body_$2485","env_$2486"],
         rest: null,
         constants: [intern("seq"), intern("seq")],
         span: {"filename":"expander.scm","line":816,"column":1,"endLine":820,"endColumn":29},
@@ -19429,7 +19664,7 @@ export const LIBRARIES = {
         }
       },
       "hoist-definitions": {
-        params: ["body_$2485","env_$2486"],
+        params: ["body_$2488","env_$2489"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":829,"column":1,"endLine":839,"endColumn":17},
@@ -19603,7 +19838,7 @@ export const LIBRARIES = {
         }
       },
       "defined-identifier": {
-        params: ["form_$2492","env_$2493"],
+        params: ["form_$2495","env_$2496"],
         rest: null,
         constants: [intern("define"), intern("define")],
         span: {"filename":"expander.scm","line":848,"column":1,"endLine":854,"endColumn":29},
@@ -19741,7 +19976,7 @@ export const LIBRARIES = {
         }
       },
       "expand-scoped-body": {
-        params: ["body_$2495","env_$2496"],
+        params: ["body_$2498","env_$2499"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":860,"column":1,"endLine":861,"endColumn":44},
@@ -19794,7 +20029,7 @@ export const LIBRARIES = {
         }
       },
       "expand-begin": {
-        params: ["form_$2497","env_$2498"],
+        params: ["form_$2500","env_$2501"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":866,"column":1,"endLine":867,"endColumn":32},
@@ -19830,7 +20065,7 @@ export const LIBRARIES = {
         }
       },
       "checked-binding": {
-        params: ["binding_$2499","keyword_$2500","form_$2501"],
+        params: ["binding_$2502","keyword_$2503","form_$2504"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":876,"column":1,"endLine":879,"endColumn":79},
@@ -19929,7 +20164,7 @@ export const LIBRARIES = {
         }
       },
       "expand-let": {
-        params: ["form_$2502","env_$2503"],
+        params: ["form_$2505","env_$2506"],
         rest: null,
         constants: [intern("let"), intern("app"), intern("let"), intern("app")],
         span: {"filename":"expander.scm","line":885,"column":1,"endLine":901,"endColumn":42},
@@ -20355,7 +20590,7 @@ export const LIBRARIES = {
         }
       },
       "expand-named-let": {
-        params: ["form_$2516","env_$2517"],
+        params: ["form_$2519","env_$2520"],
         rest: null,
         constants: [intern("let"), intern("let"), intern("lambda"), intern("letrec"), intern("app"), intern("lambda"), intern("letrec"), intern("app")],
         span: {"filename":"expander.scm","line":912,"column":1,"endLine":922,"endColumn":29},
@@ -20706,7 +20941,7 @@ export const LIBRARIES = {
         }
       },
       "expand-letrec": {
-        params: ["form_$2526","env_$2527"],
+        params: ["form_$2529","env_$2530"],
         rest: null,
         constants: [intern("letrec"), intern("letrec"), intern("letrec"), intern("letrec")],
         span: {"filename":"expander.scm","line":937,"column":1,"endLine":952,"endColumn":69},
@@ -21069,7 +21304,7 @@ export const LIBRARIES = {
         }
       },
       "every-lambda?": {
-        params: ["cores_$2542"],
+        params: ["cores_$2545"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":957,"column":1,"endLine":959,"endColumn":69},
@@ -21158,7 +21393,7 @@ export const LIBRARIES = {
         }
       },
       "letrec-by-assignment": {
-        params: ["names_$2544","originals_$2545","inits_$2546","body_$2547"],
+        params: ["names_$2547","originals_$2548","inits_$2549","body_$2550"],
         rest: null,
         constants: [intern("app"), intern("app"), intern("seq"), intern("set"), intern("var"), intern("set"), intern("var"), intern("lit"), intern("lit"), intern("app"), intern("app"), intern("seq")],
         span: {"filename":"expander.scm","line":970,"column":1,"endLine":988,"endColumn":66},
@@ -21600,7 +21835,7 @@ export const LIBRARIES = {
         }
       },
       "expand-set": {
-        params: ["form_$2555","env_$2556"],
+        params: ["form_$2558","env_$2559"],
         rest: null,
         constants: [intern("js-ref"), intern("app"), intern("var"), intern("js-set!"), intern("lit"), intern("set"), intern("library-set"), intern("set"), intern("js-ref"), intern("app"), intern("var"), intern("js-set!"), intern("lit"), intern("set"), intern("library-set"), intern("set")],
         span: {"filename":"expander.scm","line":995,"column":1,"endLine":1009,"endColumn":50},
@@ -21982,7 +22217,7 @@ export const LIBRARIES = {
         }
       },
       "expand-define": {
-        params: ["form_$2564","env_$2565"],
+        params: ["form_$2567","env_$2568"],
         rest: null,
         constants: [intern("lambda"), intern("define"), intern("define"), intern("lambda"), intern("define"), intern("define")],
         span: {"filename":"expander.scm","line":1016,"column":1,"endLine":1027,"endColumn":95},
@@ -22360,7 +22595,7 @@ export const LIBRARIES = {
         }
       },
       "expand-quasiquote": {
-        params: ["form_$2571","env_$2572"],
+        params: ["form_$2574","env_$2575"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":1038,"column":1,"endLine":1039,"endColumn":29},
@@ -22413,7 +22648,7 @@ export const LIBRARIES = {
         }
       },
       "tagged?": {
-        params: ["x_$2573","name_$2574"],
+        params: ["x_$2576","name_$2577"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":1044,"column":1,"endLine":1045,"endColumn":41},
@@ -22461,7 +22696,7 @@ export const LIBRARIES = {
         }
       },
       "call-of": {
-        params: ["name_$2575","arguments_$2576"],
+        params: ["name_$2578","arguments_$2579"],
         rest: null,
         constants: [intern("app"), intern("var"), intern("app"), intern("var")],
         span: {"filename":"expander.scm","line":1050,"column":1,"endLine":1051,"endColumn":42},
@@ -22513,7 +22748,7 @@ export const LIBRARIES = {
         }
       },
       "quasi": {
-        params: ["template_$2577","env_$2578","depth_$2579"],
+        params: ["template_$2580","env_$2581","depth_$2582"],
         rest: null,
         constants: [intern("quasiquote"), intern("list"), intern("lit"), intern("quasiquote"), intern("unquote"), intern("list"), intern("lit"), intern("unquote"), intern("unquote-splicing"), intern("quasiquote"), intern("list"), intern("lit"), intern("unquote-splicing"), intern("unquote-splicing"), intern("append"), intern("cons"), intern("list->vector"), intern("vector"), intern("lit"), intern("quasiquote"), intern("list"), intern("lit"), intern("quasiquote"), intern("unquote"), intern("list"), intern("lit"), intern("unquote"), intern("unquote-splicing"), intern("quasiquote"), intern("list"), intern("lit"), intern("unquote-splicing"), intern("unquote-splicing"), intern("append"), intern("cons"), intern("list->vector"), intern("vector"), intern("lit")],
         span: {"filename":"expander.scm","line":1061,"column":1,"endLine":1089,"endColumn":54},
@@ -23394,7 +23629,7 @@ export const LIBRARIES = {
         }
       },
       "spliced-in?": {
-        params: ["items_$2588"],
+        params: ["items_$2591"],
         rest: null,
         constants: [intern("unquote-splicing"), intern("unquote-splicing")],
         span: {"filename":"expander.scm","line":1094,"column":1,"endLine":1096,"endColumn":80},
@@ -23483,7 +23718,7 @@ export const LIBRARIES = {
         }
       },
       "list-items": {
-        params: ["x_$2590"],
+        params: ["x_$2593"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":1105,"column":1,"endLine":1106,"endColumn":58},
@@ -23557,7 +23792,7 @@ export const LIBRARIES = {
         }
       },
       "clause-pairs": {
-        params: ["clauses_$2591"],
+        params: ["clauses_$2594"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":1111,"column":1,"endLine":1112,"endColumn":82},
@@ -23719,7 +23954,7 @@ export const LIBRARIES = {
         }
       },
       "expand-define-syntax": {
-        params: ["form_$2594","env_$2595"],
+        params: ["form_$2597","env_$2598"],
         rest: null,
         constants: [intern("syntax-rules"), intern("..."), intern("er-macro-transformer"), intern("define-syntax"), intern("lit"), intern("syntax-rules"), intern("..."), intern("er-macro-transformer"), intern("define-syntax"), intern("lit")],
         span: {"filename":"expander.scm","line":1127,"column":1,"endLine":1141,"endColumn":19},
@@ -24146,7 +24381,7 @@ export const LIBRARIES = {
         }
       },
       "transformer-of?": {
-        params: ["spec_$2601","keyword_$2602","env_$2603"],
+        params: ["spec_$2604","keyword_$2605","env_$2606"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":1152,"column":1,"endLine":1153,"endColumn":41},
@@ -24198,7 +24433,7 @@ export const LIBRARIES = {
         }
       },
       "er-macro-definition": {
-        params: ["spec_$2604","name_$2605","env_$2606"],
+        params: ["spec_$2607","name_$2608","env_$2609"],
         rest: null,
         constants: [intern("er-macro-transformer"), intern("er-macro-transformer"), intern("er-macro-transformer"), intern("er-macro-transformer")],
         span: {"filename":"expander.scm","line":1164,"column":1,"endLine":1168,"endColumn":77},
@@ -24417,7 +24652,7 @@ export const LIBRARIES = {
         }
       },
       "reflecting": {
-        params: ["transformer_$2608","procedure_$2609"],
+        params: ["transformer_$2611","procedure_$2612"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":1177,"column":1,"endLine":1179,"endColumn":15},
@@ -24467,7 +24702,7 @@ export const LIBRARIES = {
         }
       },
       "define-syntax-rules!": {
-        params: ["env_$2610","name_$2611","ellipsis_$2612","literals_$2613","clauses_$2614"],
+        params: ["env_$2613","name_$2614","ellipsis_$2615","literals_$2616","clauses_$2617"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":1189,"column":1,"endLine":1191,"endColumn":108},
@@ -24579,7 +24814,7 @@ export const LIBRARIES = {
         }
       },
       "expand-define-macro": {
-        params: ["form_$2615","env_$2616"],
+        params: ["form_$2618","env_$2619"],
         rest: null,
         constants: [intern("lambda"), intern("define-macro"), intern("lambda"), intern("define-macro"), intern("define-macro"), intern("lit"), intern("define-macro"), intern("lit")],
         span: {"filename":"expander.scm","line":1206,"column":1,"endLine":1221,"endColumn":28},
@@ -25059,7 +25294,7 @@ export const LIBRARIES = {
         }
       },
       "binding-transformer": {
-        params: ["spec_$2638","name_$2639","env_$2640"],
+        params: ["spec_$2641","name_$2642","env_$2643"],
         rest: null,
         constants: [intern("syntax-rules"), intern("..."), intern("er-macro-transformer"), intern("syntax-rules"), intern("syntax-rules"), intern("..."), intern("er-macro-transformer"), intern("syntax-rules")],
         span: {"filename":"expander.scm","line":1261,"column":1,"endLine":1266,"endColumn":57},
@@ -25251,7 +25486,7 @@ export const LIBRARIES = {
         }
       },
       "define-bindings!": {
-        params: ["bindings_$2641","env_$2642","table_$2643"],
+        params: ["bindings_$2644","env_$2645","table_$2646"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":1274,"column":1,"endLine":1278,"endColumn":36},
@@ -25400,7 +25635,7 @@ export const LIBRARIES = {
         }
       },
       "expand-with-macros": {
-        params: ["form_$2646","env_$2647"],
+        params: ["form_$2649","env_$2650"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":1284,"column":1,"endLine":1289,"endColumn":34},
@@ -25552,7 +25787,7 @@ export const LIBRARIES = {
         }
       },
       "expand-let-syntax": {
-        params: ["form_$2649","env_$2650"],
+        params: ["form_$2652","env_$2653"],
         rest: null,
         constants: [intern("let-syntax"), intern("let"), intern("let-syntax"), intern("let")],
         span: {"filename":"expander.scm","line":1295,"column":1,"endLine":1299,"endColumn":68},
@@ -25735,7 +25970,7 @@ export const LIBRARIES = {
         }
       },
       "expand-letrec-syntax": {
-        params: ["form_$2652","env_$2653"],
+        params: ["form_$2655","env_$2656"],
         rest: null,
         constants: [intern("letrec-syntax"), intern("seq"), intern("letrec-syntax"), intern("seq")],
         span: {"filename":"expander.scm","line":1306,"column":1,"endLine":1315,"endColumn":64},
@@ -26037,7 +26272,7 @@ export const LIBRARIES = {
         }
       },
       "expand-import": {
-        params: ["form_$2659","env_$2660"],
+        params: ["form_$2662","env_$2663"],
         rest: null,
         constants: [intern("import"), intern("import")],
         span: {"filename":"expander.scm","line":1324,"column":1,"endLine":1325,"endColumn":29},
@@ -26073,7 +26308,7 @@ export const LIBRARIES = {
         }
       },
       "expand-define-library": {
-        params: ["form_$2661","env_$2662"],
+        params: ["form_$2664","env_$2665"],
         rest: null,
         constants: [intern("define-library"), intern("define-library")],
         span: {"filename":"expander.scm","line":1330,"column":1,"endLine":1331,"endColumn":31},
@@ -26103,7 +26338,7 @@ export const LIBRARIES = {
         }
       },
       "expand-cond-expand": {
-        params: ["form_$2663","env_$2664"],
+        params: ["form_$2666","env_$2667"],
         rest: null,
         constants: [],
         span: {"filename":"expander.scm","line":1337,"column":1,"endLine":1338,"endColumn":47},
@@ -26156,7 +26391,7 @@ export const LIBRARIES = {
         }
       },
       "cond-expand-choice": {
-        params: ["form_$2665"],
+        params: ["form_$2668"],
         rest: null,
         constants: [intern("cond-expand"), intern("else"), intern("begin"), intern("begin"), intern("cond-expand"), intern("else"), intern("begin"), intern("begin")],
         span: {"filename":"expander.scm","line":1345,"column":1,"endLine":1354,"endColumn":41},
@@ -26369,7 +26604,7 @@ export const LIBRARIES = {
         }
       },
       "syntax-rules-transformer": {
-        params: ["literals_$2670","clauses_$2671","defining-scope_$2672","ellipsis_$2673","definition-env_$2674"],
+        params: ["literals_$2673","clauses_$2674","defining-scope_$2675","ellipsis_$2676","definition-env_$2677"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":71,"column":1,"endLine":95,"endColumn":48},
@@ -26722,7 +26957,7 @@ export const LIBRARIES = {
         }
       },
       "no-matching-clause": {
-        params: ["form_$2685"],
+        params: ["form_$2688"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":101,"column":1,"endLine":105,"endColumn":95},
@@ -26876,7 +27111,7 @@ export const LIBRARIES = {
         }
       },
       "libraries-named-in": {
-        params: ["datum_$2687","libraries_$2688"],
+        params: ["datum_$2690","libraries_$2691"],
         rest: null,
         constants: [intern("eq"), intern("eq")],
         span: {"filename":"syntax_rules.scm","line":114,"column":1,"endLine":133,"endColumn":41},
@@ -27283,7 +27518,7 @@ export const LIBRARIES = {
         }
       },
       "literal?": {
-        params: ["id_$2701","literals_$2702"],
+        params: ["id_$2704","literals_$2705"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":141,"column":1,"endLine":143,"endColumn":82},
@@ -27372,7 +27607,7 @@ export const LIBRARIES = {
         }
       },
       "bound-at-use?": {
-        params: ["use-env_$2704","id_$2705"],
+        params: ["use-env_$2707","id_$2708"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":152,"column":1,"endLine":153,"endColumn":25},
@@ -27427,7 +27662,7 @@ export const LIBRARIES = {
         }
       },
       "match": {
-        params: ["pattern_$2706","input_$2707","x_$2708"],
+        params: ["pattern_$2709","input_$2710","x_$2711"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":167,"column":1,"endLine":174,"endColumn":20},
@@ -27630,7 +27865,7 @@ export const LIBRARIES = {
         }
       },
       "match-identifier": {
-        params: ["pattern_$2709","input_$2710","x_$2711"],
+        params: ["pattern_$2712","input_$2713","x_$2714"],
         rest: null,
         constants: [intern("_"), intern("_")],
         span: {"filename":"syntax_rules.scm","line":184,"column":1,"endLine":191,"endColumn":45},
@@ -27852,7 +28087,7 @@ export const LIBRARIES = {
         }
       },
       "ellipsis-follows?": {
-        params: ["pattern_$2712","ellipsis_$2713"],
+        params: ["pattern_$2715","ellipsis_$2716"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":199,"column":1,"endLine":200,"endColumn":64},
@@ -27921,7 +28156,7 @@ export const LIBRARIES = {
         }
       },
       "pair-count": {
-        params: ["x_$2714"],
+        params: ["x_$2717"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":205,"column":1,"endLine":206,"endColumn":47},
@@ -27991,7 +28226,7 @@ export const LIBRARIES = {
         }
       },
       "drop-pairs": {
-        params: ["x_$2715","n_$2716"],
+        params: ["x_$2718","n_$2719"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":211,"column":1,"endLine":212,"endColumn":47},
@@ -28047,7 +28282,7 @@ export const LIBRARIES = {
         }
       },
       "match-list": {
-        params: ["pattern_$2717","input_$2718","x_$2719"],
+        params: ["pattern_$2720","input_$2721","x_$2722"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":219,"column":1,"endLine":237,"endColumn":57},
@@ -28474,7 +28709,7 @@ export const LIBRARIES = {
         }
       },
       "match-each": {
-        params: ["item_$2730","input_$2731","count_$2732","x_$2733"],
+        params: ["item_$2733","input_$2734","count_$2735","x_$2736"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":243,"column":1,"endLine":248,"endColumn":82},
@@ -28581,7 +28816,7 @@ export const LIBRARIES = {
         }
       },
       "sequences": {
-        params: ["variables_$2739","matches_$2740"],
+        params: ["variables_$2742","matches_$2743"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":257,"column":1,"endLine":260,"endColumn":19},
@@ -28709,7 +28944,7 @@ export const LIBRARIES = {
         }
       },
       "merge": {
-        params: ["matched_$2743","bindings_$2744"],
+        params: ["matched_$2746","bindings_$2747"],
         rest: null,
         constants: [intern("syntax-rules"), intern("syntax-rules")],
         span: {"filename":"syntax_rules.scm","line":266,"column":1,"endLine":274,"endColumn":68},
@@ -28887,7 +29122,7 @@ export const LIBRARIES = {
         }
       },
       "pattern-variables": {
-        params: ["pattern_$2746","x_$2747"],
+        params: ["pattern_$2749","x_$2750"],
         rest: null,
         constants: [intern("_"), intern("_")],
         span: {"filename":"syntax_rules.scm","line":283,"column":1,"endLine":293,"endColumn":30},
@@ -29182,7 +29417,7 @@ export const LIBRARIES = {
         }
       },
       "matched-datum": {
-        params: ["value_$2755"],
+        params: ["value_$2758"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":303,"column":1,"endLine":306,"endColumn":14},
@@ -29258,7 +29493,7 @@ export const LIBRARIES = {
         }
       },
       "transcribe": {
-        params: ["template_$2756","bindings_$2757","x_$2758"],
+        params: ["template_$2759","bindings_$2760","x_$2761"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":315,"column":1,"endLine":320,"endColumn":26},
@@ -29401,7 +29636,7 @@ export const LIBRARIES = {
         }
       },
       "transcribe-identifier": {
-        params: ["id_$2759","bindings_$2760","x_$2761"],
+        params: ["id_$2762","bindings_$2763","x_$2764"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":336,"column":1,"endLine":344,"endColumn":80},
@@ -29610,7 +29845,7 @@ export const LIBRARIES = {
         }
       },
       "local-where-defined": {
-        params: ["id_$2764","x_$2765"],
+        params: ["id_$2767","x_$2768"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":351,"column":1,"endLine":356,"endColumn":57},
@@ -29743,7 +29978,7 @@ export const LIBRARIES = {
         }
       },
       "mark-introduced": {
-        params: ["id_$2767","x_$2768"],
+        params: ["id_$2770","x_$2771"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":364,"column":1,"endLine":372,"endColumn":65},
@@ -29953,7 +30188,7 @@ export const LIBRARIES = {
         }
       },
       "transcribe-pair": {
-        params: ["template_$2771","bindings_$2772","x_$2773"],
+        params: ["template_$2774","bindings_$2775","x_$2776"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":379,"column":1,"endLine":387,"endColumn":100},
@@ -30265,7 +30500,7 @@ export const LIBRARIES = {
         }
       },
       "template-variables": {
-        params: ["template_$2775","bindings_$2776"],
+        params: ["template_$2778","bindings_$2779"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":393,"column":1,"endLine":400,"endColumn":32},
@@ -30516,7 +30751,7 @@ export const LIBRARIES = {
         }
       },
       "transcribe-repeated": {
-        params: ["item_$2780","rest_$2781","bindings_$2782","x_$2783"],
+        params: ["item_$2783","rest_$2784","bindings_$2785","x_$2786"],
         rest: null,
         constants: [intern("syntax-rules"), intern("syntax-rules"), intern("syntax-rules"), intern("syntax-rules")],
         span: {"filename":"syntax_rules.scm","line":406,"column":1,"endLine":428,"endColumn":40},
@@ -31032,7 +31267,7 @@ export const LIBRARIES = {
         }
       },
       "same-lengths?": {
-        params: ["lists_$2795"],
+        params: ["lists_$2798"],
         rest: null,
         constants: [],
         span: {"filename":"syntax_rules.scm","line":433,"column":1,"endLine":437,"endColumn":66},
@@ -31150,7 +31385,7 @@ export const LIBRARIES = {
         }
       },
       "transcribe-escaped": {
-        params: ["template_$2800","bindings_$2801","x_$2802"],
+        params: ["template_$2803","bindings_$2804","x_$2805"],
         rest: null,
         constants: [intern("..."), intern("...")],
         span: {"filename":"syntax_rules.scm","line":444,"column":1,"endLine":454,"endColumn":26},
@@ -31448,7 +31683,7 @@ export const LIBRARIES = {
         }
       },
       "er-transformer": {
-        params: ["procedure_$2805","defining-scope_$2806","definition-env_$2807"],
+        params: ["procedure_$2808","defining-scope_$2809","definition-env_$2810"],
         rest: null,
         constants: [intern("..."), intern("...")],
         span: {"filename":"explicit_renaming.scm","line":28,"column":1,"endLine":39,"endColumn":61},
@@ -31649,7 +31884,7 @@ export const LIBRARIES = {
         }
       },
       "renamed": {
-        params: ["id_$2816","x_$2817"],
+        params: ["id_$2819","x_$2820"],
         rest: null,
         constants: [intern("er-macro-transformer"), intern("er-macro-transformer")],
         span: {"filename":"explicit_renaming.scm","line":47,"column":1,"endLine":50,"endColumn":82},
@@ -31711,7 +31946,7 @@ export const LIBRARIES = {
         }
       },
       "same-binding?": {
-        params: ["a_$2818","b_$2819","x_$2820"],
+        params: ["a_$2821","b_$2822","x_$2823"],
         rest: null,
         constants: [],
         span: {"filename":"explicit_renaming.scm","line":63,"column":1,"endLine":65,"endColumn":49},
@@ -31834,7 +32069,7 @@ export const LIBRARIES = {
         }
       },
       "binding-of": {
-        params: ["id_$2821","x_$2822"],
+        params: ["id_$2824","x_$2825"],
         rest: null,
         constants: [],
         span: {"filename":"explicit_renaming.scm","line":75,"column":1,"endLine":79,"endColumn":61},
@@ -32026,7 +32261,7 @@ export const LIBRARIES = {
       {procedure: "define-macro!"},
       {procedure: "bind-defined-variable!"},
       {procedure: "library-binding-env"},
-      {core: "[\"l\",\"define\",\"raise-syntax-error\",[\"l\",\"lambda\",[\"l\",\"message_$2366\",\"form_$2367\",\"keyword_$2368\"],false,[\"s\",\"raise-syntax-error\"],[\"l\",\"app\",[\"l\",\"var\",\"raise\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"%make-syntax-error\"],[\"l\",[\"l\",\"var\",\"message_$2366\"],[\"l\",\"var\",\"form_$2367\"],[\"l\",\"var\",\"keyword_$2368\"]]]]],[\"l\",\"message\",\"form\",\"keyword\"],false]]"},
+      {core: "[\"l\",\"define\",\"raise-syntax-error\",[\"l\",\"lambda\",[\"l\",\"message_$2369\",\"form_$2370\",\"keyword_$2371\"],false,[\"s\",\"raise-syntax-error\"],[\"l\",\"app\",[\"l\",\"var\",\"raise\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"%make-syntax-error\"],[\"l\",[\"l\",\"var\",\"message_$2369\"],[\"l\",\"var\",\"form_$2370\"],[\"l\",\"var\",\"keyword_$2371\"]]]]],[\"l\",\"message\",\"form\",\"keyword\"],false]]"},
       {procedure: "with-source"},
       {procedure: "with-use-span"},
       {procedure: "expand"},
@@ -32036,7 +32271,7 @@ export const LIBRARIES = {
       {procedure: "holds-syntax?"},
       {procedure: "expand-variable"},
       {procedure: "expand-pair"},
-      {core: "[\"l\",\"define\",\"transform\",[\"l\",\"lambda\",[\"l\",\"transformer_$2410\",\"form_$2411\",\"env_$2412\",\"keyword_$2413\"],false,[\"s\",\"transform\"],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$2414\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$2415\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$2416\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"%syntax-error?\"],[\"l\",[\"l\",\"var\",\"e_$2416\"]]],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2414\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"raise\"],[\"l\",[\"l\",\"var\",\"e_$2416\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2414\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"raise-syntax-error\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string-append\"],[\"l\",[\"l\",\"lit\",[\"s\",\"Error expanding macro: \"]],[\"l\",\"app\",[\"l\",\"var\",\"%error-message\"],[\"l\",[\"l\",\"var\",\"e_$2416\"]]]]],[\"l\",\"var\",\"form_$2411\"],[\"l\",\"var\",\"keyword_$2413\"]]]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$2415\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"call-transformer\"],[\"l\",[\"l\",\"var\",\"transformer_$2410\"],[\"l\",\"var\",\"form_$2411\"],[\"l\",\"var\",\"env_$2412\"]]],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"transformer\",\"form\",\"env\",\"keyword\"],false]]"},
+      {core: "[\"l\",\"define\",\"transform\",[\"l\",\"lambda\",[\"l\",\"transformer_$2413\",\"form_$2414\",\"env_$2415\",\"keyword_$2416\"],false,[\"s\",\"transform\"],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$2417\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$2418\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$2419\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"%syntax-error?\"],[\"l\",[\"l\",\"var\",\"e_$2419\"]]],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2417\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"raise\"],[\"l\",[\"l\",\"var\",\"e_$2419\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2417\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"raise-syntax-error\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string-append\"],[\"l\",[\"l\",\"lit\",[\"s\",\"Error expanding macro: \"]],[\"l\",\"app\",[\"l\",\"var\",\"%error-message\"],[\"l\",[\"l\",\"var\",\"e_$2419\"]]]]],[\"l\",\"var\",\"form_$2414\"],[\"l\",\"var\",\"keyword_$2416\"]]]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$2418\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"call-transformer\"],[\"l\",[\"l\",\"var\",\"transformer_$2413\"],[\"l\",\"var\",\"form_$2414\"],[\"l\",\"var\",\"env_$2415\"]]],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"transformer\",\"form\",\"env\",\"keyword\"],false]]"},
       {procedure: "call-transformer"},
       {procedure: "realize!"},
       {procedure: "expand-application"},
@@ -32077,8 +32312,8 @@ export const LIBRARIES = {
       {procedure: "reflecting"},
       {procedure: "define-syntax-rules!"},
       {procedure: "expand-define-macro"},
-      {core: "[\"l\",\"define\",\"transformer-procedure\",[\"l\",\"lambda\",[\"l\",\"made_$2624\",\"name_$2625\",\"form_$2626\",\"keyword_$2627\",\"env_$2628\"],false,[\"s\",\"transformer-procedure\"],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$2629\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$2630\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$2631\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"lit\",true],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2629\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"raise-syntax-error\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string-append\"],[\"l\",[\"l\",\"lit\",[\"s\",\"Error evaluating macro transformer for '\"]],[\"l\",\"app\",[\"l\",\"var\",\"symbol->string\"],[\"l\",[\"l\",\"var\",\"name_$2625\"]]],[\"l\",\"lit\",[\"s\",\"': \"]],[\"l\",\"app\",[\"l\",\"var\",\"%error-message\"],[\"l\",[\"l\",\"var\",\"e_$2631\"]]]]],[\"l\",\"var\",\"form_$2626\"],[\"l\",\"var\",\"keyword_$2627\"]]]]],[\"l\",\"app\",[\"l\",\"library-var\",\"raise\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"var\",\"e_$2631\"]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$2630\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"%evaluate-transformer\"],[\"l\",[\"l\",\"var\",\"made_$2624\"],[\"l\",\"app\",[\"l\",\"var\",\"defining-environment\"],[\"l\",[\"l\",\"var\",\"env_$2628\"]]]]],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"made\",\"name\",\"form\",\"keyword\",\"env\"],false]]"},
-      {core: "[\"l\",\"define\",\"apply-transformer\",[\"l\",\"lambda\",[\"l\",\"procedure_$2632\",\"name_$2633\",\"use_$2634\"],false,[\"s\",\"apply-transformer\"],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$2635\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$2636\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$2637\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"%syntax-error?\"],[\"l\",[\"l\",\"var\",\"e_$2637\"]]],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2635\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"raise\"],[\"l\",[\"l\",\"var\",\"e_$2637\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2635\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"raise-syntax-error\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string-append\"],[\"l\",[\"l\",\"lit\",[\"s\",\"Error expanding macro '\"]],[\"l\",\"app\",[\"l\",\"var\",\"symbol->string\"],[\"l\",[\"l\",\"var\",\"name_$2633\"]]],[\"l\",\"lit\",[\"s\",\"': \"]],[\"l\",\"app\",[\"l\",\"var\",\"%error-message\"],[\"l\",[\"l\",\"var\",\"e_$2637\"]]]]],[\"l\",\"var\",\"use_$2634\"],[\"l\",\"var\",\"name_$2633\"]]]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$2636\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"apply\"],[\"l\",[\"l\",\"var\",\"procedure_$2632\"],[\"l\",\"app\",[\"l\",\"var\",\"cdr\"],[\"l\",[\"l\",\"var\",\"use_$2634\"]]]]],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"procedure\",\"name\",\"use\"],false]]"},
+      {core: "[\"l\",\"define\",\"transformer-procedure\",[\"l\",\"lambda\",[\"l\",\"made_$2627\",\"name_$2628\",\"form_$2629\",\"keyword_$2630\",\"env_$2631\"],false,[\"s\",\"transformer-procedure\"],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$2632\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$2633\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$2634\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"lit\",true],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2632\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"raise-syntax-error\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string-append\"],[\"l\",[\"l\",\"lit\",[\"s\",\"Error evaluating macro transformer for '\"]],[\"l\",\"app\",[\"l\",\"var\",\"symbol->string\"],[\"l\",[\"l\",\"var\",\"name_$2628\"]]],[\"l\",\"lit\",[\"s\",\"': \"]],[\"l\",\"app\",[\"l\",\"var\",\"%error-message\"],[\"l\",[\"l\",\"var\",\"e_$2634\"]]]]],[\"l\",\"var\",\"form_$2629\"],[\"l\",\"var\",\"keyword_$2630\"]]]]],[\"l\",\"app\",[\"l\",\"library-var\",\"raise\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"var\",\"e_$2634\"]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$2633\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"%evaluate-transformer\"],[\"l\",[\"l\",\"var\",\"made_$2627\"],[\"l\",\"app\",[\"l\",\"var\",\"defining-environment\"],[\"l\",[\"l\",\"var\",\"env_$2631\"]]]]],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"made\",\"name\",\"form\",\"keyword\",\"env\"],false]]"},
+      {core: "[\"l\",\"define\",\"apply-transformer\",[\"l\",\"lambda\",[\"l\",\"procedure_$2635\",\"name_$2636\",\"use_$2637\"],false,[\"s\",\"apply-transformer\"],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$2638\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$2639\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$2640\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"%syntax-error?\"],[\"l\",[\"l\",\"var\",\"e_$2640\"]]],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2638\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"raise\"],[\"l\",[\"l\",\"var\",\"e_$2640\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2638\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"raise-syntax-error\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string-append\"],[\"l\",[\"l\",\"lit\",[\"s\",\"Error expanding macro '\"]],[\"l\",\"app\",[\"l\",\"var\",\"symbol->string\"],[\"l\",[\"l\",\"var\",\"name_$2636\"]]],[\"l\",\"lit\",[\"s\",\"': \"]],[\"l\",\"app\",[\"l\",\"var\",\"%error-message\"],[\"l\",[\"l\",\"var\",\"e_$2640\"]]]]],[\"l\",\"var\",\"use_$2637\"],[\"l\",\"var\",\"name_$2636\"]]]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$2639\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"apply\"],[\"l\",[\"l\",\"var\",\"procedure_$2635\"],[\"l\",\"app\",[\"l\",\"var\",\"cdr\"],[\"l\",[\"l\",\"var\",\"use_$2637\"]]]]],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"procedure\",\"name\",\"use\"],false]]"},
       {procedure: "binding-transformer"},
       {procedure: "define-bindings!"},
       {procedure: "expand-with-macros"},
@@ -32129,7 +32364,7 @@ export const LIBRARIES = {
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"handlers\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme-js\",\"winds\"]],[\"l\",\"export\",\"with-exception-handler\",\"raise\",\"raise-continuable\"],[\"l\",\"include\",[\"s\",\"handlers.scm\"]]]",
     procedures: {
       "raise": {
-        params: ["obj_$2832"],
+        params: ["obj_$2835"],
         rest: null,
         constants: [],
         span: {"filename":"handlers.scm","line":47,"column":1,"endLine":54,"endColumn":68},
@@ -32278,7 +32513,7 @@ export const LIBRARIES = {
         }
       },
       "leave-extents": {
-        params: ["winds_$2836"],
+        params: ["winds_$2839"],
         rest: null,
         constants: [],
         span: {"filename":"handlers.scm","line":75,"column":1,"endLine":81,"endColumn":36},
@@ -32418,9 +32653,9 @@ export const LIBRARIES = {
       }
     },
     restore: [
-      {core: "[\"l\",\"define\",\"with-exception-handler\",[\"l\",\"lambda\",[\"l\",\"handler_$2829\",\"thunk_$2830\"],false,[\"s\",\"with-exception-handler\"],[\"l\",\"seq\",[\"l\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"not\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"procedure?\"],[\"l\",[\"l\",\"var\",\"handler_$2829\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"error\"],[\"l\",[\"l\",\"lit\",[\"s\",\"with-exception-handler: expected procedure\"]],[\"l\",\"var\",\"handler_$2829\"]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"not\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"procedure?\"],[\"l\",[\"l\",\"var\",\"thunk_$2830\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"error\"],[\"l\",[\"l\",\"lit\",[\"s\",\"with-exception-handler: expected procedure\"]],[\"l\",\"var\",\"thunk_$2830\"]]],[\"l\",\"lit\",[\"u\"]]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"outer_$2831\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"dynamic-wind\"],[\"l\",[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"%set-handlers!\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"var\",\"handler_$2829\"],[\"l\",\"app\",[\"l\",\"var\",\"%winds\"],null]]],[\"l\",\"var\",\"outer_$2831\"]]]]],null,false],[\"l\",\"var\",\"thunk_$2830\"],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"%set-handlers!\"],[\"l\",[\"l\",\"var\",\"outer_$2831\"]]],null,false]]],[\"l\",\"outer\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"%handlers\"],null]]]]],[\"l\",\"handler\",\"thunk\"],false]]"},
+      {core: "[\"l\",\"define\",\"with-exception-handler\",[\"l\",\"lambda\",[\"l\",\"handler_$2832\",\"thunk_$2833\"],false,[\"s\",\"with-exception-handler\"],[\"l\",\"seq\",[\"l\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"not\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"procedure?\"],[\"l\",[\"l\",\"var\",\"handler_$2832\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"error\"],[\"l\",[\"l\",\"lit\",[\"s\",\"with-exception-handler: expected procedure\"]],[\"l\",\"var\",\"handler_$2832\"]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"not\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"procedure?\"],[\"l\",[\"l\",\"var\",\"thunk_$2833\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"error\"],[\"l\",[\"l\",\"lit\",[\"s\",\"with-exception-handler: expected procedure\"]],[\"l\",\"var\",\"thunk_$2833\"]]],[\"l\",\"lit\",[\"u\"]]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"outer_$2834\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"dynamic-wind\"],[\"l\",[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"%set-handlers!\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"var\",\"handler_$2832\"],[\"l\",\"app\",[\"l\",\"var\",\"%winds\"],null]]],[\"l\",\"var\",\"outer_$2834\"]]]]],null,false],[\"l\",\"var\",\"thunk_$2833\"],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"%set-handlers!\"],[\"l\",[\"l\",\"var\",\"outer_$2834\"]]],null,false]]],[\"l\",\"outer\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"%handlers\"],null]]]]],[\"l\",\"handler\",\"thunk\"],false]]"},
       {procedure: "raise"},
-      {core: "[\"l\",\"define\",\"raise-continuable\",[\"l\",\"lambda\",[\"l\",\"obj_$2834\"],false,[\"s\",\"raise-continuable\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"handlers_$2835\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"null?\"],[\"l\",[\"l\",\"var\",\"handlers_$2835\"]]],[\"l\",\"app\",[\"l\",\"var\",\"%raise-unhandled\"],[\"l\",[\"l\",\"var\",\"obj_$2834\"]]],[\"l\",\"app\",[\"l\",\"var\",\"dynamic-wind\"],[\"l\",[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"%set-handlers!\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cdr\"],[\"l\",[\"l\",\"var\",\"handlers_$2835\"]]]]],null,false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"app\",[\"l\",\"var\",\"caar\"],[\"l\",[\"l\",\"var\",\"handlers_$2835\"]]],[\"l\",[\"l\",\"var\",\"obj_$2834\"]]],null,false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"%set-handlers!\"],[\"l\",[\"l\",\"var\",\"handlers_$2835\"]]],null,false]]]],[\"l\",\"handlers\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"%handlers\"],null]]],[\"l\",\"obj\"],false]]"},
+      {core: "[\"l\",\"define\",\"raise-continuable\",[\"l\",\"lambda\",[\"l\",\"obj_$2837\"],false,[\"s\",\"raise-continuable\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"handlers_$2838\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"null?\"],[\"l\",[\"l\",\"var\",\"handlers_$2838\"]]],[\"l\",\"app\",[\"l\",\"var\",\"%raise-unhandled\"],[\"l\",[\"l\",\"var\",\"obj_$2837\"]]],[\"l\",\"app\",[\"l\",\"var\",\"dynamic-wind\"],[\"l\",[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"%set-handlers!\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cdr\"],[\"l\",[\"l\",\"var\",\"handlers_$2838\"]]]]],null,false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"app\",[\"l\",\"var\",\"caar\"],[\"l\",[\"l\",\"var\",\"handlers_$2838\"]]],[\"l\",[\"l\",\"var\",\"obj_$2837\"]]],null,false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"var\",\"%set-handlers!\"],[\"l\",[\"l\",\"var\",\"handlers_$2838\"]]],null,false]]]],[\"l\",\"handlers\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"%handlers\"],null]]],[\"l\",\"obj\"],false]]"},
       {procedure: "leave-extents"},
       {core: "[\"l\",\"app\",[\"l\",\"var\",\"%set-error-raiser!\"],[\"l\",[\"l\",\"var\",\"raise\"]]]"}
     ]
@@ -32488,7 +32723,7 @@ export const LIBRARIES = {
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"library-system\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"parse-define-library\",\"library-definition?\",\"library-definition-name\",\"library-definition-exports\",\"library-definition-imports\",\"library-definition-body\",\"library-definition-includes\",\"library-definition-includes-ci\",\"library-definition-declaration-files\",\"parse-import-set\",\"import-set?\",\"import-set-library-name\",\"import-set-steps\",\"imported-name\",\"requirement-met?\",\"standard-features\",\"registry-requirement-met?\",\"library-key\",\"make-library-registry\",\"library-registry?\",\"add-feature!\",\"registry-features\",\"registry-feature-list\",\"registry-resolver\",\"set-registry-resolver!\",\"registry-load-hook\",\"set-registry-load-hook!\",\"registry-restorer\",\"set-registry-restorer!\",\"registered-exports\",\"registered-environment\",\"register-exports!\",\"registered-keys\",\"clear-registry!\",\"make-loader\",\"registry-loader\",\"loader-registry\",\"load-library\",\"define-library!\",\"import-sets!\",\"import-into!\",\"syntactic-keyword?\",\"program-parts\",\"make-debugged-programs\",\"record-compiled-over!\",\"compiled-over?\",\"interpret-compiled-over!\",\"switch-back-to-closure!\",\"files-wanted\",\"definition-files-wanted\",\"define-library-parts\"],[\"l\",\"include\",[\"s\",\"library_system.scm\"]]]",
     procedures: {
       "append-each": {
-        params: ["f_$2843","xs_$2844"],
+        params: ["f_$2846","xs_$2847"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":40,"column":1,"endLine":44,"endColumn":53},
@@ -32607,7 +32842,7 @@ export const LIBRARIES = {
         }
       },
       "all?": {
-        params: ["ok?_$2848","xs_$2849"],
+        params: ["ok?_$2851","xs_$2852"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":53,"column":1,"endLine":54,"endColumn":60},
@@ -32693,7 +32928,7 @@ export const LIBRARIES = {
         }
       },
       "some?": {
-        params: ["ok?_$2851","xs_$2852"],
+        params: ["ok?_$2854","xs_$2855"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":63,"column":1,"endLine":64,"endColumn":70},
@@ -32792,7 +33027,7 @@ export const LIBRARIES = {
         }
       },
       "fold": {
-        params: ["kons_$2854","knil_$2855","xs_$2856"],
+        params: ["kons_$2857","knil_$2858","xs_$2859"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":75,"column":1,"endLine":76,"endColumn":66},
@@ -32868,7 +33103,7 @@ export const LIBRARIES = {
         }
       },
       "requirement-met?": {
-        params: ["requirement_$2857","features_$2858","library-available?_$2859"],
+        params: ["requirement_$2860","features_$2861","library-available?_$2862"],
         rest: null,
         constants: [intern("and"), intern("or"), intern("not"), intern("library"), intern("and"), intern("or"), intern("not"), intern("library"), {library: ["scheme","control"]}],
         span: {"filename":"library_system.scm","line":92,"column":1,"endLine":108,"endColumn":25},
@@ -33242,7 +33477,7 @@ export const LIBRARIES = {
         }
       },
       "parse-import-set": {
-        params: ["spec_$2862"],
+        params: ["spec_$2865"],
         rest: null,
         constants: [new Cons(intern("only"), new Cons(intern("except"), new Cons(intern("prefix"), new Cons(intern("rename"), null)))), new Cons(intern("only"), new Cons(intern("except"), new Cons(intern("prefix"), new Cons(intern("rename"), null))))],
         span: {"filename":"library_system.scm","line":137,"column":1,"endLine":145,"endColumn":35},
@@ -33518,7 +33753,7 @@ export const LIBRARIES = {
         }
       },
       "import-filter": {
-        params: ["kind_$2864","args_$2865"],
+        params: ["kind_$2867","args_$2868"],
         rest: null,
         constants: [intern("only"), intern("except"), intern("prefix"), intern("prefix"), intern("rename"), intern("rename"), intern("only"), intern("except"), intern("prefix"), intern("prefix"), intern("rename"), intern("rename"), {library: ["scheme","control"]}],
         span: {"filename":"library_system.scm","line":153,"column":1,"endLine":157,"endColumn":101},
@@ -33674,7 +33909,7 @@ export const LIBRARIES = {
         }
       },
       "imported-name": {
-        params: ["name_$2868","steps_$2869"],
+        params: ["name_$2871","steps_$2872"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":166,"column":1,"endLine":169,"endColumn":78},
@@ -33765,7 +34000,7 @@ export const LIBRARIES = {
         }
       },
       "filtered-name": {
-        params: ["step_$2870","name_$2871"],
+        params: ["step_$2873","name_$2874"],
         rest: null,
         constants: [intern("only"), intern("except"), intern("prefix"), intern("rename"), intern("only"), intern("except"), intern("prefix"), intern("rename"), {library: ["scheme","control"]}],
         span: {"filename":"library_system.scm","line":177,"column":1,"endLine":182,"endColumn":93},
@@ -34011,7 +34246,7 @@ export const LIBRARIES = {
         }
       },
       "parse-define-library": {
-        params: ["form_$2874","met?_$2875"],
+        params: ["form_$2877","met?_$2878"],
         rest: null,
         constants: [intern("define-library"), intern("define-library")],
         span: {"filename":"library_system.scm","line":220,"column":1,"endLine":225,"endColumn":53},
@@ -34187,7 +34422,7 @@ export const LIBRARIES = {
         }
       },
       "parse-declarations": {
-        params: ["name_$2876","declarations_$2877","met?_$2878"],
+        params: ["name_$2879","declarations_$2880","met?_$2881"],
         rest: null,
         constants: [intern("export"), intern("import"), intern("begin"), intern("include"), intern("include-ci"), intern("include-library-declarations"), intern("export"), intern("import"), intern("begin"), intern("include"), intern("include-ci"), intern("include-library-declarations")],
         span: {"filename":"library_system.scm","line":236,"column":1,"endLine":247,"endColumn":50},
@@ -34468,7 +34703,7 @@ export const LIBRARIES = {
         }
       },
       "filter-kind": {
-        params: ["kind_$2882","declarations_$2883"],
+        params: ["kind_$2885","declarations_$2886"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":255,"column":1,"endLine":256,"endColumn":80},
@@ -34539,7 +34774,7 @@ export const LIBRARIES = {
         }
       },
       "decided-declarations": {
-        params: ["declarations_$2885","met?_$2886"],
+        params: ["declarations_$2888","met?_$2889"],
         rest: null,
         constants: [intern("cond-expand"), new Cons(intern("export"), new Cons(intern("import"), new Cons(intern("begin"), new Cons(intern("include"), new Cons(intern("include-ci"), new Cons(intern("include-library-declarations"), null)))))), intern("cond-expand"), new Cons(intern("export"), new Cons(intern("import"), new Cons(intern("begin"), new Cons(intern("include"), new Cons(intern("include-ci"), new Cons(intern("include-library-declarations"), null))))))],
         span: {"filename":"library_system.scm","line":267,"column":1,"endLine":276,"endColumn":19},
@@ -34731,7 +34966,7 @@ export const LIBRARIES = {
         }
       },
       "chosen-clause": {
-        params: ["clauses_$2888","met?_$2889"],
+        params: ["clauses_$2891","met?_$2892"],
         rest: null,
         constants: [intern("else"), intern("else")],
         span: {"filename":"library_system.scm","line":285,"column":1,"endLine":288,"endColumn":52},
@@ -34870,7 +35105,7 @@ export const LIBRARIES = {
         }
       },
       "export-specs": {
-        params: ["declaration_$2891"],
+        params: ["declaration_$2894"],
         rest: null,
         constants: [intern("rename"), intern("rename")],
         span: {"filename":"library_system.scm","line":296,"column":1,"endLine":303,"endColumn":27},
@@ -35124,7 +35359,7 @@ export const LIBRARIES = {
         }
       },
       "name-strings": {
-        params: ["name_$2893"],
+        params: ["name_$2896"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":315,"column":1,"endLine":322,"endColumn":14},
@@ -35333,7 +35568,7 @@ export const LIBRARIES = {
         }
       },
       "library-key": {
-        params: ["name_$2895"],
+        params: ["name_$2898"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":332,"column":1,"endLine":333,"endColumn":36},
@@ -35386,7 +35621,7 @@ export const LIBRARIES = {
         }
       },
       "library-path": {
-        params: ["name_$2896"],
+        params: ["name_$2899"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":341,"column":1,"endLine":342,"endColumn":36},
@@ -35439,7 +35674,7 @@ export const LIBRARIES = {
         }
       },
       "include-path": {
-        params: ["name_$2897","file_$2898"],
+        params: ["name_$2900","file_$2901"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":354,"column":1,"endLine":358,"endColumn":49},
@@ -35564,7 +35799,7 @@ export const LIBRARIES = {
         }
       },
       "joined": {
-        params: ["strings_$2901","separator_$2902"],
+        params: ["strings_$2904","separator_$2905"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":366,"column":1,"endLine":369,"endColumn":81},
@@ -35643,7 +35878,7 @@ export const LIBRARIES = {
         }
       },
       "make-library-registry": {
-        params: ["resolver_$2903","load-hook_$2904","features_$2905"],
+        params: ["resolver_$2906","load-hook_$2907","features_$2908"],
         rest: null,
         constants: [intern("eq"), intern("eq")],
         span: {"filename":"library_system.scm","line":440,"column":1,"endLine":441,"endColumn":77},
@@ -35696,7 +35931,7 @@ export const LIBRARIES = {
         }
       },
       "standard-features": {
-        params: ["host_$2906"],
+        params: ["host_$2909"],
         rest: null,
         constants: [intern("r7rs"), intern("scheme-js"), intern("exact-closed"), intern("ratios"), intern("ieee-float"), intern("full-unicode"), intern("r7rs"), intern("scheme-js"), intern("exact-closed"), intern("ratios"), intern("ieee-float"), intern("full-unicode")],
         span: {"filename":"library_system.scm","line":449,"column":1,"endLine":450,"endColumn":80},
@@ -35726,7 +35961,7 @@ export const LIBRARIES = {
         }
       },
       "registry-feature-list": {
-        params: ["registry_$2907"],
+        params: ["registry_$2910"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":459,"column":1,"endLine":460,"endColumn":44},
@@ -35763,7 +35998,7 @@ export const LIBRARIES = {
         }
       },
       "add-feature!": {
-        params: ["registry_$2908","feature_$2909"],
+        params: ["registry_$2911","feature_$2912"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":467,"column":1,"endLine":469,"endColumn":95},
@@ -35879,7 +36114,7 @@ export const LIBRARIES = {
         }
       },
       "registered-library": {
-        params: ["registry_$2910","key_$2911"],
+        params: ["registry_$2913","key_$2914"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":477,"column":1,"endLine":479,"endColumn":30},
@@ -35948,7 +36183,7 @@ export const LIBRARIES = {
         }
       },
       "registered-exports": {
-        params: ["registry_$2913","key_$2914"],
+        params: ["registry_$2916","key_$2917"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":487,"column":1,"endLine":489,"endColumn":46},
@@ -36011,7 +36246,7 @@ export const LIBRARIES = {
         }
       },
       "registered-environment": {
-        params: ["registry_$2916","key_$2917"],
+        params: ["registry_$2919","key_$2920"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":497,"column":1,"endLine":499,"endColumn":50},
@@ -36074,7 +36309,7 @@ export const LIBRARIES = {
         }
       },
       "register-library!": {
-        params: ["registry_$2919","key_$2920","library_$2921"],
+        params: ["registry_$2922","key_$2923","library_$2924"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":507,"column":1,"endLine":511,"endColumn":102},
@@ -36157,7 +36392,7 @@ export const LIBRARIES = {
         }
       },
       "register-exports!": {
-        params: ["registry_$2923","key_$2924","exports_$2925","environment_$2926"],
+        params: ["registry_$2926","key_$2927","exports_$2928","environment_$2929"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":520,"column":1,"endLine":521,"endColumn":71},
@@ -36194,7 +36429,7 @@ export const LIBRARIES = {
         }
       },
       "registered-keys": {
-        params: ["registry_$2927"],
+        params: ["registry_$2930"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":528,"column":1,"endLine":529,"endColumn":53},
@@ -36258,7 +36493,7 @@ export const LIBRARIES = {
         }
       },
       "clear-registry!": {
-        params: ["registry_$2928"],
+        params: ["registry_$2931"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":535,"column":1,"endLine":536,"endColumn":42},
@@ -36289,7 +36524,7 @@ export const LIBRARIES = {
         }
       },
       "registry-loader": {
-        params: ["registry_$2929","base-environment_$2930","evaluate_$2931"],
+        params: ["registry_$2932","base-environment_$2933","evaluate_$2934"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":571,"column":1,"endLine":578,"endColumn":26},
@@ -36440,7 +36675,7 @@ export const LIBRARIES = {
         }
       },
       "feature-test": {
-        params: ["loader_$2937"],
+        params: ["loader_$2940"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":586,"column":1,"endLine":590,"endColumn":74},
@@ -36528,7 +36763,7 @@ export const LIBRARIES = {
         }
       },
       "registry-requirement-met?": {
-        params: ["registry_$2940","requirement_$2941"],
+        params: ["registry_$2943","requirement_$2944"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":599,"column":1,"endLine":600,"endColumn":65},
@@ -36599,7 +36834,7 @@ export const LIBRARIES = {
         }
       },
       "first-define-library": {
-        params: ["forms_$2951"],
+        params: ["forms_$2954"],
         rest: null,
         constants: [intern("define-library"), intern("define-library")],
         span: {"filename":"library_system.scm","line":629,"column":1,"endLine":632,"endColumn":52},
@@ -36707,7 +36942,7 @@ export const LIBRARIES = {
         }
       },
       "resolve-included": {
-        params: ["loader_$2952","name_$2953","file_$2954"],
+        params: ["loader_$2955","name_$2956","file_$2957"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":649,"column":1,"endLine":650,"endColumn":74},
@@ -36781,7 +37016,7 @@ export const LIBRARIES = {
         }
       },
       "read-library-file": {
-        params: ["loader_$2955","path_$2956","filename_$2957","fold-case?_$2958"],
+        params: ["loader_$2958","path_$2959","filename_$2960","fold-case?_$2961"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":660,"column":1,"endLine":661,"endColumn":75},
@@ -36838,7 +37073,7 @@ export const LIBRARIES = {
         }
       },
       "read-included-file": {
-        params: ["loader_$2959","name_$2960","file_$2961","fold-case?_$2962"],
+        params: ["loader_$2962","name_$2963","file_$2964","fold-case?_$2965"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":671,"column":1,"endLine":672,"endColumn":96},
@@ -36910,7 +37145,7 @@ export const LIBRARIES = {
         }
       },
       "read-resolved": {
-        params: ["source_$2963","path_$2964","filename_$2965","fold-case?_$2966"],
+        params: ["source_$2966","path_$2967","filename_$2968","fold-case?_$2969"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":683,"column":1,"endLine":686,"endColumn":44},
@@ -37007,7 +37242,7 @@ export const LIBRARIES = {
         }
       },
       "load-library": {
-        params: ["loader_$2967","name_$2968"],
+        params: ["loader_$2970","name_$2971"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":697,"column":1,"endLine":714,"endColumn":44},
@@ -37435,7 +37670,7 @@ export const LIBRARIES = {
         }
       },
       "restoring": {
-        params: ["loader_$2978","name_$2979","path_$2980"],
+        params: ["loader_$2981","name_$2982","path_$2983"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":729,"column":1,"endLine":736,"endColumn":109},
@@ -37632,7 +37867,7 @@ export const LIBRARIES = {
         }
       },
       "define-library!": {
-        params: ["loader_$2984","form_$2985"],
+        params: ["loader_$2987","form_$2988"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":746,"column":1,"endLine":747,"endColumn":104},
@@ -37727,7 +37962,7 @@ export const LIBRARIES = {
         }
       },
       "evaluate-definition!": {
-        params: ["loader_$2986","definition_$2987","restoring_$2988"],
+        params: ["loader_$2989","definition_$2990","restoring_$2991"],
         rest: null,
         constants: [intern("procedure"), intern("procedure")],
         span: {"filename":"library_system.scm","line":765,"column":1,"endLine":783,"endColumn":17},
@@ -38264,7 +38499,7 @@ export const LIBRARIES = {
         }
       },
       "declared-definitions": {
-        params: ["loader_$2999","name_$3000","definition_$3001"],
+        params: ["loader_$3002","name_$3003","definition_$3004"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":794,"column":1,"endLine":800,"endColumn":56},
@@ -38409,7 +38644,7 @@ export const LIBRARIES = {
         }
       },
       "body-forms": {
-        params: ["loader_$3004","name_$3005","definition_$3006"],
+        params: ["loader_$3007","name_$3008","definition_$3009"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":810,"column":1,"endLine":815,"endColumn":84},
@@ -38585,7 +38820,7 @@ export const LIBRARIES = {
         }
       },
       "export-value": {
-        params: ["env_$3009","internal_$3010"],
+        params: ["env_$3012","internal_$3013"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":827,"column":1,"endLine":835,"endColumn":52},
@@ -38822,7 +39057,7 @@ export const LIBRARIES = {
         }
       },
       "import!": {
-        params: ["loader_$3015","env_$3016","spec_$3017"],
+        params: ["loader_$3018","env_$3019","spec_$3020"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":848,"column":1,"endLine":849,"endColumn":99},
@@ -38887,7 +39122,7 @@ export const LIBRARIES = {
         }
       },
       "import-sets!": {
-        params: ["loader_$3018","env_$3019","specs_$3020"],
+        params: ["loader_$3021","env_$3022","specs_$3023"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":857,"column":1,"endLine":858,"endColumn":81},
@@ -38965,7 +39200,7 @@ export const LIBRARIES = {
         }
       },
       "program-parts": {
-        params: ["forms_$3022"],
+        params: ["forms_$3025"],
         rest: null,
         constants: [intern("import"), intern("import")],
         span: {"filename":"library_system.scm","line":868,"column":1,"endLine":872,"endColumn":25},
@@ -39138,7 +39373,7 @@ export const LIBRARIES = {
         }
       },
       "import-into!": {
-        params: ["env_$3024","exports_$3025","steps_$3026"],
+        params: ["env_$3027","exports_$3028","steps_$3029"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":884,"column":1,"endLine":896,"endColumn":25},
@@ -39314,7 +39549,7 @@ export const LIBRARIES = {
         }
       },
       "shadow-macro!": {
-        params: ["scope_$3032","name_$3033"],
+        params: ["scope_$3035","name_$3036"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":907,"column":1,"endLine":910,"endColumn":45},
@@ -39441,7 +39676,7 @@ export const LIBRARIES = {
         }
       },
       "record-compiled-over!": {
-        params: ["registry_$3035","debugged_$3036","compiled_$3037","env_$3038"],
+        params: ["registry_$3038","debugged_$3039","compiled_$3040","env_$3041"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":964,"column":1,"endLine":971,"endColumn":31},
@@ -39632,7 +39867,7 @@ export const LIBRARIES = {
         }
       },
       "chosen?": {
-        params: ["which_$3043","closure_$3044"],
+        params: ["which_$3046","closure_$3047"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":977,"column":1,"endLine":978,"endColumn":67},
@@ -39713,7 +39948,7 @@ export const LIBRARIES = {
         }
       },
       "compiled-over?": {
-        params: ["registry_$3046","procedure_$3047"],
+        params: ["registry_$3049","procedure_$3050"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":986,"column":1,"endLine":987,"endColumn":71},
@@ -39750,7 +39985,7 @@ export const LIBRARIES = {
         }
       },
       "interpret-compiled-over!": {
-        params: ["registry_$3048","debugged_$3049","which_$3050","program_$3051"],
+        params: ["registry_$3051","debugged_$3052","which_$3053","program_$3054"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":1009,"column":1,"endLine":1028,"endColumn":72},
@@ -40206,7 +40441,7 @@ export const LIBRARIES = {
         }
       },
       "switch-back-to-closure!": {
-        params: ["registry_$3061","debugged_$3062","twin_$3063"],
+        params: ["registry_$3064","debugged_$3065","twin_$3066"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":1044,"column":1,"endLine":1055,"endColumn":18},
@@ -40441,7 +40676,7 @@ export const LIBRARIES = {
         }
       },
       "files-wanted": {
-        params: ["loader_$3068","name_$3069"],
+        params: ["loader_$3071","name_$3072"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":1089,"column":1,"endLine":1090,"endColumn":76},
@@ -40506,7 +40741,7 @@ export const LIBRARIES = {
         }
       },
       "definition-files-wanted": {
-        params: ["loader_$3070","form_$3071"],
+        params: ["loader_$3073","form_$3074"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":1099,"column":1,"endLine":1102,"endColumn":70},
@@ -40618,7 +40853,7 @@ export const LIBRARIES = {
         }
       },
       "library-wants": {
-        params: ["loader_$3073","name_$3074","found_$3075"],
+        params: ["loader_$3076","name_$3077","found_$3078"],
         rest: null,
         constants: [intern("define-library"), intern("define-library")],
         span: {"filename":"library_system.scm","line":1111,"column":1,"endLine":1122,"endColumn":29},
@@ -40974,7 +41209,7 @@ export const LIBRARIES = {
         }
       },
       "definition-wants": {
-        params: ["loader_$3081","name_$3082","definition_$3083","found_$3084"],
+        params: ["loader_$3084","name_$3085","definition_$3086","found_$3087"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":1134,"column":1,"endLine":1150,"endColumn":87},
@@ -41396,7 +41631,7 @@ export const LIBRARIES = {
         }
       },
       "at-hand?": {
-        params: ["loader_$3094","path_$3095"],
+        params: ["loader_$3097","path_$3098"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":1158,"column":1,"endLine":1159,"endColumn":44},
@@ -41452,7 +41687,7 @@ export const LIBRARIES = {
         }
       },
       "want": {
-        params: ["path_$3096","found_$3097"],
+        params: ["path_$3099","found_$3100"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":1167,"column":1,"endLine":1170,"endColumn":72},
@@ -41533,7 +41768,7 @@ export const LIBRARIES = {
         }
       },
       "define-library-parts": {
-        params: ["registry_$3098","form_$3099"],
+        params: ["registry_$3101","form_$3102"],
         rest: null,
         constants: [],
         span: {"filename":"library_system.scm","line":1182,"column":1,"endLine":1190,"endColumn":63},
@@ -41730,7 +41965,7 @@ export const LIBRARIES = {
       {procedure: "registry-loader"},
       {procedure: "feature-test"},
       {procedure: "registry-requirement-met?"},
-      {core: "[\"l\",\"define\",\"library-available?\",[\"l\",\"lambda\",[\"l\",\"loader_$2942\",\"name_$2943\"],false,[\"s\",\"library-available?\"],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$2944\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$2945\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"condition_$2946\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2944\"],[\"l\",[\"l\",\"lit\",false]]],[\"l\",\"condition\"],false],[\"l\",[\"l\",\"var\",\"condition_$2945\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"key_$2947\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$2948\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$2948\"],[\"l\",\"var\",\"x_$2948\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"source_$2949\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"string?\"],[\"l\",[\"l\",\"var\",\"source_$2949\"]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"form_$2950\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"form_$2950\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"pair?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cdr\"],[\"l\",[\"l\",\"var\",\"form_$2950\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"equal?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"library-key\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"form_$2950\"]]]]],[\"l\",\"var\",\"key_$2947\"]]],[\"l\",\"lit\",false]],[\"l\",\"lit\",false]],[\"l\",\"form\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"first-define-library\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"%read-forms\"],[\"l\",[\"l\",\"var\",\"source_$2949\"],[\"l\",\"lit\",false],[\"l\",\"lit\",false]]]]]]],[\"l\",\"lit\",false]],[\"l\",\"source\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"app\",[\"l\",\"var\",\"loader-resolve\"],[\"l\",[\"l\",\"var\",\"loader_$2942\"]]],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"name-strings\"],[\"l\",[\"l\",\"var\",\"name_$2943\"]]]]]]]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"registered-library\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"loader-registry\"],[\"l\",[\"l\",\"var\",\"loader_$2942\"]]],[\"l\",\"var\",\"key_$2947\"]]],[\"l\",\"lit\",true],[\"l\",\"lit\",false]]]],[\"l\",\"key\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"library-key\"],[\"l\",[\"l\",\"var\",\"name_$2943\"]]]]],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"loader\",\"name\"],false]]"},
+      {core: "[\"l\",\"define\",\"library-available?\",[\"l\",\"lambda\",[\"l\",\"loader_$2945\",\"name_$2946\"],false,[\"s\",\"library-available?\"],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$2947\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$2948\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"condition_$2949\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$2947\"],[\"l\",[\"l\",\"lit\",false]]],[\"l\",\"condition\"],false],[\"l\",[\"l\",\"var\",\"condition_$2948\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"key_$2950\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"x_$2951\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"x_$2951\"],[\"l\",\"var\",\"x_$2951\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"source_$2952\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"string?\"],[\"l\",[\"l\",\"var\",\"source_$2952\"]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"form_$2953\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"var\",\"form_$2953\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"pair?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cdr\"],[\"l\",[\"l\",\"var\",\"form_$2953\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"equal?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"library-key\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cadr\"],[\"l\",[\"l\",\"var\",\"form_$2953\"]]]]],[\"l\",\"var\",\"key_$2950\"]]],[\"l\",\"lit\",false]],[\"l\",\"lit\",false]],[\"l\",\"form\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"first-define-library\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"%read-forms\"],[\"l\",[\"l\",\"var\",\"source_$2952\"],[\"l\",\"lit\",false],[\"l\",\"lit\",false]]]]]]],[\"l\",\"lit\",false]],[\"l\",\"source\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"app\",[\"l\",\"var\",\"loader-resolve\"],[\"l\",[\"l\",\"var\",\"loader_$2945\"]]],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"name-strings\"],[\"l\",[\"l\",\"var\",\"name_$2946\"]]]]]]]],[\"l\",\"x\"],false],[\"l\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"registered-library\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"loader-registry\"],[\"l\",[\"l\",\"var\",\"loader_$2945\"]]],[\"l\",\"var\",\"key_$2950\"]]],[\"l\",\"lit\",true],[\"l\",\"lit\",false]]]],[\"l\",\"key\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"library-key\"],[\"l\",[\"l\",\"var\",\"name_$2946\"]]]]],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"loader\",\"name\"],false]]"},
       {procedure: "first-define-library"},
       {procedure: "resolve-included"},
       {procedure: "read-library-file"},
@@ -41783,7 +42018,7 @@ export const LIBRARIES = {
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"promise\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"],[\"l\",\"only\",[\"l\",\"scheme\",\"primitives\"],\"js-promise?\",\"make-js-promise\",\"js-promise-resolve\",\"js-promise-reject\",\"js-promise-then\",\"js-promise-catch\",\"js-promise-finally\",\"js-promise-all\",\"js-promise-race\",\"js-promise-all-settled\"]],[\"l\",\"export\",\"js-promise?\",\"make-js-promise\",\"js-promise-resolve\",\"js-promise-reject\",\"js-promise-then\",\"js-promise-catch\",\"js-promise-finally\",\"js-promise-all\",\"js-promise-race\",\"js-promise-all-settled\",\"js-promise-map\",\"js-promise-chain\",\"async-lambda\"],[\"l\",\"include\",[\"s\",\"promise.scm\"]]]",
     procedures: {
       "js-promise-map": {
-        params: ["f_$3107","p_$3108"],
+        params: ["f_$3110","p_$3111"],
         rest: null,
         constants: [],
         span: {"filename":"promise.scm","line":80,"column":1,"endLine":81,"endColumn":25},
@@ -41813,8 +42048,8 @@ export const LIBRARIES = {
         }
       },
       "js-promise-chain": {
-        params: ["p_$3109"],
-        rest: "fs_$3110",
+        params: ["p_$3112"],
+        rest: "fs_$3113",
         constants: [],
         span: {"filename":"promise.scm","line":89,"column":1,"endLine":94,"endColumn":25},
         make: (R, E, K) => {
@@ -41906,7 +42141,7 @@ export const LIBRARIES = {
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"reader\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"],[\"l\",\"scheme\",\"control\"]],[\"l\",\"export\",\"read-source\",\"read-source-continuing\",\"read-from-port\",\"complete-text?\",\"delimiter-parens\",\"matching-delimiter\"],[\"l\",\"include\",[\"s\",\"reader.scm\"]]]",
     procedures: {
       "read-string": {
-        params: ["r_$3337"],
+        params: ["r_$3340"],
         rest: null,
         constants: [new Char(34), new Char(34)],
         span: {"filename":"reader.scm","line":770,"column":1,"endLine":771,"endColumn":89},
@@ -41960,7 +42195,7 @@ export const LIBRARIES = {
         }
       },
       "blank?": {
-        params: ["c_$3113"],
+        params: ["c_$3116"],
         rest: null,
         constants: [new Char(32), new Char(9), new Char(10), new Char(13), new Char(12), new Char(32), new Char(9), new Char(10), new Char(13), new Char(12), {library: ["scheme","control"]}],
         span: {"filename":"reader.scm","line":56,"column":1,"endLine":57,"endColumn":67},
@@ -42059,7 +42294,7 @@ export const LIBRARIES = {
         }
       },
       "delimiter?": {
-        params: ["c_$3115"],
+        params: ["c_$3118"],
         rest: null,
         constants: [new Char(40), new Char(41), new Char(123), new Char(125), new Char(91), new Char(93), new Char(59), new Char(34), new Char(124), new Char(40), new Char(41), new Char(123), new Char(125), new Char(91), new Char(93), new Char(59), new Char(34), new Char(124), {library: ["scheme","control"]}],
         span: {"filename":"reader.scm","line":63,"column":1,"endLine":65,"endColumn":70},
@@ -42251,7 +42486,7 @@ export const LIBRARIES = {
         }
       },
       "ascii-letter?": {
-        params: ["c_$3118"],
+        params: ["c_$3121"],
         rest: null,
         constants: [new Char(97), new Char(122), new Char(65), new Char(90), new Char(97), new Char(122), new Char(65), new Char(90)],
         span: {"filename":"reader.scm","line":70,"column":1,"endLine":71,"endColumn":48},
@@ -42292,7 +42527,7 @@ export const LIBRARIES = {
         }
       },
       "digit?": {
-        params: ["c_$3120"],
+        params: ["c_$3123"],
         rest: null,
         constants: [new Char(48), new Char(57), new Char(48), new Char(57)],
         span: {"filename":"reader.scm","line":76,"column":1,"endLine":77,"endColumn":23},
@@ -42321,7 +42556,7 @@ export const LIBRARIES = {
         }
       },
       "make-reader": {
-        params: ["text_$3121","filename_$3122","fold-case?_$3123","dot-notation?_$3124"],
+        params: ["text_$3124","filename_$3125","fold-case?_$3126","dot-notation?_$3127"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":120,"column":1,"endLine":122,"endColumn":25},
@@ -42393,7 +42628,7 @@ export const LIBRARIES = {
         }
       },
       "make-port-reader": {
-        params: ["port_$3125","fold-case?_$3126","dot-notation?_$3127"],
+        params: ["port_$3128","fold-case?_$3129","dot-notation?_$3130"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":127,"column":1,"endLine":128,"endColumn":71},
@@ -42424,7 +42659,7 @@ export const LIBRARIES = {
         }
       },
       "peek": {
-        params: ["r_$3128"],
+        params: ["r_$3131"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":133,"column":1,"endLine":141,"endColumn":84},
@@ -42562,7 +42797,7 @@ export const LIBRARIES = {
         }
       },
       "peek-at": {
-        params: ["r_$3133","ahead_$3134"],
+        params: ["r_$3136","ahead_$3137"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":147,"column":1,"endLine":159,"endColumn":84},
@@ -42781,7 +43016,7 @@ export const LIBRARIES = {
         }
       },
       "looking-at?": {
-        params: ["r_$3140","prefix_$3141"],
+        params: ["r_$3143","prefix_$3144"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":164,"column":1,"endLine":172,"endColumn":73},
@@ -43017,7 +43252,7 @@ export const LIBRARIES = {
         }
       },
       "advance!": {
-        params: ["r_$3147"],
+        params: ["r_$3150"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":178,"column":1,"endLine":187,"endColumn":106},
@@ -43159,7 +43394,7 @@ export const LIBRARIES = {
         }
       },
       "advance-by!": {
-        params: ["r_$3151","count_$3152"],
+        params: ["r_$3154","count_$3155"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":193,"column":1,"endLine":196,"endColumn":63},
@@ -43260,7 +43495,7 @@ export const LIBRARIES = {
         }
       },
       "take-while!": {
-        params: ["r_$3155","ok?_$3156"],
+        params: ["r_$3158","ok?_$3159"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":202,"column":1,"endLine":208,"endColumn":41},
@@ -43419,7 +43654,7 @@ export const LIBRARIES = {
         }
       },
       "line-and-column": {
-        params: ["r_$3160","position_$3161"],
+        params: ["r_$3163","position_$3164"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":219,"column":1,"endLine":222,"endColumn":42},
@@ -43466,7 +43701,7 @@ export const LIBRARIES = {
         }
       },
       "text-line-and-column": {
-        params: ["r_$3162","position_$3163"],
+        params: ["r_$3165","position_$3166"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":227,"column":1,"endLine":244,"endColumn":32},
@@ -43692,7 +43927,7 @@ export const LIBRARIES = {
         }
       },
       "span-from": {
-        params: ["r_$3174","from_$3175"],
+        params: ["r_$3177","from_$3178"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":251,"column":1,"endLine":258,"endColumn":52},
@@ -43879,7 +44114,7 @@ export const LIBRARIES = {
         }
       },
       "with-span!": {
-        params: ["datum_$3177","span_$3178"],
+        params: ["datum_$3180","span_$3181"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":263,"column":1,"endLine":265,"endColumn":9},
@@ -43942,7 +44177,7 @@ export const LIBRARIES = {
         }
       },
       "read-error": {
-        params: ["r_$3179","message_$3180","context_$3181"],
+        params: ["r_$3182","message_$3183","context_$3184"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":277,"column":1,"endLine":279,"endColumn":66},
@@ -44012,7 +44247,7 @@ export const LIBRARIES = {
         }
       },
       "end-of-text": {
-        params: ["r_$3183","message_$3184","context_$3185","start_$3186"],
+        params: ["r_$3186","message_$3187","context_$3188","start_$3189"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":290,"column":1,"endLine":293,"endColumn":50},
@@ -44098,7 +44333,7 @@ export const LIBRARIES = {
         }
       },
       "here": {
-        params: ["r_$3187"],
+        params: ["r_$3190"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":298,"column":1,"endLine":299,"endColumn":70},
@@ -44161,7 +44396,7 @@ export const LIBRARIES = {
         }
       },
       "at-block-comment?": {
-        params: ["r_$3188"],
+        params: ["r_$3191"],
         rest: null,
         constants: [new Char(35), new Char(124), new Char(35), new Char(124)],
         span: {"filename":"reader.scm","line":308,"column":1,"endLine":309,"endColumn":54},
@@ -44242,7 +44477,7 @@ export const LIBRARIES = {
         }
       },
       "skip-atmosphere!": {
-        params: ["r_$3189"],
+        params: ["r_$3192"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":317,"column":1,"endLine":318,"endColumn":76},
@@ -44288,7 +44523,7 @@ export const LIBRARIES = {
         }
       },
       "skip-port-atmosphere!": {
-        params: ["r_$3190"],
+        params: ["r_$3193"],
         rest: null,
         constants: [new Char(59), new Char(10), new Char(13), new Char(10), new Char(13), new Char(59), {library: ["scheme","control"]}],
         span: {"filename":"reader.scm","line":323,"column":1,"endLine":332,"endColumn":31},
@@ -44541,7 +44776,7 @@ export const LIBRARIES = {
         }
       },
       "skip-text-atmosphere!": {
-        params: ["r_$3196"],
+        params: ["r_$3199"],
         rest: null,
         constants: [new Char(59), new Char(59)],
         span: {"filename":"reader.scm","line":337,"column":1,"endLine":349,"endColumn":34},
@@ -44769,7 +45004,7 @@ export const LIBRARIES = {
         }
       },
       "skip-block-comment!": {
-        params: ["r_$3204"],
+        params: ["r_$3207"],
         rest: null,
         constants: [new Char(35), new Char(124), new Char(35), new Char(124), new Char(124), new Char(35), new Char(124), new Char(35), {library: ["scheme","control"]}],
         span: {"filename":"reader.scm","line":355,"column":1,"endLine":367,"endColumn":62},
@@ -45182,7 +45417,7 @@ export const LIBRARIES = {
         }
       },
       "skip-script-header!": {
-        params: ["r_$3210"],
+        params: ["r_$3213"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":374,"column":1,"endLine":376,"endColumn":101},
@@ -45332,7 +45567,7 @@ export const LIBRARIES = {
         }
       },
       "marker?": {
-        params: ["item_$3212"],
+        params: ["item_$3215"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":394,"column":1,"endLine":395,"endColumn":98},
@@ -45409,7 +45644,7 @@ export const LIBRARIES = {
         }
       },
       "read-item": {
-        params: ["r_$3216"],
+        params: ["r_$3219"],
         rest: null,
         constants: [new Char(35), new Char(35)],
         span: {"filename":"reader.scm","line":404,"column":1,"endLine":409,"endColumn":48},
@@ -45532,7 +45767,7 @@ export const LIBRARIES = {
         }
       },
       "read-required": {
-        params: ["r_$3218","context_$3219"],
+        params: ["r_$3221","context_$3222"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":417,"column":1,"endLine":423,"endColumn":25},
@@ -45646,7 +45881,7 @@ export const LIBRARIES = {
         }
       },
       "read-plain": {
-        params: ["r_$3221","c_$3222"],
+        params: ["r_$3224","c_$3225"],
         rest: null,
         constants: [new Char(40), new Char(41), new Char(125), new Char(91), new Char(93), new Char(91), new Char(39), new Char(96), new Char(44), new Char(39), intern("quote"), new Char(96), intern("quasiquote"), new Char(64), intern("unquote-splicing"), intern("unquote"), new Char(34), new Char(124), new Char(123), new Char(40), new Char(41), new Char(125), new Char(91), new Char(93), new Char(91), new Char(39), new Char(96), new Char(44), new Char(39), intern("quote"), new Char(96), intern("quasiquote"), new Char(64), intern("unquote-splicing"), intern("unquote"), new Char(34), new Char(124), new Char(123), {library: ["scheme","control"]}],
         span: {"filename":"reader.scm","line":428,"column":1,"endLine":450,"endColumn":44},
@@ -46217,7 +46452,7 @@ export const LIBRARIES = {
         }
       },
       "read-hash": {
-        params: ["r_$3227"],
+        params: ["r_$3230"],
         rest: null,
         constants: [new Char(40), new Char(123), new Char(59), new Char(92), new Char(40), new Char(123), new Char(59), new Char(92)],
         span: {"filename":"reader.scm","line":455,"column":1,"endLine":470,"endColumn":59},
@@ -46738,7 +46973,7 @@ export const LIBRARIES = {
         }
       },
       "directive": {
-        params: ["r_$3234"],
+        params: ["r_$3237"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":476,"column":1,"endLine":485,"endColumn":44},
@@ -47089,7 +47324,7 @@ export const LIBRARIES = {
         }
       },
       "dotted": {
-        params: ["r_$3244","datum_$3245"],
+        params: ["r_$3247","datum_$3248"],
         rest: null,
         constants: [new Char(46), intern("js-ref"), intern("js-ref"), new Char(46)],
         span: {"filename":"reader.scm","line":494,"column":1,"endLine":502,"endColumn":14},
@@ -47372,7 +47607,7 @@ export const LIBRARIES = {
         }
       },
       "read-list-rest": {
-        params: ["r_$3250","start_$3251"],
+        params: ["r_$3253","start_$3254"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":511,"column":1,"endLine":530,"endColumn":48},
@@ -47688,7 +47923,7 @@ export const LIBRARIES = {
         }
       },
       "finish-list": {
-        params: ["r_$3257","items_$3258","tail_$3259","start_$3260"],
+        params: ["r_$3260","items_$3261","tail_$3262","start_$3263"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":536,"column":1,"endLine":538,"endColumn":67},
@@ -47774,7 +48009,7 @@ export const LIBRARIES = {
         }
       },
       "read-vector-rest": {
-        params: ["r_$3262","start_$3263"],
+        params: ["r_$3265","start_$3266"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":543,"column":1,"endLine":549,"endColumn":48},
@@ -47961,7 +48196,7 @@ export const LIBRARIES = {
         }
       },
       "read-bytevector-rest": {
-        params: ["r_$3267"],
+        params: ["r_$3270"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":555,"column":1,"endLine":561,"endColumn":72},
@@ -48144,7 +48379,7 @@ export const LIBRARIES = {
         }
       },
       "read-object-literal": {
-        params: ["r_$3271"],
+        params: ["r_$3274"],
         rest: null,
         constants: [new Char(125), new Char(40), new Char(125), new Char(40)],
         span: {"filename":"reader.scm","line":568,"column":1,"endLine":583,"endColumn":89},
@@ -48461,7 +48696,7 @@ export const LIBRARIES = {
         }
       },
       "object-entry": {
-        params: ["r_$3278","items_$3279"],
+        params: ["r_$3281","items_$3282"],
         rest: null,
         constants: [intern("..."), intern("...")],
         span: {"filename":"reader.scm","line":595,"column":1,"endLine":601,"endColumn":99},
@@ -48635,7 +48870,7 @@ export const LIBRARIES = {
         }
       },
       "object-form": {
-        params: ["entries_$3280"],
+        params: ["entries_$3283"],
         rest: null,
         constants: [intern("quote"), intern("quote"), intern("js-obj"), intern("js-obj"), intern("js-obj"), intern("js-obj-merge"), intern("js-obj"), intern("js-obj-merge")],
         span: {"filename":"reader.scm","line":606,"column":1,"endLine":619,"endColumn":77},
@@ -49094,7 +49329,7 @@ export const LIBRARIES = {
         }
       },
       "read-atom-text": {
-        params: ["r_$3288"],
+        params: ["r_$3291"],
         rest: null,
         constants: [new Char(35), new Char(35)],
         span: {"filename":"reader.scm","line":629,"column":1,"endLine":642,"endColumn":49},
@@ -49309,7 +49544,7 @@ export const LIBRARIES = {
         }
       },
       "atom": {
-        params: ["text_$3295","r_$3296"],
+        params: ["text_$3298","r_$3299"],
         rest: null,
         constants: [new Char(35), new Cons("#t", new Cons("#true", null)), new Cons("#f", new Cons("#false", null)), new Char(35), new Cons("#t", new Cons("#true", null)), new Cons("#f", new Cons("#false", null))],
         span: {"filename":"reader.scm","line":649,"column":1,"endLine":656,"endColumn":43},
@@ -49536,7 +49771,7 @@ export const LIBRARIES = {
         }
       },
       "number-start?": {
-        params: ["c_$3298"],
+        params: ["c_$3301"],
         rest: null,
         constants: [new Char(43), new Char(45), new Char(46), new Char(35), new Char(43), new Char(45), new Char(46), new Char(35), {library: ["scheme","control"]}],
         span: {"filename":"reader.scm","line":663,"column":1,"endLine":664,"endColumn":61},
@@ -49653,7 +49888,7 @@ export const LIBRARIES = {
         }
       },
       "symbol-or-access": {
-        params: ["text_$3301","r_$3302"],
+        params: ["text_$3304","r_$3305"],
         rest: null,
         constants: [intern("js-ref"), intern("js-ref")],
         span: {"filename":"reader.scm","line":670,"column":1,"endLine":676,"endColumn":33},
@@ -49848,7 +50083,7 @@ export const LIBRARIES = {
         }
       },
       "property-access?": {
-        params: ["name_$3307"],
+        params: ["name_$3310"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":681,"column":1,"endLine":683,"endColumn":56},
@@ -49937,7 +50172,7 @@ export const LIBRARIES = {
         }
       },
       "dot-parts": {
-        params: ["name_$3309"],
+        params: ["name_$3312"],
         rest: null,
         constants: [new Char(46), new Char(46)],
         span: {"filename":"reader.scm","line":688,"column":1,"endLine":693,"endColumn":69},
@@ -50172,7 +50407,7 @@ export const LIBRARIES = {
         }
       },
       "read-character": {
-        params: ["r_$3314"],
+        params: ["r_$3317"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":699,"column":1,"endLine":700,"endColumn":43},
@@ -50225,7 +50460,7 @@ export const LIBRARIES = {
         }
       },
       "character-name!": {
-        params: ["r_$3315"],
+        params: ["r_$3318"],
         rest: null,
         constants: [new Cons(new Char(120), new Cons(new Char(88), null)), new Cons(new Char(120), new Cons(new Char(88), null))],
         span: {"filename":"reader.scm","line":706,"column":1,"endLine":715,"endColumn":48},
@@ -50567,7 +50802,7 @@ export const LIBRARIES = {
         }
       },
       "named-character": {
-        params: ["r_$3318","name_$3319"],
+        params: ["r_$3321","name_$3322"],
         rest: null,
         constants: [new Char(120), new Char(120)],
         span: {"filename":"reader.scm","line":720,"column":1,"endLine":729,"endColumn":95},
@@ -50936,7 +51171,7 @@ export const LIBRARIES = {
         }
       },
       "read-delimited": {
-        params: ["r_$3322","close_$3323","escape_$3324","message_$3325","context_$3326"],
+        params: ["r_$3325","close_$3326","escape_$3327","message_$3328","context_$3329"],
         rest: null,
         constants: [new Char(92), new Char(92), new Char(92), new Char(92)],
         span: {"filename":"reader.scm","line":747,"column":1,"endLine":765,"endColumn":53},
@@ -51384,7 +51619,7 @@ export const LIBRARIES = {
         }
       },
       "read-bar-symbol": {
-        params: ["r_$3338"],
+        params: ["r_$3341"],
         rest: null,
         constants: [new Char(124), new Char(124)],
         span: {"filename":"reader.scm","line":777,"column":1,"endLine":778,"endColumn":90},
@@ -51438,7 +51673,7 @@ export const LIBRARIES = {
         }
       },
       "string-escape": {
-        params: ["r_$3339"],
+        params: ["r_$3342"],
         rest: null,
         constants: [new Cons(new Cons(new Char(97), 7), new Cons(new Cons(new Char(98), 8), new Cons(new Cons(new Char(116), 9), new Cons(new Cons(new Char(110), 10), new Cons(new Cons(new Char(114), 13), null))))), new Char(120), new Cons(new Cons(new Char(97), 7), new Cons(new Cons(new Char(98), 8), new Cons(new Cons(new Char(116), 9), new Cons(new Cons(new Char(110), 10), new Cons(new Cons(new Char(114), 13), null))))), new Char(120)],
         span: {"filename":"reader.scm","line":786,"column":1,"endLine":792,"endColumn":44},
@@ -51655,7 +51890,7 @@ export const LIBRARIES = {
         }
       },
       "symbol-escape": {
-        params: ["r_$3343"],
+        params: ["r_$3346"],
         rest: null,
         constants: [new Char(120), new Char(120)],
         span: {"filename":"reader.scm","line":798,"column":1,"endLine":801,"endColumn":53},
@@ -51762,7 +51997,7 @@ export const LIBRARIES = {
         }
       },
       "hex-escape": {
-        params: ["r_$3345"],
+        params: ["r_$3348"],
         rest: null,
         constants: [new Char(59), new Char(59), new Char(59), new Char(59)],
         span: {"filename":"reader.scm","line":808,"column":1,"endLine":815,"endColumn":28},
@@ -52068,7 +52303,7 @@ export const LIBRARIES = {
         }
       },
       "skip-line-continuation!": {
-        params: ["r_$3352"],
+        params: ["r_$3355"],
         rest: null,
         constants: [new Cons(new Char(32), new Cons(new Char(9), null)), new Cons(new Char(32), new Cons(new Char(9), null)), new Char(13), new Char(10), new Char(10), new Char(13), new Char(10), new Char(10)],
         span: {"filename":"reader.scm","line":822,"column":1,"endLine":832,"endColumn":21},
@@ -52385,7 +52620,7 @@ export const LIBRARIES = {
         }
       },
       "label-end": {
-        params: ["r_$3354"],
+        params: ["r_$3357"],
         rest: null,
         constants: [new Cons(new Char(61), new Cons(new Char(35), null)), new Cons(new Char(61), new Cons(new Char(35), null))],
         span: {"filename":"reader.scm","line":853,"column":1,"endLine":858,"endColumn":26},
@@ -52514,7 +52749,7 @@ export const LIBRARIES = {
         }
       },
       "read-label": {
-        params: ["r_$3358","end_$3359"],
+        params: ["r_$3361","end_$3362"],
         rest: null,
         constants: [new Char(61), new Char(61)],
         span: {"filename":"reader.scm","line":863,"column":1,"endLine":878,"endColumn":37},
@@ -52918,7 +53153,7 @@ export const LIBRARIES = {
         }
       },
       "fix-up": {
-        params: ["datum_$3366"],
+        params: ["datum_$3369"],
         rest: null,
         constants: [intern("eq"), intern("eq")],
         span: {"filename":"reader.scm","line":885,"column":1,"endLine":906,"endColumn":77},
@@ -53461,7 +53696,7 @@ export const LIBRARIES = {
         }
       },
       "read-source": {
-        params: ["text_$3374","filename_$3375","fold-case?_$3376","dot-notation?_$3377"],
+        params: ["text_$3377","filename_$3378","fold-case?_$3379","dot-notation?_$3380"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":921,"column":1,"endLine":922,"endColumn":67},
@@ -53514,7 +53749,7 @@ export const LIBRARIES = {
         }
       },
       "read-source-continuing": {
-        params: ["text_$3378","filename_$3379","fold-case?_$3380","dot-notation?_$3381"],
+        params: ["text_$3381","filename_$3382","fold-case?_$3383","dot-notation?_$3384"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":930,"column":1,"endLine":933,"endColumn":65},
@@ -53600,7 +53835,7 @@ export const LIBRARIES = {
         }
       },
       "read-from-port": {
-        params: ["port_$3384"],
+        params: ["port_$3387"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":945,"column":1,"endLine":959,"endColumn":34},
@@ -53970,7 +54205,7 @@ export const LIBRARIES = {
         }
       },
       "read-all": {
-        params: ["r_$3389"],
+        params: ["r_$3392"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":964,"column":1,"endLine":973,"endColumn":56},
@@ -54157,7 +54392,7 @@ export const LIBRARIES = {
         }
       },
       "incomplete-error?": {
-        params: ["e_$3393"],
+        params: ["e_$3396"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":987,"column":1,"endLine":988,"endColumn":60},
@@ -54236,7 +54471,7 @@ export const LIBRARIES = {
         }
       },
       "matching-delimiter": {
-        params: ["text_$3409","position_$3410"],
+        params: ["text_$3412","position_$3413"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":1046,"column":1,"endLine":1060,"endColumn":44},
@@ -54504,7 +54739,7 @@ export const LIBRARIES = {
         }
       },
       "fold-left": {
-        params: ["combine_$3420","initial_$3421","items_$3422"],
+        params: ["combine_$3423","initial_$3424","items_$3425"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":1075,"column":1,"endLine":1076,"endColumn":92},
@@ -54580,7 +54815,7 @@ export const LIBRARIES = {
         }
       },
       "append-map": {
-        params: ["make_$3423","items_$3424"],
+        params: ["make_$3426","items_$3427"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":1082,"column":1,"endLine":1083,"endColumn":84},
@@ -54673,7 +54908,7 @@ export const LIBRARIES = {
         }
       },
       "iota": {
-        params: ["count_$3425","start_$3426"],
+        params: ["count_$3428","start_$3429"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":1088,"column":1,"endLine":1089,"endColumn":68},
@@ -54747,7 +54982,7 @@ export const LIBRARIES = {
         }
       },
       "any?": {
-        params: ["ok?_$3427","items_$3428"],
+        params: ["ok?_$3430","items_$3431"],
         rest: null,
         constants: [],
         span: {"filename":"reader.scm","line":1094,"column":1,"endLine":1095,"endColumn":78},
@@ -54921,8 +55156,8 @@ export const LIBRARIES = {
       {procedure: "read-from-port"},
       {procedure: "read-all"},
       {procedure: "incomplete-error?"},
-      {core: "[\"l\",\"define\",\"complete-text?\",[\"l\",\"lambda\",[\"l\",\"text_$3394\"],false,[\"s\",\"complete-text?\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"<\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"%string-skip-any\"],[\"l\",[\"l\",\"var\",\"text_$3394\"],[\"l\",\"var\",\"blanks\"],[\"l\",\"lit\",0]]],[\"l\",\"app\",[\"l\",\"var\",\"string-length\"],[\"l\",[\"l\",\"var\",\"text_$3394\"]]]]],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$3395\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$3396\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$3397\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"incomplete-error?\"],[\"l\",[\"l\",\"var\",\"e_$3397\"]]],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$3395\"],[\"l\",[\"l\",\"lit\",false]]],[\"l\",\"if\",[\"l\",\"lit\",true],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$3395\"],[\"l\",[\"l\",\"lit\",true]]],[\"l\",\"app\",[\"l\",\"library-var\",\"raise\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"var\",\"e_$3397\"]]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$3396\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"read-source\"],[\"l\",[\"l\",\"var\",\"text_$3394\"],[\"l\",\"lit\",[\"s\",\"<unknown>\"]],[\"l\",\"lit\",false],[\"l\",\"lit\",true]]],[\"l\",\"lit\",true]]],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"lit\",false]],[\"l\",\"text\"],false]]"},
-      {core: "[\"l\",\"define\",\"delimiter-parens\",[\"l\",\"lambda\",[\"l\",\"text_$3398\"],false,[\"s\",\"delimiter-parens\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"r_$3399\",\"parens_$3400\"],false,[\"s\",\"let\"],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"note!\",[\"l\",\"lambda\",[\"l\",\"position_$3401\",\"opens?_$3402\"],false,[\"s\",\"note!\"],[\"l\",\"set\",\"parens_$3400\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"var\",\"position_$3401\"],[\"l\",\"var\",\"opens?_$3402\"]]],[\"l\",\"var\",\"parens_$3400\"]]]],[\"l\",\"position\",\"opens?\"],false]],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$3403\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$3404\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$3405\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"incomplete-error?\"],[\"l\",[\"l\",\"var\",\"e_$3405\"]]],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$3403\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"reverse\"],[\"l\",[\"l\",\"var\",\"parens_$3400\"]]]]],[\"l\",\"app\",[\"l\",\"library-var\",\"raise\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"var\",\"e_$3405\"]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$3404\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"letrec\",[\"l\",\"loop_$3406\"],[\"l\",[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"skip-atmosphere!\"],[\"l\",[\"l\",\"var\",\"r_$3399\"]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"c_$3407\",\"at_$3408\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"not\"],[\"l\",[\"l\",\"var\",\"c_$3407\"]]],[\"l\",\"app\",[\"l\",\"var\",\"reverse\"],[\"l\",[\"l\",\"var\",\"parens_$3400\"]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"char=?\"],[\"l\",[\"l\",\"var\",\"c_$3407\"],[\"l\",\"lit\",[\"c\",40]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"note!\"],[\"l\",[\"l\",\"var\",\"at_$3408\"],[\"l\",\"lit\",true]]],[\"l\",\"app\",[\"l\",\"var\",\"advance!\"],[\"l\",[\"l\",\"var\",\"r_$3399\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3406\"],null]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"char=?\"],[\"l\",[\"l\",\"var\",\"c_$3407\"],[\"l\",\"lit\",[\"c\",41]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"note!\"],[\"l\",[\"l\",\"var\",\"at_$3408\"],[\"l\",\"lit\",false]]],[\"l\",\"app\",[\"l\",\"var\",\"advance!\"],[\"l\",[\"l\",\"var\",\"r_$3399\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3406\"],null]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"char=?\"],[\"l\",[\"l\",\"var\",\"c_$3407\"],[\"l\",\"lit\",[\"c\",34]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"read-string\"],[\"l\",[\"l\",\"var\",\"r_$3399\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3406\"],null]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"char=?\"],[\"l\",[\"l\",\"var\",\"c_$3407\"],[\"l\",\"lit\",[\"c\",124]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"read-bar-symbol\"],[\"l\",[\"l\",\"var\",\"r_$3399\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3406\"],null]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"char=?\"],[\"l\",[\"l\",\"var\",\"c_$3407\"],[\"l\",\"lit\",[\"c\",35]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"eqv?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"peek-at\"],[\"l\",[\"l\",\"var\",\"r_$3399\"],[\"l\",\"lit\",1]]],[\"l\",\"lit\",[\"c\",40]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"note!\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"+\"],[\"l\",[\"l\",\"var\",\"at_$3408\"],[\"l\",\"lit\",1]]],[\"l\",\"lit\",true]]],[\"l\",\"app\",[\"l\",\"var\",\"advance-by!\"],[\"l\",[\"l\",\"var\",\"r_$3399\"],[\"l\",\"lit\",2]]]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"looking-at?\"],[\"l\",[\"l\",\"var\",\"r_$3399\"],[\"l\",\"lit\",[\"s\",\"#u8(\"]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"note!\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"+\"],[\"l\",[\"l\",\"var\",\"at_$3408\"],[\"l\",\"lit\",3]]],[\"l\",\"lit\",true]]],[\"l\",\"app\",[\"l\",\"var\",\"advance-by!\"],[\"l\",[\"l\",\"var\",\"r_$3399\"],[\"l\",\"lit\",4]]]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"eqv?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"peek-at\"],[\"l\",[\"l\",\"var\",\"r_$3399\"],[\"l\",\"lit\",1]]],[\"l\",\"lit\",[\"c\",92]]]],[\"l\",\"app\",[\"l\",\"var\",\"character-name!\"],[\"l\",[\"l\",\"var\",\"r_$3399\"]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"memv\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"peek-at\"],[\"l\",[\"l\",\"var\",\"r_$3399\"],[\"l\",\"lit\",1]]],[\"l\",\"lit\",[\"l\",[\"c\",59],[\"c\",123]]]]],[\"l\",\"app\",[\"l\",\"var\",\"advance-by!\"],[\"l\",[\"l\",\"var\",\"r_$3399\"],[\"l\",\"lit\",2]]],[\"l\",\"app\",[\"l\",\"var\",\"read-atom-text\"],[\"l\",[\"l\",\"var\",\"r_$3399\"]]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3406\"],null]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"memv\"],[\"l\",[\"l\",\"var\",\"c_$3407\"],[\"l\",\"lit\",[\"l\",[\"c\",39],[\"c\",96],[\"c\",44],[\"c\",64],[\"c\",91],[\"c\",93],[\"c\",123],[\"c\",125]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"advance!\"],[\"l\",[\"l\",\"var\",\"r_$3399\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3406\"],null]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"read-atom-text\"],[\"l\",[\"l\",\"var\",\"r_$3399\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3406\"],null]]]]]]]]]],[\"l\",\"c\",\"at\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"peek\"],[\"l\",[\"l\",\"var\",\"r_$3399\"]]],[\"l\",\"app\",[\"l\",\"var\",\"reader-position\"],[\"l\",[\"l\",\"var\",\"r_$3399\"]]]]]]],null,false]],[\"l\",\"var\",\"loop_$3406\"],[\"l\",\"loop\"]],null],null,false]]],[\"l\",\"guard-exit\"],false]]]]],[\"l\",\"r\",\"parens\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"make-reader\"],[\"l\",[\"l\",\"var\",\"text_$3398\"],[\"l\",\"lit\",[\"s\",\"<unknown>\"]],[\"l\",\"lit\",false],[\"l\",\"lit\",false]]],[\"l\",\"lit\",null]]],[\"l\",\"text\"],false]]"},
+      {core: "[\"l\",\"define\",\"complete-text?\",[\"l\",\"lambda\",[\"l\",\"text_$3397\"],false,[\"s\",\"complete-text?\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"<\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"%string-skip-any\"],[\"l\",[\"l\",\"var\",\"text_$3397\"],[\"l\",\"var\",\"blanks\"],[\"l\",\"lit\",0]]],[\"l\",\"app\",[\"l\",\"var\",\"string-length\"],[\"l\",[\"l\",\"var\",\"text_$3397\"]]]]],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$3398\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$3399\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$3400\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"incomplete-error?\"],[\"l\",[\"l\",\"var\",\"e_$3400\"]]],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$3398\"],[\"l\",[\"l\",\"lit\",false]]],[\"l\",\"if\",[\"l\",\"lit\",true],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$3398\"],[\"l\",[\"l\",\"lit\",true]]],[\"l\",\"app\",[\"l\",\"library-var\",\"raise\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"var\",\"e_$3400\"]]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$3399\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"read-source\"],[\"l\",[\"l\",\"var\",\"text_$3397\"],[\"l\",\"lit\",[\"s\",\"<unknown>\"]],[\"l\",\"lit\",false],[\"l\",\"lit\",true]]],[\"l\",\"lit\",true]]],null,false]]],[\"l\",\"guard-exit\"],false]]],[\"l\",\"lit\",false]],[\"l\",\"text\"],false]]"},
+      {core: "[\"l\",\"define\",\"delimiter-parens\",[\"l\",\"lambda\",[\"l\",\"text_$3401\"],false,[\"s\",\"delimiter-parens\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"r_$3402\",\"parens_$3403\"],false,[\"s\",\"let\"],[\"l\",\"seq\",[\"l\",[\"l\",\"define\",\"note!\",[\"l\",\"lambda\",[\"l\",\"position_$3404\",\"opens?_$3405\"],false,[\"s\",\"note!\"],[\"l\",\"set\",\"parens_$3403\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"cons\"],[\"l\",[\"l\",\"var\",\"position_$3404\"],[\"l\",\"var\",\"opens?_$3405\"]]],[\"l\",\"var\",\"parens_$3403\"]]]],[\"l\",\"position\",\"opens?\"],false]],[\"l\",\"app\",[\"l\",\"library-var\",\"call/cc\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"guard-exit_$3406\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"library-var\",\"with-exception-handler\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"lambda\",[\"l\",\"condition_$3407\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"e_$3408\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"incomplete-error?\"],[\"l\",[\"l\",\"var\",\"e_$3408\"]]],[\"l\",\"app\",[\"l\",\"var\",\"guard-exit_$3406\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"reverse\"],[\"l\",[\"l\",\"var\",\"parens_$3403\"]]]]],[\"l\",\"app\",[\"l\",\"library-var\",\"raise\",[\"e\",\"scheme\",\"control\"]],[\"l\",[\"l\",\"var\",\"e_$3408\"]]]],[\"l\",\"e\"],false],[\"l\",[\"l\",\"var\",\"condition_$3407\"]]],[\"l\",\"condition\"],false],[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"letrec\",[\"l\",\"loop_$3409\"],[\"l\",[\"l\",\"lambda\",null,false,[\"s\",\"anonymous\"],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"skip-atmosphere!\"],[\"l\",[\"l\",\"var\",\"r_$3402\"]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"c_$3410\",\"at_$3411\"],false,[\"s\",\"let\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"not\"],[\"l\",[\"l\",\"var\",\"c_$3410\"]]],[\"l\",\"app\",[\"l\",\"var\",\"reverse\"],[\"l\",[\"l\",\"var\",\"parens_$3403\"]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"char=?\"],[\"l\",[\"l\",\"var\",\"c_$3410\"],[\"l\",\"lit\",[\"c\",40]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"note!\"],[\"l\",[\"l\",\"var\",\"at_$3411\"],[\"l\",\"lit\",true]]],[\"l\",\"app\",[\"l\",\"var\",\"advance!\"],[\"l\",[\"l\",\"var\",\"r_$3402\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3409\"],null]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"char=?\"],[\"l\",[\"l\",\"var\",\"c_$3410\"],[\"l\",\"lit\",[\"c\",41]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"note!\"],[\"l\",[\"l\",\"var\",\"at_$3411\"],[\"l\",\"lit\",false]]],[\"l\",\"app\",[\"l\",\"var\",\"advance!\"],[\"l\",[\"l\",\"var\",\"r_$3402\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3409\"],null]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"char=?\"],[\"l\",[\"l\",\"var\",\"c_$3410\"],[\"l\",\"lit\",[\"c\",34]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"read-string\"],[\"l\",[\"l\",\"var\",\"r_$3402\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3409\"],null]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"char=?\"],[\"l\",[\"l\",\"var\",\"c_$3410\"],[\"l\",\"lit\",[\"c\",124]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"read-bar-symbol\"],[\"l\",[\"l\",\"var\",\"r_$3402\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3409\"],null]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"char=?\"],[\"l\",[\"l\",\"var\",\"c_$3410\"],[\"l\",\"lit\",[\"c\",35]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"eqv?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"peek-at\"],[\"l\",[\"l\",\"var\",\"r_$3402\"],[\"l\",\"lit\",1]]],[\"l\",\"lit\",[\"c\",40]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"note!\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"+\"],[\"l\",[\"l\",\"var\",\"at_$3411\"],[\"l\",\"lit\",1]]],[\"l\",\"lit\",true]]],[\"l\",\"app\",[\"l\",\"var\",\"advance-by!\"],[\"l\",[\"l\",\"var\",\"r_$3402\"],[\"l\",\"lit\",2]]]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"looking-at?\"],[\"l\",[\"l\",\"var\",\"r_$3402\"],[\"l\",\"lit\",[\"s\",\"#u8(\"]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"note!\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"+\"],[\"l\",[\"l\",\"var\",\"at_$3411\"],[\"l\",\"lit\",3]]],[\"l\",\"lit\",true]]],[\"l\",\"app\",[\"l\",\"var\",\"advance-by!\"],[\"l\",[\"l\",\"var\",\"r_$3402\"],[\"l\",\"lit\",4]]]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"eqv?\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"peek-at\"],[\"l\",[\"l\",\"var\",\"r_$3402\"],[\"l\",\"lit\",1]]],[\"l\",\"lit\",[\"c\",92]]]],[\"l\",\"app\",[\"l\",\"var\",\"character-name!\"],[\"l\",[\"l\",\"var\",\"r_$3402\"]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"memv\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"peek-at\"],[\"l\",[\"l\",\"var\",\"r_$3402\"],[\"l\",\"lit\",1]]],[\"l\",\"lit\",[\"l\",[\"c\",59],[\"c\",123]]]]],[\"l\",\"app\",[\"l\",\"var\",\"advance-by!\"],[\"l\",[\"l\",\"var\",\"r_$3402\"],[\"l\",\"lit\",2]]],[\"l\",\"app\",[\"l\",\"var\",\"read-atom-text\"],[\"l\",[\"l\",\"var\",\"r_$3402\"]]]]]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3409\"],null]]],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"memv\"],[\"l\",[\"l\",\"var\",\"c_$3410\"],[\"l\",\"lit\",[\"l\",[\"c\",39],[\"c\",96],[\"c\",44],[\"c\",64],[\"c\",91],[\"c\",93],[\"c\",123],[\"c\",125]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"advance!\"],[\"l\",[\"l\",\"var\",\"r_$3402\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3409\"],null]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"read-atom-text\"],[\"l\",[\"l\",\"var\",\"r_$3402\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3409\"],null]]]]]]]]]],[\"l\",\"c\",\"at\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"peek\"],[\"l\",[\"l\",\"var\",\"r_$3402\"]]],[\"l\",\"app\",[\"l\",\"var\",\"reader-position\"],[\"l\",[\"l\",\"var\",\"r_$3402\"]]]]]]],null,false]],[\"l\",\"var\",\"loop_$3409\"],[\"l\",\"loop\"]],null],null,false]]],[\"l\",\"guard-exit\"],false]]]]],[\"l\",\"r\",\"parens\"],false],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"make-reader\"],[\"l\",[\"l\",\"var\",\"text_$3401\"],[\"l\",\"lit\",[\"s\",\"<unknown>\"]],[\"l\",\"lit\",false],[\"l\",\"lit\",false]]],[\"l\",\"lit\",null]]],[\"l\",\"text\"],false]]"},
       {procedure: "matching-delimiter"},
       {procedure: "fold-left"},
       {procedure: "append-map"},
@@ -54949,7 +55184,7 @@ export const LIBRARIES = {
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme-js\",\"winds\"],[\"l\",\"import\",[\"l\",\"scheme\",\"primitives\"],[\"l\",\"scheme\",\"core\"]],[\"l\",\"export\",\"dynamic-wind\"],[\"l\",\"include\",[\"s\",\"winds.scm\"]]]",
     procedures: {
       "dynamic-wind": {
-        params: ["before_$2824","thunk_$2825","after_$2826"],
+        params: ["before_$2827","thunk_$2828","after_$2829"],
         rest: null,
         constants: [],
         span: {"filename":"winds.scm","line":20,"column":1,"endLine":31,"endColumn":35},
@@ -75810,7 +76045,7 @@ export const LIBRARIES = {
     procedures: {
       "environment": {
         params: [],
-        rest: "sets_$2291",
+        rest: "sets_$2294",
         constants: [],
         span: {"filename":"scheme/eval","line":15,"column":5,"endLine":16,"endColumn":34},
         make: (R, E, K) => {
@@ -75874,7 +76109,7 @@ export const LIBRARIES = {
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"lazy\"],[\"l\",\"import\",[\"l\",\"scheme\",\"base\"]],[\"l\",\"export\",\"delay\",\"force\",\"make-promise\",\"promise?\",\"delay-force\"],[\"l\",\"include\",[\"s\",\"lazy.scm\"]],[\"l\",\"begin\",[\"l\",\"define-syntax\",\"delay\",[\"l\",\"syntax-rules\",null,[\"l\",[\"l\",\"delay\",\"expr\"],[\"l\",\"cons\",[\"l\",\"cons\",[\"l\",\"quote\",\"promise-tag\"],false],[\"l\",\"lambda\",null,\"expr\"]]]]],[\"l\",\"define-syntax\",\"delay-force\",[\"l\",\"syntax-rules\",null,[\"l\",[\"l\",\"delay-force\",\"expr\"],[\"l\",\"cons\",[\"l\",\"cons\",[\"l\",\"quote\",\"promise-tag\"],false],[\"l\",\"lambda\",null,[\"l\",\"force\",\"expr\"]]]]]]]]",
     procedures: {
       "promise?": {
-        params: ["obj_$2838"],
+        params: ["obj_$2841"],
         rest: null,
         constants: [intern("promise-tag"), intern("promise-tag")],
         span: {"filename":"lazy.scm","line":14,"column":1,"endLine":17,"endColumn":39},
@@ -75952,7 +76187,7 @@ export const LIBRARIES = {
         }
       },
       "make-promise-internal": {
-        params: ["thunk_$2839"],
+        params: ["thunk_$2842"],
         rest: null,
         constants: [intern("promise-tag"), intern("promise-tag")],
         span: {"filename":"lazy.scm","line":20,"column":1,"endLine":21,"endColumn":39},
@@ -75983,7 +76218,7 @@ export const LIBRARIES = {
         }
       },
       "make-promise": {
-        params: ["obj_$2840"],
+        params: ["obj_$2843"],
         rest: null,
         constants: [intern("promise-tag"), intern("promise-tag")],
         span: {"filename":"lazy.scm","line":28,"column":1,"endLine":31,"endColumn":42},
@@ -76045,7 +76280,7 @@ export const LIBRARIES = {
         }
       },
       "force": {
-        params: ["promise_$2841"],
+        params: ["promise_$2844"],
         rest: null,
         constants: [],
         span: {"filename":"lazy.scm","line":38,"column":1,"endLine":49,"endColumn":26},
@@ -76277,7 +76512,7 @@ export const LIBRARIES = {
 
     },
     restore: [
-      {core: "[\"l\",\"define\",\"load\",[\"l\",\"lambda\",[\"l\",\"filename_$3101\"],\"environment_$3102\",[\"s\",\"load\"],[\"l\",\"seq\",[\"l\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"not\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string?\"],[\"l\",[\"l\",\"var\",\"filename_$3101\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"error\"],[\"l\",[\"l\",\"lit\",[\"s\",\"load: expected string\"]],[\"l\",\"var\",\"filename_$3101\"]]],[\"l\",\"lit\",[\"u\"]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"env_$3103\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"call-with-input-file\"],[\"l\",[\"l\",\"var\",\"filename_$3101\"],[\"l\",\"lambda\",[\"l\",\"port_$3104\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"letrec\",[\"l\",\"loop_$3105\"],[\"l\",[\"l\",\"lambda\",[\"l\",\"form_$3106\"],false,[\"s\",\"anonymous\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"not\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"eof-object?\"],[\"l\",[\"l\",\"var\",\"form_$3106\"]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"eval\"],[\"l\",[\"l\",\"var\",\"form_$3106\"],[\"l\",\"var\",\"env_$3103\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3105\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"read\"],[\"l\",[\"l\",\"var\",\"port_$3104\"]]]]]]],[\"l\",\"lit\",[\"u\"]]],[\"l\",\"form\"],false]],[\"l\",\"var\",\"loop_$3105\"],[\"l\",\"loop\"]],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"read\"],[\"l\",[\"l\",\"var\",\"port_$3104\"]]]]],[\"l\",\"port\"],false]]],[\"l\",\"env\"],false],[\"l\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"pair?\"],[\"l\",[\"l\",\"var\",\"environment_$3102\"]]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"environment_$3102\"]]],[\"l\",\"app\",[\"l\",\"var\",\"interaction-environment\"],null]]]]]],[\"l\",\"filename\"],\"environment\"]]"}
+      {core: "[\"l\",\"define\",\"load\",[\"l\",\"lambda\",[\"l\",\"filename_$3104\"],\"environment_$3105\",[\"s\",\"load\"],[\"l\",\"seq\",[\"l\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"not\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"string?\"],[\"l\",[\"l\",\"var\",\"filename_$3104\"]]]]],[\"l\",\"app\",[\"l\",\"var\",\"error\"],[\"l\",[\"l\",\"lit\",[\"s\",\"load: expected string\"]],[\"l\",\"var\",\"filename_$3104\"]]],[\"l\",\"lit\",[\"u\"]]],[\"l\",\"app\",[\"l\",\"lambda\",[\"l\",\"env_$3106\"],false,[\"s\",\"let\"],[\"l\",\"app\",[\"l\",\"var\",\"call-with-input-file\"],[\"l\",[\"l\",\"var\",\"filename_$3104\"],[\"l\",\"lambda\",[\"l\",\"port_$3107\"],false,[\"s\",\"anonymous\"],[\"l\",\"app\",[\"l\",\"letrec\",[\"l\",\"loop_$3108\"],[\"l\",[\"l\",\"lambda\",[\"l\",\"form_$3109\"],false,[\"s\",\"anonymous\"],[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"not\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"eof-object?\"],[\"l\",[\"l\",\"var\",\"form_$3109\"]]]]],[\"l\",\"seq\",[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"eval\"],[\"l\",[\"l\",\"var\",\"form_$3109\"],[\"l\",\"var\",\"env_$3106\"]]],[\"l\",\"app\",[\"l\",\"var\",\"loop_$3108\"],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"read\"],[\"l\",[\"l\",\"var\",\"port_$3107\"]]]]]]],[\"l\",\"lit\",[\"u\"]]],[\"l\",\"form\"],false]],[\"l\",\"var\",\"loop_$3108\"],[\"l\",\"loop\"]],[\"l\",[\"l\",\"app\",[\"l\",\"var\",\"read\"],[\"l\",[\"l\",\"var\",\"port_$3107\"]]]]],[\"l\",\"port\"],false]]],[\"l\",\"env\"],false],[\"l\",[\"l\",\"if\",[\"l\",\"app\",[\"l\",\"var\",\"pair?\"],[\"l\",[\"l\",\"var\",\"environment_$3105\"]]],[\"l\",\"app\",[\"l\",\"var\",\"car\"],[\"l\",[\"l\",\"var\",\"environment_$3105\"]]],[\"l\",\"app\",[\"l\",\"var\",\"interaction-environment\"],null]]]]]],[\"l\",\"filename\"],\"environment\"]]"}
     ]
   },
   "scheme.process-context": {
@@ -76299,7 +76534,7 @@ export const LIBRARIES = {
     declaration: "[\"l\",\"define-library\",[\"l\",\"scheme\",\"r5rs\"],[\"l\",\"import\",[\"l\",\"except\",[\"l\",\"scheme\",\"base\"],\"exact\",\"inexact\"],[\"l\",\"rename\",[\"l\",\"only\",[\"l\",\"scheme\",\"base\"],\"exact\",\"inexact\"],[\"l\",\"exact\",\"inexact->exact\"],[\"l\",\"inexact\",\"exact->inexact\"]],[\"l\",\"scheme\",\"char\"],[\"l\",\"scheme\",\"complex\"],[\"l\",\"scheme\",\"cxr\"],[\"l\",\"scheme\",\"eval\"],[\"l\",\"scheme\",\"file\"],[\"l\",\"scheme\",\"inexact\"],[\"l\",\"scheme\",\"lazy\"],[\"l\",\"scheme\",\"load\"],[\"l\",\"scheme\",\"read\"],[\"l\",\"scheme\",\"repl\"],[\"l\",\"scheme\",\"write\"]],[\"l\",\"export\",\"*\",\"+\",\"-\",\"/\",\"<\",\"<=\",\"=\",\">\",\">=\",\"abs\",\"acos\",\"and\",\"angle\",\"append\",\"apply\",\"asin\",\"assoc\",\"assq\",\"assv\",\"atan\",\"begin\",\"boolean?\",\"caaaar\",\"caaadr\",\"caaar\",\"caadar\",\"caaddr\",\"caadr\",\"caar\",\"cadaar\",\"cadadr\",\"cadar\",\"caddar\",\"cadddr\",\"caddr\",\"cadr\",\"call-with-current-continuation\",\"call-with-input-file\",\"call-with-output-file\",\"call-with-values\",\"car\",\"case\",\"cdaaar\",\"cdaadr\",\"cdaar\",\"cdadar\",\"cdaddr\",\"cdadr\",\"cdar\",\"cddaar\",\"cddadr\",\"cddar\",\"cdddar\",\"cddddr\",\"cdddr\",\"cddr\",\"cdr\",\"ceiling\",\"char->integer\",\"char-alphabetic?\",\"char-ci<=?\",\"char-ci<?\",\"char-ci=?\",\"char-ci>=?\",\"char-ci>?\",\"char-downcase\",\"char-lower-case?\",\"char-numeric?\",\"char-ready?\",\"char-upcase\",\"char-upper-case?\",\"char-whitespace?\",\"char<=?\",\"char<?\",\"char=?\",\"char>=?\",\"char>?\",\"char?\",\"close-input-port\",\"close-output-port\",\"complex?\",\"cond\",\"cons\",\"cos\",\"current-input-port\",\"current-output-port\",\"define\",\"define-syntax\",\"delay\",\"denominator\",\"display\",\"do\",\"dynamic-wind\",\"else\",\"eof-object?\",\"eq?\",\"equal?\",\"eqv?\",\"eval\",\"even?\",\"exact->inexact\",\"exact?\",\"exp\",\"expt\",\"floor\",\"for-each\",\"force\",\"gcd\",\"if\",\"imag-part\",\"inexact->exact\",\"inexact?\",\"input-port?\",\"integer->char\",\"integer?\",\"interaction-environment\",\"lambda\",\"lcm\",\"length\",\"let\",\"let*\",\"let-syntax\",\"letrec\",\"letrec-syntax\",\"list\",\"list->string\",\"list->vector\",\"list-ref\",\"list-tail\",\"list?\",\"load\",\"log\",\"magnitude\",\"make-polar\",\"make-rectangular\",\"make-string\",\"make-vector\",\"map\",\"max\",\"member\",\"memq\",\"memv\",\"min\",\"modulo\",\"negative?\",\"newline\",\"not\",\"null-environment\",\"null?\",\"number->string\",\"number?\",\"numerator\",\"odd?\",\"open-input-file\",\"open-output-file\",\"or\",\"output-port?\",\"pair?\",\"peek-char\",\"positive?\",\"procedure?\",\"quasiquote\",\"quote\",\"quotient\",\"rational?\",\"rationalize\",\"read\",\"read-char\",\"real-part\",\"real?\",\"remainder\",\"reverse\",\"round\",\"scheme-report-environment\",\"set!\",\"set-car!\",\"set-cdr!\",\"sin\",\"sqrt\",\"string\",\"string->list\",\"string->number\",\"string->symbol\",\"string-append\",\"string-ci<=?\",\"string-ci<?\",\"string-ci=?\",\"string-ci>=?\",\"string-ci>?\",\"string-copy\",\"string-fill!\",\"string-length\",\"string-ref\",\"string-set!\",\"string<=?\",\"string<?\",\"string=?\",\"string>=?\",\"string>?\",\"string?\",\"substring\",\"symbol->string\",\"symbol?\",\"syntax-rules\",\"tan\",\"truncate\",\"values\",\"vector\",\"vector->list\",\"vector-fill!\",\"vector-length\",\"vector-ref\",\"vector-set!\",\"vector?\",\"with-input-from-file\",\"with-output-to-file\",\"write\",\"write-char\",\"zero?\",\"=>\",\"...\"],[\"l\",\"include\",[\"s\",\"r5rs.scm\"]]]",
     procedures: {
       "scheme-report-environment": {
-        params: ["version_$3111"],
+        params: ["version_$3114"],
         rest: null,
         constants: [new Cons(intern("scheme"), new Cons(intern("r5rs"), null)), new Cons(intern("scheme"), new Cons(intern("r5rs"), null))],
         span: {"filename":"r5rs.scm","line":8,"column":1,"endLine":10,"endColumn":32},
@@ -76389,7 +76624,7 @@ export const LIBRARIES = {
         }
       },
       "null-environment": {
-        params: ["version_$3112"],
+        params: ["version_$3115"],
         rest: null,
         constants: [new Cons(intern("only"), new Cons(new Cons(intern("scheme"), new Cons(intern("r5rs"), null)), new Cons(intern("and"), new Cons(intern("begin"), new Cons(intern("case"), new Cons(intern("cond"), new Cons(intern("define"), new Cons(intern("define-syntax"), new Cons(intern("delay"), new Cons(intern("do"), new Cons(intern("else"), new Cons(intern("if"), new Cons(intern("lambda"), new Cons(intern("let"), new Cons(intern("let*"), new Cons(intern("let-syntax"), new Cons(intern("letrec"), new Cons(intern("letrec-syntax"), new Cons(intern("or"), new Cons(intern("quasiquote"), new Cons(intern("quote"), new Cons(intern("set!"), new Cons(intern("syntax-rules"), new Cons(intern("=>"), new Cons(intern("..."), null))))))))))))))))))))))))), new Cons(intern("only"), new Cons(new Cons(intern("scheme"), new Cons(intern("r5rs"), null)), new Cons(intern("and"), new Cons(intern("begin"), new Cons(intern("case"), new Cons(intern("cond"), new Cons(intern("define"), new Cons(intern("define-syntax"), new Cons(intern("delay"), new Cons(intern("do"), new Cons(intern("else"), new Cons(intern("if"), new Cons(intern("lambda"), new Cons(intern("let"), new Cons(intern("let*"), new Cons(intern("let-syntax"), new Cons(intern("letrec"), new Cons(intern("letrec-syntax"), new Cons(intern("or"), new Cons(intern("quasiquote"), new Cons(intern("quote"), new Cons(intern("set!"), new Cons(intern("syntax-rules"), new Cons(intern("=>"), new Cons(intern("..."), null)))))))))))))))))))))))))],
         span: {"filename":"r5rs.scm","line":18,"column":1,"endLine":23,"endColumn":45},

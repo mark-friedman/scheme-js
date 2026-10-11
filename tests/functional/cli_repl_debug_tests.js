@@ -63,6 +63,7 @@ export async function runCliReplDebugTests(logger) {
   assert(logger, 'with debugging off, a pause does nothing: the call returns, the prompt the usual one',
     !stdout.includes('not debugging') && /> 10\n> /.test(stdout) ? true : outputOf(run), true);
   assert(logger, 'paused, the prompt says so', answered('debug> '), true);
+  assert(logger, 'and the pause says where the call to pause is', answered('Paused: pause in g at <unknown>:1\n'), true);
   assert(logger, 'and a line is evaluated in the paused frame', answered(';; result: 5'), true);
   // The command that lets the run go on says so, and the run's result or
   // error follows on lines of its own, then the usual prompt.

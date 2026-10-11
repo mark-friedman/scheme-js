@@ -60,14 +60,16 @@ export class ReplDebugBackend extends DebugBackend {
 
     /**
      * Called when a pause ends: the program resumes or steps, or its run is
-     * aborted, which `:abort` says itself.
+     * aborted. Says how, now, before the run goes on: what the command that
+     * ended it would say would be shown after its next pause, or its result.
      * @param {string} [action='resume'] - How: 'resume', 'stepInto',
      *   'stepOver', 'stepOut' or 'abort'.
      */
     onResume(action = 'resume') {
         this.paused = false;
         this.pauseInfo = null;
-        if (action !== 'abort') this.outputFn(`;; Resumed`);
+        // What to say is the debugger's (`resume-message` in debugger.scm).
+        this.outputFn(String(callSchemeProcedure(systemLibrary(['scheme-js', 'debugger']).get('resume-message'), [action])));
 
         if (this._pauseActionResolver) {
             this._pauseActionResolver(action);

@@ -78,8 +78,7 @@ export async function runAbortTests(logger) {
     runtime.abort();
     assert(logger, 'aborted at a breakpoint, the run stops', await pending, 'raised: Evaluation aborted');
     assert(logger, 'the backend is told the pause ended', backend.isPaused(), false);
-    assert(logger, 'and says nothing of a resumption: the abort says it itself',
-      shown.includes(';; Resumed'), false);
+    assert(logger, 'and says, as it ends, that it ended by an abort', shown.at(-1), ';; Evaluation aborted');
     runtime.removeBreakpoint(bp);
 
     // --- The runs after it -------------------------------------------------
