@@ -33,7 +33,6 @@ import { prettyPrint } from './src/core/interpreter/printer.js';
 import { SchemeDebugRuntime } from './src/debug/scheme_debug_runtime.js';
 import { ReplDebugBackend } from './src/debug/repl_debug_backend.js';
 import { ReplDebugCommands } from './src/debug/repl_debug_commands.js';
-import readline from 'readline';
 
 
 
@@ -331,41 +330,23 @@ async function startRepl() {
         interpreter.debugRuntime?.pause(source, env, reason);
     });
 
-    // Setup nested loop for Node.js REPL when paused
-    backend.setOnPause((info) => {
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout,
-            prompt: 'debug> '
-        });
-
-        rl.on('line', async (line) => {
-            line = line.trim();
-            if (line === '') {
-                rl.prompt();
-                return;
-            }
-
-            // Every line is the debugger's: one that is not a command is
-            // evaluated in the selected frame, as `:eval` evaluates it.
-            const output = await commands.execute(line);
-            console.log(output);
-
-            const cmd = commands.isDebugCommand(line) ? line.slice(1).split(/\s+/)[0].toLowerCase() : '';
-            const resumeCmds = ['continue', 'c', 'step', 's', 'next', 'n', 'finish', 'fin', 'abort', 'a'];
-            if (resumeCmds.includes(cmd)) {
-                rl.close();
-            } else {
-                rl.prompt();
-            }
-        });
-
-        rl.on('close', () => {
-            // Nested loop closed, presumably because we are resuming
-        });
-
-        rl.prompt();
+    // While a program is paused, the interactive REPL's prompt is `debug>`
+    // and the lines typed at it are the debugger's (its `eval`, below). It is
+    // the only reader of standard input: a second, opened for the pause,
+    // would see every line too, echo every key twice at a terminal, and,
+    // closed when the run resumed, pause standard input, which ends the
+    // process.
+    let replInstance = null;
+    backend.setOnPause(() => {
+        if (!replInstance) return;
+        replInstance.setPrompt('debug> ');
+        replInstance.displayPrompt();
     });
+    const onResume = backend.onResume.bind(backend);
+    backend.onResume = (action) => {
+        onResume(action);
+        replInstance?.setPrompt('> ');
+    };
 
 
 
@@ -451,30 +432,35 @@ async function startRepl() {
     // Start Interactive REPL
     console.log('Welcome to Scheme-JS');
 
-    const replInstance = repl.start({
+    replInstance = repl.start({
         prompt: '> ',
         eval: async (cmd, context, filename, callback) => {
-            if (isEvaluating) return;
+            // A line typed while a run goes on is taken only once it pauses:
+            // Node's REPL hands this every line, not waiting for the last.
+            if (isEvaluating && !backend.isPaused()) return;
 
             cmd = cmd.trim();
             if (cmd === '') {
                 return callback(null);
             }
 
-            // Handle immediate debug commands
-            if (commands.isDebugCommand(cmd)) {
+            // A debug command is the debugger's, and so is any line while
+            // paused: one that is not a command is evaluated in the selected
+            // frame, as `:eval` evaluates it.
+            if (commands.isDebugCommand(cmd) || backend.isPaused()) {
                 const output = await commands.execute(cmd);
+                // A command that let a paused run go on leaves the prompt to
+                // the run, which shows its result and then `>`, or pauses
+                // again and shows `debug>`; answering would show a prompt
+                // the result then followed on the same line.
+                if (isEvaluating && !backend.isPaused()) {
+                    console.log(output);
+                    return;
+                }
                 return callback(null, output);
             }
 
             try {
-                // If already paused (unlikely to get here if nested loop is active),
-                // the line is the debugger's, evaluated in the selected frame.
-                if (backend.isPaused()) {
-                    const output = await commands.execute(cmd);
-                    return callback(null, output);
-                }
-
                 // Read all of the input before evaluating any of it. Input
                 // that ends inside a datum is continued: Node's REPL prompts
                 // for another line and calls this again with both. Only an

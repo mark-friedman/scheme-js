@@ -63,6 +63,7 @@ export const functionalTests = [
     { path: 'functional/cli_stdin_tests.js', fn: 'runCliStdinTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/cli_stdout_tests.js', fn: 'runCliStdoutTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/cli_repl_input_tests.js', fn: 'runCliReplInputTests', async: true, needsInterpreter: false, nodeOnly: true },
+    { path: 'functional/cli_repl_debug_tests.js', fn: 'runCliReplDebugTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/cli_program_tests.js', fn: 'runCliProgramTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/cli_build_tests.js', fn: 'runCliBuildTests', async: true, needsInterpreter: false, nodeOnly: true },
     { path: 'functional/scope_marking_tests.js', fn: 'runScopeMarkingTests', async: true },

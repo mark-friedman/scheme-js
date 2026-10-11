@@ -481,6 +481,7 @@ compile the page's own code as it runs (`src/compiler/tier.scm`, attached by `sr
 │   │   ├── cli_stdin_tests.js      # `node repl.js` programs reading piped input; the REPL unaffected
 │   │   ├── cli_stdout_tests.js     # What they write: when, in what order, and to which stream
 │   │   ├── cli_repl_input_tests.js # The interactive REPL continuing an expression over lines
+│   │   ├── cli_repl_debug_tests.js # The interactive REPL paused, then resumed or aborted, and answering after
 │   │   ├── cli_build_tests.js      # What a build step run from the CLI is given: -I, the compiler's library, the build's doors
 │   │   ├── string_tests.js
 │   │   ├── string_interop_tests.js # Mutable strings at the JavaScript boundary, both tiers

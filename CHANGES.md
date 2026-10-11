@@ -15356,7 +15356,8 @@ After `:abort` the browser REPL stays at `debug>`, and a line typed there answer
 `;; Not paused` (before this change it showed the same error): `abort!` does not tell the backend, so
 `ReplDebugBackend.isPaused()` stays true. The old `PauseController.abort` did not tell it either. With
 its input piped, the CLI's REPL stops answering once its `debug>` loop closes, after `:c` as after
-`:abort`; `tests/functional/repl_debug.mjs` types nothing after `:c`.
+`:abort`; `tests/functional/repl_debug.mjs` types nothing after `:c`. *(It exited, rather; fixed the next
+day, in "The CLI's REPL answers after a pause".)*
 
 JavaScript under `src/`: `ReplDebugCommands.execute` calls `debugger-input` rather than
 `debugger-command`, fixed in place in a door into the Scheme. 7 lines of JavaScript added and 4 removed,
@@ -15412,3 +15413,42 @@ JavaScript under `src/`: in `interpreter.js`, `EvaluationAborted`, its rethrow a
 exception path's wait, which are the evaluator's; in `repl_debug_backend.js`, `onResume`'s silence for an
 abort, fixed in place; the rest is comments. 32 lines of JavaScript added and 9 removed, most of them
 comments; 19 of Scheme and 12.
+
+# The CLI's REPL answers after a pause (2026-10-11)
+
+Once a program paused at the CLI's REPL had been continued or aborted, the REPL took no more input. It
+was worse than the entry before thought: the process exited. With input piped, a test typing after `:c`
+ended in 0.6 s, its output stopping at the prompt; at a terminal (driven through a pseudo-terminal) every
+key was echoed twice while paused, and the next line after `:c` found no process to write to.
+
+**Why.** On a pause the CLI opened a second `readline` interface on standard input for its `debug>`
+loop, beside the REPL's own. Both read every line: the REPL's `eval` dropped each, since a run was going
+on, and both echoed each key. Closing the second on a resuming command paused standard input, and with
+nothing else to keep it alive the process ended.
+
+**What changed.** The REPL's own input is the only reader. On a pause its prompt becomes `debug>`, and
+when the pause ends, resumed or aborted, `>` again (the backend's `onPause`, and `onResume` wrapped as
+the browser REPL wraps it). Its `eval` gives the debugger a debug command or, while paused, any line,
+before anything else: Node's REPL hands it every line, not waiting for the paused run's own `eval` to
+call back. A line typed while a run goes on unpaused is left unanswered, as it was. A command that lets
+the paused run go on prints its answer and leaves the prompt to the run, which shows its result or error
+and then `>`, or pauses again and shows `debug>`; answering it through the REPL put the run's result
+on the prompt's line.
+
+**Tests.** `tests/functional/cli_repl_debug_tests.js` (Node only, the CLI in a child process with its
+input piped) pauses a run, evaluates a variable in its frame, continues it to its result, evaluates a
+line, pauses another and aborts it, evaluates a line, and has `:abort` refused with nothing paused,
+checking the prompts and that each result or error follows the command's answer on lines of its own.
+Before, six of its nine checks failed, everything after `:c`. The terminal itself was checked by hand
+through a pseudo-terminal, which the suite has no way to drive: no doubled keys, and `:c`, `:s`, `:n`
+and `:abort` each followed by a prompt that answers. Node 9,686 passed, 0 failed, under `npm test`; the browser
+9,351 passed, 0 failed, headless, the new test among its skips.
+
+**Left as found.** Seen while checking, and older than this:
+- A `(pause)` in a procedure the tier has compiled -- here at its second call -- does not hold its run,
+  which runs on to its result, and the debugger stays paused with nothing running, so the prompt says
+  `debug>`. With `--no-compile` every pause holds.
+- A step still in progress when its run ends goes on into the next run, which pauses at its first step,
+  "step complete", before reaching its own pause: seen after `:n` ran to the end of a run.
+- After a step command the run's next pause is shown before the command's own answer, `;; Stepping
+  into...`, as it was with the second interface.
