@@ -3932,3 +3932,75 @@ plugin's code. A step over the use would stop in the template's code, as it does
 *Consequence:* an expansion stays placed at its use (`with-use-span` in `src/core/scheme/expander.scm`)
 and is no scope of its own; stepping into templates waits for DevTools to step by scopes, or for a
 viewer of its own, as Racket's macro stepper is.
+
+*R148 to R151 were found on the branch `evaluator-in-scheme-investigation`, building task 68, which was closed
+2026-10-11; the files they name are that branch's.*
+
+**R148. The ceiling of an evaluator in Scheme did not predict the evaluator's speed.**
+
+Believed after task 109: that the evaluator in Scheme, written to the design of `benchmarks/run_evaluator.scm`
+that measured 1.27 to 1.31 times the JavaScript evaluator's time, would run at about that. Its first
+working version, at task 68(a), ran 2.0 to 2.5 times slower, then 7 to 8 times once the first cause was
+mended, for two reasons the ceiling's smaller loop did not meet. Its loop over an application's operands,
+inside the machine's loop, ended by going round the machine's loop again, and a tail call from a loop
+placed inline to the loop around it went through the trampoline: the machine's loop became a procedure of
+its own, and every step a trip back to it. And once that call was a jump, the machine's loop was placed
+inside its procedure, which then held every move written out where it was used -- the ceiling's moves
+were macros too, in a loop a third the size -- and was over the size V8 optimizes a function at, about
+60 KB of bytecode: run by its middle tier, it was four times slower.
+
+*Consequence:* a tail call from an inline loop to a loop around it is a jump (task 110); the evaluator's
+loop writes each move once, and its rare ones are procedures of their own, which brought it under the limit
+at 1.27 to 1.51 times the JavaScript evaluator's time on the ceiling's kernels. A loop meant to stay fast
+has to stay under V8's limit as it grows, which is a reason to keep what task 68 adds to it in procedures
+of their own.
+
+**R149. The evaluator in Scheme did not keep compiled code's protocol across two boundaries.**
+
+Believed at task 68(b) and (c): that the evaluator in Scheme kept compiled code's protocol -- a capture
+beneath compiled code, compiled frames moved to the heap -- wherever the JavaScript evaluator kept it, since
+the library tests and the tiered runner's files passed on it. Across two or more alternations of compiled
+and interpreted code, a capture was taken as a plain one, which leaves the compiled frames on the
+JavaScript stack out of the continuation, so that resuming it once they had returned skipped them; and
+recursion alternating between compiled and interpreted code overflowed the JavaScript stack, its compiled
+frames never moved to the heap. A run that passes unwinds on continued the segment of compiled frames of
+the code that called it on the assumption that the state of moving them was still its caller's
+(`openCompiledSegment` in `src/core/interpreter/unwind.js`), which nothing changes during a run of the
+JavaScript evaluator; but each call into the evaluator in Scheme stops moves while the evaluator's own
+compiled procedures run, so in a nested run the compiled code it called could move nothing, and the next
+run it called was no boundary an unwind could cross. No file then run on the evaluator in Scheme went two
+boundaries deep; the compiler's tests and the fuzzer, which do, ran on the JavaScript evaluator only.
+
+*Consequence:* a run keeps the state it found on entry, which a segment it continues takes again
+(`enteredFlush` in `src/core/interpreter/scheme_interpreter.js`); and a program's interpreter is now the
+evaluator in Scheme's by default, so that every suite runs on it (68(e)).
+
+**R150. The evaluator in Scheme's loop ran a long run on code a fifth slower than its own.**
+
+Believed through task 68(a) to (e): that the loop, which V8 reported optimized by TurboFan, ran at its
+optimized speed, so that the kernels' 1.2 to 1.3 times the JavaScript evaluator's time, and the canonical
+suite's 1.41, measured the loop's code. A run calls the loop once, and V8 gives a function its fully
+optimized code at a call; within a call it can only replace the running code by code compiled for entering
+the function mid-loop (on-stack replacement), and the loop, entered once a run, ran every run that took
+long -- each canonical program, each kernel, a program the CLI runs -- on that, about 20% slower: `count-to`
+of 100,000 took 120 ms in a process's first configuration and 102 in its second, and 99 in its first after
+2,000 short runs had called the loop. The JavaScript evaluator, whose steps are small functions called once
+a step, never met it.
+
+*Consequence:* the plain loop returns its registers every 64 closures it enters and is called again
+(`machine` in `src/core/scheme/evaluator.scm`); the kernels went from 1.20 to 1.08 times the JavaScript
+evaluator's time by that alone, and every earlier measurement of the evaluator in Scheme is of the slower
+code.
+
+**R151. The JavaScript evaluator does not compute a primitive's application in place.**
+
+Believed at task 68(e), and written into its outcome and the plan's next item: that the JavaScript
+evaluator yields less often than the evaluator in Scheme, and runs faster, partly because it computes a
+primitive's application to variables and literals within the step that needs the value. It evaluates only
+a literal or a variable in place, as the evaluator in Scheme does (`continueApplication` in `frames.js`).
+What its step count leaves out is any step that gives a value, an application of a primitive among them,
+where the evaluator in Scheme counted the turn the application began on.
+
+*Consequence:* item (e1) became what the profile showed instead: an application's values read in the order
+they are collected, a literal or a variable evaluated in place by the loop itself, assignments in the
+loop, and the loop called again every 64 closures (R150).

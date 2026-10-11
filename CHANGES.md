@@ -15296,3 +15296,33 @@ procedure, two loops out, and not from a loop that is not placed inline or a pro
 answers (`tests/functional/loop_compilation_tests.js`). Node 9,652 passed.
 
 JavaScript under `src/`: none.
+
+# Task 68 closed: the evaluator stays JavaScript (2026-10-11)
+
+Task 68, the evaluator written in Scheme, was built on the branch `evaluator-in-scheme-investigation`
+(started as `task-68-evaluator`) and closed with the user before its bootstrap. The branch is kept unmerged,
+for reference; its `CHANGES.md` has each step.
+
+**What was built.** `(scheme-js evaluator)`: nodes as records a Scheme assembler made from core forms, frames
+as records on a stack that was a list, and one loop, written once as a macro making two procedures -- a plain
+one, and a stepped one that counted steps for asynchronous runs and called the debugger's hooks. It ran
+control (continuations, `dynamic-wind`, handlers, `eval`), compiled code's protocol across nested runs, the
+compiler tier's hooks, the debugger and the asynchronous run, and was a program's default interpreter, with
+every suite passing on it, Node and browser. Closures and environments stayed the JavaScript objects they are.
+
+**What it measured**, against the JavaScript evaluator, at its best: the ceiling's kernels 1.06 times the
+time; the canonical suite interpreted 1.23, `parsing` 1.87 and `compiler` 1.80; with the tier attached,
+the corpus 1.06 and the page set 1.02; `benchmark:self-host` interpreted 1.17.
+
+**Why it stopped.** It bought users nothing measurable and cost them some time -- all of a page's own code is
+interpreted under a strict Content-Security-Policy -- and space: its table was about 860 KB of generated code
+in the page bundle, against the JavaScript evaluator's 130 KB of source. Its loop lived near V8's optimization
+cliffs: the stepped loop at about 58 KB of bytecode of the 61.4 KB V8 optimizes, past which it ran two to four
+times slower, and a run's single call of the loop ran on the code V8 compiles for entering a function
+mid-loop, a fifth slower, until the loop was made to return and be called again every 64 closures. And
+finishing it needed a bootstrap of its own: tables compiling every library's top-level forms, the library
+system on it, and a pinned compiled image of about 2.1 MB, so that the JavaScript evaluator could go.
+
+**What it found that holds without it**: task 110, a tail call from an inline loop to a loop around it a jump
+(`earley` twice as fast), now on this branch; task 111, temporaries saved where they are dead, in the plan;
+and R148 to R151 in the findings log.

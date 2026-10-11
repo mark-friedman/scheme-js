@@ -438,8 +438,9 @@ is is known only once its group is lowered, so such a call is tagged as it is se
 group around it is decided (`settle-enclosing-jumps!` in `ir.scm`): dropped if the group is a procedure
 of its own, a jump once the group directly inside its loop is placed inside. Without it, a loop over a
 list inside a loop over another, the inner one ending by going round the outer, made the outer loop a
-procedure of its own and every turn of the inner a trip through the trampoline back to it: the
-evaluator in Scheme ran two and a half times slower than it does with it.
+procedure of its own and every turn of the inner a trip through the trampoline back to it: an
+evaluator written in Scheme, whose loop over an application's operands ends by going round its main loop
+(on the branch `evaluator-in-scheme-investigation`), ran two and a half times slower without it.
 
 Reassigning parameters in place is sound only because every nested procedure is lifted and receives
 its free variables by value, or by box: a closure made in one iteration holds that iteration's values.
