@@ -15551,3 +15551,16 @@ JavaScript under `src/`: `pauseProcedure`, the program's door into `request-paus
 bind; the runtime's `place` and passing it; the place noted in `TailAppNode.step`, the evaluator's;
 `onResume` writing the Scheme's text, fixed in place; the release immediate again. 42 lines of
 JavaScript added and 11 removed, half of them comments; 105 of Scheme and 33.
+
+# `apply` of what is not a procedure reported as an application (2026-10-11)
+
+The interpreter took a tail call to what is neither a procedure nor one of its nodes -- `(apply 5 '(1))` --
+for a node to run, and failed with "ctl.step is not a function". It reports it as an application of what is
+not a procedure, as a call written out is reported: "application: not a procedure: number" (`takeTailCall`
+in `src/core/interpreter/frames.js`). Found on the branch `evaluator-in-scheme-investigation`, comparing its
+evaluator's errors with this one's.
+
+Tests: `apply` of a number, with arguments and with none, and the call written out beside them
+(`tests/core/scheme/control_tests.scm`). Node 9,721 passed, the browser 9,388.
+
+JavaScript under `src/`: 3 lines in the evaluator, fixed in place.

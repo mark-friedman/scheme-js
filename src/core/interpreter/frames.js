@@ -700,6 +700,9 @@ function takeTailCall(result, registers) {
         registers[CTL] = new TailAppNode(new LiteralNode(target), argLiterals);
         return true;
     }
+    // What is neither a procedure nor a node -- `(apply 5 '())` -- is reported
+    // as an application of it is, not run as a node.
+    if (!(target instanceof Executable)) throw new SchemeApplicationError(target);
     registers[CTL] = target;
     // `eval` hands back the expression with the environment it is to run in,
     // which is not the one around the call.

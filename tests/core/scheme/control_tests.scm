@@ -206,4 +206,18 @@
     (test "the unspecified value is one value"
           1
           (call-with-values (lambda () (if #f #f)) (lambda args (length args)))))
+
+  ;; R7RS 6.10: `apply` calls its first argument, which must be a procedure.
+  ;; What is not one is reported as an application of it is, by `apply` as by
+  ;; a call written out.
+  (test-group "apply of what is not a procedure"
+    (test "a call written out"
+          "application: not a procedure: number"
+          (guard (e ((error-object? e) (error-object-message e))) (5 1)))
+    (test "through apply"
+          "application: not a procedure: number"
+          (guard (e ((error-object? e) (error-object-message e))) (apply 5 '(1))))
+    (test "through apply, with no arguments"
+          "application: not a procedure: number"
+          (guard (e ((error-object? e) (error-object-message e))) (apply 5 '()))))
 )
