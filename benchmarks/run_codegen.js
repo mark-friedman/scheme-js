@@ -164,7 +164,7 @@ const GROUPS = [
   },
   {
     name: 'records',
-    about: 'a record\'s constructor, accessor, modifier and predicate, beside a pair\'s (tasks 54 and 109)',
+    about: 'a record\'s constructor, accessor, modifier and predicate, beside a pair\'s (tasks 54 and 109), and fields read after calls (111)',
     definitions: `
       (define-record-type point (make-point x y) point? (x point-x set-point-x!) (y point-y set-point-y!))
       (define-record-type quad (make-quad a b c d) quad? (a quad-a) (b quad-b) (c quad-c) (d quad-d))
@@ -182,6 +182,17 @@ const GROUPS = [
       (define (make-four a) (set! made (make-quad a a a a)) 1)
       (define (make-one-of-two a) (set! made (make-partial a)) 1)
       (define (make-pair a) (set! made (cons a a)) 1)
+      ;; A loop of several arms, each calling and then reading fields, as an
+      ;; interpreter's dispatch loop does: what a frame saved at each call is
+      ;; what liveness finds live there, read on the fast path only if the
+      ;; call unwinds.
+      (define (arms r n)
+        (let loop ((n n) (acc 0))
+          (cond ((= n 0) acc)
+                ((point? r) (one r) (loop (- n 1) (+ acc (point-y r))))
+                ((quad? r) (one r) (loop (- n 1) (if (eq? (quad-b r) (quad-c r)) acc 0)))
+                ((label? r) (one r) (loop (- n 1) (if (eq? (label-x r) 'b) acc 0)))
+                (else acc))))
       (define key-a 'a)
       (define a-point (make-point 'b 2))
       (define a-label (make-label 'b))
@@ -197,7 +208,8 @@ const GROUPS = [
       ['a predicate', '(of-type a-point)'],
       ['a predicate, of what is not its record', '(of-type a-pair)'],
       ['four predicates in a cond, the last true', '(dispatch a-label)'],
-      ['car, a field read inline, for comparison', '(pair-field a-pair)']
+      ['car, a field read inline, for comparison', '(pair-field a-pair)'],
+      ['fields read after calls, in a loop of three arms, eight times round', '(arms a-label 8)']
     ]
   },
   {

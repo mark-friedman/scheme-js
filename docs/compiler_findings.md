@@ -4004,3 +4004,18 @@ where the evaluator in Scheme counted the turn the application began on.
 *Consequence:* item (e1) became what the profile showed instead: an application's values read in the order
 they are collected, a literal or a variable evaluated in place by the loop itself, assignments in the
 loop, and the loop called again every 64 closures (R150).
+
+**R152. A frame did not save only what is live where it resumes.**
+
+Believed since the emitter became Scheme, and written in `compiler_design.md` and `liveness.scm`: that a
+frame saves only what can still be read after it resumes. Since fields were read inline (54) and records
+made inline (109), each such read held the value it read, and each such make the record it filled in, in a
+temporary written and read inside one expression. Liveness sees a write only as an assignment statement,
+so it took each for a local read with nothing written before it: live where the procedure starts and at
+every call before it, and in a loop at every call in every arm. The evaluator written in Scheme (68) saved
+56 values at its loop's first call, 48 of them such temporaries, every one dead there; in the prebuilt
+tables they were 2,474 of the compiler's 20,448 saved slots and 1,284 of the libraries' 14,324. Task 111
+guessed the loop's back edge, or a temporary's scope taken as the whole procedure; it was neither.
+
+*Consequence:* such a temporary is text in the expression rather than a local (`scratch!` in
+`src/compiler/emit.scm`), which liveness does not follow, and no frame saves it.

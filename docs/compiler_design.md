@@ -293,6 +293,14 @@ its call sites, and kept as lists, where each union tests every member of one se
 whole of the other, the sets were a sixth of what compiling cost the canonical programs under the
 tier.
 
+**A temporary an expression writes and reads itself is text, not a local** (`scratch!` in
+`emit.scm`): the value an inline field read holds while it tests it for a number, the record an inline
+constructor fills in. Liveness sees no write inside an expression, so as a local such a temporary was
+read with nothing written before it: live where the procedure starts and at every call before it, and in
+a loop at every call in every arm. Since no call that could suspend comes between its write and its
+read, no frame needs it. A tail call's entry, written and read inside the tail statement, is left out of
+what the statement reads for the same reason.
+
 The restore side is unchanged and names every local. One that was not saved destructures to
 `undefined`, which is safe precisely because it is dead there.
 

@@ -41,10 +41,11 @@
 ;;;
 ;;; The emitter builds statements as tagged lists and renders them to text
 ;;; last. An expression is a list of parts: a string is JavaScript text, and a
-;;; symbol is a local the frame can hold. So which locals a statement reads is
-;;; in the data, and the liveness that decides what a frame saves reads it
-;;; there rather than scanning text -- where a local's name inside a string
-;;; literal used to count as a read.
+;;; symbol is a local the frame can hold -- not a temporary the expression
+;;; writes and reads itself, which is text (`scratch!`). So which locals a
+;;; statement reads is in the data, and the liveness that decides what a frame
+;;; saves reads it there rather than scanning text -- where a local's name
+;;; inside a string literal used to count as a read.
 ;;;
 ;;;   (assign target expr)     target = expr;   (a symbol target defines it)
 ;;;   (eval expr)              expr;
@@ -1151,6 +1152,17 @@
     sym))
 
 ;; /**
+;;  * A fresh temporary that one expression writes and then reads, with no call
+;;  * between that could suspend the procedure, so that no frame ever needs it.
+;;  * It is text in the expression rather than a local: liveness sees no write
+;;  * inside an expression, so as a local it would be live, and saved, at every
+;;  * call before it -- in a loop, at every call in every arm.
+;;  * @param {form} form - The emission.
+;;  * @returns {string} Its name.
+;;  */
+(define (scratch! form) (symbol->string (temp! form)))
+
+;; /**
 ;;  * The name and position of the next procedure nested directly in this one.
 ;;  * The name spells out where it sits -- `$fn2_0` is the first inside the
 ;;  * third inside the outermost -- which makes it unique in the unit without a
@@ -1619,7 +1631,7 @@
 ;;  * @returns {list} The expression.
 ;;  */
 (define (record-read form callee record key)
-  (let ((value (temp! form)))
+  (let ((value (scratch! form)))
     (js callee "?.[" (runtime form '$READS) "] === " key
         " && " record " instanceof " callee "[" (runtime form '$RTYPE) "]"
         " ? ((" value " = " (property-object record) "[" key "]), typeof " value " === 'number'"
@@ -1669,7 +1681,7 @@
 ;;  * @returns {list} The expression.
 ;;  */
 (define (record-make form callee operands made)
-  (let ((record (temp! form))
+  (let ((record (scratch! form))
         (tags (constructor-tags made)))
     (define (argument-of field)
       (let loop ((tags tags) (operands operands))

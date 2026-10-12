@@ -15564,3 +15564,39 @@ Tests: `apply` of a number, with arguments and with none, and the call written o
 (`tests/core/scheme/control_tests.scm`). Node 9,721 passed, the browser 9,388.
 
 JavaScript under `src/`: 3 lines in the evaluator, fixed in place.
+
+# Task 111: what an expression holds for itself, no frame saves (2026-10-12)
+
+Found on the branch `evaluator-in-scheme-investigation`: each call in its evaluator's compiled loop saved 53 to
+57 values, most of them temporaries dead there. The cause was not the loop's back edge, as the plan guessed, but
+writes liveness could not see. An inline field read holds the value it reads in a temporary while it tests it for
+a number, and an inline constructor holds the record it fills in; each temporary is written and read inside one
+expression. Liveness sees a write only as an assignment statement, so it took each for a read with nothing written
+before it: live where the procedure starts and at every call before it, and in a loop at every call in every arm.
+All 48 temporaries the evaluator's loop saved at its first call were these (R152).
+
+Such a temporary is now text in the expression rather than a local (`scratch!` in `src/compiler/emit.scm`), so
+liveness does not follow it and no frame saves it -- as a tail call's entry, written and read inside its statement,
+was already left out. `compiler_design.md` says so beside the rest of liveness.
+
+**Measured**, from two copies of the repository alike but for the change. The prebuilt tables' frames: the
+compiler's 20,448 slots to 17,974, the libraries' 14,324 to 13,040; the tables 12.6 KB and 7.1 KB smaller. A frame
+is made only when a continuation is captured, and V8 paid nothing measurable for keeping the dead values for it on
+the fast path: the canonical suite compiled is level over two full alternating runs, and over more runs of the
+programs that moved (`fibc` 0.99, `dynamic` 1.01, over eight each), none of its programs defining a record;
+`run_codegen.js`'s `records` group has a new workload, fields read after calls in a loop of three arms, 116 to 120
+ns either way, and the rest of the group's code is unchanged; `run_tier.js`'s corpus set level over four
+alternating runs of each copy (medians 2,610 and 2,626 ms, the copy before's own runs 2,554 to 2,795), the page
+set level (153.8 and 155.7 ms before, 156.5 and 153.0 after); `benchmark:self-host` level (67.7 to 70.2 ms a pass
+compiled with its library before, 67.7 to 69.1 after).
+
+Of the temporaries frames still save, those checked are live. About one in seven of the compiler's holds a string
+literal, copied aside because an operand after it calls something, which a frame could leave out and the
+resumable form write again; not done, since it is small and costs nothing until a capture.
+
+**Tests.** `emit_tests.scm`: the frame saved at a call before a field is read, before a record is made, and in a
+loop reading fields, holds only what is read after the call. Node 9,730 passed, 0 failed, on a second run: the
+first lost the DevTools suite to its "did not become ready" under the rebuild's load; the browser 9,391 passed, 0
+failed, headless.
+
+JavaScript under `src/`: none. `benchmarks/run_codegen.js` gains the workload.

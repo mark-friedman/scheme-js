@@ -723,6 +723,30 @@
         (list (has? testing "?.[$TESTS] === true") (has? testing "p instanceof") (has? testing "R.callBinding(")))
   (test "not at another arity" #f (has? (unit-with '((point? predicate)) '(define (f p) (point? p p))) "$TESTS")))
 
+;; Reading a field inline holds the value read, and making a record holds the
+;; record, in a temporary of its own, written and read inside the one
+;; expression. No call can suspend the procedure between the two, so no frame
+;; needs it: one saved at a call before it holds what is read after the call
+;; and nothing else -- in a loop, too, where anything a frame is wrongly given
+;; is live at every call in every arm.
+(test-group "records - what an inline read or make holds for itself, no frame saves"
+  (define (unit-with records definition)
+    (let ((lowered (lower-lambda (analyze-lambda definition))))
+      (car (generate-unit (lowered-ir lowered) (lowered-globals lowered) (lowered-library-globals lowered)
+                          "f" '() #f #f records))))
+  ;; What the frame the twin saves at its first resume point holds.
+  (define (first-frame text)
+    (let* ((at (string-contains text "R.reify($proc$r, "))
+           (open (string-contains text "{" at)))
+      (substring text open (+ (string-contains text "}" open) 1))))
+  (test "a call before a field is read" "{ p }"
+        (first-frame (unit-with '((point-x accessor . x)) '(define (f p) (g) (point-x p)))))
+  (test "a call before a record is made" "{ a, b }"
+        (first-frame (unit-with '((make-point constructor "K" (x y) (x y))) '(define (f a b) (g) (make-point a b)))))
+  (test "a call in a loop that reads fields" "{ p_2 }"
+        (first-frame (unit-with '((point-x accessor . x) (point-next accessor . next))
+                                '(define (f p) (let loop ((p p)) (g) (if (point-x p) (loop (point-next p)) p)))))))
+
 ;; A rest parameter the procedure neither assigns nor lets a nested procedure
 ;; capture stays, in the fast form, the array of the arguments, until it is
 ;; used as a list: `null?`, `pair?` and `car` of it, and of its tails by
